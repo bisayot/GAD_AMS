@@ -20,7 +20,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import axios from 'axios';
+import api from '../api';
 
 const identity = ref('');
 const password = ref('');
@@ -32,15 +32,20 @@ const handleLogin = async () => {
   error.value = '';
   
   try {
-    const response = await axios.post('http://localhost/GAD_v12/backend/public/api/login', {
+    const response = await api.post('api/login', {
       identity: identity.value,
       password: password.value
     });
     
-    alert('Login successful! Welcome ' + response.data.user.username);
-    // Here you would typically store the user data and redirect
+    if (response.data.user?.username) {
+      localStorage.setItem('authToken', response.data.token || '');
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      alert('Login successful! Welcome ' + response.data.user.username);
+      // Here you would typically store the user data and redirect
+    }
   } catch (err) {
-    error.value = err.response?.data?.messages?.error || 'Login failed. Please try again.';
+    console.error('Login error:', err);
+    error.value = err.message || err.error || JSON.stringify(err) || 'Login failed. Please try again.';
   } finally {
     loading.value = false;
   }

@@ -106,4 +106,9 @@ class AuthController extends ResourceController
     {
         return $this->respond(['message' => 'Logout successful']);
     }
+
+    public function handleOptions()
+    {
+        return $this->respond(['status' => 200]);
+    }
 }
