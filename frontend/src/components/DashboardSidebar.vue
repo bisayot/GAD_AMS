@@ -1,16 +1,15 @@
 <template>
   <aside class="w-64 bg-[#1a1a2e] text-white fixed h-full flex flex-col p-6 shadow-xl z-50">
-    <div class="mb-10 flex items-center gap-3 border-b border-white/10 pb-6">
-      <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-        <span class="material-symbols-outlined text-white">account_balance</span>
-      </div>
-      <div>
-        <h2 class="font-headline font-bold text-lg leading-none">GAD-IMS</h2>
-        <span class="text-[10px] text-purple-400 font-bold uppercase tracking-widest">{{ roleLabel }}</span>
-      </div>
+    <div class="sidebar-logo">
+    <img src="/images/bsulogo.png" alt="BSU Logo" />
+    <div class="logo-text">
+      <div class="logo-subtitle">Benguet State University</div>
+      <div class="logo-title">GAD-IMS</div>
+      <div class="logo-dept">Gender and Development Office</div>
     </div>
+  </div>
 
-    <nav class="flex-grow space-y-2 overflow-y-auto custom-scrollbar">
+    <nav class="flex-grow space-y-1 overflow-y-auto custom-scrollbar">
       <router-link 
         v-for="item in menuItems" 
         :key="item.label"
@@ -42,6 +41,54 @@ defineEmits(['logout']);
 </script>
 
 <style scoped>
+  /* Logo section */
+  .sidebar-logo {
+    padding: 0 12px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    padding-bottom: 16px;
+    flex-shrink: 0;
+  }
+
+  .sidebar-logo img {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+  }
+
+  .logo-text {
+    text-align: left;
+  }
+
+  .logo-subtitle {
+    font-size: 10px;
+    font-weight: 700;
+    color: #b979cc;
+    letter-spacing: -0.025em;
+    line-height: 1;
+  }
+
+  .logo-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.05em;
+    line-height: 1;
+  }
+
+  .logo-dept {
+    font-size: 7px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #94a3b8;
+    font-weight: 500;
+    margin-top: 2px;
+  }
+  
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }
