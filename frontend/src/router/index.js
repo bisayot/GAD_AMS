@@ -7,7 +7,6 @@ import ResourcesView from '../views/ResourcesView.vue'
 import GADCornerView from '../views/GADCornerView.vue'
 import ContactView from '../views/ContactView.vue'
 import AdminDashboard from '../views/AdminDashboard.vue'
-import AdminAnnualReport from '../views/AdminAnnualReport.vue'
 import CollegeDashboard from '../views/CollegeDashboard.vue'
 import StaffDashboard from '../views/StaffDashboard.vue'
 import PlaceholderView from '../views/PlaceholderView.vue'
@@ -21,29 +20,68 @@ const routes = [
   { path: '/gad-corner', name: 'gad-corner', component: GADCornerView },
   { path: '/contact', name: 'contact', component: ContactView },
   
-  // Admin Routes
-  { path: '/admin/dashboard', name: 'admin-dashboard', component: AdminDashboard },
-  { path: '/admin/annual-report', name: 'admin-annual-report', component: AdminAnnualReport },
-  { path: '/admin/gad-plan-budget', name: 'admin-gad-plan-budget', component: PlaceholderView },
-  { path: '/admin/mandates', name: 'admin-mandates', component: PlaceholderView },
-  { path: '/admin/archive', name: 'admin-archive', component: PlaceholderView },
-  { path: '/admin/user-manual', name: 'admin-user-manual', component: PlaceholderView },
+  // Admin Routes (Nested)
+  { 
+    path: '/admin', 
+    component: AdminDashboard, 
+    children: [
+      { path: 'dashboard', name: 'admin-dashboard', component: () => import('../views/admin/AdminDashboardContent.vue') },
+      { path: 'submitted-list', name: 'admin-submitted', component: () => import('../views/admin/SubmittedListView.vue') },
+      { path: 'ad-list', name: 'admin-activity-designs', component: () => import('../views/admin/ADListView.vue') },
+      { path: 'ar-list', name: 'admin-accomplishment-reports', component: () => import('../views/admin/ArListView.vue') },
+      { path: 'archive', name: 'admin-archive', component: () => import('../views/admin/ArchiveView.vue') },
+      { path: 'mandates', name: 'admin-mandates', component: () => import('../views/admin/MandatesView.vue') },
+      { path: 'reports', name: 'admin-reports', component: () => import('../views/admin/ReportsView.vue') },
+      { path: 'user-manual', name: 'admin-user-manual', component: () => import('../views/admin/UserManualView.vue') },
+      { path: 'budget', name: 'admin-budget', component: () => import('../views/admin/BudgetView.vue') },
+      { path: 'design-review', name: 'admin-design-review', component: () => import('../views/admin/DesignReview.vue') },
+      { path: 'design-view', name: 'admin-design-view', component: () => import('../views/admin/DesignView.vue') },
+      { path: 'assign-mandates', name: 'admin-assign-mandates', component: () => import('../views/admin/AssignMandates.vue') },
+      { path: 'gad-plan-budget', name: 'admin-gad-plan-budget', component: () => import('../views/admin/GadPlanBudgetView.vue')},
+      { path: 'data-privacy-policy', name: 'admin-privacy-policy', component: () => import('../views/admin/PrivacyPolicyView.vue') },
+    ]
+  },
 
-  // College Routes
-  { path: '/college/dashboard', name: 'college-dashboard', component: CollegeDashboard },
-  { path: '/college/submit-design', name: 'college-submit-design', component: PlaceholderView },
-  { path: '/college/submit-accomplishment', name: 'college-submit-accomplishment', component: PlaceholderView },
-  { path: '/college/tech-assist', name: 'college-tech-assist', component: PlaceholderView },
-  { path: '/college/mandates', name: 'college-mandates', component: PlaceholderView },
-  { path: '/college/archive', name: 'college-archive', component: PlaceholderView },
+  // TWG Routes
+  { 
+    path: '/college', 
+    component: CollegeDashboard, 
+    children: [
+      { path: 'submit', name: 'submit', component: () => import('../views/twg/SubmittView.vue') },
+      { path: 'submit-design', name: 'college-submit-ad', component: () => import('../views/twg/SubmitADView.vue') },
+      { path: 'submit-report', name: 'college-submit-ar', component: () => import('../views/twg/SubmitARView.vue') },
+      { path: 'dashboard', name: 'college-dashboard', component: () => import('../views/twg/CollegeDashboardContent.vue') },
+      { path: 'submitted-list', name: 'college-submitted-list', component: () => import('../views/twg/SubmittedListView.vue') },
+      { path: 'archive', name: 'college-archive', component: () => import('../views/twg/ArchiveView.vue') },
+      { path: 'mandates', name: 'college-mandates', component: () => import('../views/twg/MandatesView.vue') },
+      { path: 'gad-plan-budget', name: 'college-gad-plan-budget', component: () => import('../views/twg/GadPlanBudgetView.vue') },
+      { path: 'user-manual', name: 'college-user-manual', component: () => import('../views/twg/UserManualView.vue') },
+      { path: 'data-privacy-policy', name: 'college-privacy-policy', component: () => import('../views/twg/PrivacyPolicyView.vue') },
+    ]
+  },
 
   // Staff Routes
-  { path: '/staff/dashboard', name: 'staff-dashboard', component: StaffDashboard },
-  { path: '/staff/reviews', name: 'staff-reviews', component: PlaceholderView },
-  { path: '/staff/budget', name: 'staff-budget', component: PlaceholderView },
-  { path: '/staff/reports', name: 'staff-reports', component: PlaceholderView },
-  { path: '/staff/mandates', name: 'staff-mandates', component: PlaceholderView },
-  { path: '/staff/user-manual', name: 'staff-user-manual', component: PlaceholderView },
+  { 
+    path: '/staff', 
+    component: StaffDashboard, 
+    children: [
+      { path: 'submit', name: 'submit', component: () => import('../views/staff/SubmitView.vue') },
+      { path: 'submit-design', name: 'staff-submit-ad', component: () => import('../views/staff/SubmitADView.vue') },
+      { path: 'submit-report', name: 'staff-submit-ar', component: () => import('../views/staff/SubmitARView.vue') },
+      { path: 'dashboard', name: 'staff-dashboard', component: () => import('../views/staff/StaffDashboardContent.vue') },
+      { path: 'submitted-list', name: 'staff-submitted-list', component: () => import('../views/staff/SubmittedListView.vue') },
+      { path: 'ad-list', name: 'staff-ad-list', component: () => import('../views/staff/AdListView.vue') },
+      { path: 'ar-list', name: 'staff-ar-list', component: () => import('../views/staff/ARListView.vue') },
+      { path: 'archive', name: 'staff-archive', component: () => import('../views/staff/ArchiveView.vue') },
+      { path: 'mandates', name: 'staff-mandates', component: () => import('../views/staff/MandatesView.vue') },
+      { path: 'gad-plan-budget', name: 'staff-gad-plan-budget', component: () => import('../views/staff/GadPlanBudgetView.vue') },
+      { path: 'reports', name: 'staff-reports', component: () => import('../views/staff/ReportsView.vue') },
+      { path: 'budget', name: 'staff-budget', component: () => import('../views/staff/BudgetView.vue') },
+      { path: 'budget-allocation', name: 'staff-budget-allocation', component: () => import('../views/staff/BudgetAllocationView.vue') },
+      { path: 'user-manual', name: 'staff-user-manual', component: () => import('../views/staff/UserManualView.vue') },
+      { path: 'data-privacy-policy', name: 'staff-privacy-policy', component: () => import('../views/staff/PrivacyPolicyView.vue') },
+    ]
+  },
 ]
 
 const router = createRouter({

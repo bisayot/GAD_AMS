@@ -13,11 +13,22 @@ import Navbar from './components/Navbar.vue';
 import Footer from './components/Footer.vue';
 
 const route = useRoute();
-const isDashboard = computed(() => route.path.includes('/dashboard'));
+const isDashboard = computed(() => {
+  const path = route.path;
+  return (
+    path.includes('/admin/') || 
+    path.includes('/staff/') || 
+    path.includes('/college/')
+  );
+});
 </script>
 
 <style>
-/* Global styles can stay here or in style.css */
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+body {
+  margin: 0;
+  font-family: 'Manrope', sans-serif;
+}
 </style>

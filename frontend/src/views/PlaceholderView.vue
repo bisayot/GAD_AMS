@@ -48,14 +48,14 @@ const title = computed(() => {
 
 const context = computed(() => {
   if (route.path.includes('/admin')) return 'Administration';
-  if (route.path.includes('/college')) return 'College/Unit';
+  if (route.path.includes('/college')) return 'Technical Working Group (TWG)';
   if (route.path.includes('/staff')) return 'GAD Staff';
   return 'Module';
 });
 
 const roleLabel = computed(() => {
   if (route.path.includes('/admin')) return 'Administrator';
-  if (route.path.includes('/college')) return 'College/Unit';
+  if (route.path.includes('/college')) return 'Technical Working Group (TWG)';
   if (route.path.includes('/staff')) return 'GAD Staff';
   return 'User';
 });
@@ -70,21 +70,28 @@ const adminMenu = [
 ];
 
 const collegeMenu = [
+  { label: 'New Submission', icon: 'add', href: '/college/submit' },
   { label: 'Dashboard', icon: 'dashboard', href: '/college/dashboard' },
-  { label: 'Submit Design', icon: 'add_task', href: '/college/submit-design' },
-  { label: 'Submit Accomplishment', icon: 'fact_check', href: '/college/submit-accomplishment' },
-  { label: 'Technical Assist', icon: 'support_agent', href: '/college/tech-assist' },
+  { label: 'Submitted List', icon: 'list', href: '/college/submitted-list' },
+  { label: 'Archives', icon: 'archive', href: '/college/archive' },
   { label: 'Mandates', icon: 'gavel', href: '/college/mandates' },
-  { label: 'Archives', icon: 'archive', href: '/college/archive' }
+  { label: 'User Manual', icon: 'menu_book', href: '/college/user-manual' },
+  { label: 'Data Privacy Policy', icon: 'privacy_tip', href: '/college/data-privacy-policy' }
+  
 ];
 
 const staffMenu = [
+  { label: 'New Submission', icon: 'add', href: '/staff/submit' },
   { label: 'Dashboard', icon: 'dashboard', href: '/staff/dashboard' },
-  { label: 'Review Submissions', icon: 'rate_review', href: '/staff/reviews' },
-  { label: 'Budget Utilization', icon: 'payments', href: '/staff/budget' },
-  { label: 'Annual Reports', icon: 'description', href: '/staff/reports' },
+  { label: 'Submitted List', icon: 'list', href: '/staff/submitted-list' },
+  { label: 'Activity Design List', icon: 'list', href: '/staff/ad-list' },
+  { label: 'Accomplishment Report List', icon: 'list', href: '/staff/ar-list' },
+  { label: 'Archives', icon: 'archive', href: '/staff/archive' },
   { label: 'Mandates', icon: 'gavel', href: '/staff/mandates' },
-  { label: 'User Manual', icon: 'menu_book', href: '/staff/user-manual' }
+  { label: 'Report Monitoring', icon: 'description', href: '/staff/reports' },
+  { label: 'Budget Monitoring', icon: 'payments', href: '/staff/budget' },
+  { label: 'User Manual', icon: 'menu_book', href: '/staff/user-manual' },
+  { label: 'Data Privacy Policy', icon: 'privacy_tip', href: '/staff/data-privacy-policy' }
 ];
 
 const menuItems = computed(() => {
@@ -96,7 +103,7 @@ const menuItems = computed(() => {
 
 const handleLogout = async () => {
   try {
-    await axios.get('http://localhost/GAD_v12/backend/public/api/logout');
+    await axios.get('http://localhost:8080/api/logout');
     localStorage.removeItem('user');
     router.push('/login');
   } catch (err) {

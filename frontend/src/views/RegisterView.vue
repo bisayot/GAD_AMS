@@ -91,7 +91,7 @@
 
 <script setup>
 import { reactive, ref } from 'vue';
-import api from '../api';
+import axios from 'axios';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
@@ -119,11 +119,11 @@ const handleRegister = async () => {
   error.value = '';
   
   try {
-    const response = await api.post('api/register', form);
+    const response = await axios.post('http://localhost:8080/api/register', form);
     success.value = response.data.message;
     setTimeout(() => router.push('/login'), 2000);
   } catch (err) {
-    error.value = err.message || err.error || 'Registration failed. Please try again.';
+    error.value = err.response?.data?.messages?.error || 'Registration failed. Please try again.';
   } finally {
     loading.value = false;
   }

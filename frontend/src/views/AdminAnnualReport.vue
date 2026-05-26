@@ -173,7 +173,7 @@ const totals = computed(() => {
 
 const handleLogout = async () => {
   try {
-    await axios.get('http://localhost/GAD_v12/backend/public/api/logout');
+    await axios.get('http://localhost:8080/api/logout');
     localStorage.removeItem('user');
     router.push('/login');
   } catch (err) {

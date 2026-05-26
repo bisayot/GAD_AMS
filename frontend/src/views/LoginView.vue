@@ -128,7 +128,8 @@ const handleLogin = async () => {
   error.value = '';
   
   try {
-    const response = await axios.post('http://localhost/GAD_v12/backend/public/api/login', {
+    // Change .get to .post, and remove the "params:" wrapper
+    const response = await axios.post('http://localhost:8080/api/login', {
       identity: identity.value,
       password: password.value
     });
@@ -144,13 +145,21 @@ const handleLogin = async () => {
     else router.push('/');
     
   } catch (err) {
-      console.error('Login error:', err);
-      if (err.response && err.response.data && err.response.data.messages) {
-        error.value = err.response.data.messages.error || 'Login failed';
-      } else {
-        error.value = 'Connection error. Please check if the backend is running.';
-      }
-    } finally {
+    console.error('Login error:', err);
+    
+    if (err.response?.status === 401) {
+      error.value = 'Invalid credentials';
+    } else if (err.response?.status === 429) {
+      error.value = 'Too many login attempts. Try again later.';
+    } else if (err.response?.data?.messages?.error) {
+      error.value = err.response.data.messages.error;
+    } else if (err.code === 'ECONNREFUSED') {
+      // Axios error fallback
+      error.value = 'Backend is not running. Start it first.';
+    } else {
+      error.value = 'An error occurred. Please try again.';
+    }
+  } finally {
     loading.value = false;
   }
 };
