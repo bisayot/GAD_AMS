@@ -1,12 +1,19 @@
 <template>
-  <div class="college-dashboard bg-background min-h-screen flex">
+  <div class="college-dashboard">
     <DashboardSidebar
       roleLabel="College/Unit"
       :menuItems="collegeMenu"
       @logout="handleLogout"
     />
-    <div class="flex-grow ml-64 flex flex-col min-h-screen">
-      <router-view />
+
+    <div class="dashboard-main bg-slate-50">
+      <header class="dashboard-header bg-[#1a1a2e] border-b border-purple-900/30"></header>
+
+      <main class="dashboard-main-content">
+        <div class="content-wrapper">
+          <router-view />
+        </div>
+      </main>
     </div>
   </div>
 </template>
@@ -52,3 +59,11 @@ onMounted(() => {
   }
 });
 </script>
+
+<style scoped>
+.college-dashboard { min-height: 100vh; display: flex; background-color: #f8fafc; }
+.dashboard-main { flex-grow: 1; margin-left: 256px; display: flex; flex-direction: column; min-height: 100vh; }
+.dashboard-header { position: fixed; top: 0; left: 256px; right: 0; height: 80px; z-index: 10; display: flex; align-items: center; padding: 0 40px; background: #1a1a2e; border-bottom: 1px solid rgba(185, 121, 204, 0.3); }
+.dashboard-main-content { padding-top: 80px; flex-grow: 1; display: block; width: 100%; }
+.content-wrapper { padding: 40px; width: 100%; }
+</style>

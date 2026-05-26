@@ -1,12 +1,10 @@
 <template>
-  <div class="flex flex-col flex-grow">
-    <DashboardHeader
-      title="Annual Report"
-      context="Report Monitoring"
-      :username="user?.username"
-    />
-    <main class="p-8">
-        <div class="flex justify-between items-center mb-10">
+  <div class="annual-report-content">
+    <div class="page-header mb-6">
+      <h1 class="text-2xl font-bold text-slate-900">Annual Report</h1>
+      <p class="text-slate-500 text-sm mt-1">Report monitoring and consolidation</p>
+    </div>
+    <div class="flex justify-between items-center mb-10">
           <div class="flex items-center gap-4">
             <select v-model="selectedYear" class="bg-white border border-outline-variant/30 rounded-xl px-4 py-2 text-sm font-bold shadow-sm focus:ring-2 focus:ring-primary outline-none">
               <option v-for="year in [2026, 2025, 2024]" :key="year" :value="year">{{ year }}</option>
@@ -102,14 +100,12 @@
             </table>
           </div>
         </div>
-    </main>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import DashboardHeader from '../components/DashboardHeader.vue';
 
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));

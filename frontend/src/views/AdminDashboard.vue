@@ -1,12 +1,19 @@
 <template>
-  <div class="admin-dashboard bg-background min-h-screen flex">
+  <div class="admin-dashboard bg-slate-50">
     <DashboardSidebar
       roleLabel="Administrator"
       :menuItems="adminMenu"
       @logout="handleLogout"
     />
-    <div class="flex-grow ml-64 flex flex-col min-h-screen">
-      <router-view />
+
+    <div class="dashboard-main bg-slate-50">
+      <header class="dashboard-header bg-[#1a1a2e] border-b border-purple-900/30"></header>
+
+      <main class="dashboard-main-content">
+        <div class="content-wrapper">
+          <router-view />
+        </div>
+      </main>
     </div>
   </div>
 </template>
@@ -23,14 +30,14 @@ const adminMenu = [
   { label: 'Dashboard', icon: 'dashboard', href: '/admin/dashboard' },
   { label: 'Annual Reports', icon: 'description', href: '/admin/annual-report' },
   { label: 'Submitted List', icon: 'folder', href: '/admin/submitted-list' },
-  { label: 'Activity Design List', icon: 'design_services', href: '/admin/ad-list' },
-  { label: 'Accomplishment Report List', icon: 'fact_check', href: '/admin/ar-list' },
+  { label: 'Activity Design List', icon: 'description', href: '/admin/ad-list' },
+  { label: 'Accomplishment Report List', icon: 'description', href: '/admin/ar-list' },
   { label: 'Plan & Budget', icon: 'account_balance_wallet', href: '/admin/gad-plan-budget' },
-  { label: 'Mandates', icon: 'gavel', href: '/admin/mandates' },
-  { label: 'Archives', icon: 'archive', href: '/admin/archive' },
+  { label: 'Mandates Management', icon: 'account_balance', href: '/admin/mandates' },
+  { label: 'Archive', icon: 'archive', href: '/admin/archive' },
   { label: 'Report Monitoring', icon: 'bar_chart', href: '/admin/reports' },
-  { label: 'Budget Monitoring', icon: 'payments', href: '/admin/budget' },
-  { label: 'User Manual', icon: 'menu_book', href: '/admin/user-manual' },
+  { label: 'Budget Monitoring', icon: 'account_balance_wallet', href: '/admin/budget' },
+  { label: 'User Manual', icon: 'help', href: '/admin/user-manual' },
   { label: 'Data Privacy Policy', icon: 'privacy_tip', href: '/admin/data-privacy-policy' }
 ];
 
@@ -53,3 +60,11 @@ onMounted(() => {
   }
 });
 </script>
+
+<style scoped>
+.admin-dashboard { min-height: 100vh; display: flex; background-color: #f8fafc; }
+.dashboard-main { flex-grow: 1; margin-left: 256px; display: flex; flex-direction: column; min-height: 100vh; }
+.dashboard-header { position: fixed; top: 0; left: 256px; right: 0; height: 80px; z-index: 10; display: flex; align-items: center; padding: 0 40px; background: #1a1a2e; border-bottom: 1px solid rgba(185, 121, 204, 0.3); }
+.dashboard-main-content { padding-top: 80px; flex-grow: 1; display: block; width: 100%; }
+.content-wrapper { padding: 40px; width: 100%; }
+</style>
