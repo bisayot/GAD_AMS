@@ -11,50 +11,46 @@ class AuthController extends ResourceController
 
     public function login()
     {
-        // Handle JSON or Form-data
+        // Accept JSON body or form-data
         $data = $this->request->getJSON(true) ?: $this->request->getPost();
 
         $rules = [
-            'identity' => 'required',
-            'password' => 'required'
+            'email'    => 'required|valid_email',
+            'password' => 'required',
         ];
 
         if (!$this->validateData($data, $rules)) {
             return $this->fail($this->validator->getErrors());
         }
 
-        $identity = trim($data['identity']);
+        $email    = trim($data['email']);
         $password = $data['password'];
 
-        log_message('error', "LOGIN ATTEMPT: Identity=[$identity]");
-
         $userModel = new UserModel();
-        $user = $userModel->findByIdentity($identity);
+        $user      = $userModel->findByEmail($email);
 
         if (!$user) {
-            return $this->failUnauthorized("User not found for identity: $identity");
+            return $this->failUnauthorized('No account found with that email address.');
         }
 
         if (!password_verify($password, $user['password'])) {
-            // Debug: Check if it's a legacy MD5 or something (unlikely but let's check)
-            if (md5($password) === $user['password']) {
-                 return $this->failUnauthorized('Legacy MD5 password detected. Please reset your password.');
-            }
-            return $this->failUnauthorized("Password verification failed for user: " . $user['username']);
+            return $this->failUnauthorized('Incorrect password.');
         }
 
-        log_message('error', "LOGIN SUCCESS: User [" . $user['username'] . "] authenticated.");
+        // Build the display name from profile columns
+        $displayName = trim($user['first_name'] . ' ' . ($user['middle_name'] ? $user['middle_name'][0] . '. ' : '') . $user['last_name']);
 
-        // In a real app, you'd generate a JWT here. 
-        // For this demo, we'll just return user info.
         return $this->respond([
-            'status' => 200,
+            'status'  => 200,
             'message' => 'Login successful',
-            'user' => [
-                'id' => $user['id'],
-                'username' => $user['username'],
-                'role' => $user['role']
-            ]
+            'user'    => [
+                'id'         => $user['id'],
+                'email'      => $user['email'],
+                'first_name' => $user['first_name'],
+                'last_name'  => $user['last_name'],
+                'name'       => $displayName,
+                'role'       => $user['user_role'],  // Director | Staff | TWG | Non-TWG
+            ],
         ]);
     }
 
@@ -63,43 +59,45 @@ class AuthController extends ResourceController
         $data = $this->request->getJSON(true) ?: $this->request->getPost();
 
         $rules = [
-            'fullname' => 'required',
-            'university_id' => 'required',
-            'department' => 'required',
-            'email' => 'required|valid_email',
-            'password' => 'required|min_length[6]',
-            'confirm_password' => 'required|matches[password]'
+            'first_name'       => 'required|max_length[100]',
+            'last_name'        => 'required|max_length[100]',
+            'middle_name'      => 'permit_empty|max_length[100]',
+            'email'            => 'required|valid_email|max_length[255]',
+            'user_role'        => 'required|in_list[Director,Staff,TWG,Non-TWG]',
+            'password'         => 'required|min_length[6]',
+            'confirm_password' => 'required|matches[password]',
         ];
 
         if (!$this->validateData($data, $rules)) {
             return $this->fail($this->validator->getErrors());
         }
 
-        $email = $data['email'];
-        $username = strtolower(str_replace(' ', '_', explode('@', $email)[0]));
-        
+        $email = trim($data['email']);
+
         $userModel = new UserModel();
-        
-        // Check if user exists
-        if ($userModel->findByIdentity($email)) {
-            return $this->failResourceExists('A user with that email or username already exists');
+
+        // Check for duplicate email
+        if ($userModel->findByEmail($email)) {
+            return $this->failResourceExists('An account with that email already exists.');
         }
 
-        $userData = [
-            'username' => $username,
-            'email' => $email,
-            'password' => password_hash($data['password'], PASSWORD_DEFAULT),
-            'role' => 'college', // Default role for registration
-            'full_name' => $data['fullname'],
-            'student_id' => $data['university_id'],
-            'college' => $data['department']
-        ];
+        $userId = $userModel->registerUser(
+            $email,
+            password_hash($data['password'], PASSWORD_DEFAULT),
+            [
+                'first_name'     => trim($data['first_name']),
+                'middle_name'    => isset($data['middle_name']) ? trim($data['middle_name']) : null,
+                'last_name'      => trim($data['last_name']),
+                'user_role'      => $data['user_role'],
+                'office_unit_id' => isset($data['office_unit_id']) ? (int) $data['office_unit_id'] : null,
+            ]
+        );
 
-        if ($userModel->insert($userData)) {
-            return $this->respondCreated(['message' => 'Account created successfully. Please log in.']);
+        if (!$userId) {
+            return $this->fail('Unable to create account. Please try again later.');
         }
 
-        return $this->fail('Unable to create account. Please try again later.');
+        return $this->respondCreated(['message' => 'Account created successfully. Please log in.']);
     }
 
     public function logout()

@@ -217,7 +217,7 @@ const fetchMandates = () => {
 };
 
 onMounted(() => {
-  if (!user.value.id || user.value.role !== 'college') {
+  if (!user.value.id || !['TWG','Non-TWG','college'].includes(user.value.role)) {
     router.push('/login');
   }
   fetchMandates();

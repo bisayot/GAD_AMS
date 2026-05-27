@@ -55,7 +55,8 @@ const handleLogout = async () => {
 
 onMounted(() => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  if (!user.id || user.role !== 'admin') {
+  const allowed = ['Director', 'admin'];
+  if (!user.id || !allowed.includes(user.role)) {
     router.push('/login');
   }
 });

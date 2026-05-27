@@ -39,7 +39,7 @@ api.interceptors.response.use(
       // Request made but no response
       console.error('No response received:', error.request);
       return Promise.reject({
-        message: 'Connection error. Please check if the backend is running.',
+        message: 'Please Refresh the page and try again',
         details: error.message,
         url: error.config?.url
       });

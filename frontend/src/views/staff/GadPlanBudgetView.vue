@@ -213,7 +213,7 @@ const fetchMandates = () => {
 };
 
 onMounted(() => {
-  if (!user.value.id || user.value.role !== 'gad_staff') {
+  if (!user.value.id || !['Staff','gad_staff'].includes(user.value.role)) {
     router.push('/login');
   }
   fetchMandates();

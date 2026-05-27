@@ -159,7 +159,7 @@ const handleLogout = async () => {
 };
 
 onMounted(() => {
-  if (!user.value.id || user.value.role !== 'admin') { 
+  if (!user.value.id || !['Director','admin'].includes(user.value.role)) { 
     router.push('/login'); 
   } else { 
     fetchAnnualReportData(); 
