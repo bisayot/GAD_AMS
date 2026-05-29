@@ -131,12 +131,12 @@ const showPassword = ref(false);
 const getRoleRoute = (role) => {
   console.log('[Login] Role received from server:', role);
   switch (role) {
-    // New DB enum values
+
     case 'Director':  return '/admin/dashboard';
     case 'Staff':     return '/staff/dashboard';
     case 'TWG':       return '/college/dashboard';
     case 'Non-TWG':   return '/college/dashboard';
-    // Legacy values (old remote backend)
+
     case 'admin':     return '/admin/dashboard';
     case 'gad_staff': return '/staff/dashboard';
     case 'college':   return '/college/dashboard';
@@ -156,10 +156,10 @@ const handleLogin = async () => {
       password: password.value,
     });
 
-    // Persist user info for use across the app
+
     localStorage.setItem('user', JSON.stringify(response.data.user));
 
-    // Redirect based on DB role
+
     router.push(getRoleRoute(response.data.user.role));
 
   } catch (err) {

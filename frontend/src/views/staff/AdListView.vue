@@ -208,7 +208,7 @@ const activityDesigns = ref([]);
 const currentPage     = ref(1);
 const perPage         = ref(10);
 const loading         = ref(false);
-const archiving       = ref(null); // tracks which ad_id is being archived
+const archiving       = ref(null); 
 
 // ─── Stats ────────────────────────────────────────────────────────────────
 const metricsStats = computed(() => [
@@ -333,7 +333,7 @@ const archiveDesign = async (item) => {
   try {
     const res = await api.post('archive', { type: 'design', id: item.ad_id });
     if (res.data.success) {
-      await fetchDesigns(); // refresh
+      await fetchDesigns(); 
     }
   } catch (err) {
     alert(err.response?.data?.message || 'Failed to archive. Only Approved records can be archived.');

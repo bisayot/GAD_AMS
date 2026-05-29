@@ -32,11 +32,11 @@ api.interceptors.response.use(
     console.error('Error request:', error.request);
 
     if (error.response) {
-      // Server responded with error status
+
       console.error('Server error:', error.response.status, error.response.data);
       return Promise.reject(error.response.data);
     } else if (error.request) {
-      // Request made but no response
+
       console.error('No response received:', error.request);
       return Promise.reject({
         message: 'Connection error. Please check if the backend is running.',
@@ -44,7 +44,7 @@ api.interceptors.response.use(
         url: error.config?.url
       });
     } else {
-      // Error in request setup
+
       console.error('Request setup error:', error.message);
       return Promise.reject({
         message: 'Error preparing request',

@@ -92,7 +92,7 @@
 <script setup>
 import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
-// Restructuring the imports neatly to match your other files
+
 import api from '../api';
 
 const router = useRouter();
@@ -120,7 +120,7 @@ const handleRegister = async () => {
   error.value = '';
   
   try {
-    // FIX: Trimmed 'api/' prefix so it resolves neatly to standard base endpoints
+
     const response = await api.post('register', form);
     
     success.value = response.data.message;
@@ -128,7 +128,7 @@ const handleRegister = async () => {
   } catch (err) {
     console.error('Registration error context:', err);
     
-    // Aligned error handling with your login file structure
+
     if (err && err.messages) {
       error.value = err.messages.error || 'Registration failed';
     } else if (err && err.message) {

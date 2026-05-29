@@ -270,7 +270,7 @@ const filteredItems = computed(() => {
     case 'date_asc':
       sorted.sort((a, b) => new Date(a.dateRaw) - new Date(b.dateRaw));
       break;
-    default: // date_desc
+    default: 
       sorted.sort((a, b) => new Date(b.dateRaw) - new Date(a.dateRaw));
   }
   

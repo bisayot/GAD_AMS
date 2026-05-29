@@ -233,8 +233,6 @@ const user        = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 const officeUnits = ref([]);
 
 // ─── Role check ──────────────────────────────────────────────────────────────
-// Show Office/Unit field for all Staff users (includes GAD staff and regular staff).
-// Both DB enum 'Staff' and legacy 'gad_staff' roles are supported.
 const isGadStaff = computed(() => ['Staff', 'gad_staff'].includes(user.value.role));
 
 // ─── Fetch office units from DB ───────────────────────────────────────────────
@@ -256,7 +254,7 @@ const blankForm = () => ({
   venue:                 '',
   target_participants:   '',
   proposed_budget:       '',
-  // GAD Staff-only fields
+
   office_unit_selected:  '',
   office_unit_other:     '',
 });
@@ -267,7 +265,7 @@ const fileInput      = ref(null);
 const errors         = ref({});
 const submitting     = ref(false);
 const globalError    = ref('');
-const submitted      = ref(false); // controls form vs. success view
+const submitted      = ref(false); 
 
 // ─── Computed: final office_unit value ───────────────────────────────────────
 const resolvedOfficeUnit = computed(() => {
