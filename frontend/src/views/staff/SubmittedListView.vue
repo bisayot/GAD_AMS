@@ -4,8 +4,8 @@
         <div class="twg-content-wrapper">
           
           <div class="twg-header">
-            <h1 class="twg-title">TWG Submission Tracker</h1>
-            <p class="twg-subtitle">Monitor, review, and evaluate submitted Activity Designs and Accomplishment Reports per institutional unit.</p>
+            <h1 class="twg-title">Submission Tracker</h1>
+            <p class="twg-subtitle">Monitor Activity Design and Accomplishment Report submissions across all users — TWG, Non-TWG, and GAD Staff.</p>
           </div>
 
           <section class="stats-section">
@@ -36,22 +36,30 @@
             <div class="filter-controls">
               <div class="search-wrapper">
                 <span class="search-icon">🔍</span>
-                <input 
+                <input
                   v-model="searchQuery"
-                  type="text" 
-                  placeholder="Search unit name or code..." 
+                  type="text"
+                  placeholder="Search office or unit name..."
                   class="search-input"
                 />
               </div>
 
               <div class="select-wrapper">
-                <select 
-                  v-model="statusFilter"
-                  class="filter-select"
-                >
-                  <option value="all">All Units</option>
-                  <option value="active">With Submissions</option>
-                  <option value="empty">No Submissions</option>
+                <select v-model="roleFilter" class="filter-select">
+                  <option value="all">All User Types</option>
+                  <option value="TWG">TWG</option>
+                  <option value="Non-TWG">Non-TWG</option>
+                  <option value="Staff">GAD Staff</option>
+                </select>
+                <span class="select-arrow">▼</span>
+              </div>
+
+              <div class="select-wrapper">
+                <select v-model="statusFilter" class="filter-select">
+                  <option value="all">All Statuses</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Awaiting Accomplishment Report">Awaiting AR</option>
+                  <option value="Pending">Pending</option>
                 </select>
                 <span class="select-arrow">▼</span>
               </div>
@@ -59,11 +67,7 @@
 
             <div class="per-page-controls">
               <span class="per-page-label">Show</span>
-              <select 
-                v-model="perPage"
-                @change="handlePerPageChange"
-                class="per-page-select"
-              >
+              <select v-model="perPage" class="per-page-select">
                 <option :value="5">5</option>
                 <option :value="10">10</option>
                 <option :value="25">25</option>
@@ -80,53 +84,44 @@
                   <tr class="table-header-row">
                     <th class="table-header-cell table-header-number">#</th>
                     <th class="table-header-cell">College / Office / Unit</th>
+                    <th class="table-header-cell table-header-center">User Type</th>
                     <th class="table-header-cell table-header-center">Activity Designs</th>
                     <th class="table-header-cell table-header-center">Accomplishment Reports</th>
                     <th class="table-header-cell table-header-center">Total Status</th>
-                    <th class="table-header-cell table-header-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody class="table-body">
-                  <tr v-if="filteredUnits.length === 0">
+                  <tr v-if="pagedUnits.length === 0">
                     <td colspan="6" class="empty-state">
-                      No matching Technical Working Group records or submissions discovered in the repository.
+                      {{ loading ? 'Loading records…' : 'No submission records found.' }}
                     </td>
                   </tr>
-                  
-                  <tr 
+
+                  <tr
                     v-else
-                    v-for="(unit, index) in filteredUnits" 
-                    :key="unit.id"
+                    v-for="(unit, index) in pagedUnits"
+                    :key="index"
                     class="table-row"
                   >
                     <td class="table-cell table-cell-number">
                       {{ (currentPage - 1) * perPage + index + 1 }}
                     </td>
                     <td class="table-cell">
-                      <div class="unit-name">{{ unit.name }}</div>
-                      <div class="unit-code">{{ unit.code }}</div>
-                    </td>
-                    <td class="table-cell table-cell-center table-cell-count">
-                      {{ unit.activity_designs_count || 0 }}
-                    </td>
-                    <td class="table-cell table-cell-center table-cell-count">
-                      {{ unit.accomplishment_reports_count || 0 }}
+                      <div class="unit-name">{{ unit.office_unit }}</div>
                     </td>
                     <td class="table-cell table-cell-center">
-                      <span 
-                        class="submission-badge"
-                        :class="unit.total_submissions > 0 ? 'submission-badge-active' : 'submission-badge-empty'"
-                      >
-                        {{ unit.total_submissions || 0 }} Submissions
-                      </span>
+                      <span class="role-badge" :class="roleBadgeClass(unit.user_role)">{{ unit.user_role }}</span>
                     </td>
-                    <td class="table-cell table-cell-right">
-                      <button 
-                        @click="viewDetails(unit.id)"
-                        class="view-details-btn"
-                      >
-                        👁️ View Details →
-                      </button>
+                    <td class="table-cell table-cell-center table-cell-count">
+                      {{ unit.ad_count || 0 }}
+                    </td>
+                    <td class="table-cell table-cell-center table-cell-count">
+                      {{ unit.ar_count || 0 }}
+                    </td>
+                    <td class="table-cell table-cell-center">
+                      <span class="submission-badge" :class="statusBadgeClass(unit.total_status)">
+                        {{ unit.total_status }}
+                      </span>
                     </td>
                   </tr>
                 </tbody>
@@ -135,39 +130,26 @@
 
             <div class="pagination-container">
               <p class="pagination-info">
-                Showing <span class="pagination-highlight">{{ paginationMeta.from || 0 }}</span> to <span class="pagination-highlight">{{ paginationMeta.to || 0 }}</span> of <span class="pagination-highlight">{{ paginationMeta.total || 0 }}</span> Technical Working Groups
+                Showing <span class="pagination-highlight">{{ paginationMeta.from }}</span> to
+                <span class="pagination-highlight">{{ paginationMeta.to }}</span> of
+                <span class="pagination-highlight">{{ paginationMeta.total }}</span> unit records
               </p>
-              
               <div class="pagination-controls">
-                <button 
-                  @click="changePage(currentPage - 1)"
-                  :disabled="currentPage === 1"
-                  class="pagination-btn"
-                >
-                  ←
-                </button>
-                <button 
-                  v-for="page in paginationMeta.last_page" 
+                <button @click="currentPage--" :disabled="currentPage === 1" class="pagination-btn">←</button>
+                <button
+                  v-for="page in totalPages"
                   :key="page"
-                  @click="changePage(page)"
+                  @click="currentPage = page"
                   :class="['pagination-page', currentPage === page && 'pagination-page-active']"
-                >
-                  {{ page }}
-                </button>
-                <button 
-                  @click="changePage(currentPage + 1)"
-                  :disabled="currentPage === paginationMeta.last_page"
-                  class="pagination-btn"
-                >
-                  →
-                </button>
+                >{{ page }}</button>
+                <button @click="currentPage++" :disabled="currentPage === totalPages" class="pagination-btn">→</button>
               </div>
             </div>
           </div>
 
           <div class="footer-note">
             <p class="footer-text">
-              📋 Tracking submission configurations for all university Technical Working Groups
+              📋 Tracking submissions across all TWG, Non-TWG, and GAD Staff users
             </p>
           </div>
 
@@ -181,92 +163,92 @@ import { useRouter } from 'vue-router';
 import api from '../../api';
 
 const router = useRouter();
+const user   = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 
-const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
-
-const searchQuery = ref('');
+const searchQuery  = ref('');
 const statusFilter = ref('all');
-const twgUnits = ref([]);
-const currentPage = ref(1);
-const perPage = ref(10);
+const roleFilter   = ref('all');
+const allUnits     = ref([]);
+const currentPage  = ref(1);
+const perPage      = ref(10);
+const loading      = ref(false);
 
-const paginationMeta = ref({
-  total: 0,
-  from: 0,
-  to: 0,
-  last_page: 1
-});
-
-const metricsStats = ref([
-  { label: 'Total TWGs', value: '0', icon: 'groups', iconColor: 'text-green-400', bgClass: 'bg-green-500/10' },
-  { label: 'Total Non-TWG', value: '0', icon: 'person_search', iconColor: 'text-amber-400', bgClass: 'bg-amber-500/10' },
-  { label: 'Total Act Designs', value: '0', icon: 'description', iconColor: 'text-purple-400', bgClass: 'bg-purple-500/10' },
-  { label: 'Total Acc Reports', value: '0', icon: 'analytics', iconColor: 'text-blue-400', bgClass: 'bg-blue-500/10' }
+// ─── Stats ────────────────────────────────────────────────────────────────
+const metricsStats = computed(() => [
+  { label: 'Total TWGs',      value: allUnits.value.filter(u => u.user_role === 'TWG').length,      icon: 'groups',       iconColor: 'text-green-400',  bgClass: 'bg-green-500/10'  },
+  { label: 'Total Non-TWG',   value: allUnits.value.filter(u => u.user_role === 'Non-TWG').length,  icon: 'person_search',iconColor: 'text-amber-400',  bgClass: 'bg-amber-500/10'  },
+  { label: 'Total GAD Staff', value: allUnits.value.filter(u => u.user_role === 'Staff').length,    icon: 'badge',        iconColor: 'text-rose-400',   bgClass: 'bg-rose-500/10'   },
+  { label: 'Total Act Designs', value: allUnits.value.reduce((s, u) => s + (u.ad_count || 0), 0),  icon: 'description',  iconColor: 'text-purple-400', bgClass: 'bg-purple-500/10' },
+  { label: 'Total Acc Reports', value: allUnits.value.reduce((s, u) => s + (u.ar_count || 0), 0),  icon: 'analytics',    iconColor: 'text-blue-400',   bgClass: 'bg-blue-500/10'   },
 ]);
 
+// ─── Filter ───────────────────────────────────────────────────────────────
 const filteredUnits = computed(() => {
-  let records = twgUnits.value;
-
+  let records = allUnits.value;
   if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase();
-    records = records.filter(unit => 
-      unit.name.toLowerCase().includes(query) ||
-      unit.code.toLowerCase().includes(query)
-    );
+    const q = searchQuery.value.toLowerCase();
+    records = records.filter(u => (u.office_unit || '').toLowerCase().includes(q));
   }
-
-  if (statusFilter.value === 'active') {
-    records = records.filter(unit => (unit.total_submissions || 0) > 0);
-  } else if (statusFilter.value === 'empty') {
-    records = records.filter(unit => (unit.total_submissions || 0) === 0);
+  if (statusFilter.value !== 'all') {
+    records = records.filter(u => u.total_status === statusFilter.value);
   }
-
+  if (roleFilter.value !== 'all') {
+    records = records.filter(u => u.user_role === roleFilter.value);
+  }
   return records;
 });
 
-const fetchTWGSubmissions = async (page = 1) => {
+const totalPages    = computed(() => Math.max(1, Math.ceil(filteredUnits.value.length / perPage.value)));
+const pagedUnits    = computed(() => {
+  const start = (currentPage.value - 1) * perPage.value;
+  return filteredUnits.value.slice(start, start + perPage.value);
+});
+const paginationMeta = computed(() => {
+  const total = filteredUnits.value.length;
+  const start = (currentPage.value - 1) * perPage.value;
+  return { total, from: total === 0 ? 0 : start + 1, to: Math.min(start + perPage.value, total) };
+});
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+const roleBadgeClass = (role) => {
+  if (role === 'TWG')     return 'role-twg';
+  if (role === 'Non-TWG') return 'role-nontwg';
+  if (role === 'Staff')   return 'role-staff';
+  return 'role-unknown';
+};
+
+const statusBadgeClass = (status) => {
+  if (status === 'Completed')                      return 'submission-badge-completed';
+  if (status === 'Awaiting Accomplishment Report') return 'submission-badge-awaiting';
+  return 'submission-badge-empty';
+};
+
+// ─── API ──────────────────────────────────────────────────────────────────
+const fetchSubmissions = async () => {
+  loading.value = true;
   try {
-    // Staged to fetch live data records matching your endpoint framework
-    // const response = await api.get(`staff/twg-submissions?page=${page}&per_page=${perPage.value}`);
-    // twgUnits.value = response.data.data;
-    // paginationMeta.value = response.data.meta;
-    // currentPage.value = page;
+    const res = await api.get('submission-tracker');
+    if (res.data.success) {
+      allUnits.value = res.data.data;
+    }
   } catch (err) {
-    console.error('Error parsing operational submissions context registry:', err);
+    console.error('Failed to load submission tracker:', err);
+  } finally {
+    loading.value = false;
   }
-};
-
-const handlePerPageChange = () => {
-  currentPage.value = 1;
-  fetchTWGSubmissions(1);
-};
-
-const changePage = (page) => {
-  if (page >= 1 && page <= paginationMeta.value.last_page) {
-    fetchTWGSubmissions(page);
-  }
-};
-
-const viewDetails = (unitId) => {
-  router.push(`/staff/twg-details/${unitId}`);
 };
 
 const handleLogout = async () => {
-  try {
-    await api.get('logout');
-    localStorage.removeItem('user');
-    router.push('/login');
-  } catch (err) {
-    localStorage.removeItem('user');
-    router.push('/login');
-  }
+  try { await api.get('logout'); } catch (_) {}
+  localStorage.removeItem('user');
+  router.push('/login');
 };
 
 onMounted(() => {
-  if (!user.value.id || user.value.role !== 'gad_staff') {
+  if (!user.value.id || !['Staff', 'gad_staff'].includes(user.value.role)) {
     router.push('/login');
   } else {
-    fetchTWGSubmissions();
+    fetchSubmissions();
   }
 });
 </script>
@@ -322,7 +304,7 @@ onMounted(() => {
 
 .stats-section {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 1rem;
 }
 
@@ -646,11 +628,38 @@ onMounted(() => {
   border: 1px solid rgba(153, 13, 209, 0.3);
 }
 
+.submission-badge-completed {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.submission-badge-awaiting {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
 .submission-badge-empty {
   background: rgba(0, 0, 0, 0.3);
   color: #64748b;
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
+
+.role-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 0.4rem;
+  font-size: 0.55rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.role-twg     { background: rgba(34, 197, 94, 0.15);  color: #4ade80;  border: 1px solid rgba(34, 197, 94, 0.3); }
+.role-nontwg  { background: rgba(251, 191, 36, 0.15); color: #fbbf24;  border: 1px solid rgba(251, 191, 36, 0.3); }
+.role-staff   { background: rgba(244, 63, 94, 0.15);  color: #fb7185;  border: 1px solid rgba(244, 63, 94, 0.3); }
+.role-unknown { background: rgba(100, 116, 139, 0.2); color: #94a3b8;  border: 1px solid rgba(100, 116, 139, 0.3); }
 
 .view-details-btn {
   padding: 0.5rem 1rem;

@@ -3,7 +3,11 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3308
+<<<<<<< Updated upstream
 -- Generation Time: May 26, 2026 at 05:29 AM
+=======
+-- Generation Time: May 29, 2026 at 04:36 AM
+>>>>>>> Stashed changes
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -29,6 +33,7 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `accomplishment_report` (
   `ar_id` int(11) NOT NULL,
+<<<<<<< Updated upstream
   `act_design_id` int(11) DEFAULT NULL,
   `acc_report` text DEFAULT NULL,
   `total_participants` int(11) DEFAULT NULL,
@@ -40,6 +45,16 @@ CREATE TABLE `accomplishment_report` (
   `implementation_start_date` date DEFAULT NULL,
   `implementation_end_date` date DEFAULT NULL,
   `number_of_attendees` int(11) DEFAULT NULL
+=======
+  `control_number` varchar(20) NOT NULL,
+  `total_participants` int(11) DEFAULT NULL,
+  `male_participants` int(11) DEFAULT NULL,
+  `female_participants` int(11) DEFAULT NULL,
+  `activity_rating` decimal(5,2) DEFAULT NULL,
+  `status_id` int(11) DEFAULT 1,
+  `attachments_path` varchar(500) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+>>>>>>> Stashed changes
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -49,6 +64,7 @@ CREATE TABLE `accomplishment_report` (
 --
 
 CREATE TABLE `activity_design` (
+<<<<<<< Updated upstream
   `act_design_id` int(11) NOT NULL,
   `act_title` varchar(255) DEFAULT NULL,
   `description` text DEFAULT NULL,
@@ -64,7 +80,31 @@ CREATE TABLE `activity_design` (
   `target_participants` int(11) DEFAULT NULL,
   `proposed_budget` decimal(15,2) DEFAULT NULL,
   `form_type` enum('client-focused activity','organization-focused activity','attributed program') NOT NULL
+=======
+  `ad_id` int(11) NOT NULL,
+  `act_title` varchar(255) NOT NULL,
+  `form_type` enum('inset','extension','employee') DEFAULT NULL,
+  `status_id` int(11) DEFAULT 1,
+  `user_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `start_date` date DEFAULT NULL,
+  `end_date` date DEFAULT NULL,
+  `target_participants` int(11) DEFAULT NULL,
+  `proposed_budget` decimal(15,2) DEFAULT NULL,
+  `office_unit` varchar(255) DEFAULT NULL,
+  `attachment_path` varchar(500) DEFAULT NULL,
+  `control_number` varchar(20) DEFAULT NULL,
+  `venue` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+>>>>>>> Stashed changes
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `activity_design`
+--
+
+INSERT INTO `activity_design` (`ad_id`, `act_title`, `form_type`, `status_id`, `user_id`, `start_date`, `end_date`, `target_participants`, `proposed_budget`, `office_unit`, `attachment_path`, `control_number`, `venue`, `created_at`) VALUES
+(3, 'testing1', 'inset', 1, 2, '2026-05-23', '2026-05-31', 523, 25000.00, 'GAD Office', 'uploads/drafts/activity_designs/1780021568_0d528171a9d6d53e78d7.pdf', NULL, 'hshhhdhdhd', '2026-05-29 02:26:08'),
+(4, 'testing 2', 'inset', 1, 2, '2026-05-21', '2026-05-31', 523, 25000.00, 'GAD Office', 'uploads/drafts/activity_designs/1780022095_62e44e68a51862f12d57.pdf', NULL, 'hhhhhhhh', '2026-05-29 02:34:55');
 
 -- --------------------------------------------------------
 
@@ -78,6 +118,16 @@ CREATE TABLE `control_number` (
   `act_design_id` int(11) DEFAULT NULL,
   `user_id` bigint(20) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `activity_statuses`
+--
+
+INSERT INTO `activity_statuses` (`id`, `status_name`) VALUES
+(2, 'Approved'),
+(4, 'Archived'),
+(1, 'Pending'),
+(3, 'Revision Required');
 
 -- --------------------------------------------------------
 
@@ -207,6 +257,27 @@ CREATE TABLE `mandate` (
   `gpb_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `office_units`
+--
+
+INSERT INTO `office_units` (`office_id`, `unit_name`) VALUES
+(5, 'College of Arts and Sciences'),
+(6, 'College of Business Administration'),
+(8, 'College of Education'),
+(9, 'College of Engineering'),
+(11, 'College of Information Sciences'),
+(10, 'College of Nursing'),
+(1, 'GAD Office'),
+(12, 'Graduate School'),
+(13, 'Human Resource Management Office'),
+(2, 'Office of the President'),
+(3, 'Office of the Vice President for Academic Affairs'),
+(4, 'Office of the Vice President for Administration and Finance'),
+(14, 'Registrar\'s Office'),
+(15, 'Research and Development Office'),
+(16, 'Student Affairs Office');
+
 -- --------------------------------------------------------
 
 --
@@ -246,6 +317,7 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
+<<<<<<< Updated upstream
 INSERT INTO `users` (`id`, `username`, `email`, `email_verified_at`, `password`, `role`, `full_name`, `student_id`, `college`, `year_level`, `user_acronym`, `remember_token`, `deleted_at`, `created_at`, `updated_at`) VALUES
 (1, 'Gender And Development', 'gad.office@bsu.edu.ph', NULL, '$2y$12$TUG4cubrDNdHbOd2q6WsdOAyxxwwCW71UuPE9AEnIIyg.BQeueFW.', 'admin', NULL, NULL, NULL, NULL, 'GAD', NULL, NULL, NULL, NULL),
 (2, 'College of Agriculture', 'ca@bsu.edu.ph', NULL, '$2y$12$CNLb7UPOnZpF2yZRY0lwSeykT0VWruAa6R753JUJR3bGr2OCvUyei', 'college', NULL, NULL, NULL, NULL, 'CA', NULL, NULL, NULL, NULL),
@@ -294,12 +366,87 @@ INSERT INTO `users` (`id`, `username`, `email`, `email_verified_at`, `password`,
 (45, 'College of Education BSU Bokod Campus', 'bokod.ce@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', 'college', NULL, NULL, NULL, NULL, 'Bokod-CE', NULL, NULL, NULL, NULL),
 (46, 'College of Forestry', 'cf@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', 'college', NULL, NULL, NULL, NULL, 'CF', NULL, NULL, NULL, NULL),
 (47, 'gad.staff', 'gad.staff@bsu.edu.ph', NULL, '$2y$12$fbD/jvk.znEQnBmKq4.ebOojmijHJO/zU7.P7Tzo.zV3FgvP8PzNe', 'gad_staff', 'GAD Staff User', NULL, NULL, NULL, 'GAD-STAFF', NULL, NULL, '2026-03-26 23:53:56', '2026-03-26 23:53:56');
+=======
+INSERT INTO `users` (`id`, `email`, `password`, `remember_token`, `created_at`) VALUES
+(1, 'bisayotduligas@gmail.com', '$2y$10$SsLnNlFpnvIvYzbQSZtaE.E62WfcA4Q9N5blPdexrYvetCNLD.8Ju', NULL, '2026-05-27 02:58:36'),
+(2, 'gadstaff@bsu.edu.ph', '$2y$10$UHCJGVqGfN7oNJltZhBwJeIasLyp0K45h4SMbJT8khK4A3lZrLHla', NULL, '2026-05-28 02:09:35');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_profiles`
+--
+
+CREATE TABLE `user_profiles` (
+  `user_id` bigint(20) UNSIGNED NOT NULL,
+  `first_name` varchar(100) NOT NULL,
+  `middle_name` varchar(100) DEFAULT NULL,
+  `last_name` varchar(100) NOT NULL,
+  `user_role` enum('Director','Staff','TWG','Non-TWG') DEFAULT NULL,
+  `office_unit_id` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `user_profiles`
+--
+
+INSERT INTO `user_profiles` (`user_id`, `first_name`, `middle_name`, `last_name`, `user_role`, `office_unit_id`) VALUES
+(1, 'Joshua', NULL, 'Duligas', 'Staff', NULL),
+(2, 'gad', NULL, 'staff', 'Staff', NULL);
+>>>>>>> Stashed changes
 
 --
 -- Indexes for dumped tables
 --
 
 --
+<<<<<<< Updated upstream
+=======
+-- Indexes for table `accomplishment_report`
+--
+ALTER TABLE `accomplishment_report`
+  ADD PRIMARY KEY (`ar_id`),
+  ADD KEY `control_number` (`control_number`),
+  ADD KEY `ar_status_ibfk` (`status_id`);
+
+--
+-- Indexes for table `activity_design`
+--
+ALTER TABLE `activity_design`
+  ADD PRIMARY KEY (`ad_id`),
+  ADD UNIQUE KEY `uq_control_number` (`control_number`),
+  ADD KEY `status_id` (`status_id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- Indexes for table `activity_statuses`
+--
+ALTER TABLE `activity_statuses`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `status_name` (`status_name`);
+
+--
+-- Indexes for table `gad_plan_budget`
+--
+ALTER TABLE `gad_plan_budget`
+  ADD PRIMARY KEY (`gpb_id`);
+
+--
+-- Indexes for table `office_units`
+--
+ALTER TABLE `office_units`
+  ADD PRIMARY KEY (`office_id`),
+  ADD UNIQUE KEY `unit_name` (`unit_name`);
+
+--
+-- Indexes for table `system_logs`
+--
+ALTER TABLE `system_logs`
+  ADD PRIMARY KEY (`log_id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+>>>>>>> Stashed changes
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -312,10 +459,84 @@ ALTER TABLE `users`
 --
 
 --
+<<<<<<< Updated upstream
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
+=======
+-- AUTO_INCREMENT for table `accomplishment_report`
+--
+ALTER TABLE `accomplishment_report`
+  MODIFY `ar_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `activity_design`
+--
+ALTER TABLE `activity_design`
+  MODIFY `ad_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `activity_statuses`
+--
+ALTER TABLE `activity_statuses`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `gad_plan_budget`
+--
+ALTER TABLE `gad_plan_budget`
+  MODIFY `gpb_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+
+--
+-- AUTO_INCREMENT for table `office_units`
+--
+ALTER TABLE `office_units`
+  MODIFY `office_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+
+--
+-- AUTO_INCREMENT for table `system_logs`
+--
+ALTER TABLE `system_logs`
+  MODIFY `log_id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `users`
+--
+ALTER TABLE `users`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `accomplishment_report`
+--
+ALTER TABLE `accomplishment_report`
+  ADD CONSTRAINT `accomplishment_report_ibfk_1` FOREIGN KEY (`control_number`) REFERENCES `activity_design` (`control_number`) ON DELETE CASCADE,
+  ADD CONSTRAINT `ar_status_ibfk` FOREIGN KEY (`status_id`) REFERENCES `activity_statuses` (`id`);
+
+--
+-- Constraints for table `activity_design`
+--
+ALTER TABLE `activity_design`
+  ADD CONSTRAINT `activity_design_ibfk_1` FOREIGN KEY (`status_id`) REFERENCES `activity_statuses` (`id`),
+  ADD CONSTRAINT `activity_design_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+
+--
+-- Constraints for table `system_logs`
+--
+ALTER TABLE `system_logs`
+  ADD CONSTRAINT `system_logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+
+--
+-- Constraints for table `user_profiles`
+--
+ALTER TABLE `user_profiles`
+  ADD CONSTRAINT `user_profiles_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `user_profiles_ibfk_2` FOREIGN KEY (`office_unit_id`) REFERENCES `office_units` (`office_id`);
+>>>>>>> Stashed changes
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

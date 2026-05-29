@@ -88,51 +88,58 @@
                 <thead>
                   <tr class="table-header-row">
                     <th class="table-header-cell">Control No.</th>
-                    <th class="table-header-cell">Report Title</th>
+                    <th class="table-header-cell">Activity Title</th>
+                    <th class="table-header-cell">Submitted By</th>
                     <th class="table-header-cell">Office / Unit</th>
-                    <th class="table-header-cell">Form Type</th>
+                    <th class="table-header-cell">Participants</th>
+                    <th class="table-header-cell">Rating</th>
                     <th class="table-header-cell">Date Submitted</th>
                     <th class="table-header-cell">Status</th>
+                    <th class="table-header-cell">Actions</th>
                   </tr>
                 </thead>
                 <tbody class="table-body">
-                  <tr v-if="filteredReports.length === 0">
-                    <td colspan="6" class="empty-state">
-                      No matching accomplishment report submissions found in the repository index.
+                  <tr v-if="pagedReports.length === 0">
+                    <td colspan="9" class="empty-state">
+                      {{ loading ? 'Loading records…' : 'No matching accomplishment report submissions found.' }}
                     </td>
                   </tr>
-                  
-                  <tr 
+
+                  <tr
                     v-else
-                    v-for="item in filteredReports" 
-                    :key="item.id"
-                    @click="viewDetails(item.id)"
+                    v-for="item in pagedReports"
+                    :key="item.ar_id"
                     class="table-row"
                   >
-                    <td class="table-cell control-cell">
-                      {{ item.control }}
-                    </td>
-                    <td class="table-cell title-cell">
-                      {{ item.title }}
-                    </td>
-                    <td class="table-cell office-cell">
-                      {{ item.office }}
-                    </td>
+                    <td class="table-cell control-cell">{{ item.control_number }}</td>
+                    <td class="table-cell title-cell">{{ item.act_title || '—' }}</td>
+                    <td class="table-cell office-cell">{{ item.submitter_name || '—' }}</td>
+                    <td class="table-cell office-cell">{{ item.office_unit || '—' }}</td>
+                    <td class="table-cell">{{ item.total_participants ?? '—' }}</td>
+                    <td class="table-cell">{{ item.activity_rating !== null ? item.activity_rating + '%' : '—' }}</td>
+                    <td class="table-cell date-cell">{{ formatDate(item.created_at) }}</td>
                     <td class="table-cell">
-                      <span class="category-badge">
-                        {{ item.formLabel }}
+                      <span class="status-badge" :class="statusBadgeClass(item.status_name)">
+                        {{ item.status_name }}
                       </span>
                     </td>
-                    <td class="table-cell date-cell">
-                      {{ item.date }}
-                    </td>
-                    <td class="table-cell">
-                      <span 
-                        class="status-badge"
-                        :class="statusBadgeClass(item.status)"
+                    <td class="table-cell" @click.stop>
+                      <button
+                        v-if="item.status_name === 'Approved'"
+                        class="archive-btn"
+                        :disabled="archiving === item.ar_id"
+                        @click="archiveReport(item)"
                       >
-                        {{ item.status }}
-                      </span>
+                        {{ archiving === item.ar_id ? '…' : 'Archive' }}
+                      </button>
+                      <button
+                        v-else-if="item.status_name === 'Revision Required' && String(item.submitter_user_id) === String(user.id)"
+                        class="revise-btn"
+                        @click="openReviseModal(item)"
+                      >
+                        ✏️ Revise
+                      </button>
+                      <span v-else class="text-10px text-slate-500">—</span>
                     </td>
                   </tr>
                 </tbody>
@@ -141,38 +148,46 @@
 
             <div class="pagination-container">
               <p class="pagination-info">
-                Showing <span class="pagination-highlight">{{ paginationMeta.from || 0 }}</span> to <span class="pagination-highlight">{{ paginationMeta.to || 0 }}</span> of <span class="pagination-highlight">{{ paginationMeta.total || 0 }}</span> report records
+                Showing <span class="pagination-highlight">{{ paginationMeta.from }}</span> to
+                <span class="pagination-highlight">{{ paginationMeta.to }}</span> of
+                <span class="pagination-highlight">{{ paginationMeta.total }}</span> report records
               </p>
-              
               <div class="pagination-controls">
-                <button 
-                  :disabled="currentPage === 1"
-                  @click="currentPage--"
-                  class="pagination-btn"
-                >
-                  ←
-                </button>
-                <button 
-                  v-for="page in paginationMeta.last_page" 
+                <button :disabled="currentPage === 1" @click="currentPage--" class="pagination-btn">←</button>
+                <button
+                  v-for="page in totalPages"
                   :key="page"
                   @click="currentPage = page"
                   :class="['pagination-page', currentPage === page && 'pagination-page-active']"
-                >
-                  {{ page }}
-                </button>
-                <button 
-                  :disabled="currentPage === paginationMeta.last_page"
-                  @click="currentPage++"
-                  class="pagination-btn"
-                >
-                  →
-                </button>
+                >{{ page }}</button>
+                <button :disabled="currentPage === totalPages" @click="currentPage++" class="pagination-btn">→</button>
               </div>
             </div>
           </div>
 
         </div>
       </main>
+
+      <!-- Revise AR Modal -->
+      <div v-if="reviseModal.open" class="modal-overlay" @click.self="reviseModal.open = false">
+        <div class="modal-box">
+          <h2 class="modal-title">Revise Accomplishment Report</h2>
+          <p class="modal-sub">Upload corrected PDF(s) to resubmit the report for "{{ reviseModal.item?.act_title || reviseModal.item?.control_number }}".</p>
+          <div class="upload-dropzone-box modal-dropzone" @click="$refs.reviseFileInput.click()">
+            <input ref="reviseFileInput" type="file" accept=".pdf" multiple class="hidden" @change="onReviseFiles" />
+            <span class="text-3xl mb-1">📤</span>
+            <p class="text-xs font-semibold text-white">{{ reviseFiles.length > 0 ? reviseFiles.map(f=>f.name).join(', ') : 'Click to select PDF(s)' }}</p>
+            <p class="text-10px text-slate-400 mt-1">PDF only · Max 10 MB each</p>
+          </div>
+          <p v-if="reviseError" class="inline-error mt-2">{{ reviseError }}</p>
+          <div class="modal-actions">
+            <button class="modal-cancel" @click="reviseModal.open = false">Cancel</button>
+            <button class="submit-action-btn" :disabled="revising || reviseFiles.length === 0" @click="submitRevise">
+              {{ revising ? 'Submitting…' : 'Resubmit →' }}
+            </button>
+          </div>
+        </div>
+      </div>
 </template>
 
 <script setup>
@@ -181,76 +196,150 @@ import { useRouter } from 'vue-router';
 import api from '../../api';
 
 const router = useRouter();
-const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
+const user   = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 
-const filters = ref({
-  search: '',
-  office: 'all',
-  status: 'all'
-});
+const filters = ref({ search: '', office: 'all', status: 'all' });
+const officeOptions          = ref([]);
+const accomplishmentReports  = ref([]);
+const currentPage            = ref(1);
+const perPage                = ref(10);
+const loading                = ref(false);
+const archiving              = ref(null);
 
-const officeOptions = ref([]);
-
-const accomplishmentReports = ref([]);
-const currentPage = ref(1);
-const perPage = ref(10);
-const paginationMeta = ref({ total: 0, from: 0, to: 0, last_page: 1 });
-
-const metricsStats = ref([
-  { label: 'Total Reports', value: '0', icon: 'analytics', iconColor: 'text-blue-400', bgClass: 'bg-blue-500/10' },
-  { label: 'Pending Reviews', value: '0', icon: 'schedule', iconColor: 'text-amber-400', bgClass: 'bg-amber-500/10' },
-  { label: 'Verified Outcomes', value: '0', icon: 'verified', iconColor: 'text-cyan-400', bgClass: 'bg-cyan-500/10' },
-  { label: 'Revision Required', value: '0', icon: 'assignment_return', iconColor: 'text-red-400', bgClass: 'bg-red-500/10' }
+// ─── Stats ──────────────────────────────────────────────────────────────
+const metricsStats = computed(() => [
+  { label: 'Total Reports',     value: accomplishmentReports.value.length,                                                       icon: 'analytics',         iconColor: 'text-blue-400',  bgClass: 'bg-blue-500/10'  },
+  { label: 'Pending Reviews',   value: accomplishmentReports.value.filter(i => i.status_name === 'Pending').length,              icon: 'schedule',          iconColor: 'text-amber-400', bgClass: 'bg-amber-500/10' },
+  { label: 'Verified Outcomes', value: accomplishmentReports.value.filter(i => i.status_name === 'Approved').length,             icon: 'verified',          iconColor: 'text-cyan-400',  bgClass: 'bg-cyan-500/10'  },
+  { label: 'Revision Required', value: accomplishmentReports.value.filter(i => i.status_name === 'Revision Required').length,    icon: 'assignment_return', iconColor: 'text-red-400',   bgClass: 'bg-red-500/10'   },
 ]);
 
+// ─── Filter + Pagination ──────────────────────────────────────────────────
 const filteredReports = computed(() => {
   let records = accomplishmentReports.value;
   if (filters.value.search) {
     const q = filters.value.search.toLowerCase();
-    records = records.filter(i => i.control.toLowerCase().includes(q) || i.title.toLowerCase().includes(q));
+    records = records.filter(i =>
+      (i.control_number || '').toLowerCase().includes(q) ||
+      (i.act_title      || '').toLowerCase().includes(q) ||
+      (i.submitter_name || '').toLowerCase().includes(q)
+    );
   }
-  if (filters.value.office !== 'all') {
-    records = records.filter(i => i.office === filters.value.office);
-  }
-  if (filters.value.status !== 'all') {
-    records = records.filter(i => i.status === filters.value.status);
-  }
+  if (filters.value.office !== 'all') records = records.filter(i => i.office_unit   === filters.value.office);
+  if (filters.value.status !== 'all') records = records.filter(i => i.status_name  === filters.value.status);
   return records;
 });
 
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredReports.value.length / perPage.value)));
+
+const pagedReports = computed(() => {
+  const start = (currentPage.value - 1) * perPage.value;
+  return filteredReports.value.slice(start, start + perPage.value);
+});
+
+const paginationMeta = computed(() => {
+  const total = filteredReports.value.length;
+  const start = (currentPage.value - 1) * perPage.value;
+  return { total, from: total === 0 ? 0 : start + 1, to: Math.min(start + perPage.value, total) };
+});
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+const formatDate = (dt) => {
+  if (!dt) return '—';
+  return new Date(dt).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: '2-digit' });
+};
+
 const statusBadgeClass = (status) => {
-  if (status === 'Verified') return 'status-badge-verified';
+  if (status === 'Approved')          return 'status-badge-verified';
   if (status === 'Revision Required') return 'status-badge-revision';
+  if (status === 'Archived')          return 'status-badge-archived';
   return 'status-badge-pending';
 };
 
-const viewDetails = (id) => {
-  router.push(`/staff/ar-view/${id}`);
+// ─── Revise ─────────────────────────────────────────────────────────────────
+const reviseModal = ref({ open: false, item: null });
+const reviseFiles = ref([]);
+const reviseError = ref('');
+const revising    = ref(false);
+const reviseFileInput = ref(null);
+
+const openReviseModal = (item) => {
+  reviseModal.value = { open: true, item };
+  reviseFiles.value = [];
+  reviseError.value = '';
 };
 
-const fetchReports = async () => {
+const onReviseFiles = (e) => {
+  const files = Array.from(e.target.files);
+  const errors = [];
+  const valid  = [];
+  files.forEach(f => {
+    if (f.type !== 'application/pdf') { errors.push(`${f.name}: not a PDF`); return; }
+    if (f.size > 10 * 1024 * 1024)   { errors.push(`${f.name}: exceeds 10 MB`); return; }
+    valid.push(f);
+  });
+  reviseError.value = errors.join(' | ');
+  reviseFiles.value = valid;
+};
+
+const submitRevise = async () => {
+  if (reviseFiles.value.length === 0) return;
+  revising.value = true;
   try {
-    // API live connection binding pipeline template placeholder:
-    // const response = await api.get('staff/accomplishment-reports');
-    // accomplishmentReports.value = response.data.data;
+    const fd = new FormData();
+    fd.append('type',    'report');
+    fd.append('id',      reviseModal.value.item.ar_id);
+    fd.append('user_id', user.value.id);
+    reviseFiles.value.forEach(f => fd.append('report_files[]', f));
+    const res = await api.post('update-submission', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+    if (res.data.success) {
+      reviseModal.value.open = false;
+      await fetchReports();
+    }
   } catch (err) {
-    console.error(err);
+    reviseError.value = err.response?.data?.message || 'Submission failed.';
+  } finally {
+    revising.value = false;
+  }
+};
+
+// ─── API ──────────────────────────────────────────────────────────────────
+const fetchReports = async () => {
+  loading.value = true;
+  try {
+    const response = await api.get('accomplishment-reports');
+    if (response.data.success) {
+      accomplishmentReports.value = response.data.data;
+      officeOptions.value         = [...new Set(response.data.data.map(i => i.office_unit).filter(Boolean))];
+    }
+  } catch (err) {
+    console.error('Failed to load accomplishment reports:', err);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const archiveReport = async (item) => {
+  if (!confirm(`Archive the report linked to "${item.control_number}"? This will move it to the archive.`)) return;
+  archiving.value = item.ar_id;
+  try {
+    const res = await api.post('archive', { type: 'report', id: item.ar_id });
+    if (res.data.success) await fetchReports();
+  } catch (err) {
+    alert(err.response?.data?.message || 'Failed to archive. Only Approved records can be archived.');
+  } finally {
+    archiving.value = null;
   }
 };
 
 const handleLogout = async () => {
-  try {
-    await api.get('logout');
-    localStorage.removeItem('user');
-    router.push('/login');
-  } catch (err) {
-    localStorage.removeItem('user');
-    router.push('/login');
-  }
+  try { await api.get('logout'); } catch (_) {}
+  localStorage.removeItem('user');
+  router.push('/login');
 };
 
 onMounted(() => {
-  if (!user.value.id || user.value.role !== 'gad_staff') {
+  if (!user.value.id || !['Staff', 'gad_staff'].includes(user.value.role)) {
     router.push('/login');
   } else {
     fetchReports();
@@ -822,4 +911,119 @@ onMounted(() => {
     grid-template-columns: 1fr;
   }
 }
+
+.status-badge-archived {
+  background: rgba(100, 116, 139, 0.2);
+  color: #94a3b8;
+  border: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+.archive-btn {
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(153, 13, 209, 0.15);
+  border: 1px solid rgba(153, 13, 209, 0.4);
+  color: #b979cc;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.archive-btn:hover:not(:disabled) {
+  background: rgba(153, 13, 209, 0.3);
+  border-color: #b979cc;
+  color: white;
+}
+
+.archive-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.revise-btn {
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  color: #fbbf24;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.revise-btn:hover {
+  background: rgba(251, 191, 36, 0.3);
+  color: white;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  backdrop-filter: blur(4px);
+}
+
+.modal-box {
+  background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+  border: 1px solid rgba(185,121,204,0.25);
+  border-radius: 20px;
+  padding: 2rem;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+}
+
+.modal-title {
+  font-size: 1.125rem;
+  font-weight: 900;
+  color: #e2e8f0;
+  margin-bottom: 0.375rem;
+}
+
+.modal-sub {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-bottom: 1.25rem;
+}
+
+.modal-dropzone { margin-bottom: 0.5rem; }
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.modal-cancel {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94a3b8;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modal-cancel:hover {
+  color: white;
+  border-color: rgba(255,255,255,0.2);
+}
+
+.hidden { display: none; }
+.text-10px { font-size: 10px; }
+.text-3xl { font-size: 26px; }
 </style>
