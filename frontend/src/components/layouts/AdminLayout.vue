@@ -1,8 +1,8 @@
 <template>
-  <div class="college-dashboard">
+  <div class="admin-dashboard bg-slate-50">
     <DashboardSidebar
-      roleLabel="College/Unit"
-      :menuItems="collegeMenu"
+      roleLabel="Administrator"
+      :menuItems="adminMenu"
       @logout="handleLogout"
     />
 
@@ -21,23 +21,24 @@
 <script setup>
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import api from '../api';
-import DashboardSidebar from '../components/DashboardSidebar.vue';
+import api from '../../api';
+import DashboardSidebar from '../DashboardSidebar.vue';
 
 const router = useRouter();
 
-const collegeMenu = [
-  { label: 'New Submission', icon: 'add', href: '/college/submit' },
-  { label: 'Dashboard', icon: 'dashboard', href: '/college/dashboard' },
-  { label: 'Submit Design', icon: 'add_task', href: '/college/submit-design' },
-  { label: 'Submit Accomplishment', icon: 'fact_check', href: '/college/submit-report' },
-  { label: 'Submitted List', icon: 'list', href: '/college/submitted-list' },
-  { label: 'Technical Assist', icon: 'support_agent', href: '/college/tech-assist' },
-  { label: 'Mandates', icon: 'gavel', href: '/college/mandates' },
-  { label: 'Plan & Budget', icon: 'account_balance_wallet', href: '/college/gad-plan-budget' },
-  { label: 'Archives', icon: 'archive', href: '/college/archive' },
-  { label: 'User Manual', icon: 'menu_book', href: '/college/user-manual' },
-  { label: 'Data Privacy Policy', icon: 'privacy_tip', href: '/college/data-privacy-policy' }
+const adminMenu = [
+  { label: 'Dashboard', icon: 'dashboard', href: '/admin/dashboard' },
+  { label: 'Annual Reports', icon: 'description', href: '/admin/annual-report' },
+  { label: 'Submitted List', icon: 'folder', href: '/admin/submitted-list' },
+  { label: 'Activity Design List', icon: 'description', href: '/admin/ad-list' },
+  { label: 'Accomplishment Report List', icon: 'description', href: '/admin/ar-list' },
+  { label: 'Plan & Budget', icon: 'account_balance_wallet', href: '/admin/gad-plan-budget' },
+  { label: 'Mandates Management', icon: 'account_balance', href: '/admin/mandates' },
+  { label: 'Archive', icon: 'archive', href: '/admin/archive' },
+  { label: 'Report Monitoring', icon: 'bar_chart', href: '/admin/reports' },
+  { label: 'Budget Monitoring', icon: 'account_balance_wallet', href: '/admin/budget' },
+  { label: 'User Manual', icon: 'help', href: '/admin/user-manual' },
+  { label: 'Data Privacy Policy', icon: 'privacy_tip', href: '/admin/data-privacy-policy' }
 ];
 
 const handleLogout = async () => {
@@ -54,14 +55,15 @@ const handleLogout = async () => {
 
 onMounted(() => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  if (!user.id || user.role !== 'college') {
+  const allowed = ['Director', 'admin'];
+  if (!user.id || !allowed.includes(user.role)) {
     router.push('/login');
   }
 });
 </script>
 
 <style scoped>
-.college-dashboard { min-height: 100vh; display: flex; background-color: #f8fafc; }
+.admin-dashboard { min-height: 100vh; display: flex; background-color: #f8fafc; }
 .dashboard-main { flex-grow: 1; margin-left: 256px; display: flex; flex-direction: column; min-height: 100vh; }
 .dashboard-header { position: fixed; top: 0; left: 256px; right: 0; height: 80px; z-index: 10; display: flex; align-items: center; padding: 0 40px; background: #1a1a2e; border-bottom: 1px solid rgba(185, 121, 204, 0.3); }
 .dashboard-main-content { padding-top: 80px; flex-grow: 1; display: block; width: 100%; }

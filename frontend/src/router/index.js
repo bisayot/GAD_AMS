@@ -6,10 +6,10 @@ import AboutView from '../views/AboutView.vue'
 import ResourcesView from '../views/ResourcesView.vue'
 import GADCornerView from '../views/GADCornerView.vue'
 import ContactView from '../views/ContactView.vue'
-import AdminDashboard from '../views/AdminDashboard.vue'
+import AdminLayout from '../components/layouts/AdminLayout.vue'
 import AdminAnnualReport from '../views/AdminAnnualReport.vue'
-import CollegeDashboard from '../views/CollegeDashboard.vue'
-import StaffDashboard from '../views/StaffDashboard.vue'
+import CollegeLayout from '../components/layouts/CollegeLayout.vue'
+import StaffLayout from '../components/layouts/StaffLayout.vue'
 const routes = [
   { path: '/', name: 'home', component: HomeView },
   { path: '/login', name: 'login', component: LoginView },
@@ -26,7 +26,7 @@ const routes = [
   // Admin (nested layout + full workflows)
   {
     path: '/admin',
-    component: AdminDashboard,
+    component: AdminLayout,
     children: [
       { path: '', redirect: '/admin/dashboard' },
       { path: 'dashboard', name: 'admin-dashboard', component: () => import('../views/admin/AdminDashboardContent.vue') },
@@ -50,7 +50,7 @@ const routes = [
   // College / TWG
   {
     path: '/college',
-    component: CollegeDashboard,
+    component: CollegeLayout,
     children: [
       { path: '', redirect: '/college/dashboard' },
       { path: 'submit', name: 'college-submit-hub', component: () => import('../views/twg/SubmittView.vue') },
@@ -70,7 +70,7 @@ const routes = [
   // Staff
   {
     path: '/staff',
-    component: StaffDashboard,
+    component: StaffLayout,
     children: [
       { path: '', redirect: '/staff/dashboard' },
       { path: 'submit', name: 'staff-submit-hub', component: () => import('../views/staff/SubmitView.vue') },

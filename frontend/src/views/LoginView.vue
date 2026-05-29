@@ -24,18 +24,18 @@
               {{ error }}
             </div>
 
-            <!-- Identity Input -->
+            <!-- Email Input -->
             <div class="space-y-2">
-              <label class="block font-label text-xs font-bold uppercase tracking-widest text-on-surface-variant px-1" for="identity">Username or Email</label>
+              <label class="block font-label text-xs font-bold uppercase tracking-widest text-on-surface-variant px-1" for="email">Institutional Email</label>
               <div class="relative group">
-                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline transition-colors group-focus-within:text-primary">person</span>
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline transition-colors group-focus-within:text-primary">email</span>
                 <input 
-                  v-model="identity"
+                  v-model="email"
                   class="w-full pl-12 pr-4 py-4 bg-surface-container-low border-none rounded-lg focus:ring-0 focus:bg-surface-bright focus:border-b-2 focus:border-primary transition-all duration-200 text-on-surface placeholder:text-outline/50" 
-                  id="identity" 
+                  id="email" 
                   placeholder="e.g. gad.office@bsu.edu.ph" 
                   required 
-                  type="text" 
+                  type="email" 
                 />
               </div>
             </div>
@@ -114,39 +114,57 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-// Use the relative path to step up out of the 'views' folder and find api.js
-import api from '../api'; 
+import api from '../api';
 
 const router = useRouter();
-const identity = ref('');
+const email = ref('');
 const password = ref('');
 const loading = ref(false);
 const error = ref('');
 const showPassword = ref(false);
 
+/**
+ * Maps user_role values to dashboard routes.
+ * Supports both the new DB enum (Director/Staff/TWG/Non-TWG)
+ * and the legacy values from the remote backend (admin/college/gad_staff).
+ */
+const getRoleRoute = (role) => {
+  console.log('[Login] Role received from server:', role);
+  switch (role) {
+    // New DB enum values
+    case 'Director':  return '/admin/dashboard';
+    case 'Staff':     return '/staff/dashboard';
+    case 'TWG':       return '/college/dashboard';
+    case 'Non-TWG':   return '/college/dashboard';
+    // Legacy values (old remote backend)
+    case 'admin':     return '/admin/dashboard';
+    case 'gad_staff': return '/staff/dashboard';
+    case 'college':   return '/college/dashboard';
+    default:
+      console.warn('[Login] Unknown role, redirecting to home:', role);
+      return '/';
+  }
+};
+
 const handleLogin = async () => {
   loading.value = true;
   error.value = '';
-  
+
   try {
     const response = await api.post('login', {
-      identity: identity.value,
-      password: password.value
+      email:    email.value,
+      password: password.value,
     });
-    
-    // Store user info in localStorage or a store
+
+    // Persist user info for use across the app
     localStorage.setItem('user', JSON.stringify(response.data.user));
-    
-    // Redirect based on role
-    const role = response.data.user.role;
-    if (role === 'admin') router.push('/admin/dashboard');
-    else if (role === 'college') router.push('/college/dashboard');
-    else if (role === 'gad_staff') router.push('/staff/dashboard');
-    else router.push('/');
-    
+
+    // Redirect based on DB role
+    router.push(getRoleRoute(response.data.user.role));
+
   } catch (err) {
     console.error('Login error:', err);
-    
+
     if (err && err.messages) {
       error.value = err.messages.error || 'Login failed';
     } else if (err && err.message) {

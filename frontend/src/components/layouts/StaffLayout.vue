@@ -21,8 +21,8 @@
 <script setup>
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import api from '../api';
-import DashboardSidebar from '../components/DashboardSidebar.vue';
+import api from '../../api';
+import DashboardSidebar from '../DashboardSidebar.vue';
 
 const router = useRouter();
 
@@ -56,7 +56,8 @@ const handleLogout = async () => {
 
 onMounted(() => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  if (!user.id || user.role !== 'gad_staff') {
+  const allowed = ['Staff', 'gad_staff'];
+  if (!user.id || !allowed.includes(user.role)) {
     router.push('/login');
   }
 });
