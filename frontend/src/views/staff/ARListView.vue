@@ -139,6 +139,14 @@
                       >
                         ✏️ Revise
                       </button>
+                      <button
+                        v-else-if="item.status_name === 'Pending'"
+                        class="delete-btn"
+                        :disabled="deleting === item.ar_id"
+                        @click="deleteReport(item)"
+                      >
+                        {{ deleting === item.ar_id ? '…' : '🗑️ Delete' }}
+                      </button>
                       <span v-else class="text-10px text-slate-500">—</span>
                     </td>
                   </tr>
@@ -205,6 +213,7 @@ const currentPage            = ref(1);
 const perPage                = ref(10);
 const loading                = ref(false);
 const archiving              = ref(null);
+const deleting               = ref(null);
 
 // ─── Stats ──────────────────────────────────────────────────────────────
 const metricsStats = computed(() => [
@@ -329,6 +338,21 @@ const archiveReport = async (item) => {
     alert(err.response?.data?.message || 'Failed to archive. Only Approved records can be archived.');
   } finally {
     archiving.value = null;
+  }
+};
+
+const deleteReport = async (item) => {
+  if (!confirm(`Are you sure you want to delete the pending report for "${item.control_number}"? This action cannot be undone.`)) return;
+  deleting.value = item.ar_id;
+  try {
+    const res = await api.post('delete-submission', { type: 'report', id: item.ar_id });
+    if (res.data.success) {
+      await fetchReports();
+    }
+  } catch (err) {
+    alert(err.response?.data?.message || 'Failed to delete.');
+  } finally {
+    deleting.value = null;
   }
 };
 
@@ -866,6 +890,32 @@ onMounted(() => {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(153, 13, 209, 0.5);
+}
+
+.delete-btn {
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0.25rem;
+}
+.delete-btn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+.delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Responsive */

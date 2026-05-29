@@ -177,7 +177,6 @@ const loading      = ref(false);
 const metricsStats = computed(() => [
   { label: 'Total TWGs',      value: allUnits.value.filter(u => u.user_role === 'TWG').length,      icon: 'groups',       iconColor: 'text-green-400',  bgClass: 'bg-green-500/10'  },
   { label: 'Total Non-TWG',   value: allUnits.value.filter(u => u.user_role === 'Non-TWG').length,  icon: 'person_search',iconColor: 'text-amber-400',  bgClass: 'bg-amber-500/10'  },
-  { label: 'Total GAD Staff', value: allUnits.value.filter(u => u.user_role === 'Staff').length,    icon: 'badge',        iconColor: 'text-rose-400',   bgClass: 'bg-rose-500/10'   },
   { label: 'Total Act Designs', value: allUnits.value.reduce((s, u) => s + (u.ad_count || 0), 0),  icon: 'description',  iconColor: 'text-purple-400', bgClass: 'bg-purple-500/10' },
   { label: 'Total Acc Reports', value: allUnits.value.reduce((s, u) => s + (u.ar_count || 0), 0),  icon: 'analytics',    iconColor: 'text-blue-400',   bgClass: 'bg-blue-500/10'   },
 ]);
@@ -304,7 +303,7 @@ onMounted(() => {
 
 .stats-section {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
 }
 

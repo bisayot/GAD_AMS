@@ -20,6 +20,7 @@ $routes->group('api', function($routes) {
     $routes->post('submit-activity-design', 'SubmissionController::submitActivityDesign');
     $routes->post('submit-accomplishment',  'SubmissionController::submitAccomplishment');
     $routes->post('update-submission',      'SubmissionController::updateSubmission');
+    $routes->post('delete-submission',      'SubmissionController::deleteSubmission');
 
     // --- MONITORING (GAD Staff tracker) ---
     $routes->get('activity-designs',       'SubmissionController::listActivityDesigns');
@@ -48,6 +49,7 @@ $routes->group('api', function($routes) {
     $routes->options('submit-activity-design', 'SubmissionController::handleOptions');
     $routes->options('submit-accomplishment',  'SubmissionController::handleOptions');
     $routes->options('update-submission',      'SubmissionController::handleOptions');
+    $routes->options('delete-submission',      'SubmissionController::handleOptions');
     $routes->options('activity-designs',       'SubmissionController::handleOptions');
     $routes->options('accomplishment-reports', 'SubmissionController::handleOptions');
     $routes->options('submission-tracker',     'SubmissionController::handleOptions');

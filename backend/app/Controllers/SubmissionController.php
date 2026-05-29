@@ -416,7 +416,7 @@ class SubmissionController extends ResourceController
                 'ad.user_id',
                 'up.user_role',
                 'CONCAT(up.first_name, " ", up.last_name) AS submitter_name',
-                'ou.unit_name AS office_unit',
+                'COALESCE(ad.office_unit, ou.unit_name) AS office_unit',
                 'ou.office_id',
             ])
             ->join('activity_statuses s',  's.id = ad.status_id',          'left')
@@ -442,7 +442,7 @@ class SubmissionController extends ResourceController
         // Build per-unit rows
         $unitMap = [];
         foreach ($ads as $ad) {
-            $key      = $ad['office_id'] ?? ('__' . $ad['submitter_name']);
+            $key      = $ad['office_id'] ?? $ad['office_unit'] ?? ('__' . $ad['submitter_name']);
             $unitName = $ad['office_unit'] ?: $ad['submitter_name'] ?: 'Unknown Unit';
             $role     = $ad['user_role'] ?? 'Unknown';
 
@@ -591,6 +591,58 @@ class SubmissionController extends ResourceController
         return $this->respond([
             'success' => true,
             'message' => ucfirst($type) . ' resubmitted successfully. Status reset to Pending.',
+        ]);
+    }
+
+    // ---------------------------------------------------------------
+    // POST /api/delete-submission
+    // Allows deleting a Pending AD or AR and removing its file(s)
+    // ---------------------------------------------------------------
+    public function deleteSubmission()
+    {
+        $post   = $this->request->getPost();
+        if (empty($post)) {
+            $post = $this->request->getJSON(true);
+        }
+        $type   = $post['type'] ?? null;  // 'design' | 'report'
+        $id     = (int) ($post['id'] ?? 0);
+
+        if (!in_array($type, ['design', 'report']) || $id <= 0) {
+            return $this->fail('Invalid parameters.', ResponseInterface::HTTP_BAD_REQUEST);
+        }
+
+        $table  = $type === 'design' ? 'activity_design'      : 'accomplishment_report';
+        $pk     = $type === 'design' ? 'ad_id'                : 'ar_id';
+        $pathCol= $type === 'design' ? 'attachment_path'      : 'attachments_path';
+
+        $record = $this->db->table($table)->where($pk, $id)->get()->getRow();
+        if (!$record) {
+            return $this->fail('Record not found.', ResponseInterface::HTTP_NOT_FOUND);
+        }
+
+        if ((int)$record->status_id !== 1) { // 1 = Pending
+            return $this->fail('Only pending submissions can be deleted.', ResponseInterface::HTTP_BAD_REQUEST);
+        }
+
+        // Delete file(s)
+        $pathsRaw = $record->$pathCol ?? '';
+        if ($pathsRaw) {
+            foreach (explode(',', $pathsRaw) as $relPath) {
+                $relPath = trim($relPath);
+                if (!$relPath) continue;
+                $absPath = WRITEPATH . $relPath;
+                if (file_exists($absPath)) {
+                    @unlink($absPath);
+                }
+            }
+        }
+
+        // Delete from database
+        $this->db->table($table)->where($pk, $id)->delete();
+
+        return $this->respond([
+            'success' => true,
+            'message' => ucfirst($type) . ' deleted successfully.',
         ]);
     }
 
