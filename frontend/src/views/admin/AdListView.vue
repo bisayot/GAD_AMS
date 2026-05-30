@@ -104,9 +104,9 @@
                   
                   <tr 
                     v-else
-                    v-for="item in filteredDesigns" 
-                    :key="item.id"
-                    @click="viewDetails(item.id)"
+                    v-for="item in paginatedDesigns" 
+                    :key="item.act_design_id"
+                    @click="viewDetails(item.act_design_id)"
                     class="table-row"
                   >
                     <td class="table-cell control-cell">
@@ -176,9 +176,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import api from '../../api';
+import axios from 'axios';
 
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
@@ -195,7 +195,11 @@ const officeOptions = ref([]);
 const activityDesigns = ref([]);
 const currentPage = ref(1);
 const perPage = ref(10);
-const paginationMeta = ref({ total: 0, from: 0, to: 0, last_page: 1 });
+
+// Reset to first page when filtering or changing page size
+watch([filters, perPage], () => {
+  currentPage.value = 1;
+}, { deep: true });
 
 const metricsStats = ref([
   { label: 'Total Designs', value: '0', icon: 'description', iconColor: 'text-purple-400', bgClass: 'bg-purple-500/10' },
@@ -208,7 +212,10 @@ const filteredDesigns = computed(() => {
   let records = activityDesigns.value;
   if (filters.value.search) {
     const q = filters.value.search.toLowerCase();
-    records = records.filter(i => i.control.toLowerCase().includes(q) || i.title.toLowerCase().includes(q));
+    records = records.filter(i => 
+      (i.control && i.control.toLowerCase().includes(q)) || 
+      (i.title && i.title.toLowerCase().includes(q))
+    );
   }
   if (filters.value.office !== 'all') {
     records = records.filter(i => i.office === filters.value.office);
@@ -217,6 +224,26 @@ const filteredDesigns = computed(() => {
     records = records.filter(i => i.status === filters.value.status);
   }
   return records;
+});
+
+const paginatedDesigns = computed(() => {
+  const start = (currentPage.value - 1) * perPage.value;
+  const end = start + perPage.value;
+  return filteredDesigns.value.slice(start, end);
+});
+
+const paginationMeta = computed(() => {
+  const total = filteredDesigns.value.length;
+  const lastPage = Math.ceil(total / perPage.value) || 1;
+  const from = total === 0 ? 0 : (currentPage.value - 1) * perPage.value + 1;
+  const to = Math.min(currentPage.value * perPage.value, total);
+  
+  return {
+    total,
+    from,
+    to,
+    last_page: lastPage
+  };
 });
 
 const statusBadgeClass = (status) => {
@@ -231,9 +258,20 @@ const viewDetails = (id) => {
 
 const fetchDesigns = async () => {
   try {
-    // API live connection binding pipeline template placeholder:
-    // const response = await api.get('admin/activity-designs');
-    // activityDesigns.value = response.data.data;
+    const response = await axios.get('http://localhost:8080/api/activity-designs');
+    if (response.data.success) {
+      activityDesigns.value = response.data.data;
+      
+      // Update Statistics
+      metricsStats.value[0].value = activityDesigns.value.length.toString();
+      metricsStats.value[1].value = activityDesigns.value.filter(r => r.status === 'Pending').length.toString();
+      metricsStats.value[2].value = activityDesigns.value.filter(r => r.status === 'Approved').length.toString();
+      metricsStats.value[3].value = activityDesigns.value.filter(r => r.status === 'Revision Required').length.toString();
+
+      // Extract Unique Offices for Filter
+      const offices = [...new Set(activityDesigns.value.map(r => r.office).filter(Boolean))];
+      officeOptions.value = offices.sort();
+    }
   } catch (err) {
     console.error(err);
   }
@@ -241,7 +279,7 @@ const fetchDesigns = async () => {
 
 const handleLogout = async () => {
   try {
-    await api.get('logout');
+    await axios.get('http://localhost:8080/api/logout');
     localStorage.removeItem('user');
     router.push('/login');
   } catch (err) {

@@ -104,7 +104,7 @@
                   
                   <tr 
                     v-else
-                    v-for="item in filteredReports" 
+                    v-for="item in paginatedReports" 
                     :key="item.id"
                     @click="viewDetails(item.id)"
                     class="table-row"
@@ -176,9 +176,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import api from '../../api';
+import axios from 'axios';
 
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
@@ -194,7 +194,11 @@ const officeOptions = ref([]);
 const accomplishmentReports = ref([]);
 const currentPage = ref(1);
 const perPage = ref(10);
-const paginationMeta = ref({ total: 0, from: 0, to: 0, last_page: 1 });
+
+// Reset to first page when filtering or changing page size
+watch([filters, perPage], () => {
+  currentPage.value = 1;
+}, { deep: true });
 
 const metricsStats = ref([
   { label: 'Total Reports', value: '0', icon: 'analytics', iconColor: 'text-blue-400', bgClass: 'bg-blue-500/10' },
@@ -207,7 +211,10 @@ const filteredReports = computed(() => {
   let records = accomplishmentReports.value;
   if (filters.value.search) {
     const q = filters.value.search.toLowerCase();
-    records = records.filter(i => i.control.toLowerCase().includes(q) || i.title.toLowerCase().includes(q));
+    records = records.filter(i => 
+      (i.control && i.control.toLowerCase().includes(q)) || 
+      (i.title && i.title.toLowerCase().includes(q))
+    );
   }
   if (filters.value.office !== 'all') {
     records = records.filter(i => i.office === filters.value.office);
@@ -216,6 +223,26 @@ const filteredReports = computed(() => {
     records = records.filter(i => i.status === filters.value.status);
   }
   return records;
+});
+
+const paginatedReports = computed(() => {
+  const start = (currentPage.value - 1) * perPage.value;
+  const end = start + perPage.value;
+  return filteredReports.value.slice(start, end);
+});
+
+const paginationMeta = computed(() => {
+  const total = filteredReports.value.length;
+  const lastPage = Math.ceil(total / perPage.value) || 1;
+  const from = total === 0 ? 0 : (currentPage.value - 1) * perPage.value + 1;
+  const to = Math.min(currentPage.value * perPage.value, total);
+  
+  return {
+    total,
+    from,
+    to,
+    last_page: lastPage
+  };
 });
 
 const statusBadgeClass = (status) => {
@@ -230,9 +257,20 @@ const viewDetails = (id) => {
 
 const fetchReports = async () => {
   try {
-    // API live connection binding pipeline template placeholder:
-    // const response = await api.get('admin/accomplishment-reports');
-    // accomplishmentReports.value = response.data.data;
+    const response = await axios.get('http://localhost:8080/api/activity-reports');
+    if (response.data.success) {
+      accomplishmentReports.value = response.data.data;
+      
+      // Update Statistics
+      metricsStats.value[0].value = accomplishmentReports.value.length.toString();
+      metricsStats.value[1].value = accomplishmentReports.value.filter(r => r.status === 'Pending').length.toString();
+      metricsStats.value[2].value = accomplishmentReports.value.filter(r => r.status === 'Verified').length.toString();
+      metricsStats.value[3].value = accomplishmentReports.value.filter(r => r.status === 'Revision Required').length.toString();
+
+      // Extract Unique Offices for Filter
+      const offices = [...new Set(accomplishmentReports.value.map(r => r.office).filter(Boolean))];
+      officeOptions.value = offices.sort();
+    }
   } catch (err) {
     console.error(err);
   }
@@ -240,7 +278,7 @@ const fetchReports = async () => {
 
 const handleLogout = async () => {
   try {
-    await api.get('logout');
+    await axios.get('http://localhost:8080/api/logout');
     localStorage.removeItem('user');
     router.push('/login');
   } catch (err) {
