@@ -56,17 +56,17 @@
           <div class="tabs-container">
             <div class="tabs-header">
               <button 
-                @click="activeTab = 'designs'" 
+                @click="activeTab = 'design'" 
                 class="tab-btn"
-                :class="{ 'tab-active': activeTab === 'designs', 'tab-inactive': activeTab !== 'designs' }"
+                :class="{ 'tab-active': activeTab === 'design', 'tab-inactive': activeTab !== 'design' }"
               >
                 Activity Designs
                 <span class="tab-badge">{{ totalDesigns }}</span>
               </button>
               <button 
-                @click="activeTab = 'reports'" 
+                @click="activeTab = 'report'" 
                 class="tab-btn"
-                :class="{ 'tab-active': activeTab === 'reports', 'tab-inactive': activeTab !== 'reports' }"
+                :class="{ 'tab-active': activeTab === 'report', 'tab-inactive': activeTab !== 'report' }"
               >
                 Accomplishment Reports
                 <span class="tab-badge">{{ totalReports }}</span>
@@ -81,7 +81,7 @@
                 <select v-model="filters.status" class="filter-select-custom" @change="applyFilters">
                   <option value="all">All Status</option>
                   <option value="pending">Pending Review</option>
-                  <option value="revision">For Revision</option>
+                  <option value="revision required">For Revision</option>
                 </select>
               </div>
 
@@ -212,14 +212,14 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import api from '../../api';
+import axios from 'axios';
 
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 
 const submissions = ref([]);
 const loading = ref(false);
-const activeTab = ref('designs');
+const activeTab = ref('design');
 
 const filters = ref({
   status: 'all',
@@ -264,7 +264,7 @@ const filteredItems = computed(() => {
 });
 
 const totalActive = computed(() => {
-  return submissions.value.filter(item => item.status === 'pending' || item.status === 'revision').length;
+  return submissions.value.filter(item => item.status === 'pending' || item.status === 'revision required').length;
 });
 
 const totalDesigns = computed(() => {
@@ -304,18 +304,64 @@ const visiblePages = computed(() => {
 const fetchSubmissions = async () => {
   loading.value = true;
   try {
-    // TODO: Replace with your actual API endpoint
-    // const response = await api.get('submissions');
-    // submissions.value = response.data;
+    const userId = user.value.id || user.value.user_id;
     
-    // Temporary empty array - remove once database is connected
-    submissions.value = [];
+    // Fetch both Activity Designs and Accomplishment Reports
+    const [designsRes, reportsRes] = await Promise.all([
+      axios.get(`http://localhost:8080/api/activity-designs/${userId}`),
+      axios.get(`http://localhost:8080/api/activity-reports/${userId}`)
+    ]);
+
+    const designs = (designsRes.data.data || []).map(d => ({
+      id: d.act_design_id,
+      type: 'design',
+      control: d.control || 'PENDING',
+      title: d.activity_title,
+      formLabel: formatFormType(d.form_type),
+      formClass: getFormClass(d.form_type),
+      status: d.status.toLowerCase(),
+      statusText: d.status,
+      statusClass: getStatusClass(d.status),
+      date: d.date,
+      dateRaw: d.created_at || d.date
+    }));
+
+    const reports = (reportsRes.data.data || []).map(r => ({
+      id: r.id,
+      type: 'report',
+      control: r.control,
+      title: r.activity_title,
+      formLabel: formatFormType(r.formLabel), // Backend aliases form_type as formLabel in AR
+      formClass: getFormClass(r.formLabel),
+      status: r.status.toLowerCase(),
+      statusText: r.status,
+      statusClass: getStatusClass(r.status),
+      date: r.date,
+      dateRaw: r.created_at || r.date
+    }));
+
+    submissions.value = [...designs, ...reports];
     
   } catch (error) {
     console.error('Error fetching submissions:', error);
   } finally {
     loading.value = false;
   }
+};
+
+const formatFormType = (type) => {
+  const types = { 'inset': 'INSET Training', 'extension': 'Extension Program', 'employee': 'Employee Training' };
+  return types[type] || type;
+};
+
+const getFormClass = (type) => {
+  return `form-badge-${type}`;
+};
+
+const getStatusClass = (status) => {
+  if (status === 'Approved' || status === 'Verified') return 'status-verified';
+  if (status === 'Revision Required') return 'status-revision';
+  return 'status-pending';
 };
 
 const applyFilters = () => {
@@ -347,7 +393,7 @@ const viewItem = (item) => {
 
 const handleLogout = async () => {
   try {
-    await api.get('logout');
+    await axios.get('http://localhost:8080/api/logout');
     localStorage.removeItem('user');
     router.push('/login');
   } catch (err) {
@@ -357,7 +403,7 @@ const handleLogout = async () => {
 };
 
 onMounted(() => {
-  if (!user.value.id || !['TWG','Non-TWG','college'].includes(user.value.role)) {
+  if (!user.value.id || !['gad_staff', 'college', 'admin'].includes(user.value.role)) {
     router.push('/login');
   }
   fetchSubmissions();
@@ -827,6 +873,17 @@ onMounted(() => {
   color: #dc2626;
   border: 1px solid #fecaca;
 }
+
+.status-badge.status-verified,
+.status-badge.status-approved {
+  background: #d1fae5;
+  color: #059669;
+  border: 1px solid #6ee7b7;
+}
+
+.form-badge-inset { background: #fef3c7; color: #b45309; }
+.form-badge-extension { background: #d1fae5; color: #065f46; }
+.form-badge-employee { background: #e0e7ff; color: #3730a3; }
 
 .control-number {
   font-family: monospace;

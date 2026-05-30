@@ -178,7 +178,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import api from '../../api';
+import axios from 'axios';
 
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
@@ -230,9 +230,28 @@ const viewDetails = (id) => {
 
 const fetchReports = async () => {
   try {
-    // API live connection binding pipeline template placeholder:
-    // const response = await api.get('staff/accomplishment-reports');
-    // accomplishmentReports.value = response.data.data;
+    const response = await axios.get('http://localhost:8080/api/activity-reports');
+    if (response.data.success) {
+      accomplishmentReports.value = response.data.data;
+      
+      // Update Statistics
+      metricsStats.value[0].value = accomplishmentReports.value.length.toString();
+      metricsStats.value[1].value = accomplishmentReports.value.filter(r => r.status === 'Pending').length.toString();
+      metricsStats.value[2].value = accomplishmentReports.value.filter(r => r.status === 'Verified').length.toString();
+      metricsStats.value[3].value = accomplishmentReports.value.filter(r => r.status === 'Revision Required').length.toString();
+
+      // Extract Unique Offices for Filter
+      const offices = [...new Set(accomplishmentReports.value.map(r => r.office).filter(Boolean))];
+      officeOptions.value = offices.sort();
+
+      // Basic Pagination Meta Setup
+      paginationMeta.value = {
+        total: accomplishmentReports.value.length,
+        from: accomplishmentReports.value.length > 0 ? 1 : 0,
+        to: accomplishmentReports.value.length,
+        last_page: Math.ceil(accomplishmentReports.value.length / perPage.value) || 1
+      };
+    }
   } catch (err) {
     console.error(err);
   }
@@ -240,7 +259,7 @@ const fetchReports = async () => {
 
 const handleLogout = async () => {
   try {
-    await api.get('logout');
+    await axios.get('http://localhost:8080/api/logout');
     localStorage.removeItem('user');
     router.push('/login');
   } catch (err) {
@@ -250,7 +269,7 @@ const handleLogout = async () => {
 };
 
 onMounted(() => {
-  if (!user.value.id || !['Staff','gad_staff'].includes(user.value.role)) {
+  if (!user.value.id || user.value.role !== 'gad_staff') {
     router.push('/login');
   } else {
     fetchReports();

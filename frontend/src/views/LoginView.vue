@@ -26,16 +26,16 @@
 
             <!-- Identity Input -->
             <div class="space-y-2">
-              <label class="block font-label text-xs font-bold uppercase tracking-widest text-on-surface-variant px-1" for="email">Institutional Email</label>
+              <label class="block font-label text-xs font-bold uppercase tracking-widest text-on-surface-variant px-1" for="identity">Username or Email</label>
               <div class="relative group">
-                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline transition-colors group-focus-within:text-primary">email</span>
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline transition-colors group-focus-within:text-primary">person</span>
                 <input 
-                  v-model="email"
+                  v-model="identity"
                   class="w-full pl-12 pr-4 py-4 bg-surface-container-low border-none rounded-lg focus:ring-0 focus:bg-surface-bright focus:border-b-2 focus:border-primary transition-all duration-200 text-on-surface placeholder:text-outline/50" 
-                  id="email" 
+                  id="identity" 
                   placeholder="e.g. gad.office@bsu.edu.ph" 
                   required 
-                  type="email" 
+                  type="text" 
                 />
               </div>
             </div>
@@ -113,67 +113,64 @@
 
 <script setup>
 import { ref } from 'vue';
+import axios from 'axios';
 import { useRouter } from 'vue-router';
-import api from '../api';
 
 const router = useRouter();
-const email = ref('');
+const identity = ref('');
 const password = ref('');
 const loading = ref(false);
 const error = ref('');
 const showPassword = ref(false);
 
-/**
- * Maps user_role values to dashboard routes.
- * Supports both the new DB enum (Director/Staff/TWG/Non-TWG)
- * and the legacy values from the remote backend (admin/college/gad_staff).
- */
-const getRoleRoute = (role) => {
-  console.log('[Login] Role received from server:', role);
-  switch (role) {
-    // New DB enum values
-    case 'Director':  return '/admin/dashboard';
-    case 'Staff':     return '/staff/dashboard';
-    case 'TWG':       return '/college/dashboard';
-    case 'Non-TWG':   return '/college/dashboard';
-    // Legacy values (old remote backend)
-    case 'admin':     return '/admin/dashboard';
-    case 'gad_staff': return '/staff/dashboard';
-    case 'college':   return '/college/dashboard';
-    default:
-      console.warn('[Login] Unknown role, redirecting to home:', role);
-      return '/';
-  }
-};
-
 const handleLogin = async () => {
   loading.value = true;
   error.value = '';
-
+  
   try {
-    const response = await api.post('login', {
-      email:    email.value,
-      password: password.value,
+    // Change .get to .post, and remove the "params:" wrapper
+    const response = await axios.post('http://localhost:8080/api/login', {
+      identity: identity.value,
+      password: password.value
     });
-
-    // Persist user info for use across the app
+    
+    // Store user info in localStorage or a store
     localStorage.setItem('user', JSON.stringify(response.data.user));
-
-    // Redirect based on DB role
-    router.push(getRoleRoute(response.data.user.role));
-
+    
+    // Redirect based on role
+    const role = response.data.user.role;
+    if (role === 'admin') router.push('/admin/dashboard');
+    else if (role === 'college') router.push('/college/dashboard');
+    else if (role === 'gad_staff') router.push('/staff/dashboard');
+    else router.push('/');
+    
   } catch (err) {
     console.error('Login error:', err);
-
-    if (err && err.messages) {
-      error.value = err.messages.error || 'Login failed';
-    } else if (err && err.message) {
-      error.value = err.message;
+    
+    if (err.response?.status === 401) {
+      error.value = 'Invalid credentials';
+    } else if (err.response?.status === 429) {
+      error.value = 'Too many login attempts. Try again later.';
+    } else if (err.response?.data?.messages?.error) {
+      error.value = err.response.data.messages.error;
+    } else if (err.code === 'ECONNREFUSED') {
+      // Axios error fallback
+      error.value = 'Backend is not running. Start it first.';
     } else {
-      error.value = 'Connection error. Please check if the backend is running.';
+      error.value = 'An error occurred. Please try again.';
     }
   } finally {
     loading.value = false;
   }
 };
 </script>
+
+<style scoped>
+.bg-login-texture {
+  background-color: #f9f9fb;
+  background-image: radial-gradient(#422b68 0.5px, transparent 0.5px), radial-gradient(#422b68 0.5px, #f9f9fb 0.5px);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+  opacity: 0.03;
+}
+</style>
