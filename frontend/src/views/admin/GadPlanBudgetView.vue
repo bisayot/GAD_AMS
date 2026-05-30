@@ -158,7 +158,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import api from '../../api';
+import axios from 'axios';
 
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
@@ -199,7 +199,7 @@ const exportToExcel = () => {
 
 const handleLogout = async () => {
   try {
-    await api.get('logout');
+    await axios.get('http://localhost:8080/api/logout');
     localStorage.removeItem('user');
     router.push('/login');
   } catch (err) {
@@ -213,7 +213,7 @@ const fetchMandates = () => {
 };
 
 onMounted(() => {
-  if (!user.value.id || !['Director','admin'].includes(user.value.role)) {
+  if (!user.value.id || user.value.role !== 'admin') {
     router.push('/login');
   }
   fetchMandates();

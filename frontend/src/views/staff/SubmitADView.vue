@@ -7,16 +7,15 @@
           </div>
 
           <div class="form-container-box">
-            <form @submit.prevent="submitActivityDesign" class="space-y-6">
+            <form @submit.prevent="submitActivityDesign" method="post" class="space-y-6">
               
               <div class="space-y-2">
-                <label class="block text-11px font-bold uppercase tracking-wider label-highlight">Nature of Transaction *</label>
+                <label class="block text-11px font-bold uppercase tracking-wider label-highlight">Form Type *</label>
                 <select 
-                  v-model="form.nature" 
-                  required 
+                  v-model="form.form_type" 
                   class="custom-input-field select-arrow-fix"
                 >
-                  <option value="" disabled class="dark-option">Select transaction type...</option>
+                  <option value="" disabled class="dark-option">Select form type...</option>
                   <option value="inset" class="dark-option">INSET Training</option>
                   <option value="extension" class="dark-option">Extension Program</option>
                   <option value="employee" class="dark-option">Employee Training</option>
@@ -25,13 +24,12 @@
 
               <div class="space-y-2">
                 <label class="block text-11px font-bold uppercase tracking-wider label-highlight">Activity Title *</label>
-                <textarea 
+                <input type="text" 
                   v-model="form.activity_title" 
-                  required 
                   rows="3" 
                   class="custom-input-field resize-none"
                   placeholder="Enter the complete title of the activity"
-                ></textarea>
+                >
               </div>
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -40,7 +38,6 @@
                   <input 
                     type="date" 
                     v-model="form.start_date" 
-                    required 
                     class="custom-input-field code-icon-calendar"
                   >
                 </div>
@@ -49,7 +46,6 @@
                   <input 
                     type="date" 
                     v-model="form.end_date" 
-                    required 
                     class="custom-input-field code-icon-calendar"
                   >
                 </div>
@@ -61,7 +57,6 @@
                   <input 
                     type="time" 
                     v-model="form.start_time" 
-                    required 
                     class="custom-input-field code-icon-clock"
                   >
                 </div>
@@ -70,7 +65,6 @@
                   <input 
                     type="time" 
                     v-model="form.end_time" 
-                    required 
                     class="custom-input-field code-icon-clock"
                   >
                 </div>
@@ -80,9 +74,7 @@
                 <label class="block text-11px font-bold uppercase tracking-wider label-highlight">Venue *</label>
                 <input 
                   type="text" 
-                  v-model="form.venue" 
-                  required 
-                  class="custom-input-field"
+                  v-model="form.venue"                   class="custom-input-field"
                   placeholder="e.g., Convention Center, Main Hall"
                 >
               </div>
@@ -93,7 +85,6 @@
                   <input 
                     type="number" 
                     v-model="form.target_participants" 
-                    required 
                     class="custom-input-field"
                     placeholder="Enter total participants"
                     min="0"
@@ -105,7 +96,6 @@
                     type="number" 
                     v-model="form.proposed_budget" 
                     step="0.01" 
-                    required 
                     class="custom-input-field" 
                     placeholder="0.00"
                     min="0"
@@ -124,7 +114,6 @@
                     type="file" 
                     @change="handleFileUpload"
                     accept=".pdf" 
-                    required 
                     class="hidden"
                   >
                   <span class="text-3xl mb-2 group-hover:scale-110 transition-transform duration-200">📤</span>
@@ -164,19 +153,17 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import api from '../../api';
+import axios from 'axios';
 
 const router = useRouter();
 const route = useRoute();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 
-const menuItems = computed(() => {
-  if (route.path.includes('/staff')) return staffMenu;
-  return [];
-});
+const isSubmitting = ref(false);
 
 const form = ref({
-  nature: '',
+  // Set a default or ensure it's not empty to avoid validation errors
+  form_type: 'inset',
   activity_title: '',
   start_date: '',
   end_date: '',
@@ -202,37 +189,72 @@ const removeFile = () => {
 };
 
 const submitActivityDesign = async () => {
+  if (isSubmitting.value) return;
+  
+  isSubmitting.value = true;
   try {
     const formData = new FormData();
-    Object.keys(form.value).forEach(key => {
-      formData.append(key, form.value[key]);
-    });
-    if (designFile.value) {
-      formData.append('design_file', designFile.value);
-    }
-    formData.append('user_id', user.value.id);
+    const userId = user.value.id || user.value.user_id;
+    
+    formData.append('form-type', form.value.form_type);
+    formData.append('activity-title', form.value.activity_title);
+    formData.append('start-date', form.value.start_date);
+    formData.append('end-date', form.value.end_date);
+    formData.append('start-time', form.value.start_time);
+    formData.append('end-time', form.value.end_time);
+    formData.append('venue', form.value.venue);
+    formData.append('target-participants', form.value.target_participants);
+    formData.append('proposed-budget', form.value.proposed_budget);
+    formData.append('user_id', userId);
 
-    const response = await api.post('submit-activity-design', formData, {
+    if (designFile.value) {
+      formData.append('attachment', designFile.value);
+    } else {
+      alert('Please upload the Activity Design PDF.');
+      isSubmitting.value = false;
+      return;
+    }
+
+    // Ensure this URL matches your Routes.php exactly
+    const response = await axios.post('http://localhost:8080/api/submit-activity-design', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
 
     if (response.data.success) {
-      alert('Activity Design submitted successfully!');
+      alert(response.data.message || 'Activity Design submitted successfully!');
+      // Redirect to the list view after successful submission
       router.push('/staff/dashboard');
+    } else {
+      alert(response.data.message || 'Failed to submit. Please check your inputs.');
     }
   } catch (error) {
     console.error('Submission error:', error);
-    alert('Failed to submit activity design. Please double check all details.');
+    
+    let errorMsg = 'An unexpected error occurred.';
+    
+    if (error.response?.data) {
+      const data = error.response.data;
+      if (data.message) {
+        errorMsg = data.message;
+      } else if (data.errors) {
+        // If there are validation errors, join them into a readable list
+        errorMsg = Object.values(data.errors).join('\n');
+      }
+    }
+    
+    alert(errorMsg);
+  } finally {
+    isSubmitting.value = false;
   }
 };
 
 const goBack = () => {
-  router.push('/staff/submit');
+  router.back();
 };
 
 const handleLogout = async () => {
   try {
-    await api.get('logout');
+    await axios.get('http://localhost:8080/api/logout');
     localStorage.removeItem('user');
     router.push('/login');
   } catch (err) {
@@ -242,7 +264,10 @@ const handleLogout = async () => {
 };
 
 onMounted(() => {
-  if (!user.value.id || !['Staff','gad_staff'].includes(user.value.role)) {
+  const userId = user.value.id || user.value.user_id;
+  const role = user.value.role;
+  
+  if (!userId || !['gad_staff', 'college', 'admin'].includes(role)) {
     router.push('/login');
   }
 });

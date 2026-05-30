@@ -1,17 +1,18 @@
 <template>
   <div class="staff-dashboard">
-    <DashboardSidebar
-      roleLabel="GAD Staff"
-      :menuItems="staffMenu"
-      @logout="handleLogout"
-    />
+    <DashboardSidebar 
+      roleLabel="GAD Staff" 
+      :menuItems="staffMenu" 
+      @logout="handleLogout" 
+    />      
 
     <div class="dashboard-main">
-      <header class="dashboard-header"></header>
-
+      <header class="dashboard-header">
+      </header>
+        
       <main class="dashboard-main-content">
         <div class="content-wrapper">
-          <router-view />
+          <router-view /> 
         </div>
       </main>
     </div>
@@ -21,7 +22,7 @@
 <script setup>
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import api from '../api';
+import axios from 'axios';
 import DashboardSidebar from '../components/DashboardSidebar.vue';
 
 const router = useRouter();
@@ -36,28 +37,24 @@ const staffMenu = [
   { label: 'Mandates', icon: 'gavel', href: '/staff/mandates' },
   { label: 'Report Monitoring', icon: 'description', href: '/staff/reports' },
   { label: 'Budget Monitoring', icon: 'payments', href: '/staff/budget' },
-  { label: 'Budget Allocation', icon: 'account_balance', href: '/staff/budget-allocation' },
-  { label: 'Plan & Budget', icon: 'account_balance_wallet', href: '/staff/gad-plan-budget' },
   { label: 'User Manual', icon: 'menu_book', href: '/staff/user-manual' },
   { label: 'Data Privacy Policy', icon: 'privacy_tip', href: '/staff/data-privacy-policy' }
 ];
 
 const handleLogout = async () => {
   try {
-    await api.get('logout');
-  } catch (err) {
-    console.error('Logout failed:', err);
-  } finally {
+    await axios.get('http://localhost:8080/api/logout');
     localStorage.removeItem('user');
-    localStorage.removeItem('authToken');
+    router.push('/login');
+  } catch (err) {
+    localStorage.removeItem('user');
     router.push('/login');
   }
 };
 
 onMounted(() => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const allowed = ['Staff', 'gad_staff'];
-  if (!user.id || !allowed.includes(user.role)) {
+  if (!user.id || user.role !== 'gad_staff') {
     router.push('/login');
   }
 });

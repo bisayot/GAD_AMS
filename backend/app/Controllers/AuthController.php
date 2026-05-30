@@ -11,102 +11,125 @@ class AuthController extends ResourceController
 
     public function login()
     {
-        // Accept JSON body or form-data
+        // Set CORS headers
+        $this->setCorsHeaders();
+
+        // Handle preflight request
+        if (strtoupper($this->request->getMethod()) === 'OPTIONS') {
+            return $this->response->setStatusCode(204);
+        }
+
+        // Handle JSON or Form-data
         $data = $this->request->getJSON(true) ?: $this->request->getPost();
 
         $rules = [
-            'email'    => 'required|valid_email',
-            'password' => 'required',
+            'identity' => 'required',
+            'password' => 'required'
         ];
 
         if (!$this->validateData($data, $rules)) {
             return $this->fail($this->validator->getErrors());
         }
 
-        $email    = trim($data['email']);
+        $identity = trim($data['identity']);
         $password = $data['password'];
 
+        log_message('error', "LOGIN ATTEMPT: Identity=[$identity]");
+
         $userModel = new UserModel();
-        $user      = $userModel->findByEmail($email);
+        $user = $userModel->findByIdentity($identity);
 
         if (!$user) {
-            return $this->failUnauthorized('No account found with that email address.');
+            return $this->failUnauthorized("User not found for identity: $identity");
         }
 
         if (!password_verify($password, $user['password'])) {
-            return $this->failUnauthorized('Incorrect password.');
+            // Debug: Check if it's a legacy MD5 or something (unlikely but let's check)
+            if (md5($password) === $user['password']) {
+                 return $this->failUnauthorized('Legacy MD5 password detected. Please reset your password.');
+            }
+            return $this->failUnauthorized("Password verification failed for user: " . $user['username']);
         }
 
-        // Build the display name from profile columns
-        $displayName = trim($user['first_name'] . ' ' . ($user['middle_name'] ? $user['middle_name'][0] . '. ' : '') . $user['last_name']);
+        log_message('error', "LOGIN SUCCESS: User [" . $user['username'] . "] authenticated.");
 
+        // In a real app, you'd generate a JWT here. 
+        // For this demo, we'll just return user info.
         return $this->respond([
-            'status'  => 200,
+            'status' => 200,
             'message' => 'Login successful',
-            'user'    => [
-                'id'         => $user['id'],
-                'email'      => $user['email'],
-                'first_name' => $user['first_name'],
-                'last_name'  => $user['last_name'],
-                'name'       => $displayName,
-                'role'       => $user['user_role'],  // Director | Staff | TWG | Non-TWG
-            ],
+            'user' => [
+                'id' => $user['id'],
+                'username' => $user['username'],
+                'role' => $user['role']
+            ]
         ]);
     }
 
     public function register()
     {
+        // Set CORS headers
+        $this->setCorsHeaders();
+
+        // Handle preflight request
+        if (strtoupper($this->request->getMethod()) === 'OPTIONS') {
+            return $this->response->setStatusCode(200);
+        }
+
         $data = $this->request->getJSON(true) ?: $this->request->getPost();
 
         $rules = [
-            'first_name'       => 'required|max_length[100]',
-            'last_name'        => 'required|max_length[100]',
-            'middle_name'      => 'permit_empty|max_length[100]',
-            'email'            => 'required|valid_email|max_length[255]',
-            'user_role'        => 'required|in_list[Director,Staff,TWG,Non-TWG]',
-            'password'         => 'required|min_length[6]',
-            'confirm_password' => 'required|matches[password]',
+            'fullname' => 'required',
+            'university_id' => 'required',
+            'department' => 'required',
+            'email' => 'required|valid_email',
+            'password' => 'required|min_length[6]',
+            'confirm_password' => 'required|matches[password]'
         ];
 
         if (!$this->validateData($data, $rules)) {
             return $this->fail($this->validator->getErrors());
         }
 
-        $email = trim($data['email']);
-
+        $email = $data['email'];
+        $username = strtolower(str_replace(' ', '_', explode('@', $email)[0]));
+        
         $userModel = new UserModel();
-
-        // Check for duplicate email
-        if ($userModel->findByEmail($email)) {
-            return $this->failResourceExists('An account with that email already exists.');
+        
+        // Check if user exists
+        if ($userModel->findByIdentity($email)) {
+            return $this->failResourceExists('A user with that email or username already exists');
         }
 
-        $userId = $userModel->registerUser(
-            $email,
-            password_hash($data['password'], PASSWORD_DEFAULT),
-            [
-                'first_name'     => trim($data['first_name']),
-                'middle_name'    => isset($data['middle_name']) ? trim($data['middle_name']) : null,
-                'last_name'      => trim($data['last_name']),
-                'user_role'      => $data['user_role'],
-                'office_unit_id' => isset($data['office_unit_id']) ? (int) $data['office_unit_id'] : null,
-            ]
-        );
+        $userData = [
+            'username' => $username,
+            'email' => $email,
+            'password' => password_hash($data['password'], PASSWORD_DEFAULT),
+            'role' => 'college', // Default role for registration
+            'full_name' => $data['fullname'],
+            'student_id' => $data['university_id'],
+            'college' => $data['department']
+        ];
 
-        if (!$userId) {
-            return $this->fail('Unable to create account. Please try again later.');
+        if ($userModel->insert($userData)) {
+            return $this->respondCreated(['message' => 'Account created successfully. Please log in.']);
         }
 
-        return $this->respondCreated(['message' => 'Account created successfully. Please log in.']);
+        return $this->fail('Unable to create account. Please try again later.');
     }
 
     public function logout()
     {
+        $this->setCorsHeaders();
         return $this->respond(['message' => 'Logout successful']);
     }
 
-    public function handleOptions()
+    private function setCorsHeaders()
     {
-        return $this->respond(['status' => 200]);
+        $this->response->setHeader('Access-Control-Allow-Origin', 'http://localhost:5173')
+                       ->setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH')
+                       ->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept')
+                       ->setHeader('Access-Control-Allow-Credentials', 'true')
+                       ->setHeader('Access-Control-Max-Age', '86400');
     }
 }

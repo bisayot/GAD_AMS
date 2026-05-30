@@ -39,7 +39,7 @@
                 <input 
                   v-model="searchQuery"
                   type="text" 
-                  placeholder="Search unit name or code..." 
+                  placeholder="Search username..." 
                   class="search-input"
                 />
               </div>
@@ -52,6 +52,18 @@
                   <option value="all">All Units</option>
                   <option value="active">With Submissions</option>
                   <option value="empty">No Submissions</option>
+                </select>
+                <span class="select-arrow">▼</span>
+              </div>
+
+              <div class="select-wrapper">
+                <select 
+                  v-model="typeFilter"
+                  class="filter-select"
+                >
+                  <option value="all">All Classifications</option>
+                  <option value="twg">TWG Only</option>
+                  <option value="non-twg">Non-TWG Only</option>
                 </select>
                 <span class="select-arrow">▼</span>
               </div>
@@ -79,17 +91,17 @@
                 <thead>
                   <tr class="table-header-row">
                     <th class="table-header-cell table-header-number">#</th>
+                    <!-- <th class="table-header-cell">User ID</th> -->
                     <th class="table-header-cell">College / Office / Unit</th>
                     <th class="table-header-cell table-header-center">Activity Designs</th>
                     <th class="table-header-cell table-header-center">Accomplishment Reports</th>
-                    <th class="table-header-cell table-header-center">Total Status</th>
-                    <th class="table-header-cell table-header-right">Actions</th>
+                    <th class="table-header-cell table-header-center">Total Submitted</th>
                   </tr>
                 </thead>
                 <tbody class="table-body">
                   <tr v-if="filteredUnits.length === 0">
                     <td colspan="6" class="empty-state">
-                      No matching Technical Working Group records or submissions discovered in the repository.
+                      No matching user records or submissions discovered in the repository.
                     </td>
                   </tr>
                   
@@ -102,9 +114,11 @@
                     <td class="table-cell table-cell-number">
                       {{ (currentPage - 1) * perPage + index + 1 }}
                     </td>
+                    <!-- <td class="table-cell">
+                      <div class="unit-name">{{ unit.id }}</div>
+                    </td> -->
                     <td class="table-cell">
-                      <div class="unit-name">{{ unit.name }}</div>
-                      <div class="unit-code">{{ unit.code }}</div>
+                      <div class="unit-name">{{ unit.username }}</div>
                     </td>
                     <td class="table-cell table-cell-center table-cell-count">
                       {{ unit.activity_designs_count || 0 }}
@@ -120,14 +134,6 @@
                         {{ unit.total_submissions || 0 }} Submissions
                       </span>
                     </td>
-                    <td class="table-cell table-cell-right">
-                      <button 
-                        @click="viewDetails(unit.id)"
-                        class="view-details-btn"
-                      >
-                        👁️ View Details →
-                      </button>
-                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -135,7 +141,7 @@
 
             <div class="pagination-container">
               <p class="pagination-info">
-                Showing <span class="pagination-highlight">{{ paginationMeta.from || 0 }}</span> to <span class="pagination-highlight">{{ paginationMeta.to || 0 }}</span> of <span class="pagination-highlight">{{ paginationMeta.total || 0 }}</span> Technical Working Groups
+                Showing <span class="pagination-highlight">{{ paginationMeta.from || 0 }}</span> to <span class="pagination-highlight">{{ paginationMeta.to || 0 }}</span> of <span class="pagination-highlight">{{ paginationMeta.total || 0 }}</span> Users
               </p>
               
               <div class="pagination-controls">
@@ -178,7 +184,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import api from '../../api';
+import axios from 'axios';
 
 const router = useRouter();
 
@@ -186,6 +192,7 @@ const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 
 const searchQuery = ref('');
 const statusFilter = ref('all');
+const typeFilter = ref('all');
 const twgUnits = ref([]);
 const currentPage = ref(1);
 const perPage = ref(10);
@@ -210,8 +217,7 @@ const filteredUnits = computed(() => {
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
     records = records.filter(unit => 
-      unit.name.toLowerCase().includes(query) ||
-      unit.code.toLowerCase().includes(query)
+      unit.username.toLowerCase().includes(query)
     );
   }
 
@@ -221,16 +227,35 @@ const filteredUnits = computed(() => {
     records = records.filter(unit => (unit.total_submissions || 0) === 0);
   }
 
+  if (typeFilter.value === 'twg') {
+    records = records.filter(unit => unit.role === 'college');
+  } else if (typeFilter.value === 'non-twg') {
+    records = records.filter(unit => unit.role === 'gad_staff');
+  }
+
   return records;
 });
 
 const fetchTWGSubmissions = async (page = 1) => {
   try {
-    // Staged to fetch live data records matching your endpoint framework
-    // const response = await api.get(`admin/twg-submissions?page=${page}&per_page=${perPage.value}`);
-    // twgUnits.value = response.data.data;
-    // paginationMeta.value = response.data.meta;
-    // currentPage.value = page;
+    const response = await axios.get(`http://localhost:8080/api/admin/twg-submissions?page=${page}&per_page=${perPage.value}`);
+    if (response.data.success) {
+      twgUnits.value = response.data.data;
+      
+      // Update Statistics Cards
+      metricsStats.value[0].value = response.data.meta.total.toString(); 
+      metricsStats.value[1].value = twgUnits.value.filter(u => u.total_submissions === 0).length.toString();
+      metricsStats.value[2].value = response.data.meta.total_designs.toString();
+      metricsStats.value[3].value = response.data.meta.total_reports.toString();
+      
+      paginationMeta.value = {
+        total: response.data.meta.total,
+        from: twgUnits.value.length > 0 ? (page - 1) * perPage.value + 1 : 0,
+        to: Math.min(page * perPage.value, response.data.meta.total),
+        last_page: response.data.meta.last_page
+      };
+      currentPage.value = page;
+    }
   } catch (err) {
     console.error('Error parsing operational submissions context registry:', err);
   }
@@ -247,13 +272,9 @@ const changePage = (page) => {
   }
 };
 
-const viewDetails = (unitId) => {
-  router.push(`/admin/twg-details/${unitId}`);
-};
-
 const handleLogout = async () => {
   try {
-    await api.get('logout');
+    await axios.get('http://localhost:8080/api/logout');
     localStorage.removeItem('user');
     router.push('/login');
   } catch (err) {
@@ -263,7 +284,7 @@ const handleLogout = async () => {
 };
 
 onMounted(() => {
-  if (!user.value.id || !['Director','admin'].includes(user.value.role)) {
+  if (!user.value.id || user.value.role !== 'admin') {
     router.push('/login');
   } else {
     fetchTWGSubmissions();
