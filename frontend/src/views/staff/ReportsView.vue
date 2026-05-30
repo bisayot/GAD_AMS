@@ -106,7 +106,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import api from '../../api';
+import axios from 'axios';
 
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
@@ -142,14 +142,14 @@ const exportToExcel = () => { console.log(`Exporting baseline data models...`); 
 const fetchAnnualReportData = async () => {
   try {
     // API Bind Pipeline Staging
-    // const res = await api.get(`staff/annual-report?year=${selectedYear.value}`);
+    // const res = await axios.get(`http://localhost:8080/api/staff/annual-report?year=${selectedYear.value}`);
     // reportItems.value = res.data;
   } catch (err) { console.error(err); }
 };
 
 const handleLogout = async () => {
   try {
-    await api.get('logout');
+    await axios.get('http://localhost:8080/api/logout');
     localStorage.removeItem('user');
     router.push('/login');
   } catch (err) {

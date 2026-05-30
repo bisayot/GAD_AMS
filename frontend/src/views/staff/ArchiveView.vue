@@ -10,7 +10,7 @@
                 </div>
                 <div class="stat-content">
                   <h3 class="stat-number-purple">{{ totalArchived }}</h3>
-                  <p class="stat-label-purple">TOTAL ARCHIVED</p>
+                  <p class="stat-label-purple">TOTAL ARCHIVED ITEMS</p>
                 </div>
               </div>
             </div>
@@ -149,13 +149,13 @@
                     </td>
                     <td class="table-cell">
                       <div class="control-number">{{ item.control }}</div>
-                      <div class="item-date">{{ item.dateArchived }}</div>
+                      <div class="item-date">{{ item.date }}</div>
                     </td>
                     <td class="table-cell">
                       <div class="item-title">{{ item.title }}</div>
                     </td>
                     <td class="table-cell">
-                      <div class="item-date">{{ item.dateArchived }}</div>
+                      <div class="item-date">{{ formatDate(item.archived_at) }}</div>
                     </td>
                     <td class="table-cell">
                       <span class="status-badge" :class="item.statusClass">
@@ -197,7 +197,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import api from '../../api';
+import axios from 'axios';
 
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
@@ -207,10 +207,10 @@ const archivedReports = ref([]);
 const loading = ref(false);
 const activeTab = ref('designs');
 
-const filters = ref({
-  status: 'all',
-  sort: 'date_desc',
-  search: ''
+const filters = ref({ // Initialize filters for archive view
+  status: 'all', // 'all', 'approved', 'verified', 'cancelled'
+  sort: 'date_desc', // 'date_desc', 'date_asc', 'control_asc', 'control_desc'
+  search: '' // Search by title or control number
 });
 
 const currentPage = ref(1);
@@ -221,11 +221,11 @@ const totalArchived = computed(() => {
 });
 
 const approvedDesigns = computed(() => {
-  return archivedDesigns.value.length;
+  return archivedDesigns.value.filter(d => d.status === 'approved').length;
 });
 
 const completedReports = computed(() => {
-  return archivedReports.value.length;
+  return archivedReports.value.filter(r => r.status === 'verified').length;
 });
 
 const totalDesigns = computed(() => {
@@ -236,10 +236,6 @@ const totalReports = computed(() => {
   return archivedReports.value.length;
 });
 
-const pendingCount = computed(() => {
-  return 0;
-});
-
 const currentSourceData = computed(() => {
   return activeTab.value === 'designs' ? archivedDesigns.value : archivedReports.value;
 });
@@ -247,8 +243,10 @@ const currentSourceData = computed(() => {
 const filteredItems = computed(() => {
   let items = [...currentSourceData.value];
   
-  if (filters.value.status !== 'all') {
-    items = items.filter(item => item.status === filters.value.status);
+  if (filters.value.status === 'completed') {
+    items = items.filter(item => item.status === 'approved' || item.status === 'verified');
+  } else if (filters.value.status === 'cancelled') {
+    items = items.filter(item => item.status === 'cancelled');
   }
   
   if (filters.value.search.trim()) {
@@ -302,16 +300,53 @@ const visiblePages = computed(() => {
 const fetchArchives = async () => {
   loading.value = true;
   try {
-    const designsResponse = await api.get('archived-designs');
-    const reportsResponse = await api.get('archived-reports');
-    archivedDesigns.value = designsResponse.data;
-    archivedReports.value = reportsResponse.data;
+    const response = await axios.get('http://localhost:8080/api/archives');
+    
+    if (response.data.success) {
+      const allData = response.data.data;
+
+      archivedDesigns.value = allData.filter(i => i.type === 'design').map(d => ({
+        id: d.original_id,
+        ...d,
+        statusClass: getStatusClass(d.status),
+        statusText: d.status,
+        formClass: getFormClass(d.form_label)
+      }));
+
+      archivedReports.value = allData.filter(i => i.type === 'report').map(r => ({
+        id: r.original_id,
+        ...r,
+        statusClass: getStatusClass(r.status),
+        statusText: r.status,
+        formClass: getFormClass(r.form_label)
+      }));
+    }
   } catch (error) {
     console.error('Error fetching archive records:', error);
   } finally {
     loading.value = false;
   }
 };
+
+const formatFormType = (type) => {
+  const types = { 'inset': 'INSET Training', 'extension': 'Extension Program', 'employee': 'Employee Training' };
+  return types[type] || type;
+};
+
+const getFormClass = (type) => {
+  return `form-badge-${type}`;
+};
+
+const getStatusClass = (status) => {
+  if (!status) return '';
+  const s = status.toLowerCase();
+  if (s === 'approved' || s === 'verified') return 'status-badge-approved'; // Use approved for both completed
+  if (s === 'cancelled') return 'status-badge-revision'; // Using revision style for cancelled
+  return 'status-badge-pending'; // Fallback
+};
+
+
+
 
 const applyFilters = () => {
   currentPage.value = 1;
@@ -334,15 +369,15 @@ const changePage = (page) => {
 
 const viewItem = (item) => {
   if (item.type === 'design') {
-    router.push(`/staff/design-view/${item.id}`);
+    router.push({ name: 'staff-ad-view', params: { id: item.id } });
   } else {
-    router.push(`/staff/report-view/${item.id}`);
+    router.push({ name: 'staff-ar-view', params: { id: item.id } });
   }
 };
 
 const handleLogout = async () => {
   try {
-    await api.get('logout');
+    await axios.get('http://localhost:8080/api/logout');
     localStorage.removeItem('user');
     router.push('/login');
   } catch (err) {
@@ -821,6 +856,18 @@ onMounted(() => {
   background: #e0f2fe;
   color: #0284c7;
   border: 1px solid #bae6fd;
+}
+
+.status-badge.status-revision { /* Reusing revision style for cancelled */
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.status-badge.status-pending { /* Fallback for any other status */
+  background: #fef3c7;
+  color: #d97706;
+  border: 1px solid #fde68a;
 }
 
 .control-number {

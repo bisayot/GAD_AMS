@@ -91,7 +91,7 @@
                     <th class="table-header-cell">Activity Title</th>
                     <th class="table-header-cell">Office / Unit</th>
                     <th class="table-header-cell">Form Type</th>
-                    <th class="table-header-cell">Date Submitted</th>
+                    <th class="table-header-cell">Date Created</th>
                     <th class="table-header-cell">Status</th>
                   </tr>
                 </thead>
@@ -101,16 +101,15 @@
                       No matching activity design submissions found in the repository index.
                     </td>
                   </tr>
-                  
                   <tr 
                     v-else
-                    v-for="item in filteredDesigns" 
-                    :key="item.id"
-                    @click="viewDetails(item.id)"
+                    v-for="item in paginatedDesigns" 
+                    :key="item.act_design_id"
+                    @click="viewDetails(item.act_design_id)"
                     class="table-row"
                   >
                     <td class="table-cell control-cell">
-                      {{ item.control }}
+                      {{ item.control || 'PENDING' }}
                     </td>
                     <td class="table-cell title-cell">
                       {{ item.title }}
@@ -176,9 +175,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import api from '../../api';
+import axios from 'axios';
 
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
@@ -191,11 +190,9 @@ const filters = ref({
 
 const officeOptions = ref([]);
 
-// Database repositories
 const activityDesigns = ref([]);
 const currentPage = ref(1);
 const perPage = ref(10);
-const paginationMeta = ref({ total: 0, from: 0, to: 0, last_page: 1 });
 
 const metricsStats = ref([
   { label: 'Total Designs', value: '0', icon: 'description', iconColor: 'text-purple-400', bgClass: 'bg-purple-500/10' },
@@ -204,11 +201,20 @@ const metricsStats = ref([
   { label: 'Revision Required', value: '0', icon: 'assignment_return', iconColor: 'text-red-400', bgClass: 'bg-red-500/10' }
 ]);
 
+// Reset to first page when filtering or changing page size
+watch([filters, perPage], () => {
+  currentPage.value = 1;
+}, { deep: true });
+
 const filteredDesigns = computed(() => {
   let records = activityDesigns.value;
   if (filters.value.search) {
     const q = filters.value.search.toLowerCase();
-    records = records.filter(i => i.control.toLowerCase().includes(q) || i.title.toLowerCase().includes(q));
+    records = records.filter(i => 
+      (i.title && i.title.toLowerCase().includes(q)) || 
+      (i.control && i.control.toLowerCase().includes(q)) || 
+      (i.office && i.office.toLowerCase().includes(q))
+    );
   }
   if (filters.value.office !== 'all') {
     records = records.filter(i => i.office === filters.value.office);
@@ -219,6 +225,26 @@ const filteredDesigns = computed(() => {
   return records;
 });
 
+const paginatedDesigns = computed(() => {
+  const start = (currentPage.value - 1) * perPage.value;
+  const end = start + perPage.value;
+  return filteredDesigns.value.slice(start, end);
+});
+
+const paginationMeta = computed(() => {
+  const total = filteredDesigns.value.length;
+  const lastPage = Math.ceil(total / perPage.value) || 1;
+  const from = total === 0 ? 0 : (currentPage.value - 1) * perPage.value + 1;
+  const to = Math.min(currentPage.value * perPage.value, total);
+  
+  return {
+    total,
+    from,
+    to,
+    last_page: lastPage
+  };
+});
+
 const statusBadgeClass = (status) => {
   if (status === 'Approved') return 'status-badge-approved';
   if (status === 'Revision Required') return 'status-badge-revision';
@@ -226,22 +252,36 @@ const statusBadgeClass = (status) => {
 };
 
 const viewDetails = (id) => {
-  router.push(`/staff/ad-view/${id}`);
+  router.push({ name: 'staff-ad-view', params: { id } });
 };
 
 const fetchDesigns = async () => {
   try {
-    // API live connection binding pipeline template placeholder:
-    // const response = await api.get('staff/activity-designs');
-    // activityDesigns.value = response.data.data;
+    const response = await axios.get('http://localhost:8080/api/activity-designs');
+    
+    if (response.data.success) {
+      activityDesigns.value = response.data.data;
+      
+      // Update Statistics
+      metricsStats.value[0].value = activityDesigns.value.length.toString();
+      metricsStats.value[1].value = activityDesigns.value.filter(d => d.status === 'Pending').length.toString();
+      metricsStats.value[2].value = activityDesigns.value.filter(d => d.status === 'Approved').length.toString();
+      metricsStats.value[3].value = activityDesigns.value.filter(d => d.status === 'Revision Required').length.toString();
+
+      // Extract Unique Offices for Filter
+      const offices = [...new Set(activityDesigns.value.map(r => r.office).filter(Boolean))];
+      officeOptions.value = offices.sort();
+    }
   } catch (err) {
-    console.error(err);
+    activityDesigns.value = []; // Ensure table shows empty state on error
+    metricsStats.value.forEach(s => s.value = '0');
+    console.error("Error fetching activity designs:", err);
   }
 };
 
 const handleLogout = async () => {
   try {
-    await api.get('logout');
+    await axios.get('http://localhost:8080/api/logout');
     localStorage.removeItem('user');
     router.push('/login');
   } catch (err) {
@@ -251,7 +291,8 @@ const handleLogout = async () => {
 };
 
 onMounted(() => {
-  if (!user.value.id || user.value.role !== 'gad_staff') {
+  const userId = user.value.id || user.value.user_id;
+  if (!userId || !['gad_staff', 'college'].includes(user.value.role)) {
     router.push('/login');
   } else {
     fetchDesigns();
