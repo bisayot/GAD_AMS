@@ -146,8 +146,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import axios from 'axios';
 
 const router = useRouter();
 const showNotifications = ref(false);
@@ -180,6 +181,31 @@ const pendingActivities = ref([]);
 const upcomingDeadlines = ref([]);
 const activityLogs = ref([]);
 const notificationItems = ref([]);
+
+const fetchDashboardStats = async () => {
+  try {
+    const response = await axios.get('http://localhost:8080/api/dashboard-stats');
+    if (response.data && response.data.success) {
+      const data = response.data.data;
+      
+      metricsStats.value = [
+        { label: 'Pending Reviews', value: data.pending_reviews.toString(), icon: 'schedule', iconColor: 'text-amber-400', bgClass: 'bg-amber-500/10' },
+        { label: 'Total Act Designs', value: data.total_ad.toString(), icon: 'description', iconColor: 'text-purple-400', bgClass: 'bg-purple-500/10' },
+        { label: 'Total Acc Reports', value: data.total_ar.toString(), icon: 'analytics', iconColor: 'text-blue-400', bgClass: 'bg-blue-500/10' },
+        { label: 'Total GAD Budget', value: '₱0.0M', icon: 'payments', iconColor: 'text-emerald-400', bgClass: 'bg-emerald-500/10' },
+        { label: '% GAD Allocation', value: (data.gad_allocation || 0).toFixed(2) + '%', icon: 'percent', iconColor: 'text-pink-400', bgClass: 'bg-[#990dd1]/10' }
+      ];
+
+      pendingActivities.value = data.pending_activities || [];
+    }
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+  }
+};
+
+onMounted(() => {
+  fetchDashboardStats();
+});
 </script>
 
 <style scoped>

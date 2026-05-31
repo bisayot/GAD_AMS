@@ -399,6 +399,70 @@ class SubmissionController extends ResourceController
     }
 
     // ---------------------------------------------------------------
+    // GET /api/dashboard-stats
+    // Returns statistics and recent pending activities for Staff Dashboard
+    // ---------------------------------------------------------------
+    public function dashboardStats()
+    {
+        // 1. Pending Reviews (ADs + ARs with status_id = 1)
+        $pendingAds = $this->db->table('activity_design')->where('status_id', 1)->countAllResults();
+        $pendingArs = $this->db->table('accomplishment_report')->where('status_id', 1)->countAllResults();
+        $pendingReviews = $pendingAds + $pendingArs;
+
+        // 2. Total ADs and ARs
+        $totalAd = $this->db->table('activity_design')->countAllResults();
+        $totalAr = $this->db->table('accomplishment_report')->countAllResults();
+
+        // 3. Total GAD Budget (Calculation pending)
+        $totalBudget = 0;
+
+        // 4. Recent Pending Activities
+        $recentAds = $this->db->table('activity_design ad')
+            ->select("ad_id as id, act_title as title, 'design' as type, ad.created_at, COALESCE(ad.office_unit, ou.unit_name) AS office")
+            ->join('user_profiles up', 'up.user_id = ad.user_id', 'left')
+            ->join('office_units ou', 'ou.office_id = up.office_unit_id', 'left')
+            ->where('ad.status_id', 1)
+            ->orderBy('ad.created_at', 'DESC')
+            ->limit(5)
+            ->get()->getResultArray();
+
+        $recentArs = $this->db->table('accomplishment_report ar')
+            ->select("ar_id as id, ad.act_title as title, 'report' as type, ar.created_at, COALESCE(ad.office_unit, ou.unit_name) AS office")
+            ->join('activity_design ad', 'ad.control_number = ar.control_number', 'left')
+            ->join('user_profiles up', 'up.user_id = ad.user_id', 'left')
+            ->join('office_units ou', 'ou.office_id = up.office_unit_id', 'left')
+            ->where('ar.status_id', 1)
+            ->orderBy('ar.created_at', 'DESC')
+            ->limit(5)
+            ->get()->getResultArray();
+
+        $pendingActivities = array_merge($recentAds, $recentArs);
+        usort($pendingActivities, function($a, $b) {
+            return strtotime($b['created_at']) - strtotime($a['created_at']);
+        });
+        $pendingActivities = array_slice($pendingActivities, 0, 5);
+
+        foreach ($pendingActivities as &$act) {
+            $act['date'] = date('M d, Y', strtotime($act['created_at']));
+            $act['typeName'] = $act['type'] === 'design' ? 'Act. Design' : 'Acc. Report';
+        }
+
+        return $this->respond([
+            'success' => true,
+            'data' => [
+                'pending_reviews' => $pendingReviews,
+                'total_ad' => $totalAd,
+                'total_ar' => $totalAr,
+                'total_budget' => $totalBudget,
+                'gad_allocation' => 0,
+                'pending_activities' => $pendingActivities,
+                'upcoming_deadlines' => [],
+                'activity_logs' => []
+            ]
+        ]);
+    }
+
+    // ---------------------------------------------------------------
     // GET /api/submission-tracker
     // Groups all AD/AR submissions by office unit + user role type.
     // Returns per-unit: ad_count, ar_count, total_status, role_type
@@ -416,7 +480,7 @@ class SubmissionController extends ResourceController
                 'ad.user_id',
                 'up.user_role',
                 'CONCAT(up.first_name, " ", up.last_name) AS submitter_name',
-                'COALESCE(ad.office_unit, ou.unit_name) AS office_unit',
+                'ou.unit_name AS office_unit',
                 'ou.office_id',
             ])
             ->join('activity_statuses s',  's.id = ad.status_id',          'left')
@@ -442,7 +506,7 @@ class SubmissionController extends ResourceController
         // Build per-unit rows
         $unitMap = [];
         foreach ($ads as $ad) {
-            $key      = $ad['office_id'] ?? $ad['office_unit'] ?? ('__' . $ad['submitter_name']);
+            $key      = $ad['office_id'] ?? ('__' . $ad['submitter_name']);
             $unitName = $ad['office_unit'] ?: $ad['submitter_name'] ?: 'Unknown Unit';
             $role     = $ad['user_role'] ?? 'Unknown';
 
@@ -591,58 +655,6 @@ class SubmissionController extends ResourceController
         return $this->respond([
             'success' => true,
             'message' => ucfirst($type) . ' resubmitted successfully. Status reset to Pending.',
-        ]);
-    }
-
-    // ---------------------------------------------------------------
-    // POST /api/delete-submission
-    // Allows deleting a Pending AD or AR and removing its file(s)
-    // ---------------------------------------------------------------
-    public function deleteSubmission()
-    {
-        $post   = $this->request->getPost();
-        if (empty($post)) {
-            $post = $this->request->getJSON(true);
-        }
-        $type   = $post['type'] ?? null;  // 'design' | 'report'
-        $id     = (int) ($post['id'] ?? 0);
-
-        if (!in_array($type, ['design', 'report']) || $id <= 0) {
-            return $this->fail('Invalid parameters.', ResponseInterface::HTTP_BAD_REQUEST);
-        }
-
-        $table  = $type === 'design' ? 'activity_design'      : 'accomplishment_report';
-        $pk     = $type === 'design' ? 'ad_id'                : 'ar_id';
-        $pathCol= $type === 'design' ? 'attachment_path'      : 'attachments_path';
-
-        $record = $this->db->table($table)->where($pk, $id)->get()->getRow();
-        if (!$record) {
-            return $this->fail('Record not found.', ResponseInterface::HTTP_NOT_FOUND);
-        }
-
-        if ((int)$record->status_id !== 1) { // 1 = Pending
-            return $this->fail('Only pending submissions can be deleted.', ResponseInterface::HTTP_BAD_REQUEST);
-        }
-
-        // Delete file(s)
-        $pathsRaw = $record->$pathCol ?? '';
-        if ($pathsRaw) {
-            foreach (explode(',', $pathsRaw) as $relPath) {
-                $relPath = trim($relPath);
-                if (!$relPath) continue;
-                $absPath = WRITEPATH . $relPath;
-                if (file_exists($absPath)) {
-                    @unlink($absPath);
-                }
-            }
-        }
-
-        // Delete from database
-        $this->db->table($table)->where($pk, $id)->delete();
-
-        return $this->respond([
-            'success' => true,
-            'message' => ucfirst($type) . ' deleted successfully.',
         ]);
     }
 
