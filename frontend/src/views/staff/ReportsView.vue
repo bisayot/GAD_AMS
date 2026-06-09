@@ -225,7 +225,7 @@ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
 }
 
 .header-subtitle {
-  font-size: 0.5625rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: #b979cc;
@@ -241,7 +241,7 @@ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
 .export-btn {
   padding: 0.5rem 1rem;
   border-radius: 0.75rem;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -299,7 +299,7 @@ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
 
 .filter-subtitle {
   font-size: 0.725rem;
-  color: #94a3b8;
+  color: #475569;
   margin-top: 0.125rem;
 }
 
@@ -310,7 +310,7 @@ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
 }
 
 .year-label {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #94a3b8;
   font-weight: 700;
   text-transform: uppercase;
@@ -328,7 +328,7 @@ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   border-radius: 0.75rem;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(185, 121, 204, 0.2);
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   color: white;
   appearance: none;
@@ -347,7 +347,7 @@ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   top: 50%;
   transform: translateY(-50%);
   color: #94a3b8;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   pointer-events: none;
 }
 
@@ -468,7 +468,7 @@ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
 
 .table-header-cell {
   padding: 0.625rem 0.4rem;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -486,7 +486,7 @@ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
 
 .sub-header-cell {
   padding: 0.4rem;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -504,7 +504,7 @@ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
 .empty-state {
   padding: 3rem;
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #94a3b8;
   font-weight: 500;
 }
@@ -522,7 +522,7 @@ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   padding: 0.5rem 0.4rem;
   vertical-align: top;
   border-bottom: 1px solid rgba(185, 121, 204, 0.05);
-  font-size: 0.6875rem; /* Highly balanced size for seamless screen rendering */
+  font-size: 0.9rem; /* Highly balanced size for seamless screen rendering */
 }
 
 .cell-content {
@@ -577,7 +577,7 @@ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   font-weight: 700;
   transition: color 0.2s;
   cursor: pointer;
-  font-size: 0.65rem;
+  font-size: 0.9rem;
   background: none;
   border: none;
   padding: 0.125rem 0.25rem;
@@ -598,7 +598,7 @@ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
 .footer-label {
   padding: 0.625rem 0.4rem;
   text-align: right;
-  font-size: 0.6875rem;
+  font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #cbd5e1;
@@ -617,7 +617,7 @@ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
 .combined-total {
   background: rgba(153, 13, 209, 0.15);
   color: #b979cc;
-  font-size: 0.7rem;
+  font-size: 0.95rem;
   font-weight: 800;
 }
 

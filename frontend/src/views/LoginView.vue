@@ -113,11 +113,12 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 // Use the relative path to step up out of the 'views' folder and find api.js
 import api from '../api'; 
 
 const router = useRouter();
+const route = useRoute();
 const identity = ref('');
 const password = ref('');
 const loading = ref(false);
@@ -135,14 +136,32 @@ const handleLogin = async () => {
     });
     
     // Store user info in localStorage or a store
-    localStorage.setItem('user', JSON.stringify(response.data.user));
+    const userData = response.data.user;
+    localStorage.setItem('user', JSON.stringify(userData));
     
-    // Redirect based on role
-    const role = response.data.user.role;
-    if (role === 'admin') router.push('/admin/dashboard');
-    else if (role === 'college') router.push('/college/dashboard');
-    else if (role === 'gad_staff') router.push('/staff/dashboard');
-    else router.push('/');
+    const role = userData.role;
+    const redirectTo = typeof route.query.redirect === 'string' ? route.query.redirect : null;
+    
+    console.log("Login successful. Detected role:", role, "redirectTo:", redirectTo);
+
+    const getTargetRoute = () => {
+      if (redirectTo) {
+        return { path: redirectTo };
+      }
+
+      switch(role) {
+        case 'admin':
+          return { path: '/admin/dashboard' };
+        case 'gad_staff':
+          return { path: '/staff/dashboard' };
+        case 'college':
+          return { path: '/college/dashboard' };
+        default:
+          return { path: '/' };
+      }
+    };
+
+    router.replace(getTargetRoute());
     
   } catch (err) {
     console.error('Login error:', err);

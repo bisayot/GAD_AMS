@@ -28,7 +28,7 @@
               <div id="intro" class="manual-section">
                 <h1 class="page-title">User Manual</h1>
                 <p class="intro-text">
-                  Welcome to the Benguet State University Gender and Development Information Management System (GAD-IMS) User Manual. This guide will help you navigate and use the system effectively as a GAD Staff user.
+                  Welcome to the Benguet State University Gender and Development Activities Management System (GAD-AMS) User Manual. This guide will help you navigate and use the system effectively as a GAD Staff user.
                 </p>
               </div>
 
@@ -179,7 +179,7 @@
                 <h2 class="section-title">10. Technical Support</h2>
                 <p class="subsection-text">For technical assistance, bug reports, or system inquiries, please contact:</p>
                 <div class="support-box">
-                  <p class="support-title">GAD-IMS System Administrator</p>
+                  <p class="support-title">GAD-AMS System Administrator</p>
                   <p class="support-text">Gender and Development Office</p>
                   <p class="support-text">Benguet State University</p>
                   <p class="support-email">Email: gad.ims@bsu.edu.ph</p>
@@ -195,7 +195,7 @@
 
       <footer class="footer-watermark">
         <p class="watermark-text">
-          Benguet State University - Gender and Development Information Management System | GAD-IMS v1.0
+          Benguet State University - Gender and Development Activities Management System | GAD-AMS v1.0
         </p>
       </footer>
 </template>
@@ -318,7 +318,7 @@ onMounted(() => {
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid rgba(185, 121, 204, 0.15);
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -396,7 +396,7 @@ onMounted(() => {
 }
 
 .intro-text {
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   color: #cbd5e1;
   line-height: 1.625;
 }
@@ -416,14 +416,14 @@ onMounted(() => {
 }
 
 .subsection-title {
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #b979cc;
   margin-bottom: 0.5rem;
 }
 
 .subsection-text {
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   color: #cbd5e1;
   margin-bottom: 1rem;
   line-height: 1.5;
@@ -442,7 +442,7 @@ onMounted(() => {
 }
 
 .styled-list li {
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   color: #cbd5e1;
   margin-bottom: 0.5rem;
   line-height: 1.5;
@@ -464,7 +464,7 @@ onMounted(() => {
 }
 
 .nested-list li {
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   color: #cbd5e1;
   margin-bottom: 0.25rem;
 }
@@ -485,14 +485,14 @@ onMounted(() => {
 }
 
 .faq-question {
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #b979cc;
   margin-bottom: 0.5rem;
 }
 
 .faq-answer {
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   color: #cbd5e1;
   line-height: 1.5;
 }
@@ -519,7 +519,7 @@ onMounted(() => {
 }
 
 .support-title {
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #b979cc;
   margin-bottom: 0.25rem;

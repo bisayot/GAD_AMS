@@ -322,7 +322,7 @@ onMounted(() => {
 }
 
 .header-subtitle {
-  font-size: 0.5625rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: #b979cc;
@@ -400,8 +400,8 @@ onMounted(() => {
 }
 
 .page-subtitle {
-  font-size: 0.75rem;
-  color: #94a3b8;
+  font-size: 1rem;
+  color: #475569;
   margin-top: 0.25rem;
 }
 
@@ -426,7 +426,7 @@ onMounted(() => {
 
 .form-label {
   display: block;
-  font-size: 0.6875rem;
+  font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 800;
@@ -443,7 +443,7 @@ onMounted(() => {
   border-radius: 0.75rem;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(185, 121, 204, 0.2);
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
   color: white;
   appearance: none;
@@ -462,7 +462,7 @@ onMounted(() => {
   top: 50%;
   transform: translateY(-50%);
   color: #94a3b8;
-  font-size: 0.75rem;
+  font-size: 1rem;
   pointer-events: none;
 }
 
@@ -482,7 +482,7 @@ onMounted(() => {
   top: 50%;
   transform: translateY(-50%);
   font-family: monospace;
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #b979cc;
   font-weight: 900;
 }
@@ -493,7 +493,7 @@ onMounted(() => {
   border-radius: 0.75rem;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(185, 121, 204, 0.2);
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-family: monospace;
   color: white;
   transition: all 0.3s;
@@ -505,7 +505,7 @@ onMounted(() => {
 }
 
 .form-input::placeholder {
-  color: #475569;
+  color: #cbd5e1;
 }
 
 .form-textarea {
@@ -514,7 +514,7 @@ onMounted(() => {
   border-radius: 0.75rem;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(185, 121, 204, 0.2);
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
   color: white;
   resize: none;
@@ -527,7 +527,7 @@ onMounted(() => {
 }
 
 .form-textarea::placeholder {
-  color: #475569;
+  color: #cbd5e1;
 }
 
 .form-actions {
@@ -541,7 +541,7 @@ onMounted(() => {
 .btn-clear {
   padding: 0.625rem 1.25rem;
   border-radius: 0.75rem;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #94a3b8;
   background: transparent;
@@ -557,7 +557,7 @@ onMounted(() => {
 .btn-submit {
   padding: 0.625rem 1.5rem;
   border-radius: 0.75rem;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 900;
   background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%);
   color: white;
@@ -581,7 +581,7 @@ onMounted(() => {
 }
 
 .summary-title {
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -606,7 +606,7 @@ onMounted(() => {
 }
 
 .summary-stat-label {
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -631,7 +631,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   color: #94a3b8;
   font-family: monospace;
 }
@@ -663,7 +663,7 @@ onMounted(() => {
 }
 
 .reserves-label {
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -678,7 +678,7 @@ onMounted(() => {
 }
 
 .reserves-note {
-  font-size: 0.6875rem;
+  font-size: 0.9rem;
   color: #990dd1;
   font-weight: 500;
   margin-top: 0.25rem;
@@ -695,7 +695,7 @@ onMounted(() => {
 }
 
 .logs-title {
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -723,7 +723,7 @@ onMounted(() => {
   width: 100%;
   text-align: left;
   border-collapse: collapse;
-  font-size: 0.75rem;
+  font-size: 1rem;
 }
 
 .logs-table-header {
@@ -733,7 +733,7 @@ onMounted(() => {
 
 .logs-th {
   padding: 0.875rem 1.25rem;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -752,7 +752,7 @@ onMounted(() => {
   background: #cbd5e1;
   padding: 2rem 1.25rem;
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #16213e;
   font-weight: 500;
 }
@@ -794,7 +794,7 @@ onMounted(() => {
 
 .logs-justification {
   color: #94a3b8;
-  font-size: 0.6875rem;
+  font-size: 0.9rem;
   font-weight: 600;
   max-width: 250px;
   white-space: nowrap;
@@ -803,9 +803,9 @@ onMounted(() => {
 }
 
 .logs-date {
-  color: #64748b;
+  color: #94a3b8;
   font-family: monospace;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
 }
 
 .text-green {
@@ -819,7 +819,7 @@ onMounted(() => {
 .logs-badge {
   padding: 0.125rem 0.5rem;
   border-radius: 0.375rem;
-  font-size: 0.5625rem;
+  font-size: 0.8rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;

@@ -281,8 +281,8 @@ onMounted(() => {
 .error-container { max-width: 48rem; margin: 0 auto; padding: 2.5rem 1.5rem; }
 .error-box { background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 1rem; border-radius: 0 0.75rem 0.75rem 0; }
 .error-title { color: #b91c1c; font-weight: 700; }
-.error-message { color: #dc2626; font-size: 0.875rem; }
-.error-back-btn { margin-top: 1rem; font-size: 0.875rem; font-weight: 700; color: #b91c1c; background: transparent; border: none; cursor: pointer; }
+.error-message { color: #dc2626; font-size: 1.1rem; }
+.error-back-btn { margin-top: 1rem; font-size: 1.1rem; font-weight: 700; color: #b91c1c; background: transparent; border: none; cursor: pointer; }
 
 .page-container { min-height: 100vh;  }
 .layout-grid { display: flex; gap: 32px; padding: 2.5rem; max-width: 80rem; margin: 0 auto; }

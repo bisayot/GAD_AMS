@@ -64,7 +64,6 @@ class AuthController extends ResourceController
 
         $rules = [
             'fullname' => 'required',
-            'university_id' => 'required',
             'department' => 'required',
             'email' => 'required|valid_email',
             'password' => 'required|min_length[6]',
@@ -85,25 +84,43 @@ class AuthController extends ResourceController
             return $this->failResourceExists('A user with that email or username already exists');
         }
 
-        // Map department string to office_id
+        // Map department input (could be ID or string)
         $db = \Config\Database::connect();
-        $departmentName = $data['department'];
-        $office = $db->table('office_units')->where('office_name', $departmentName)->get()->getRowArray();
-        
-        if ($office) {
-            $officeId = $office['office_id'];
+        $departmentInput = $data['department'];
+        $officeId = null;
+
+        if (is_numeric($departmentInput)) {
+            $officeId = (int) $departmentInput;
         } else {
-            $db->table('office_units')->insert(['office_name' => $departmentName]);
-            $officeId = $db->insertID();
+            $office = $db->table('office_units')->where('office_name', $departmentInput)->get()->getRowArray();
+            if ($office) {
+                $officeId = $office['office_id'];
+            } else {
+                $db->table('office_units')->insert(['office_name' => $departmentInput]);
+                $officeId = $db->insertID();
+            }
+        }
+
+        // Map user_role from frontend to actual database role
+        $role = 'college'; // Default
+        if (isset($data['user_role'])) {
+            switch ($data['user_role']) {
+                case 'Director': $role = 'admin'; break;
+                case 'Staff': $role = 'gad_staff'; break;
+                case 'TWG':
+                case 'Non-TWG':
+                default:
+                    $role = 'college'; break;
+            }
         }
 
         $userData = [
             'username' => $username,
             'email' => $email,
             'password' => password_hash($data['password'], PASSWORD_DEFAULT),
-            'role' => 'college', // Default role for registration
+            'role' => $role,
             'full_name' => $data['fullname'],
-            'student_id' => $data['university_id'],
+            'student_id' => $data['university_id'] ?? null,
             'office_id' => $officeId
         ];
 
@@ -122,5 +139,25 @@ class AuthController extends ResourceController
     public function handleOptions()
     {
         return $this->respond(['status' => 200]);
+    }
+
+    public function getOffices() {
+        $db = \Config\Database::connect();
+        // The frontend expects unit_id and unit_name, but our DB has office_id and office_name
+        $offices = $db->table('office_units')->get()->getResultArray();
+        $mappedOffices = array_map(function($o) {
+            return [
+                'unit_id' => $o['office_id'],
+                'unit_name' => $o['office_name']
+            ];
+        }, $offices);
+        return $this->respond($mappedOffices);
+    }
+
+    public function addOffice() {
+        $data = $this->request->getJSON(true);
+        $db = \Config\Database::connect();
+        $db->table('office_units')->insert(['office_name' => $data['unit_name']]);
+        return $this->respondCreated(['new_id' => $db->insertID()]);
     }
 }

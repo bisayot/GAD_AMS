@@ -306,7 +306,7 @@ onMounted(() => {
 }
 
 .stat-label {
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -386,7 +386,7 @@ onMounted(() => {
 
 .table-header-cell {
   padding: 1rem;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: #b979cc;
   text-transform: uppercase;
@@ -396,8 +396,8 @@ onMounted(() => {
 .empty-state-cell {
   padding: 2.5rem;
   text-align: center;
-  font-size: 0.75rem;
-  color: #64748b;
+  font-size: 1rem;
+  color: #94a3b8;
   font-weight: 500;
 }
 
@@ -413,7 +413,7 @@ onMounted(() => {
 
 .activity-title-cell {
   padding: 1rem;
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #f1f5f9;
   transition: color 0.2s ease;
@@ -425,7 +425,7 @@ onMounted(() => {
 
 .office-cell {
   padding: 1rem;
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   color: #cbd5e1;
 }
 
@@ -434,7 +434,7 @@ onMounted(() => {
 }
 
 .type-badge {
-  font-size: 0.5625rem;
+  font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -457,7 +457,7 @@ onMounted(() => {
 
 .date-cell {
   padding: 1rem;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-family: monospace;
   color: #94a3b8;
 }
@@ -469,7 +469,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.75rem;
+  font-size: 1rem;
 }
 
 .footer-text {
@@ -483,7 +483,7 @@ onMounted(() => {
   color: #b979cc;
   padding: 0.375rem 0.75rem;
   border-radius: 0.5rem;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -527,13 +527,13 @@ onMounted(() => {
 }
 
 .placeholder-title {
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #c084fc;
 }
 
 .placeholder-text {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #94a3b8;
   max-width: 448px;
   margin-top: 0.25rem;
@@ -550,7 +550,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   font-family: monospace;
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #cbd5e1;
 }
 
@@ -575,7 +575,7 @@ onMounted(() => {
   grid-template-columns: repeat(7, 1fr);
   gap: 0.25rem;
   text-align: center;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: #c084fc;
   letter-spacing: 0.05em;
@@ -588,7 +588,7 @@ onMounted(() => {
   gap: 0.25rem;
   text-align: center;
   font-family: monospace;
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #cbd5e1;
 }
 
@@ -609,7 +609,7 @@ onMounted(() => {
 
 .date-cell-past,
 .date-cell-future {
-  color: #475569;
+  color: #cbd5e1;
 }
 
 .date-number {
@@ -623,7 +623,7 @@ onMounted(() => {
 }
 
 .deadlines-title, .logs-title {
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -640,8 +640,8 @@ onMounted(() => {
 .deadlines-empty, .logs-empty {
   text-align: center;
   padding: 0.75rem;
-  font-size: 0.75rem;
-  color: #64748b;
+  font-size: 1rem;
+  color: #94a3b8;
   font-weight: 500;
 }
 
@@ -677,7 +677,7 @@ onMounted(() => {
 }
 
 .deadline-title {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #e2e8f0;
   white-space: nowrap;
   overflow: hidden;
@@ -686,7 +686,7 @@ onMounted(() => {
 }
 
 .deadline-badge {
-  font-size: 0.5625rem;
+  font-size: 0.8rem;
   font-weight: 700;
   padding: 0.125rem 0.375rem;
   border-radius: 0.25rem;
@@ -720,7 +720,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 1rem;
   flex-shrink: 0;
 }
 
@@ -729,7 +729,7 @@ onMounted(() => {
 }
 
 .log-action {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #e2e8f0;
   line-height: 1.4;
   font-weight: 500;
@@ -740,9 +740,9 @@ onMounted(() => {
 }
 
 .log-time {
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-family: monospace;
-  color: #64748b;
+  color: #94a3b8;
   margin-top: 0.125rem;
 }
 

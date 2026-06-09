@@ -507,7 +507,7 @@ onMounted(() => {
 }
 
 .stat-label {
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 700;
   color: #1a1a2e;
   text-transform: uppercase;
@@ -524,7 +524,7 @@ onMounted(() => {
 }
 
 .stat-label-purple {
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 700;
   color: #d4a3e3;
   text-transform: uppercase;
@@ -533,14 +533,14 @@ onMounted(() => {
 }
 
 .stat-sub {
-  font-size: 0.75rem;
-  color: #64748b;
+  font-size: 1rem;
+  color: #94a3b8;
   opacity: 0.7;
   margin: 0.25rem 0 0 0;
 }
 
 .stat-sub-purple {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #b979cc;
   opacity: 0.7;
   margin: 0.25rem 0 0 0;
@@ -572,28 +572,28 @@ onMounted(() => {
 }
 
 .tab-active {
-  border-bottom: 3px solid #990dd1;
-  color: #71009e;
-  background: rgba(153, 13, 209, 0.04);
+  border-bottom: 3px solid #c084fc;
+  color: #d8b4fe;
+  background: rgba(153, 13, 209, 0.1);
 }
 
 .tab-inactive {
   border-bottom: 3px solid transparent;
-  color: #64748b;
+  color: #000000;
 }
 
 .tab-inactive:hover {
   border-bottom: 3px solid #b979cc;
-  color: #990dd1;
-  background: rgba(153, 13, 209, 0.02);
+  color: #d8b4fe;
+  background: rgba(153, 13, 209, 0.05);
 }
 
 .tab-badge {
-  background: #f1f5f9;
-  color: #64748b;
+  background: rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
   padding: 0.125rem 0.5rem;
   border-radius: 30px;
-  font-size: 0.7rem;
+  font-size: 0.95rem;
   font-weight: 600;
 }
 
@@ -631,7 +631,7 @@ onMounted(() => {
 
 .filter-label {
   display: block;
-  font-size: 0.65rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: #b979cc;
   text-transform: uppercase;
@@ -700,7 +700,7 @@ onMounted(() => {
   color: white;
   padding: 0.5rem 1.25rem;
   border-radius: 0.75rem;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
   border: none;
   cursor: pointer;
@@ -742,8 +742,8 @@ onMounted(() => {
 }
 
 .record-count {
-  font-size: 0.7rem;
-  color: #64748b;
+  font-size: 0.95rem;
+  color: #94a3b8;
 }
 
 .count-number {
@@ -762,7 +762,7 @@ onMounted(() => {
 }
 
 .loading-state p {
-  color: #475569;
+  color: #cbd5e1;
   margin-top: 1rem;
 }
 
@@ -782,11 +782,11 @@ onMounted(() => {
 
 /* Data Table */
 .data-table {
-  background: #cbd5e1;
+  background: #1e293b;
   border-radius: 1.25rem;
   overflow: hidden;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
 }
 
 .overflow-x-auto {
@@ -800,13 +800,13 @@ onMounted(() => {
 
 .table-header-row {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .table-header-cell {
   padding: 1rem 1.5rem;
   text-align: left;
-  font-size: 0.7rem;
+  font-size: 1.1rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -816,15 +816,16 @@ onMounted(() => {
 .clickable-row {
   cursor: pointer;
   transition: all 0.2s ease;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .clickable-row:hover {
-  background: #faf5ff;
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .table-cell {
   padding: 1rem 1.5rem;
+  color: #f1f5f9;
 }
 
 /* Badges */
@@ -833,7 +834,7 @@ onMounted(() => {
   align-items: center;
   padding: 0.25rem 0.8rem;
   border-radius: 30px;
-  font-size: 0.7rem;
+  font-size: 0.95rem;
   font-weight: 700;
 }
 
@@ -852,10 +853,10 @@ onMounted(() => {
   align-items: center;
   padding: 0.2rem 0.6rem;
   border-radius: 30px;
-  font-size: 0.65rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  background: #f1f5f9;
-  color: #475569;
+  background: rgba(255, 255, 255, 0.1);
+  color: #f1f5f9;
 }
 
 .status-badge {
@@ -863,7 +864,7 @@ onMounted(() => {
   align-items: center;
   padding: 0.3rem 0.8rem;
   border-radius: 30px;
-  font-size: 0.7rem;
+  font-size: 0.95rem;
   font-weight: 700;
 }
 
@@ -888,15 +889,15 @@ onMounted(() => {
 }
 
 .item-date {
-  font-size: 0.65rem;
+  font-size: 0.9rem;
   color: #94a3b8;
   margin-top: 0.25rem;
 }
 
 .item-title {
   font-weight: 600;
-  color: #1e293b;
-  font-size: 0.85rem;
+  color: #f8fafc;
+  font-size: 1rem;
   line-height: 1.4;
 }
 
@@ -922,7 +923,7 @@ onMounted(() => {
 }
 
 .empty-content p {
-  color: #1a1a2e;
+  color: #cbd5e1;
   font-size: 0.85rem;
 }
 
@@ -932,14 +933,14 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   flex-wrap: wrap;
   gap: 1rem;
 }
 
 .pagination-info {
-  font-size: 0.75rem;
-  color: #64748b;
+  font-size: 1rem;
+  color: #94a3b8;
 }
 
 .info-highlight {
@@ -949,7 +950,7 @@ onMounted(() => {
 
 .info-total {
   font-weight: 700;
-  color: #1e293b;
+  color: #f8fafc;
 }
 
 .pagination-buttons {
@@ -963,10 +964,10 @@ onMounted(() => {
   border: 1px solid #e2e8f0;
   border-radius: 0.6rem;
   background: #ffffff;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
-  color: #475569;
+  color: #cbd5e1;
   transition: all 0.2s ease;
 }
 

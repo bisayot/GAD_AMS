@@ -1,30 +1,38 @@
 <template>
-  <div class="staff-dashboard">
+  <div class="min-h-screen bg-slate-50 flex">
+    <!-- Mobile Sidebar Overlay -->
+    <div v-if="isSidebarOpen" @click="isSidebarOpen = false" class="fixed inset-0 bg-black/50 z-40 lg:hidden"></div>
+
     <DashboardSidebar
+      :isOpen="isSidebarOpen"
+      @close="isSidebarOpen = false"
       roleLabel="GAD Staff"
       :menuItems="staffMenu"
       @logout="handleLogout"
     />
 
-    <div class="dashboard-main">
-      <header class="dashboard-header"></header>
+    <div class="flex-grow flex flex-col lg:ml-64 min-h-screen transition-all duration-300 w-full relative">
+      <header class="h-20 bg-[#1a1a2e] border-b border-purple-900/30 flex items-center px-6 sticky top-0 z-30">
+        <button @click="isSidebarOpen = true" class="lg:hidden text-white hover:text-primary transition-colors flex items-center">
+          <span class="material-symbols-outlined text-3xl">menu</span>
+        </button>
+      </header>
 
-      <main class="dashboard-main-content">
-        <div class="content-wrapper">
-          <router-view />
-        </div>
+      <main class="flex-grow p-4 md:p-10 w-full overflow-x-hidden">
+        <router-view />
       </main>
     </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../api';
 import DashboardSidebar from '../components/DashboardSidebar.vue';
 
 const router = useRouter();
+const isSidebarOpen = ref(false);
 
 const staffMenu = [
   { label: 'New Submission', icon: 'add', href: '/staff/submit' },
@@ -63,40 +71,5 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.staff-dashboard {
-  min-height: 100vh;
-  display: flex;
-  color: #cbd5e1;
-  font-family: system-ui, -apple-system, sans-serif;
-}
-
-.dashboard-main {
-  flex-grow: 1;
-  margin-left: 256px;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-.dashboard-header {
-  background: #1a1a2e;
-  border-bottom: 1px solid rgba(147, 51, 234, 0.3);
-}
-
-.dashboard-main-content {
-  flex-grow: 1;
-  display: block;
-  width: 100%;
-}
-
-.content-wrapper {
-  padding: 40px;
-  width: 100%;
-}
-
-@media (max-width: 1024px) {
-  .dashboard-main {
-    margin-left: 0;
-  }
-}
+/* No custom layout styles needed; handled by Tailwind */
 </style>

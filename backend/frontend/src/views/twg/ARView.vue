@@ -86,7 +86,7 @@
                 </div>
                 <div class="metric-box">
                   <p class="metric-value">{{ report.rating }}</p>
-                  <p class="metric-label">/ 5.0 Rating</p>
+                  <p class="metric-label">/ 100 Rating</p>
                 </div>
               </div>
             </div>
@@ -232,8 +232,8 @@ onMounted(() => {
 .error-container { max-width: 48rem; margin: 0 auto; padding: 2.5rem; }
 .error-box { background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 1rem; border-radius: 0.75rem; }
 .error-title { color: #ef4444; font-weight: 700; }
-.error-message { color: #cbd5e1; font-size: 0.875rem; }
-.error-back-btn { margin-top: 1rem; font-size: 0.875rem; font-weight: 700; color: #ef4444; background: transparent; border: none; cursor: pointer; }
+.error-message { color: #cbd5e1; font-size: 1.1rem; }
+.error-back-btn { margin-top: 1rem; font-size: 1.1rem; font-weight: 700; color: #ef4444; background: transparent; border: none; cursor: pointer; }
 .page-container { min-height: 100vh;  }
 .glass-card { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); backdrop-filter: blur(24px); border-radius: 1.5rem; border: 1px solid rgba(185, 121, 204, 0.2); }
 
@@ -262,7 +262,7 @@ onMounted(() => {
 .section-header-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
 .section-title { font-weight: 800; font-size: 13px; text-transform: uppercase; color: #b979cc; }
 .icon-pink { color: #b979cc; }
-.text-sm-light { font-size: 0.875rem; color: #cbd5e1; font-weight: 500; }
+.text-sm-light { font-size: 1.1rem; color: #cbd5e1; font-weight: 500; }
 .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .divider { color: rgba(203, 213, 225, 0.4); margin: 0 0.25rem; }

@@ -4,7 +4,7 @@
     <img src="/images/bsulogo.png" alt="BSU Logo" />
     <div class="logo-text">
       <div class="logo-subtitle">Benguet State University</div>
-      <div class="logo-title">GAD-IMS</div>
+      <div class="logo-title">GAD-AMS</div>
       <div class="logo-dept">Gender and Development Office</div>
     </div>
   </div>

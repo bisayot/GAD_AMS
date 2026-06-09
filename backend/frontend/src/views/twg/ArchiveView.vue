@@ -478,14 +478,14 @@ onMounted(() => {
 }
 
 .stat-sub {
-  font-size: 0.75rem;
-  color: #64748b;
+  font-size: 1rem;
+  color: #94a3b8;
   opacity: 0.7;
   margin: 0.25rem 0 0 0;
 }
 
 .stat-sub-purple {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #b979cc;
   opacity: 0.7;
   margin: 0.25rem 0 0 0;
@@ -524,7 +524,7 @@ onMounted(() => {
 
 .tab-inactive {
   border-bottom: 3px solid transparent;
-  color: #64748b;
+  color: #94a3b8;
 }
 
 .tab-inactive:hover {
@@ -535,10 +535,10 @@ onMounted(() => {
 
 .tab-badge {
   background: #f1f5f9;
-  color: #64748b;
+  color: #94a3b8;
   padding: 0.125rem 0.5rem;
   border-radius: 30px;
-  font-size: 0.7rem;
+  font-size: 0.95rem;
   font-weight: 600;
 }
 
@@ -576,7 +576,7 @@ onMounted(() => {
 
 .filter-label {
   display: block;
-  font-size: 0.65rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: #b979cc;
   text-transform: uppercase;
@@ -645,7 +645,7 @@ onMounted(() => {
   color: white;
   padding: 0.5rem 1.25rem;
   border-radius: 0.75rem;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
   border: none;
   cursor: pointer;
@@ -687,7 +687,7 @@ onMounted(() => {
 }
 
 .record-count {
-  font-size: 0.7rem;
+  font-size: 0.95rem;
   color: #94a3b8;
 }
 
@@ -707,7 +707,7 @@ onMounted(() => {
 }
 
 .loading-state p {
-  color: #475569;
+  color: #cbd5e1;
   margin-top: 1rem;
 }
 
@@ -751,7 +751,7 @@ onMounted(() => {
 .table-header-cell {
   padding: 1rem 1.5rem;
   text-align: left;
-  font-size: 0.7rem;
+  font-size: 0.95rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -778,7 +778,7 @@ onMounted(() => {
   align-items: center;
   padding: 0.25rem 0.8rem;
   border-radius: 30px;
-  font-size: 0.7rem;
+  font-size: 0.95rem;
   font-weight: 700;
 }
 
@@ -797,10 +797,10 @@ onMounted(() => {
   align-items: center;
   padding: 0.2rem 0.6rem;
   border-radius: 30px;
-  font-size: 0.65rem;
+  font-size: 0.9rem;
   font-weight: 600;
   background: #f1f5f9;
-  color: #475569;
+  color: #cbd5e1;
 }
 
 .status-badge {
@@ -808,7 +808,7 @@ onMounted(() => {
   align-items: center;
   padding: 0.3rem 0.8rem;
   border-radius: 30px;
-  font-size: 0.7rem;
+  font-size: 0.95rem;
   font-weight: 700;
 }
 
@@ -833,7 +833,7 @@ onMounted(() => {
 }
 
 .item-date {
-  font-size: 0.65rem;
+  font-size: 0.9rem;
   color: #94a3b8;
   margin-top: 0.25rem;
 }
@@ -867,7 +867,7 @@ onMounted(() => {
 }
 
 .empty-content p {
-  color: #475569;
+  color: #cbd5e1;
   font-size: 0.85rem;
 }
 
@@ -883,8 +883,8 @@ onMounted(() => {
 }
 
 .pagination-info {
-  font-size: 0.75rem;
-  color: #64748b;
+  font-size: 1rem;
+  color: #94a3b8;
 }
 
 .info-highlight {
@@ -908,10 +908,10 @@ onMounted(() => {
   border: 1px solid #e2e8f0;
   border-radius: 0.6rem;
   background: #ffffff;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
-  color: #475569;
+  color: #cbd5e1;
   transition: all 0.2s ease;
 }
 

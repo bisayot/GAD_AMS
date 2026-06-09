@@ -20,6 +20,10 @@ $routes->group('api', function($routes) {
     $routes->options('login', 'AuthController::handleOptions');
     $routes->options('register', 'AuthController::handleOptions');
     $routes->options('logout', 'AuthController::handleOptions');
+    $routes->get('office_units', 'AuthController::getOffices');
+    $routes->post('add_office', 'AuthController::addOffice');
+    $routes->options('office_units', 'AuthController::handleOptions');
+    $routes->options('add_office', 'AuthController::handleOptions');
 
     // ----------------------------------------------------------------
     // CLOUDFLARE R2 STORAGE ROUTE (existing)

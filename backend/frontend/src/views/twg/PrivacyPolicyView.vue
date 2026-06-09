@@ -29,7 +29,7 @@
                   <div>
                     <h1 class="policy-title">Data Privacy Statement</h1>
                     <p class="policy-subtitle">
-                      Benguet State University - Gender and Development Information Management System (GAD-IMS)
+                      Benguet State University - Gender and Development Activities Management System (GAD-AMS)
                     </p>
                   </div>
                 </div>
@@ -38,14 +38,14 @@
               <div id="intro" class="policy-section">
                 <h2 class="section-heading">1. Introduction</h2>
                 <p class="section-text">
-                  Benguet State University (BSU) is committed to protecting the privacy and confidentiality of personal information collected, stored, and processed through the Gender and Development Information Management System (GAD-IMS). This Data Privacy Statement outlines our practices regarding the collection, use, and protection of your personal data in compliance with the Data Privacy Act of 2012 (Republic Act No. 10173).
+                  Benguet State University (BSU) is committed to protecting the privacy and confidentiality of personal information collected, stored, and processed through the Gender and Development Activities Management System (GAD-AMS). This Data Privacy Statement outlines our practices regarding the collection, use, and protection of your personal data in compliance with the Data Privacy Act of 2012 (Republic Act No. 10173).
                 </p>
               </div>
 
               <div id="information-collect" class="policy-section">
                 <h2 class="section-heading">2. Information We Collect</h2>
                 <p class="section-text">
-                  The GAD-IMS collects the following types of personal information:
+                  The GAD-AMS collects the following types of personal information:
                 </p>
                 <ul class="styled-list">
                   <li>Full name and contact information (<span class="highlight-text">email address, office/department</span>)</li>
@@ -133,7 +133,7 @@
 
       <footer class="footer-watermark">
         <p class="watermark-text">
-          Benguet State University - Gender and Development Information Management System | GAD-IMS v1.0
+          Benguet State University - Gender and Development Activities Management System | GAD-AMS v1.0
         </p>
       </footer>
 </template>
@@ -233,7 +233,7 @@ onMounted(() => {
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid rgba(185, 121, 204, 0.15);
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -343,7 +343,7 @@ onMounted(() => {
 }
 
 .policy-subtitle {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #cbd5e1;
   opacity: 0.7;
   font-weight: 500;
@@ -351,7 +351,7 @@ onMounted(() => {
 
 /* Typography */
 .section-heading {
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
   background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%);
   -webkit-background-clip: text;
@@ -363,7 +363,7 @@ onMounted(() => {
 }
 
 .section-text {
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   color: #cbd5e1;
   opacity: 0.8;
   line-height: 1.625;
@@ -379,7 +379,7 @@ onMounted(() => {
 }
 
 .styled-list li {
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   color: #cbd5e1;
   opacity: 0.8;
   margin-bottom: 0.625rem;
@@ -408,7 +408,7 @@ onMounted(() => {
 }
 
 .contact-title {
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   font-weight: bold;
   background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%);
   -webkit-background-clip: text;
@@ -418,14 +418,14 @@ onMounted(() => {
 }
 
 .contact-text {
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   color: #cbd5e1;
   opacity: 0.8;
   margin-bottom: 0.25rem;
 }
 
 .contact-email {
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   color: #b979cc;
   font-weight: 600;
   margin-top: 0.5rem;
@@ -434,7 +434,7 @@ onMounted(() => {
 
 /* Effective Date */
 .effective-date {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #b979cc;
   opacity: 0.6;
   font-style: italic;

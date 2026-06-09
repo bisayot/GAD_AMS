@@ -334,7 +334,7 @@ onMounted(() => {
 }
 
 .header-subtitle {
-  font-size: 0.5625rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: #b979cc;
@@ -370,8 +370,8 @@ onMounted(() => {
 }
 
 .page-subtitle {
-  font-size: 0.75rem;
-  color: #94a3b8;
+  font-size: 1rem;
+  color: #475569;
   margin-top: 0.25rem;
 }
 
@@ -442,7 +442,7 @@ onMounted(() => {
 }
 
 .stat-label {
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -486,7 +486,7 @@ onMounted(() => {
   top: 50%;
   transform: translateY(-50%);
   color: #94a3b8;
-  font-size: 0.75rem;
+  font-size: 1rem;
 }
 
 .search-input {
@@ -495,7 +495,7 @@ onMounted(() => {
   border-radius: 0.75rem;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(185, 121, 204, 0.2);
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
   color: white;
   transition: all 0.3s;
@@ -507,7 +507,7 @@ onMounted(() => {
 }
 
 .search-input::placeholder {
-  color: #64748b;
+  color: #94a3b8;
 }
 
 .select-wrapper {
@@ -521,7 +521,7 @@ onMounted(() => {
   border-radius: 0.75rem;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(185, 121, 204, 0.2);
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
   color: white;
   appearance: none;
@@ -540,7 +540,7 @@ onMounted(() => {
   top: 50%;
   transform: translateY(-50%);
   color: #94a3b8;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   pointer-events: none;
 }
 
@@ -551,7 +551,7 @@ onMounted(() => {
 }
 
 .per-page-label {
-  font-size: 0.6875rem;
+  font-size: 0.9rem;
   color: #94a3b8;
   font-weight: 500;
 }
@@ -561,7 +561,7 @@ onMounted(() => {
   border-radius: 0.5rem;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(185, 121, 204, 0.2);
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   color: white;
   cursor: pointer;
@@ -599,7 +599,7 @@ onMounted(() => {
 
 .table-header-cell {
   padding: 1rem 1.5rem;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -613,7 +613,7 @@ onMounted(() => {
 .empty-state {
   padding: 3rem 1.5rem;
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #94a3b8;
   font-weight: 500;
 }
@@ -634,7 +634,7 @@ onMounted(() => {
 
 .control-cell {
   font-family: monospace;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #b979cc;
 }
@@ -656,13 +656,13 @@ onMounted(() => {
 .date-cell {
   color: #94a3b8;
   font-family: monospace;
-  font-size: 0.75rem;
+  font-size: 1rem;
 }
 
 .category-badge {
   padding: 0.25rem 0.625rem;
   border-radius: 0.5rem;
-  font-size: 0.5625rem;
+  font-size: 0.8rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -675,7 +675,7 @@ onMounted(() => {
   display: inline-block;
   padding: 0.25rem 0.75rem;
   border-radius: 0.5rem;
-  font-size: 0.5625rem;
+  font-size: 0.8rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -712,7 +712,7 @@ onMounted(() => {
 }
 
 .pagination-info {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #94a3b8;
   font-weight: 500;
 }
@@ -735,7 +735,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   color: white;
   border: 1px solid rgba(185, 121, 204, 0.1);
@@ -760,7 +760,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   transition: all 0.2s;
   cursor: pointer;

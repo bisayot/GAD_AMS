@@ -4,7 +4,7 @@
       <div>
         <h2 class="header-title">Lorem ipsum Review</h2>
         <div class="flex items-center gap-2">
-          <span class="header-subtitle">Gender and Development - Information Management System (GAD-IMS)</span>
+          <span class="header-subtitle">Gender and Development - Activities Management System (GAD-AMS)</span>
         </div>
       </div>
       <div class="relative">

@@ -4,7 +4,7 @@
       <div class="modal-container">
         <div class="modal-header">
           <h3 class="modal-title">New Submission</h3>
-          <span class="title-badge">GAD-IMS Portal</span>
+          <span class="title-badge">GAD-AMS Portal</span>
         </div>
         <p class="modal-text">Select the type of document you want to compile and submit for administrative review.</p>
         
@@ -80,7 +80,7 @@ onMounted(() => {
 }
 
 .title-badge {
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 700;
   color: #ffffff;
   background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%);
@@ -94,7 +94,7 @@ onMounted(() => {
 .modal-text {
   color: #94a3b8;
   margin-bottom: 32px;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.6;
   text-align: left;
 }

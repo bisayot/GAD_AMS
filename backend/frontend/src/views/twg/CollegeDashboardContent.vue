@@ -313,7 +313,7 @@ onMounted(() => {
 }
 
 .stat-label {
-    font-size: 0.65rem;
+    font-size: 0.9rem;
     font-weight: 400;
     color: #cbd5e1;
     text-transform: uppercase;
@@ -385,13 +385,13 @@ onMounted(() => {
   padding: 1.25rem 1rem;
   font-weight: 700;
   color: #b979cc;
-  font-size: 0.875rem;
+  font-size: 1.1rem;
 }
 
 .title-cell {
   padding: 1.25rem 1rem;
   color: #ffffff;
-  font-size: 0.875rem;
+  font-size: 1.1rem;
 }
 
 .status-cell {
@@ -402,7 +402,7 @@ onMounted(() => {
   display: inline-flex;
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
 }
 
@@ -477,7 +477,7 @@ onMounted(() => {
 }
 
 .weekday-label {
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #b979ccc1;
 }
@@ -578,14 +578,14 @@ onMounted(() => {
 .badge-submission { background-color: rgba(234, 179, 8, 0.15); color: #facc15; }
 
 .deadline-date-text {
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #cbd5e1;
   opacity: 0.8;
 }
 
 .deadline-title {
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #ffffff;
   margin: 0 0 0.375rem 0;
@@ -593,7 +593,7 @@ onMounted(() => {
 }
 
 .deadline-control-text {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #b979cc;
   margin: 0;
 }

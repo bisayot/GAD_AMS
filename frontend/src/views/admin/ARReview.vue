@@ -29,7 +29,7 @@
             <div class="info-grid">
               <div class="info-item">
                 <span class="info-label">Submitted By</span>
-                <span class="info-value-purple">{{ report.username || 'Dr. Lorem Ipsum' }}</span>
+                <span class="info-value-purple">{{ report.submitter_name || '' }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">Office</span>
@@ -90,7 +90,7 @@
                 </div>
                 <div class="metric-box">
                   <p class="metric-value">{{ report.rating }}</p>
-                  <p class="metric-label">/ 5.0 Rating</p>
+                  <p class="metric-label">/ 100 Rating</p>
                 </div>
               </div>
             </div>
@@ -357,8 +357,8 @@ onMounted(() => {
 .error-container { max-width: 48rem; margin: 0 auto; padding: 2.5rem 1.5rem; }
 .error-box { background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 1rem; border-radius: 0 0.75rem 0.75rem 0; }
 .error-title { color: #b91c1c; font-weight: 700; }
-.error-message { color: #dc2626; font-size: 0.875rem; }
-.error-back-btn { margin-top: 1rem; font-size: 0.875rem; font-weight: 700; color: #b91c1c; background: transparent; border: none; cursor: pointer; }
+.error-message { color: #dc2626; font-size: 1.1rem; }
+.error-back-btn { margin-top: 1rem; font-size: 1.1rem; font-weight: 700; color: #b91c1c; background: transparent; border: none; cursor: pointer; }
 .error-back-btn:hover { text-decoration: underline; }
 
 .layout-grid { display: flex; gap: 32px; padding: 2.5rem; max-width: 80rem; margin: 0 auto; }
@@ -444,7 +444,7 @@ button { transition: all 0.2s ease-in-out; cursor: pointer; }
 }
 
 .icon-pink { color: #b979cc; }
-.text-sm-light { font-size: 0.875rem; color: #cbd5e1; font-weight: 500; margin-top: 0.25rem; }
+.text-sm-light { font-size: 1.1rem; color: #cbd5e1; font-weight: 500; margin-top: 0.25rem; }
 .full-width-info { grid-column: span 2; margin-top: 1rem; }
 
 .info-item { display: flex; flex-direction: column; }
@@ -478,7 +478,7 @@ button { transition: all 0.2s ease-in-out; cursor: pointer; }
 .doc-info { display: flex; align-items: center; gap: 12px; }
 .doc-pdf-icon { font-size: 1.875rem; color: #ef4444; }
 .doc-actions { display: flex; gap: 0.5rem; }
-.doc-actions span { font-size: 0.875rem; }
+.doc-actions span { font-size: 1.1rem; }
 .doc-title { font-size: 13px; font-weight: 700; color: white; }
 .doc-meta { font-size: 11px; color: #cbd5e1; margin-top: 2px; }
 .preview-btn { color: #b979cc; font-size: 11px; padding: 6px 12px; border-radius: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(185, 121, 204, 0.15); font-weight: 700; cursor: pointer; }

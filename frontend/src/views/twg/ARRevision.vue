@@ -4,11 +4,23 @@
       <div class="loading-spinner"></div>
     </div>
 
-    <div v-else-if="error" class="error-container">
-      <div class="error-box">
-        <p class="error-title">Error Loading Data</p>
-        <p class="error-message">{{ error }}</p>
-        <button @click="router.back()" class="error-back-btn">← Go Back</button>
+    <div v-else-if="error" class="min-h-[60vh] flex items-center justify-center p-6">
+      <div class="bg-black/80 backdrop-blur-3xl rounded-3xl border-2 border-red-500/40 max-w-md w-full text-center p-10 relative overflow-hidden flex flex-col items-center shadow-2xl shadow-red-900/20">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-red-600/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="w-24 h-24 rounded-full bg-red-500/20 border-2 border-red-500/50 flex items-center justify-center mb-6 relative z-10 shadow-lg shadow-red-500/20">
+          <span class="material-symbols-outlined text-5xl text-red-400 drop-shadow-md" v-if="error.includes('Access Denied')">gpp_bad</span>
+          <span class="material-symbols-outlined text-5xl text-red-400 drop-shadow-md" v-else>error</span>
+        </div>
+        <h2 class="text-3xl font-headline font-black text-white mb-3 relative z-10 tracking-tight drop-shadow-md">
+          {{ error.includes('Access Denied') ? 'Access Restricted' : 'Error Loading Data' }}
+        </h2>
+        <p class="text-slate-200 font-body text-base font-medium mb-10 relative z-10 leading-relaxed px-2">
+          {{ error }}
+        </p>
+        <button @click="router.back()" class="relative z-10 bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-900/50 px-10 py-4 rounded-full font-label text-sm font-extrabold tracking-widest uppercase transition-all hover:-translate-y-1 active:translate-y-0 flex items-center gap-3 group">
+          <span class="material-symbols-outlined text-base group-hover:-translate-x-1 transition-transform font-bold">arrow_back</span>
+          Go Back
+        </button>
       </div>
     </div>
 
@@ -281,8 +293,8 @@ onMounted(() => {
 .error-container { max-width: 48rem; margin: 0 auto; padding: 2.5rem 1.5rem; }
 .error-box { background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 1rem; border-radius: 0 0.75rem 0.75rem 0; }
 .error-title { color: #b91c1c; font-weight: 700; }
-.error-message { color: #dc2626; font-size: 0.875rem; }
-.error-back-btn { margin-top: 1rem; font-size: 0.875rem; font-weight: 700; color: #b91c1c; background: transparent; border: none; cursor: pointer; }
+.error-message { color: #dc2626; font-size: 1.1rem; }
+.error-back-btn { margin-top: 1rem; font-size: 1.1rem; font-weight: 700; color: #b91c1c; background: transparent; border: none; cursor: pointer; }
 
 .page-container { min-height: 100vh; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
 .layout-grid { display: flex; gap: 32px; padding: 2.5rem; max-width: 80rem; margin: 0 auto; }

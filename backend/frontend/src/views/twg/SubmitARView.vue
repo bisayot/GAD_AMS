@@ -3,13 +3,13 @@
         <div class="max-w-3xl mx-auto py-10 px-6 w-full">
           <div class="mb-8">
             <h1 class="text-3xl font-extrabold tracking-tight form-main-title">Submit Accomplishment Report</h1>
-            <p class="text-xs text-slate-400 mt-1.5">Fill out the accomplishment report form below. All fields marked with * are required.</p>
+            <p class="text-sm text-slate-600 mt-1.5">Fill out the accomplishment report form below. All fields marked with * are required.</p>
           </div>
 
           <div class="form-container-box">
             <form @submit.prevent="submitReport" class="space-y-6">
               <div class="space-y-2">
-                <label class="block text-11px font-bold uppercase tracking-wider label-highlight">Activity Title *</label>
+                <label class="block text-sm font-bold uppercase tracking-wider label-highlight">Activity Title *</label>
                 <textarea 
                   v-model="form.activity_title" 
                   required 
@@ -20,7 +20,7 @@
               </div>
 
               <div class="space-y-2">
-                <label class="block text-11px font-bold uppercase tracking-wider label-highlight">Activity Design Control Number *</label>
+                <label class="block text-sm font-bold uppercase tracking-wider label-highlight">Activity Design Control Number *</label>
                 <select 
                   v-model="form.control_number" 
                   required 
@@ -37,7 +37,7 @@
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="space-y-2">
-                  <label class="block text-11px font-bold uppercase tracking-wider label-highlight">Start Date of Implementation *</label>
+                  <label class="block text-sm font-bold uppercase tracking-wider label-highlight">Start Date of Implementation *</label>
                   <input 
                     type="date" 
                     v-model="form.start_date" 
@@ -46,7 +46,7 @@
                   >
                 </div>
                 <div class="space-y-2">
-                  <label class="block text-11px font-bold uppercase tracking-wider label-highlight">End Date of Implementation *</label>
+                  <label class="block text-sm font-bold uppercase tracking-wider label-highlight">End Date of Implementation *</label>
                   <input 
                     type="date" 
                     v-model="form.end_date" 
@@ -58,7 +58,7 @@
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="space-y-2">
-                  <label class="block text-11px font-bold uppercase tracking-wider label-highlight">Start Time *</label>
+                  <label class="block text-sm font-bold uppercase tracking-wider label-highlight">Start Time *</label>
                   <input 
                     type="time" 
                     v-model="form.start_time" 
@@ -67,7 +67,7 @@
                   >
                 </div>
                 <div class="space-y-2">
-                  <label class="block text-11px font-bold uppercase tracking-wider label-highlight">End Time *</label>
+                  <label class="block text-sm font-bold uppercase tracking-wider label-highlight">End Time *</label>
                   <input 
                     type="time" 
                     v-model="form.end_time" 
@@ -78,7 +78,7 @@
               </div>
 
               <div class="space-y-2">
-                <label class="block text-11px font-bold uppercase tracking-wider label-highlight">Venue *</label>
+                <label class="block text-sm font-bold uppercase tracking-wider label-highlight">Venue *</label>
                 <input 
                   type="text" 
                   v-model="form.venue" 
@@ -89,7 +89,7 @@
               </div>
 
               <div class="space-y-2">
-                <label class="block text-11px font-bold uppercase tracking-wider label-highlight">Number of Attendees *</label>
+                <label class="block text-sm font-bold uppercase tracking-wider label-highlight">Number of Attendees *</label>
                 <input 
                   type="number" 
                   v-model="form.attendees" 
@@ -103,7 +103,7 @@
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="space-y-2">
-                  <label class="block text-11px font-bold uppercase tracking-wider label-highlight">Male Participants *</label>
+                  <label class="block text-sm font-bold uppercase tracking-wider label-highlight">Male Participants *</label>
                   <input 
                     type="number" 
                     v-model="form.male" 
@@ -114,7 +114,7 @@
                   >
                 </div>
                 <div class="space-y-2">
-                  <label class="block text-11px font-bold uppercase tracking-wider label-highlight">Female Participants *</label>
+                  <label class="block text-sm font-bold uppercase tracking-wider label-highlight">Female Participants *</label>
                   <input 
                     type="number" 
                     v-model="form.female" 
@@ -127,7 +127,7 @@
               </div>
 
               <div class="space-y-2">
-                <label class="block text-11px font-bold uppercase tracking-wider label-highlight">Activity Rating (Percentage) *</label>
+                <label class="block text-sm font-bold uppercase tracking-wider label-highlight">Activity Rating (Percentage) *</label>
                 <input 
                   type="number" 
                   v-model="form.rating" 
@@ -140,8 +140,8 @@
                 >
                 
                 <div class="mt-4 rating-guide-panel">
-                  <p class="text-11px font-bold text-slate-200 mb-2.5 tracking-wide uppercase">Rating Guide:</p>
-                  <div class="space-y-2 text-10px line-height-relaxed text-slate-300">
+                  <p class="text-sm font-bold text-slate-200 mb-2.5 tracking-wide uppercase">Rating Guide:</p>
+                  <div class="space-y-2 text-sm line-height-relaxed text-slate-500">
                     <p><span class="font-bold text-emerald-400">81%-100% - Excellent:</span> Activity was completed successfully, highly engaging, impactful, and well-organized. Exceeded expectations.</p>
                     <p><span class="font-bold text-teal-400">61%-80% - Very Satisfactory:</span> Activity was completed with minor issues but was still productive, engaging, and met most objectives.</p>
                     <p><span class="font-bold text-cyan-400">41%-60% - Satisfactory:</span> Activity had some issues or lacked full engagement but met basic objectives.</p>
@@ -153,7 +153,7 @@
               </div>
 
               <div class="space-y-3">
-                <label class="block text-11px font-bold uppercase tracking-wider label-highlight">Upload Documents (PDF/ZIP - Multiple files allowed) *</label>
+                <label class="block text-sm font-bold uppercase tracking-wider label-highlight">Upload Documents (PDF/ZIP - Multiple files allowed) *</label>
                 <div 
                   class="upload-dropzone-box group"
                   @click="$refs.fileInput.click()"
@@ -166,14 +166,14 @@
                     required 
                     class="hidden"
                   >
-                  <span class="text-3xl mb-2 group-hover:scale-110 transition-transform duration-200">upload</span>
-                  <p class="text-xs font-semibold text-white group-hover:text-[#b979cc] transition-colors">Upload Accomplishment Report & Attachments</p>
-                  <p class="text-10px text-slate-400 mt-1">Multiple files allowed (PDF, ZIP)</p>
+                  <span class="text-3xl mb-2 group-hover:scale-110 transition-transform duration-200">📤</span>
+                  <p class="text-sm font-semibold text-white group-hover:text-[#b979cc] transition-colors">Upload Accomplishment Report & Attachments</p>
+                  <p class="text-sm text-slate-600 mt-1">Multiple files allowed (PDF, ZIP)</p>
                   
                   <div v-if="uploadedFiles.length > 0" class="mt-4 w-full space-y-1.5" @click.stop>
                     <div v-for="(file, index) in uploadedFiles" :key="index" class="uploaded-file-tag">
                       <span class="truncate">📄 {{ file.name }}</span>
-                      <span class="text-10px opacity-60 flex-shrink-0">({{ (file.size / 1024).toFixed(2) }} KB)</span>
+                      <span class="text-sm opacity-60 flex-shrink-0">({{ (file.size / 1024).toFixed(2) }} KB)</span>
                     </div>
                   </div>
                 </div>
@@ -346,8 +346,8 @@ onMounted(() => {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
-.text-11px { font-size: 11px; }
-.text-10px { font-size: 10px; }
+.text-sm { font-size: 14px; }
+.text-sm { font-size: 14px; }
 .text-3xl { font-size: 26px; }
 
 .form-main-title {
@@ -374,7 +374,7 @@ onMounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 14px 20px;
-  font-size: 14px;
+  font-size: 16px;
   color: #ffffff;
   transition: all 0.2s ease;
 }
@@ -387,7 +387,7 @@ onMounted(() => {
 }
 
 .custom-input-field::placeholder {
-  color: #64748b;
+  color: #94a3b8;
 }
 
 .dark-option {
@@ -451,7 +451,7 @@ onMounted(() => {
   padding: 14px 40px;
   border-radius: 12px;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 16px;
   cursor: pointer;
   border: none;
   box-shadow: 0 4px 14px rgba(153, 13, 209, 0.3);
