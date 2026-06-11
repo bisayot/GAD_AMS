@@ -4,7 +4,7 @@
     <div class="welcome-card">
       <h1 class="welcome-title">Budget Utilization Monitoring</h1>
       <p class="welcome-subtitle">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        Track budget allocation, utilization, remaining balances, and percentage execution across all GAD units and tracked office mandates.
       </p>
     </div>
 
@@ -177,8 +177,8 @@ const systemNoticeText = ref('');
 }
 
 .welcome-subtitle {
-  font-size: 0.875rem;
-  color: #64748b;
+  font-size: 1.1rem;
+  color: #475569;
   margin-top: 0.5rem;
   line-height: 1.5;
 }
@@ -253,7 +253,7 @@ const systemNoticeText = ref('');
 }
 
 .stat-label {
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -337,7 +337,7 @@ const systemNoticeText = ref('');
 
 .table-header-cell {
   padding: 1rem;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: #b979cc;
   text-transform: uppercase;
@@ -348,7 +348,7 @@ const systemNoticeText = ref('');
   padding: 3rem;
   text-align: center;
   font-size: 0.8125rem;
-  color: #64748b;
+  color: #94a3b8;
   font-weight: 500;
 }
 
@@ -372,20 +372,20 @@ const systemNoticeText = ref('');
 }
 
 .title-main {
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #f1f5f9;
 }
 
 .title-desc {
-  font-size: 0.75rem;
-  color: #64748b;
+  font-size: 1rem;
+  color: #94a3b8;
   line-height: 1.3;
 }
 
 .numeric-cell {
   padding: 1rem;
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   font-weight: 600;
   font-family: monospace;
 }
@@ -400,7 +400,7 @@ const systemNoticeText = ref('');
 
 /* Translucent Highlighting Tags */
 .rate-badge {
-  font-size: 0.6875rem;
+  font-size: 0.9rem;
   font-weight: 700;
   font-family: monospace;
   padding: 0.25rem 0.5rem;
@@ -421,7 +421,7 @@ const systemNoticeText = ref('');
 }
 
 .footer-text {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #94a3b8;
   font-weight: 500;
   margin: 0;
@@ -437,7 +437,7 @@ const systemNoticeText = ref('');
 }
 
 .status-box-title {
-  font-size: 0.5625rem;
+  font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -453,7 +453,7 @@ const systemNoticeText = ref('');
 }
 
 .status-box-text {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #cbd5e1;
   margin: 0.5rem 0 0 0;
   line-height: 1.4;

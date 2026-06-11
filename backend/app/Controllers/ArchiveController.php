@@ -55,6 +55,9 @@ class ArchiveController extends ResourceController
 
         if (!$item) return $this->failNotFound('Design not found');
 
+        $body = $this->request->getJSON(true) ?? $this->request->getPost();
+        $remarks = $body['remarks'] ?? '';
+
         // 2. Prepare Archive record
         $archiveData = [
             'original_act_design_id' => $item['act_design_id'],
@@ -63,10 +66,11 @@ class ArchiveController extends ResourceController
             'end_date'               => $item['end_date'],
             'start_time'             => $item['start_time'],
             'end_time'               => $item['end_time'],
-            'status'                 => 'Approved',
+            'status'                 => 'Cancelled',
+            'remarks'                => $remarks,
             'attachment'             => $item['attachment'],
             'user_id'                => $item['user_id'],
-            'gpb_id'                 => $item['gpb_id'],
+            'gpb_id'                 => $item['gpb_id'] ?? null,
             'venue'                  => $item['venue'],
             'target_participants'    => $item['target_participants'],
             'proposed_budget'        => $item['proposed_budget'],

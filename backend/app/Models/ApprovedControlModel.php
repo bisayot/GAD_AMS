@@ -20,15 +20,18 @@ class ApprovedControlModel extends Model
     public function getApprovedControlsWithActivityDetails(int $userId): array
     {
         return $this->select('control_number.control_number,
-                              activity_design.activity_title,
-                              activity_design.start_date,
-                              activity_design.end_date,
-                              activity_design.start_time,
-                              activity_design.end_time,
-                              activity_design.venue,
-                              activity_design.target_participants')
-                    ->join('activity_design', 'activity_design.act_design_id = control_number.act_design_id')
-                    ->where('control_number.user_id', $userId)
+                              archived_activity_designs.activity_title,
+                              archived_activity_designs.start_date,
+                              archived_activity_designs.end_date,
+                              archived_activity_designs.start_time,
+                              archived_activity_designs.end_time,
+                              archived_activity_designs.venue,
+                              archived_activity_designs.target_participants')
+                    ->join('archived_activity_designs', 'archived_activity_designs.original_act_design_id = control_number.act_design_id')
+                    ->join('accomplishment_report', 'accomplishment_report.control_number = control_number.control_number', 'left')
+                    ->where('archived_activity_designs.user_id', $userId)
+                    ->where('archived_activity_designs.status', 'Approved')
+                    ->where('accomplishment_report.id IS NULL')
                     ->findAll();
     }
 }

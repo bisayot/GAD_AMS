@@ -18,6 +18,7 @@ class AccomplishmentReportModel extends Model // No change needed here, class na
     protected $allowedFields = [
         "activity_title",
         "control_number",
+        "act_design_id",
         "start_date",
         "end_date",
         "start_time",

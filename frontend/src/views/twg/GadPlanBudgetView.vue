@@ -3,8 +3,8 @@
         
         <div class="controls-panel mb-3 flex justify-between items-center">
           <div class="panel-left">
-            <h2 class="panel-title">GAD Plan and Budget (GPB)</h2>
-            <p class="panel-subtitle">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+            <h2 class="panel-title">Gender and Development Matrix</h2>
+            <p class="panel-subtitle">Annual compliance and budget allocations</p>
           </div>
           <div class="panel-right flex items-center gap-3">
             <div class="year-selector-wrapper relative">
@@ -128,7 +128,7 @@
             <div class="pdf-header-right flex gap-2">
               <a 
                 :href="`/uploads/${selectedYear}-GPB.pdf`" 
-                target="_blank" 
+                target="_self" 
                 class="pdf-btn"
               >
                 <span class="material-symbols-outlined">open_in_new</span>
@@ -155,14 +155,14 @@
       </main>
 
       <footer class="app-footer">
-        Benguet State University - Gender and Development Information Management System | GAD-IMS v1.0
+        Benguet State University - Gender and Development Activities Management System | GAD-AMS v1.0
       </footer>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '../../api';
 
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
@@ -203,7 +203,7 @@ const exportToExcel = () => {
 
 const handleLogout = async () => {
   try {
-    await axios.get('http://localhost:8080/api/logout');
+    await api.get('logout');
     localStorage.removeItem('user');
     router.push('/login');
   } catch (err) {
@@ -246,7 +246,7 @@ onMounted(() => {
 }
 
 .panel-subtitle {
-  font-size: 0.6875rem;
+  font-size: 0.9rem;
   color: rgba(203, 213, 225, 0.7);
   margin-top: 0.125rem;
 }
@@ -260,7 +260,7 @@ onMounted(() => {
   border: 1px solid rgba(185, 121, 204, 0.2);
   border-radius: 0.75rem;
   padding: 0.5rem 2rem 0.5rem 0.75rem;
-  font-size: 0.75rem;
+  font-size: 1rem;
   background-color: #1a1a2e;
   color: white;
   font-weight: 600;
@@ -290,7 +290,7 @@ onMounted(() => {
   border: 1px solid rgba(185, 121, 204, 0.15);
   padding: 0.5rem 1rem;
   border-radius: 0.75rem;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -314,7 +314,7 @@ onMounted(() => {
 .view-btn {
   padding: 0.375rem 1rem;
   border-radius: 0.5rem;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: bold;
   transition: all 0.2s;
   display: flex;
@@ -338,7 +338,7 @@ onMounted(() => {
 }
 
 .view-btn .material-symbols-outlined {
-  font-size: 0.875rem;
+  font-size: 1.1rem;
 }
 
 /* Table Container */
@@ -362,7 +362,7 @@ onMounted(() => {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   color: #b979cc;
   text-transform: uppercase;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 800;
   letter-spacing: 0.05em;
   border-bottom: 1px solid rgba(185, 121, 204, 0.2);
@@ -397,7 +397,7 @@ onMounted(() => {
 
 /* Table Body */
 .table-body {
-  font-size: 0.6875rem;
+  font-size: 0.9rem;
   color: #cbd5e1;
 }
 
@@ -406,7 +406,7 @@ onMounted(() => {
   border-bottom: 1px solid rgba(185, 121, 204, 0.15);
   font-weight: bold;
   color: white;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   letter-spacing: 0.025em;
 }
 
@@ -515,7 +515,7 @@ onMounted(() => {
   padding: 0.125rem 0.375rem;
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 0.25rem;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.8);
   text-align: center;
   font-weight: 500;
@@ -526,7 +526,7 @@ onMounted(() => {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   font-weight: bold;
   color: white;
-  font-size: 0.75rem;
+  font-size: 1rem;
   border-top: 2px solid rgba(185, 121, 204, 0.3);
 }
 
@@ -544,7 +544,7 @@ onMounted(() => {
   padding: 0.75rem;
   border-right: 1px solid rgba(185, 121, 204, 0.15);
   text-align: right;
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   font-weight: 900;
   background: rgba(153, 13, 209, 0.1);
   letter-spacing: 0.025em;
@@ -590,7 +590,7 @@ onMounted(() => {
 .pdf-title {
   font-weight: bold;
   color: white;
-  font-size: 0.75rem;
+  font-size: 1rem;
 }
 
 .pdf-btn {
@@ -599,7 +599,7 @@ onMounted(() => {
   border: 1px solid rgba(185, 121, 204, 0.15);
   padding: 0.375rem 0.75rem;
   border-radius: 0.75rem;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -615,7 +615,7 @@ onMounted(() => {
 }
 
 .pdf-btn .material-symbols-outlined {
-  font-size: 0.875rem;
+  font-size: 1.1rem;
 }
 
 .pdf-frame-wrapper {
@@ -636,7 +636,7 @@ onMounted(() => {
   text-align: center;
   padding-bottom: 1rem;
   pointer-events: none;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.3);
   font-weight: 500;
   letter-spacing: 0.025em;

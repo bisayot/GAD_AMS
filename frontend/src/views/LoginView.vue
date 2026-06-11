@@ -113,10 +113,12 @@
 
 <script setup>
 import { ref } from 'vue';
-import axios from 'axios';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
+// Use the relative path to step up out of the 'views' folder and find api.js
+import api from '../api'; 
 
 const router = useRouter();
+const route = useRoute();
 const identity = ref('');
 const password = ref('');
 const loading = ref(false);
@@ -128,49 +130,51 @@ const handleLogin = async () => {
   error.value = '';
   
   try {
-    // Change .get to .post, and remove the "params:" wrapper
-    const response = await axios.post('http://localhost:8080/api/login', {
+    const response = await api.post('login', {
       identity: identity.value,
       password: password.value
     });
     
     // Store user info in localStorage or a store
-    localStorage.setItem('user', JSON.stringify(response.data.user));
+    const userData = response.data.user;
+    localStorage.setItem('user', JSON.stringify(userData));
     
-    // Redirect based on role
-    const role = response.data.user.role;
-    if (role === 'admin') router.push('/admin/dashboard');
-    else if (role === 'college') router.push('/college/dashboard');
-    else if (role === 'gad_staff') router.push('/staff/dashboard');
-    else router.push('/');
+    const role = userData.role;
+    const redirectTo = typeof route.query.redirect === 'string' ? route.query.redirect : null;
+    
+    console.log("Login successful. Detected role:", role, "redirectTo:", redirectTo);
+
+    const getTargetRoute = () => {
+      if (redirectTo) {
+        return { path: redirectTo };
+      }
+
+      switch(role) {
+        case 'admin':
+          return { path: '/admin/dashboard' };
+        case 'gad_staff':
+          return { path: '/staff/dashboard' };
+        case 'college':
+          return { path: '/college/dashboard' };
+        default:
+          return { path: '/' };
+      }
+    };
+
+    router.replace(getTargetRoute());
     
   } catch (err) {
     console.error('Login error:', err);
     
-    if (err.response?.status === 401) {
-      error.value = 'Invalid credentials';
-    } else if (err.response?.status === 429) {
-      error.value = 'Too many login attempts. Try again later.';
-    } else if (err.response?.data?.messages?.error) {
-      error.value = err.response.data.messages.error;
-    } else if (err.code === 'ECONNREFUSED') {
-      // Axios error fallback
-      error.value = 'Backend is not running. Start it first.';
+    if (err && err.messages) {
+      error.value = err.messages.error || 'Login failed';
+    } else if (err && err.message) {
+      error.value = err.message;
     } else {
-      error.value = 'An error occurred. Please try again.';
+      error.value = 'Connection error. Please check if the backend is running.';
     }
   } finally {
     loading.value = false;
   }
 };
 </script>
-
-<style scoped>
-.bg-login-texture {
-  background-color: #f9f9fb;
-  background-image: radial-gradient(#422b68 0.5px, transparent 0.5px), radial-gradient(#422b68 0.5px, #f9f9fb 0.5px);
-  background-size: 20px 20px;
-  background-position: 0 0, 10px 10px;
-  opacity: 0.03;
-}
-</style>
