@@ -1,12 +1,9 @@
 <template>
-
-      <main class="flex-1 overflow-y-auto">
+      <main class="flex-1 overflow-y-auto bg-transparent">
         <div class="max-w-7xl mx-auto">
-            <div class="page-header">
-              <h1 class="page-title">Archives Tracker</h1>
-              <p class="page-subtitle">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-            </div>
+
           <div class="stats-container">
+
             <div class="stat-card-purple">
               <div class="stat-card-inner">
                 <div class="stat-icon-wrapper purple">
@@ -14,7 +11,7 @@
                 </div>
                 <div class="stat-content">
                   <h3 class="stat-number-purple">{{ totalArchived }}</h3>
-                  <p class="stat-label-purple">TOTAL ARCHIVED ITEMS</p>
+                  <p class="stat-label-purple">TOTAL ARCHIVED</p>
                 </div>
               </div>
             </div>
@@ -153,13 +150,13 @@
                     </td>
                     <td class="table-cell">
                       <div class="control-number">{{ item.control }}</div>
-                      <div class="item-date">{{ item.date }}</div>
+                      <div class="item-date">{{ item.dateArchived }}</div>
                     </td>
                     <td class="table-cell">
                       <div class="item-title">{{ item.title }}</div>
                     </td>
                     <td class="table-cell">
-                      <div class="item-date">{{ formatDate(item.archived_at) }}</div>
+                      <div class="item-date">{{ item.dateArchived }}</div>
                     </td>
                     <td class="table-cell">
                       <span class="status-badge" :class="item.statusClass">
@@ -201,7 +198,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '../../api';
 
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
@@ -211,10 +208,10 @@ const archivedReports = ref([]);
 const loading = ref(false);
 const activeTab = ref('designs');
 
-const filters = ref({ 
+const filters = ref({
   status: 'all',
   sort: 'date_desc',
-  search: '' 
+  search: ''
 });
 
 const currentPage = ref(1);
@@ -240,6 +237,10 @@ const totalReports = computed(() => {
   return archivedReports.value.length;
 });
 
+const pendingCount = computed(() => {
+  return 0;
+});
+
 const currentSourceData = computed(() => {
   return activeTab.value === 'designs' ? archivedDesigns.value : archivedReports.value;
 });
@@ -247,10 +248,8 @@ const currentSourceData = computed(() => {
 const filteredItems = computed(() => {
   let items = [...currentSourceData.value];
   
-  if (filters.value.status === 'completed') {
-    items = items.filter(item => item.status.toLowerCase() === 'approved' || item.status.toLowerCase() === 'verified');
-  } else if (filters.value.status === 'cancelled') {
-    items = items.filter(item => item.status.toLowerCase() === 'cancelled');
+  if (filters.value.status !== 'all') {
+    items = items.filter(item => item.status === filters.value.status);
   }
   
   if (filters.value.search.trim()) {
@@ -272,7 +271,7 @@ const filteredItems = computed(() => {
     case 'date_asc':
       sorted.sort((a, b) => new Date(a.dateRaw) - new Date(b.dateRaw));
       break;
-    default: 
+    default:
       sorted.sort((a, b) => new Date(b.dateRaw) - new Date(a.dateRaw));
   }
   
@@ -304,59 +303,15 @@ const visiblePages = computed(() => {
 const fetchArchives = async () => {
   loading.value = true;
   try {
-    const response = await axios.get('http://localhost:8080/api/archives');
-    
-    if (response.data.success) {
-      const allData = response.data.data;
-
-      archivedDesigns.value = allData.filter(i => i.type === 'design').map(d => ({
-        id: d.original_id,
-        ...d,
-        statusClass: getStatusClass(d.status),
-        statusText: d.status,
-        formClass: getFormClass(d.form_label)
-      }));
-
-      archivedReports.value = allData.filter(i => i.type === 'report').map(r => ({
-        id: r.original_id,
-        ...r,
-        statusClass: getStatusClass(r.status),
-        statusText: r.status,
-        formClass: getFormClass(r.form_label)
-      }));
-    }
+    const designsResponse = await api.get('archived-designs');
+    const reportsResponse = await api.get('archived-reports');
+    archivedDesigns.value = designsResponse.data;
+    archivedReports.value = reportsResponse.data;
   } catch (error) {
     console.error('Error fetching archive records:', error);
   } finally {
     loading.value = false;
   }
-};
-
-const formatDate = (date) => {
-  if (!date) return '---';
-  return new Date(date).toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric', 
-    year: 'numeric' 
-  });
-};
-
-const formatFormType = (type) => {
-  const types = { 'inset': 'INSET Training', 'extension': 'Extension Program', 'employee': 'Employee Training' };
-  return types[type] || type;
-};
-
-const getFormClass = (type) => {
-  return `form-badge-${type}`;
-};
-
-const getStatusClass = (status) => {
-  if (!status) return '';
-  const s = status.toLowerCase();
-  if (s === 'approved') return 'status-approved';
-  if (s === 'verified') return 'status-completed';
-  if (s === 'cancelled') return 'status-revision';
-  return 'status-pending';
 };
 
 const applyFilters = () => {
@@ -380,15 +335,15 @@ const changePage = (page) => {
 
 const viewItem = (item) => {
   if (item.type === 'design') {
-    router.push(`/college/ad-view/${item.id}`);
+    router.push(`/college/design-view/${item.id}`);
   } else {
-    router.push(`/college/ar-view/${item.id}`);
+    router.push(`/college/report-view/${item.id}`);
   }
 };
 
 const handleLogout = async () => {
   try {
-    await axios.get('http://localhost:8080/api/logout');
+    await api.get('logout');
     localStorage.removeItem('user');
     router.push('/login');
   } catch (err) {
@@ -406,23 +361,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.page-header {
-  padding: 0 0.25rem 1.5rem 0;
-}
-
-.page-title {
-  font-size: 1.5rem;
-  font-weight: 900;
-  letter-spacing: -0.025em;
-  color: #16213e;
-}
-
-.page-subtitle {
-  font-size: 0.75rem;
-  color: #94a3b8;
-  margin-top: 0.25rem;
-}
-
 .stats-container {
   display: grid;
   grid-template-columns: 1fr;
@@ -540,14 +478,14 @@ onMounted(() => {
 }
 
 .stat-sub {
-  font-size: 0.75rem;
-  color: #64748b;
+  font-size: 1rem;
+  color: #94a3b8;
   opacity: 0.7;
   margin: 0.25rem 0 0 0;
 }
 
 .stat-sub-purple {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #b979cc;
   opacity: 0.7;
   margin: 0.25rem 0 0 0;
@@ -586,7 +524,7 @@ onMounted(() => {
 
 .tab-inactive {
   border-bottom: 3px solid transparent;
-  color: #64748b;
+  color: #94a3b8;
 }
 
 .tab-inactive:hover {
@@ -597,10 +535,10 @@ onMounted(() => {
 
 .tab-badge {
   background: #f1f5f9;
-  color: #64748b;
+  color: #94a3b8;
   padding: 0.125rem 0.5rem;
   border-radius: 30px;
-  font-size: 0.7rem;
+  font-size: 0.95rem;
   font-weight: 600;
 }
 
@@ -638,7 +576,7 @@ onMounted(() => {
 
 .filter-label {
   display: block;
-  font-size: 0.65rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: #b979cc;
   text-transform: uppercase;
@@ -707,7 +645,7 @@ onMounted(() => {
   color: white;
   padding: 0.5rem 1.25rem;
   border-radius: 0.75rem;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
   border: none;
   cursor: pointer;
@@ -749,7 +687,7 @@ onMounted(() => {
 }
 
 .record-count {
-  font-size: 0.7rem;
+  font-size: 0.95rem;
   color: #94a3b8;
 }
 
@@ -769,7 +707,7 @@ onMounted(() => {
 }
 
 .loading-state p {
-  color: #475569;
+  color: #cbd5e1;
   margin-top: 1rem;
 }
 
@@ -813,7 +751,7 @@ onMounted(() => {
 .table-header-cell {
   padding: 1rem 1.5rem;
   text-align: left;
-  font-size: 0.7rem;
+  font-size: 0.95rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -840,7 +778,7 @@ onMounted(() => {
   align-items: center;
   padding: 0.25rem 0.8rem;
   border-radius: 30px;
-  font-size: 0.7rem;
+  font-size: 0.95rem;
   font-weight: 700;
 }
 
@@ -859,10 +797,10 @@ onMounted(() => {
   align-items: center;
   padding: 0.2rem 0.6rem;
   border-radius: 30px;
-  font-size: 0.65rem;
+  font-size: 0.9rem;
   font-weight: 600;
   background: #f1f5f9;
-  color: #475569;
+  color: #cbd5e1;
 }
 
 .status-badge {
@@ -870,7 +808,7 @@ onMounted(() => {
   align-items: center;
   padding: 0.3rem 0.8rem;
   border-radius: 30px;
-  font-size: 0.7rem;
+  font-size: 0.95rem;
   font-weight: 700;
 }
 
@@ -886,18 +824,6 @@ onMounted(() => {
   border: 1px solid #bae6fd;
 }
 
-.status-badge.status-revision { /* Reusing revision style for cancelled */
-  background: #fee2e2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
-}
-
-.status-badge.status-pending { /* Fallback for any other status */
-  background: #fef3c7;
-  color: #d97706;
-  border: 1px solid #fde68a;
-}
-
 .control-number {
   font-family: monospace;
   font-size: 0.8rem;
@@ -907,7 +833,7 @@ onMounted(() => {
 }
 
 .item-date {
-  font-size: 0.65rem;
+  font-size: 0.9rem;
   color: #94a3b8;
   margin-top: 0.25rem;
 }
@@ -941,7 +867,7 @@ onMounted(() => {
 }
 
 .empty-content p {
-  color: #475569;
+  color: #cbd5e1;
   font-size: 0.85rem;
 }
 
@@ -957,8 +883,8 @@ onMounted(() => {
 }
 
 .pagination-info {
-  font-size: 0.75rem;
-  color: #64748b;
+  font-size: 1rem;
+  color: #94a3b8;
 }
 
 .info-highlight {
@@ -982,10 +908,10 @@ onMounted(() => {
   border: 1px solid #e2e8f0;
   border-radius: 0.6rem;
   background: #ffffff;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
-  color: #475569;
+  color: #cbd5e1;
   transition: all 0.2s ease;
 }
 

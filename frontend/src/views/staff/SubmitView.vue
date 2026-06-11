@@ -4,7 +4,7 @@
         <div class="modal-container">
           <div class="modal-header">
             <h3 class="modal-title">New Submission</h3>
-            <span class="title-badge">GAD-IMS Portal</span>
+            <span class="title-badge">GAD-AMS Portal</span>
           </div>
           <p class="modal-text">Select the type of document you want to compile and submit for administrative review.</p>
           
@@ -33,7 +33,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import axios from 'axios';
+import api from '../../api';
 
 const router = useRouter();
 const route = useRoute();
@@ -46,7 +46,7 @@ const menuItems = computed(() => {
 
 const handleLogout = async () => {
   try {
-    await axios.get('http://localhost:8080/api/logout');
+    await api.get('logout');
     localStorage.removeItem('user');
     router.push('/login');
   } catch (err) {
@@ -98,7 +98,7 @@ onMounted(() => {
 }
 
 .title-badge {
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 700;
   color: #ffffff;
   background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%); /* Matching brand gradient */
@@ -112,7 +112,7 @@ onMounted(() => {
 .modal-text {
   color: #94a3b8; /* Muted slate text matching subnav links */
   margin-bottom: 32px;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.6;
   text-align: left;
 }

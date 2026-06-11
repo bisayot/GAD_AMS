@@ -18,8 +18,8 @@
         <section class="flex-055 glass-card">
           <div class="report-header">
             <div class="meta-header">
-              <div class="status-badge-view completed">
-                <span class="status-text">Completed</span>
+              <div class="status-badge-view" :class="getStatusClass(report.status)">
+                <span class="status-text">{{ formatStatus(report.status) }}</span>
               </div>
               <span class="control-number">{{ report.control || 'NO CONTROL NUMBER' }}</span>
             </div>
@@ -29,7 +29,7 @@
             <div class="info-grid">
               <div class="info-item">
                 <span class="info-label">Submitted By</span>
-                <span class="info-value-purple">{{ report.username }}</span>
+                <span class="info-value-purple">{{ report.submitter_name || '' }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">Office</span>
@@ -86,7 +86,7 @@
                 </div>
                 <div class="metric-box">
                   <p class="metric-value">{{ report.rating }}</p>
-                  <p class="metric-label">/ 5.0 Rating</p>
+                  <p class="metric-label">/ 100 Rating</p>
                 </div>
               </div>
             </div>
@@ -141,13 +141,17 @@
         </section>
       </div>
     </div>
+
+    <!-- PDF Preview Modal -->
+    <PdfPreviewModal :isOpen="isPdfModalOpen" :fileUrl="pdfFileUrl" @close="closePdfModal" />
   </main>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '../../api';
+import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -160,7 +164,7 @@ const fetchReportDetails = async () => {
   loading.value = true;
   try {
     const id = route.params.id;
-    const response = await axios.get(`http://localhost:8080/api/activity-report/${id}`);
+    const response = await api.get(`activity-report/${id}`);
     if (response.data.success) report.value = response.data.data;
     else error.value = "Accomplishment report not found.";
   } catch (err) {
@@ -176,10 +180,42 @@ const formatTime = (time) => {
   const [h, m] = time.split(':');
   return `${h % 12 || 12}:${m} ${h >= 12 ? 'PM' : 'AM'}`;
 };
-const previewFile = () => window.open(`http://localhost:8080/api/activity-report/attachment/${report.value.id}`, '_blank');
+
+const formatStatus = (status) => {
+  if (!status) return 'Unknown';
+  if (status.toLowerCase() === 'revision required') return 'For Revision';
+  return status.charAt(0).toUpperCase() + status.slice(1);
+};
+
+const getStatusClass = (status) => {
+  const s = (status || '').toLowerCase();
+  if (s === 'pending') return 'pending';
+  if (s === 'approved') return 'approved';
+  if (s === 'completed' || s === 'archived') return 'completed';
+  if (s === 'cancelled') return 'cancelled';
+  if (s === 'revision required' || s === 'revision') return 'revision';
+  return 'completed';
+};
+
+const isPdfModalOpen = ref(false);
+const pdfFileUrl = ref('');
+
+const previewFile = () => {
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api/', '') : 'https://gad-ams-2-1.onrender.com');
+  const folder = report.value.is_archived ? 'archived' : 'drafts';
+  pdfFileUrl.value = `${base}/api/files/${folder}/${report.value.attachment}`;
+  isPdfModalOpen.value = true;
+};
+
+const closePdfModal = () => {
+  isPdfModalOpen.value = false;
+  pdfFileUrl.value = '';
+};
 const downloadFile = () => {
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api/', '') : 'https://gad-ams-2-1.onrender.com');
+  const folder = report.value.is_archived ? 'archived' : 'drafts';
   const link = document.createElement('a');
-  link.href = `http://localhost:8080/api/activity-report/attachment/${report.value.id}`;
+  link.href = `${base}/api/files/${folder}/${report.value.attachment}`;
   link.download = `Accomplishment_Report_${report.value.control || report.value.id}.pdf`;
   link.click();
 };
@@ -196,8 +232,8 @@ onMounted(() => {
 .error-container { max-width: 48rem; margin: 0 auto; padding: 2.5rem; }
 .error-box { background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 1rem; border-radius: 0.75rem; }
 .error-title { color: #ef4444; font-weight: 700; }
-.error-message { color: #cbd5e1; font-size: 0.875rem; }
-.error-back-btn { margin-top: 1rem; font-size: 0.875rem; font-weight: 700; color: #ef4444; background: transparent; border: none; cursor: pointer; }
+.error-message { color: #cbd5e1; font-size: 1.1rem; }
+.error-back-btn { margin-top: 1rem; font-size: 1.1rem; font-weight: 700; color: #ef4444; background: transparent; border: none; cursor: pointer; }
 .page-container { min-height: 100vh;  }
 .glass-card { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); backdrop-filter: blur(24px); border-radius: 1.5rem; border: 1px solid rgba(185, 121, 204, 0.2); }
 
@@ -210,6 +246,10 @@ onMounted(() => {
 .report-title { font-family: 'Times New Roman', serif; font-size: 26px; color: white; line-height: 1.25; margin: 1rem 0; }
 .status-badge-view { padding: 4px 12px; border-radius: 9999px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; }
 .status-badge-view.completed { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
+.status-badge-view.cancelled { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+.status-badge-view.pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+.status-badge-view.approved { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
+.status-badge-view.revision { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
 .control-number { font-size: 11px; font-weight: 700; color: #b979cc; text-transform: uppercase; margin-left: 12px; font-family: monospace; }
 .info-grid { display: flex; flex-wrap: wrap; gap: 24px; padding-top: 16px; border-top: 1px solid rgba(185, 121, 204, 0.1); }
 .info-item { display: flex; flex-direction: column; }
@@ -222,7 +262,7 @@ onMounted(() => {
 .section-header-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
 .section-title { font-weight: 800; font-size: 13px; text-transform: uppercase; color: #b979cc; }
 .icon-pink { color: #b979cc; }
-.text-sm-light { font-size: 0.875rem; color: #cbd5e1; font-weight: 500; }
+.text-sm-light { font-size: 1.1rem; color: #cbd5e1; font-weight: 500; }
 .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .divider { color: rgba(203, 213, 225, 0.4); margin: 0 0.25rem; }

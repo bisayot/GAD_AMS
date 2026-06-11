@@ -4,7 +4,7 @@
           
           <div class="page-header">
             <h1 class="page-title">Activity Designs Tracker</h1>
-            <p class="page-subtitle">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+            <p class="page-subtitle">Review, monitor compliance status, and manage submitted institutional activity plan frameworks.</p>
           </div>
 
           <section class="stats-section">
@@ -68,7 +68,7 @@
               </div>
             </div>
 
-            <!-- <div class="per-page-controls">
+            <div class="per-page-controls">
               <span class="per-page-label">Show</span>
               <select 
                 v-model="perPage"
@@ -79,7 +79,7 @@
                 <option :value="25">25</option>
               </select>
               <span class="per-page-label">records</span>
-            </div> -->
+            </div>
           </section>
 
           <div class="table-container">
@@ -91,7 +91,7 @@
                     <th class="table-header-cell">Activity Title</th>
                     <th class="table-header-cell">Office / Unit</th>
                     <th class="table-header-cell">Form Type</th>
-                    <th class="table-header-cell">Date Created</th>
+                    <th class="table-header-cell">Date Submitted</th>
                     <th class="table-header-cell">Status</th>
                   </tr>
                 </thead>
@@ -101,15 +101,16 @@
                       No matching activity design submissions found in the repository index.
                     </td>
                   </tr>
+                  
                   <tr 
                     v-else
-                    v-for="item in paginatedDesigns" 
+                    v-for="item in filteredDesigns" 
                     :key="item.act_design_id"
-                    @click="viewItem(item)"
+                    @click="viewDetails(item.act_design_id, item.status)"
                     class="table-row"
                   >
                     <td class="table-cell control-cell">
-                      {{ item.control || 'PENDING' }}
+                      {{ item.control }}
                     </td>
                     <td class="table-cell title-cell">
                       {{ item.title }}
@@ -175,9 +176,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '../../api';
 
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
@@ -190,9 +191,11 @@ const filters = ref({
 
 const officeOptions = ref([]);
 
+// Database repositories
 const activityDesigns = ref([]);
 const currentPage = ref(1);
 const perPage = ref(10);
+const paginationMeta = ref({ total: 0, from: 0, to: 0, last_page: 1 });
 
 const metricsStats = ref([
   { label: 'Total Designs', value: '0', icon: 'description', iconColor: 'text-purple-400', bgClass: 'bg-purple-500/10' },
@@ -201,20 +204,11 @@ const metricsStats = ref([
   { label: 'Revision Required', value: '0', icon: 'assignment_return', iconColor: 'text-red-400', bgClass: 'bg-red-500/10' }
 ]);
 
-// Reset to first page when filtering or changing page size
-watch([filters, perPage], () => {
-  currentPage.value = 1;
-}, { deep: true });
-
 const filteredDesigns = computed(() => {
   let records = activityDesigns.value;
   if (filters.value.search) {
     const q = filters.value.search.toLowerCase();
-    records = records.filter(i => 
-      (i.title && i.title.toLowerCase().includes(q)) || 
-      (i.control && i.control.toLowerCase().includes(q)) || 
-      (i.office && i.office.toLowerCase().includes(q))
-    );
+    records = records.filter(i => i.control.toLowerCase().includes(q) || i.title.toLowerCase().includes(q));
   }
   if (filters.value.office !== 'all') {
     records = records.filter(i => i.office === filters.value.office);
@@ -225,81 +219,49 @@ const filteredDesigns = computed(() => {
   return records;
 });
 
-const paginatedDesigns = computed(() => {
-  const start = (currentPage.value - 1) * perPage.value;
-  const end = start + perPage.value;
-  return filteredDesigns.value.slice(start, end);
-});
-
-const paginationMeta = computed(() => {
-  const total = filteredDesigns.value.length;
-  const lastPage = Math.ceil(total / perPage.value) || 1;
-  const from = total === 0 ? 0 : (currentPage.value - 1) * perPage.value + 1;
-  const to = Math.min(currentPage.value * perPage.value, total);
-  
-  return {
-    total,
-    from,
-    to,
-    last_page: lastPage
-  };
-});
-
 const statusBadgeClass = (status) => {
-  const s = status?.toLowerCase() || '';
-  if (s === 'approved') return 'status-badge-approved';
-  if (s.includes('revision')) return 'status-badge-revision';
+  if (status === 'Approved') return 'status-badge-approved';
+  if (status === 'Revision Required') return 'status-badge-revision';
   return 'status-badge-pending';
 };
 
-const viewItem = (item) => {
-  const id = item.act_design_id || item.id;
-  const currentUserId = user.value.id || user.value.user_id;
-
-  if (item.type === 'design' || !item.type) { 
-    if (item.status && item.status.toLowerCase().includes('revision')) {
-      // Check if the staff member is the owner of the submission
-      if (Number(item.user_id) === Number(currentUserId)) {
-        router.push(`/staff/ad-revision/${id}`);
-      } else {
-        // If not the owner, redirect to read-only view even if status is revision
-        router.push(`/staff/ad-view/${id}`);
-      }
-    } else {
-      router.push(`/staff/ad-view/${id}`);
-    }
+const viewDetails = (id, status) => {
+  if (status === 'Revision Required') {
+    router.push(`/staff/ad-revision/${id}`);
   } else {
-    router.push(`/staff/ar-view/${id}`);
+    router.push(`/staff/ad-view/${id}`);
   }
 };
 
 const fetchDesigns = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/activity-designs');
-    
+    const response = await api.get('activity-designs');
     if (response.data.success) {
       activityDesigns.value = response.data.data;
-      
-      // Update Statistics
-      metricsStats.value[0].value = activityDesigns.value.length.toString();
-      metricsStats.value[1].value = activityDesigns.value.filter(d => d.status === 'Pending').length.toString();
-      metricsStats.value[2].value = activityDesigns.value.filter(d => d.status === 'Approved').length.toString();
-      metricsStats.value[3].value = activityDesigns.value.filter(d => d.status === 'Revision Required').length.toString();
+      officeOptions.value = [...new Set(response.data.data.map(d => d.office).filter(Boolean))];
 
-      // Extract Unique Offices for Filter
-      const offices = [...new Set(activityDesigns.value.map(r => r.office).filter(Boolean))];
-      officeOptions.value = offices.sort();
+      // Update stat cards
+      const total = activityDesigns.value.length;
+      const pending = activityDesigns.value.filter(d => d.status === 'Pending').length;
+      const approved = activityDesigns.value.filter(d => d.status === 'Approved').length;
+      const revision = activityDesigns.value.filter(d => d.status === 'Revision Required').length;
+      metricsStats.value[0].value = String(total);
+      metricsStats.value[1].value = String(pending);
+      metricsStats.value[2].value = String(approved);
+      metricsStats.value[3].value = String(revision);
+
+      paginationMeta.value.total = total;
+      paginationMeta.value.from = total > 0 ? 1 : 0;
+      paginationMeta.value.to = total;
     }
   } catch (err) {
-    activityDesigns.value = []; // Ensure table shows empty state on error
-    metricsStats.value.forEach(s => s.value = '0');
-    console.error("Error fetching activity designs:", err);
+    console.error('Failed to fetch activity designs:', err);
   }
 };
 
 const handleLogout = async () => {
   try {
-    await axios.get('http://localhost:8080/api/logout');
+    await api.get('logout');
     localStorage.removeItem('user');
     router.push('/login');
   } catch (err) {
@@ -309,8 +271,7 @@ const handleLogout = async () => {
 };
 
 onMounted(() => {
-  const userId = user.value.id || user.value.user_id;
-  if (!userId || !['gad_staff', 'college'].includes(user.value.role)) {
+  if (!user.value.id || user.value.role !== 'gad_staff') {
     router.push('/login');
   } else {
     fetchDesigns();
@@ -362,7 +323,7 @@ onMounted(() => {
 }
 
 .header-subtitle {
-  font-size: 0.5625rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: #b979cc;
@@ -416,8 +377,8 @@ onMounted(() => {
 }
 
 .page-subtitle {
-  font-size: 0.75rem;
-  color: #94a3b8;
+  font-size: 1rem;
+  color: #475569;
   margin-top: 0.25rem;
 }
 
@@ -465,7 +426,7 @@ onMounted(() => {
 .text-purple-400 { color: #c084fc; }
 .text-amber-400 { color: #fbbf24; }
 .text-green-400 { color: #4ade80; }
-.text-red-400 { color: #ef4444; }
+.text-red-400 { color: #f87171; }
 
 .bg-purple-500\/10 { background: rgba(168, 85, 247, 0.1); }
 .bg-amber-500\/10 { background: rgba(245, 158, 11, 0.1); }
@@ -488,7 +449,7 @@ onMounted(() => {
 }
 
 .stat-label {
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -532,7 +493,7 @@ onMounted(() => {
   top: 50%;
   transform: translateY(-50%);
   color: #94a3b8;
-  font-size: 0.75rem;
+  font-size: 1rem;
 }
 
 .search-input {
@@ -541,7 +502,7 @@ onMounted(() => {
   border-radius: 0.75rem;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(185, 121, 204, 0.2);
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
   color: white;
   transition: all 0.3s;
@@ -553,7 +514,7 @@ onMounted(() => {
 }
 
 .search-input::placeholder {
-  color: #64748b;
+  color: #94a3b8;
 }
 
 .select-wrapper {
@@ -567,7 +528,7 @@ onMounted(() => {
   border-radius: 0.75rem;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(185, 121, 204, 0.2);
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
   color: white;
   appearance: none;
@@ -586,7 +547,7 @@ onMounted(() => {
   top: 50%;
   transform: translateY(-50%);
   color: #94a3b8;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   pointer-events: none;
 }
 
@@ -597,7 +558,7 @@ onMounted(() => {
 }
 
 .per-page-label {
-  font-size: 0.6875rem;
+  font-size: 0.9rem;
   color: #94a3b8;
   font-weight: 500;
 }
@@ -607,7 +568,7 @@ onMounted(() => {
   border-radius: 0.5rem;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(185, 121, 204, 0.2);
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   color: white;
   cursor: pointer;
@@ -645,7 +606,7 @@ onMounted(() => {
 
 .table-header-cell {
   padding: 1rem 1.5rem;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -659,7 +620,7 @@ onMounted(() => {
 .empty-state {
   padding: 3rem 1.5rem;
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #94a3b8;
   font-weight: 500;
 }
@@ -680,7 +641,7 @@ onMounted(() => {
 
 .control-cell {
   font-family: monospace;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #b979cc;
 }
@@ -702,13 +663,13 @@ onMounted(() => {
 .date-cell {
   color: #94a3b8;
   font-family: monospace;
-  font-size: 0.75rem;
+  font-size: 1rem;
 }
 
 .mandate-badge {
   padding: 0.25rem 0.625rem;
   border-radius: 0.5rem;
-  font-size: 0.5625rem;
+  font-size: 0.8rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -721,7 +682,7 @@ onMounted(() => {
   display: inline-block;
   padding: 0.25rem 0.75rem;
   border-radius: 0.5rem;
-  font-size: 0.5625rem;
+  font-size: 0.8rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -740,9 +701,9 @@ onMounted(() => {
 }
 
 .status-badge-revision {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 .pagination-container {
@@ -757,7 +718,7 @@ onMounted(() => {
 }
 
 .pagination-info {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #94a3b8;
   font-weight: 500;
 }
@@ -780,7 +741,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   color: white;
   border: 1px solid rgba(185, 121, 204, 0.1);
@@ -805,7 +766,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   transition: all 0.2s;
   cursor: pointer;

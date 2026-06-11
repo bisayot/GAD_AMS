@@ -1,9 +1,10 @@
 import axios from 'axios';
-import { API_BASE_URL } from './http';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://gad-ams-2-1.onrender.com/api/';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json'
   }
@@ -29,7 +30,7 @@ api.interceptors.response.use(
     console.error('Error config:', error.config);
     console.error('Error response:', error.response);
     console.error('Error request:', error.request);
-    
+
     if (error.response) {
       // Server responded with error status
       console.error('Server error:', error.response.status, error.response.data);

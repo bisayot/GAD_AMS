@@ -5,7 +5,7 @@
           
           <div class="twg-header">
             <h1 class="twg-title">TWG Submission Tracker</h1>
-            <p class="twg-subtitle">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+            <p class="twg-subtitle">Monitor, review, and evaluate submitted Activity Designs and Accomplishment Reports per institutional unit.</p>
           </div>
 
           <section class="stats-section">
@@ -39,7 +39,7 @@
                 <input 
                   v-model="searchQuery"
                   type="text" 
-                  placeholder="Search username..." 
+                  placeholder="Search unit name or code..." 
                   class="search-input"
                 />
               </div>
@@ -52,18 +52,6 @@
                   <option value="all">All Units</option>
                   <option value="active">With Submissions</option>
                   <option value="empty">No Submissions</option>
-                </select>
-                <span class="select-arrow">▼</span>
-              </div>
-
-              <div class="select-wrapper">
-                <select 
-                  v-model="typeFilter"
-                  class="filter-select"
-                >
-                  <option value="all">All Classifications</option>
-                  <option value="twg">TWG Only</option>
-                  <option value="non-twg">Non-TWG Only</option>
                 </select>
                 <span class="select-arrow">▼</span>
               </div>
@@ -91,17 +79,16 @@
                 <thead>
                   <tr class="table-header-row">
                     <th class="table-header-cell table-header-number">#</th>
-                    <!-- <th class="table-header-cell">User ID</th> -->
                     <th class="table-header-cell">College / Office / Unit</th>
                     <th class="table-header-cell table-header-center">Activity Designs</th>
                     <th class="table-header-cell table-header-center">Accomplishment Reports</th>
-                    <th class="table-header-cell table-header-center">Total Submitted</th>
+                    <th class="table-header-cell table-header-center">Total Status</th>
                   </tr>
                 </thead>
                 <tbody class="table-body">
                   <tr v-if="filteredUnits.length === 0">
-                    <td colspan="6" class="empty-state">
-                      No matching user records or submissions discovered in the repository.
+                    <td colspan="5" class="empty-state">
+                      No matching Technical Working Group records or submissions discovered in the repository.
                     </td>
                   </tr>
                   
@@ -114,11 +101,9 @@
                     <td class="table-cell table-cell-number">
                       {{ (currentPage - 1) * perPage + index + 1 }}
                     </td>
-                    <!-- <td class="table-cell">
-                      <div class="unit-name">{{ unit.id }}</div>
-                    </td> -->
                     <td class="table-cell">
-                      <div class="unit-name">{{ unit.username }}</div>
+                      <div class="unit-name">{{ unit.name }}</div>
+                      <div class="unit-code">{{ unit.code }}</div>
                     </td>
                     <td class="table-cell table-cell-center table-cell-count">
                       {{ unit.activity_designs_count || 0 }}
@@ -141,7 +126,7 @@
 
             <div class="pagination-container">
               <p class="pagination-info">
-                Showing <span class="pagination-highlight">{{ paginationMeta.from || 0 }}</span> to <span class="pagination-highlight">{{ paginationMeta.to || 0 }}</span> of <span class="pagination-highlight">{{ paginationMeta.total || 0 }}</span> Users
+                Showing <span class="pagination-highlight">{{ paginationMeta.from || 0 }}</span> to <span class="pagination-highlight">{{ paginationMeta.to || 0 }}</span> of <span class="pagination-highlight">{{ paginationMeta.total || 0 }}</span> Technical Working Groups
               </p>
               
               <div class="pagination-controls">
@@ -184,7 +169,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '../../api';
 
 const router = useRouter();
 
@@ -192,7 +177,6 @@ const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 
 const searchQuery = ref('');
 const statusFilter = ref('all');
-const typeFilter = ref('all');
 const twgUnits = ref([]);
 const currentPage = ref(1);
 const perPage = ref(10);
@@ -217,7 +201,8 @@ const filteredUnits = computed(() => {
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
     records = records.filter(unit => 
-      unit.username.toLowerCase().includes(query)
+      unit.name.toLowerCase().includes(query) ||
+      unit.code.toLowerCase().includes(query)
     );
   }
 
@@ -227,37 +212,39 @@ const filteredUnits = computed(() => {
     records = records.filter(unit => (unit.total_submissions || 0) === 0);
   }
 
-  if (typeFilter.value === 'twg') {
-    records = records.filter(unit => unit.role === 'college');
-  } else if (typeFilter.value === 'non-twg') {
-    records = records.filter(unit => unit.role === 'gad_staff');
-  }
-
   return records;
 });
 
 const fetchTWGSubmissions = async (page = 1) => {
   try {
-    const response = await axios.get(`http://localhost:8080/api/admin/twg-submissions?page=${page}&per_page=${perPage.value}`);
+    const response = await api.get('admin/twg-submissions');
     if (response.data.success) {
-      twgUnits.value = response.data.data;
-      
-      // Update Statistics Cards
-      metricsStats.value[0].value = response.data.meta.total.toString(); 
-      metricsStats.value[1].value = twgUnits.value.filter(u => u.total_submissions === 0).length.toString();
-      metricsStats.value[2].value = response.data.meta.total_designs.toString();
-      metricsStats.value[3].value = response.data.meta.total_reports.toString();
-      
+      twgUnits.value = response.data.data.map(u => ({
+        ...u,
+        name: u.username,
+        code: u.role
+      }));
+      const meta = response.data.meta;
       paginationMeta.value = {
-        total: response.data.meta.total,
-        from: twgUnits.value.length > 0 ? (page - 1) * perPage.value + 1 : 0,
-        to: Math.min(page * perPage.value, response.data.meta.total),
-        last_page: response.data.meta.last_page
+        total: meta.total,
+        from: meta.total > 0 ? 1 : 0,
+        to: meta.total,
+        last_page: meta.last_page || 1
       };
       currentPage.value = page;
+
+      // Update stat cards
+      const totalDesigns = meta.total_designs;
+      const totalReports = meta.total_reports;
+      const withSubs = twgUnits.value.filter(u => u.total_submissions > 0).length;
+      const noSubs = twgUnits.value.filter(u => u.total_submissions === 0).length;
+      metricsStats.value[0].value = String(withSubs);
+      metricsStats.value[1].value = String(noSubs);
+      metricsStats.value[2].value = String(totalDesigns);
+      metricsStats.value[3].value = String(totalReports);
     }
   } catch (err) {
-    console.error('Error parsing operational submissions context registry:', err);
+    console.error('Error fetching TWG submissions:', err);
   }
 };
 
@@ -272,9 +259,13 @@ const changePage = (page) => {
   }
 };
 
+const viewDetails = (unitId) => {
+  router.push(`/staff/twg-details/${unitId}`);
+};
+
 const handleLogout = async () => {
   try {
-    await axios.get('http://localhost:8080/api/logout');
+    await api.get('logout');
     localStorage.removeItem('user');
     router.push('/login');
   } catch (err) {
@@ -336,8 +327,8 @@ onMounted(() => {
 }
 
 .twg-subtitle {
-  font-size: 0.75rem;
-  color: #94a3b8;
+  font-size: 1rem;
+  color: #475569;
   margin-top: 0.25rem;
 }
 
@@ -410,7 +401,7 @@ onMounted(() => {
 }
 
 .stat-label {
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -455,7 +446,7 @@ onMounted(() => {
   top: 50%;
   transform: translateY(-50%);
   color: #94a3b8;
-  font-size: 0.75rem;
+  font-size: 1rem;
 }
 
 .search-input {
@@ -464,7 +455,7 @@ onMounted(() => {
   border-radius: 0.75rem;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(185, 121, 204, 0.2);
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
   color: white;
   transition: all 0.3s;
@@ -476,7 +467,7 @@ onMounted(() => {
 }
 
 .search-input::placeholder {
-  color: #64748b;
+  color: #94a3b8;
 }
 
 .select-wrapper {
@@ -490,7 +481,7 @@ onMounted(() => {
   border-radius: 0.75rem;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(185, 121, 204, 0.2);
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
   color: white;
   appearance: none;
@@ -509,7 +500,7 @@ onMounted(() => {
   top: 50%;
   transform: translateY(-50%);
   color: #94a3b8;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   pointer-events: none;
 }
 
@@ -520,7 +511,7 @@ onMounted(() => {
 }
 
 .per-page-label {
-  font-size: 0.6875rem;
+  font-size: 0.9rem;
   color: #94a3b8;
   font-weight: 500;
 }
@@ -530,7 +521,7 @@ onMounted(() => {
   border-radius: 0.5rem;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(185, 121, 204, 0.2);
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   color: white;
   cursor: pointer;
@@ -569,7 +560,7 @@ onMounted(() => {
 
 .table-header-cell {
   padding: 1rem 1.5rem;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -596,7 +587,7 @@ onMounted(() => {
 .empty-state {
   padding: 3rem 1.5rem;
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #94a3b8;
   font-weight: 500;
 }
@@ -615,10 +606,10 @@ onMounted(() => {
 }
 
 .table-cell-number {
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-family: monospace;
   font-weight: 700;
-  color: #64748b;
+  color: #94a3b8;
   text-align: center;
 }
 
@@ -632,7 +623,7 @@ onMounted(() => {
 
 .table-cell-count {
   font-family: monospace;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #cbd5e1;
 }
@@ -643,7 +634,7 @@ onMounted(() => {
 }
 
 .unit-code {
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   color: #b979cc;
   font-weight: 500;
   letter-spacing: 0.025em;
@@ -655,7 +646,7 @@ onMounted(() => {
   display: inline-block;
   padding: 0.25rem 0.75rem;
   border-radius: 0.5rem;
-  font-size: 0.5625rem;
+  font-size: 0.8rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -669,14 +660,14 @@ onMounted(() => {
 
 .submission-badge-empty {
   background: rgba(0, 0, 0, 0.3);
-  color: #64748b;
+  color: #94a3b8;
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .view-details-btn {
   padding: 0.5rem 1rem;
   border-radius: 0.75rem;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -707,7 +698,7 @@ onMounted(() => {
 }
 
 .pagination-info {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #94a3b8;
   font-weight: 500;
 }
@@ -730,7 +721,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   color: white;
   border: 1px solid rgba(185, 121, 204, 0.1);
@@ -755,7 +746,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   transition: all 0.2s;
   cursor: pointer;
@@ -782,10 +773,10 @@ onMounted(() => {
 }
 
 .footer-text {
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 500;
   letter-spacing: 0.05em;
-  color: #64748b;
+  color: #94a3b8;
   text-transform: uppercase;
 }
 

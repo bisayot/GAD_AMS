@@ -6,7 +6,7 @@
             <div class="header-main-flex">
               <div>
                 <h1 class="page-title">Budget Utilization Monitoring</h1>
-                <p class="page-subtitle">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                <p class="page-subtitle">Track budget allocation, utilization, remaining balances, and percentage utilization across all GAD units and offices.</p>
               </div>
               <button @click="router.push('/staff/budget-allocation')" class="allocation-btn">
                 <span class="material-symbols-outlined btn-icon">payments</span>
@@ -196,7 +196,7 @@
 <script setup>
 import { ref, computed, nextTick, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '../../api';
 
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
@@ -314,7 +314,7 @@ const confirmModalAction = async () => {
     
     try {
       // TODO: Connect to actual API endpoint
-      // await axios.post('http://localhost:8080/api/staff/budget-monitoring/update', {
+      // await api.post('staff/budget-monitoring/update', {
       //   id: pendingUpdate.value.rowId,
       //   field: pendingUpdate.value.field,
       //   old_value: oldValue,
@@ -339,7 +339,7 @@ const cancelModalAction = () => {
 const fetchBudgetData = async () => {
   try {
     // TODO: Connect to actual API endpoint
-    // const response = await axios.get('http://localhost:8080/api/staff/budget-monitoring');
+    // const response = await api.get('staff/budget-monitoring');
     // budgetRows.value = response.data;
     // 
     // Ensure calculations are correct for each row
@@ -357,7 +357,7 @@ const fetchBudgetData = async () => {
 
 const handleLogout = async () => {
   try {
-    await axios.get('http://localhost:8080/api/logout');
+    await api.get('logout');
     localStorage.removeItem('user');
     router.push('/login');
   } catch (err) {
@@ -426,7 +426,7 @@ onMounted(() => {
   border-radius: 0.75rem;
   background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%);
   color: white;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   border: none;
   cursor: pointer;
@@ -452,8 +452,8 @@ onMounted(() => {
 }
 
 .page-subtitle {
-  font-size: 0.75rem;
-  color: #94a3b8;
+  font-size: 1rem;
+  color: #475569;
   margin: 0;
   line-height: 1.4;
 }
@@ -541,7 +541,7 @@ onMounted(() => {
 }
 
 .stat-label {
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -583,7 +583,7 @@ onMounted(() => {
 
 .table-header-cell {
   padding: 1rem 1rem;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -603,7 +603,7 @@ onMounted(() => {
 .empty-state {
   padding: 3rem 1.5rem;
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #94a3b8;
   font-weight: 500;
 }
@@ -638,7 +638,7 @@ onMounted(() => {
 }
 
 .unit-code {
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   color: #b979cc;
   letter-spacing: 0.025em;
   text-transform: uppercase;
@@ -671,7 +671,7 @@ onMounted(() => {
 .edit-icon {
   position: absolute;
   right: 4px;
-  font-size: 0.5625rem;
+  font-size: 0.8rem;
   color: rgba(185, 121, 204, 0.4);
   opacity: 0;
   transition: opacity 0.2s;
@@ -695,7 +695,7 @@ onMounted(() => {
   border-radius: 0.5rem;
   border: 1px solid #b979cc;
   color: white;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-family: monospace;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
   padding: 0.25rem;
@@ -760,7 +760,7 @@ onMounted(() => {
 
 .percent-text {
   font-weight: 700;
-  font-size: 0.75rem;
+  font-size: 1rem;
   min-width: 45px;
   text-align: right;
 }
@@ -779,8 +779,8 @@ onMounted(() => {
 
 /* Legend */
 .legend-container {
-  font-size: 0.625rem;
-  color: #64748b;
+  font-size: 0.85rem;
+  color: #94a3b8;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -879,7 +879,7 @@ onMounted(() => {
 }
 
 .modal-message {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #94a3b8;
   line-height: 1.5;
   margin-bottom: 1.25rem;
@@ -914,7 +914,7 @@ onMounted(() => {
 .modal-btn {
   padding: 0.5rem 1rem;
   border-radius: 0.75rem;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;

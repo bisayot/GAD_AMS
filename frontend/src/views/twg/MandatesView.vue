@@ -125,7 +125,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '../../api';
 import DashboardSidebar from '../../components/DashboardSidebar.vue';
 import DashboardHeader from '../../components/DashboardHeader.vue';
 
@@ -187,7 +187,7 @@ const fetchMandates = async () => {
   loading.value = true;
   try {
     // TODO: Replace with your actual API endpoint
-    // const response = await axios.get('http://localhost:8080/api/mandates');
+    // const response = await api.get('mandates');
     // mandates.value = response.data;
     
     // Temporary empty array - remove this once database is connected
@@ -243,7 +243,7 @@ const lastUpdated = computed(() => {
 
 const handleLogout = async () => {
   try {
-    await axios.get('http://localhost:8080/api/logout');
+    await api.get('logout');
     localStorage.removeItem('user');
     router.push('/login');
   } catch (err) {
@@ -339,7 +339,7 @@ onMounted(() => {
 }
 
 .stat-badge .label {
-  font-size: 0.7rem;
+  font-size: 0.95rem;
   color: #a0aec0;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -389,7 +389,7 @@ onMounted(() => {
 }
 
 .gad-plan-card p {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #a0aec0;
   margin: 0;
 }
@@ -421,7 +421,7 @@ onMounted(() => {
 }
 
 .filter-label {
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   text-transform: uppercase;
   color: #b979cc;
@@ -558,7 +558,7 @@ onMounted(() => {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   padding: 1rem 1.5rem;
   border-bottom: 1px solid rgba(185, 121, 204, 0.15);
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 800;
   text-transform: uppercase;
   color: #cbd5e1;
@@ -604,7 +604,7 @@ onMounted(() => {
   display: inline-block;
   padding: 0.25rem 0.75rem;
   border-radius: 30px;
-  font-size: 0.7rem;
+  font-size: 0.95rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.02em;
@@ -629,7 +629,7 @@ onMounted(() => {
 }
 
 .budget-text {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #cbd5e1;
 }
 
@@ -727,7 +727,7 @@ onMounted(() => {
 .footer-note {
   text-align: center;
   margin-top: 1.5rem;
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #16213e;
 }
 

@@ -3,6 +3,7 @@
 namespace Config;
 
 use CodeIgniter\Config\Filters as BaseFilters;
+use CodeIgniter\Filters\Cors;
 use CodeIgniter\Filters\CSRF;
 use CodeIgniter\Filters\DebugToolbar;
 use CodeIgniter\Filters\ForceHTTPS;
@@ -26,10 +27,10 @@ class Filters extends BaseFilters
     public array $aliases = [
         'csrf'          => CSRF::class,
         'toolbar'       => DebugToolbar::class,
+        'cors'          => Cors::class,
         'honeypot'      => Honeypot::class,
         'invalidchars'  => InvalidChars::class,
         'secureheaders' => SecureHeaders::class,
-        'cors'          => \CodeIgniter\Filters\Cors::class,
         'forcehttps'    => ForceHTTPS::class,
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
@@ -71,15 +72,11 @@ class Filters extends BaseFilters
      */
     public array $globals = [
         'before' => [
-            'cors',
-            // 'honeypot',
+            'cors', // <-- Add this here to enable CORS globally!
             // 'csrf',
-            // 'invalidchars',
         ],
         'after' => [
-            'cors',
-            // 'honeypot',
-            // 'secureheaders',
+            'toolbar',
         ],
     ];
 

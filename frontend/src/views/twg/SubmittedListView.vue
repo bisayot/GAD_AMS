@@ -2,11 +2,6 @@
       <main class="flex-1 overflow-y-autobg-transparent">
         <div class="max-w-7xl mx-auto">
 
-          <div class="page-header">
-            <h1 class="page-title">Activity Designs and Accomplishment Reports Tracker</h1>
-            <p class="page-subtitle">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-          </div>
-
             <div class="stats-container">
 
             <div class="stat-card-purple">
@@ -15,8 +10,8 @@
                     <span class="material-symbols-outlined">description</span>
                 </div>
                 <div class="stat-content">
-                    <h3 class="stat-number-purple">{{ totalSubmitted }}</h3>
-                    <p class="stat-label-purple">TOTAL SUBMITTED</p>
+                    <h3 class="stat-number-purple">{{ totalActive }}</h3>
+                    <p class="stat-label-purple">TOTALLY ACTIVE</p>
                 </div>
                 </div>
             </div>
@@ -24,11 +19,23 @@
             <div class="stat-card">
                 <div class="stat-card-inner">
                 <div class="stat-icon-wrapper blue">
-                    <span class="material-symbols-outlined">schedule</span>
+                    <span class="material-symbols-outlined">description</span>
                 </div>
                 <div class="stat-content">
-                    <h3 class="stat-number">{{ pendingCount }}</h3>
-                    <p class="stat-label">PENDING</p>
+                    <h3 class="stat-number">{{ totalDesigns }}</h3>
+                    <p class="stat-label">Activity Designs</p>
+                </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-card-inner">
+                <div class="stat-icon-wrapper green">
+                    <span class="material-symbols-outlined">assessment</span>
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-number">{{ totalReports }}</h3>
+                    <p class="stat-label">Accomplishment Reports</p>
                 </div>
                 </div>
             </div>
@@ -36,11 +43,11 @@
             <div class="stat-card">
                 <div class="stat-card-inner">
                 <div class="stat-icon-wrapper amber">
-                    <span class="material-symbols-outlined">edit_document</span>
+                    <span class="material-symbols-outlined">schedule</span>
                 </div>
                 <div class="stat-content">
-                    <h3 class="stat-number">{{ revisionCount }}</h3>
-                    <p class="stat-label">REVISIONS</p>
+                    <h3 class="stat-number">{{ pendingCount }}</h3>
+                    <p class="stat-label">PENDING REVIEW</p>
                 </div>
                 </div>
             </div>
@@ -74,7 +81,7 @@
                 <select v-model="filters.status" class="filter-select-custom" @change="applyFilters">
                   <option value="all">All Status</option>
                   <option value="pending">Pending Review</option>
-                  <option value="revision required">For Revision</option>
+                  <option value="revision">For Revision</option>
                 </select>
               </div>
 
@@ -142,12 +149,12 @@
                       </div>
                     </td>
                    </tr>
-                  <tr 
-                    v-for="item in paginatedItems" 
-                    :key="item.id"
-                    class="clickable-row"
-                    @click="viewDetails(item)"
-                  >
+                    <tr 
+                      v-for="item in paginatedItems" 
+                      :key="item.id"
+                      class="clickable-row"
+                      @click="viewItem(item)"
+                    >
                     <td class="table-cell">
                       <span class="type-badge" :class="item.type === 'design' ? 'type-design' : 'type-report'">
                         {{ item.type === 'design' ? 'Activity Design' : 'Accomplishment Report' }}
@@ -205,7 +212,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '../../api';
 
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
@@ -256,8 +263,8 @@ const filteredItems = computed(() => {
   return sorted;
 });
 
-const totalSubmitted = computed(() => {
-  return submissions.value.length;
+const totalActive = computed(() => {
+  return submissions.value.filter(item => item.status === 'pending' || item.status === 'revision').length;
 });
 
 const totalDesigns = computed(() => {
@@ -270,10 +277,6 @@ const totalReports = computed(() => {
 
 const pendingCount = computed(() => {
   return submissions.value.filter(item => item.status === 'pending').length;
-});
-
-const revisionCount = computed(() => {
-  return submissions.value.filter(item => item.status.includes('revision')).length;
 });
 
 const totalPages = computed(() => Math.ceil(filteredItems.value.length / itemsPerPage));
@@ -301,40 +304,53 @@ const visiblePages = computed(() => {
 const fetchSubmissions = async () => {
   loading.value = true;
   try {
-    const userId = user.value.id || user.value.user_id;
-    
+    const userId = user.value.id;
+    if (!userId) throw new Error('No user ID found');
+
     const [designsRes, reportsRes] = await Promise.all([
-      axios.get(`http://localhost:8080/api/activity-designs/${userId}`),
-      axios.get(`http://localhost:8080/api/activity-reports/${userId}`)
+      api.get(`activity-designs/${userId}`),
+      api.get(`activity-reports/${userId}`)
     ]);
 
-    const designs = (designsRes.data.data || []).map(d => ({
-      id: d.act_design_id,
-      type: 'design',
-      control: d.control,
-      title: d.activity_title,
-      formLabel: formatFormType(d.form_type),
-      formClass: getFormClass(d.form_type),
-      status: d.status.toLowerCase(),
-      statusText: d.status,
-      statusClass: getStatusClass(d.status),
-      date: d.date,
-      dateRaw: d.created_at || d.date
-    }));
+    const mapStatus = (status) => {
+      const s = (status || '').toLowerCase();
+      if (s === 'revision required') return 'revision';
+      return s;
+    };
 
-    const reports = (reportsRes.data.data || []).map(r => ({
-      id: r.id,
-      type: 'report',
-      control: r.control,
-      title: r.activity_title,
-      formLabel: formatFormType(r.formLabel),
-      formClass: getFormClass(r.formLabel),
-      status: r.status.toLowerCase(),
-      statusText: r.status,
-      statusClass: getStatusClass(r.status),
-      date: r.date,
-      dateRaw: r.created_at || r.date
-    }));
+    const designs = (designsRes.data.data || []).map(d => {
+      const st = mapStatus(d.status);
+      return {
+        type: 'design',
+        id: d.act_design_id,
+        status: st,
+        title: d.title || d.activity_title || 'Untitled',
+        control: d.control || 'NO CONTROL NUMBER',
+        dateRaw: d.date,
+        date: d.date,
+        formClass: 'badge-purple',
+        formLabel: d.formLabel || 'Activity Design',
+        statusClass: `status-${st.replace(' ', '-')}`,
+        statusText: d.status
+      };
+    });
+
+    const reports = (reportsRes.data.data || []).map(r => {
+      const st = mapStatus(r.status);
+      return {
+        type: 'report',
+        id: r.id,
+        status: st,
+        title: r.title || r.activity_title || 'Untitled',
+        control: r.control || 'NO CONTROL NUMBER',
+        dateRaw: r.date,
+        date: r.date,
+        formClass: 'badge-blue',
+        formLabel: 'Accomplishment Report',
+        statusClass: `status-${st.replace(' ', '-')}`,
+        statusText: r.status
+      };
+    });
 
     submissions.value = [...designs, ...reports];
     
@@ -343,22 +359,6 @@ const fetchSubmissions = async () => {
   } finally {
     loading.value = false;
   }
-};
-
-const formatFormType = (type) => {
-  const types = { 'inset': 'INSET Training', 'extension': 'Extension Program', 'employee': 'Employee Training' };
-  return types[type] || type;
-};
-
-const getFormClass = (type) => {
-  return `form-badge-${type}`;
-};
-
-const getStatusClass = (status) => {
-  const s = status?.toLowerCase() || '';
-  if (s === 'approved' || s === 'verified') return 'status-verified';
-  if (s.includes('revision')) return 'status-revision';
-  return 'status-pending';
 };
 
 const applyFilters = () => {
@@ -380,23 +380,15 @@ const changePage = (page) => {
   }
 };
 
-// const viewItem = (item) => {
-//   if (item.type === 'design') {
-//     router.push(`/college/ad-view/${item.id}`);
-//   } else {
-//     router.push(`/college/ar-view/${item.id}`);
-//   }
-// };
-
-const viewDetails = (item) => {
-  if (item.type === 'design' || !item.type) { 
-    if (item.status && item.status.toLowerCase().includes('revision')) {
+const viewItem = (item) => {
+  if (item.type === 'design') {
+    if (item.status === 'revision') {
       router.push(`/college/ad-revision/${item.id}`);
     } else {
       router.push(`/college/ad-view/${item.id}`);
     }
   } else {
-    if (item.status && item.status.toLowerCase().includes('revision')) {
+    if (item.status === 'revision') {
       router.push(`/college/ar-revision/${item.id}`);
     } else {
       router.push(`/college/ar-view/${item.id}`);
@@ -404,10 +396,9 @@ const viewDetails = (item) => {
   }
 };
 
-
 const handleLogout = async () => {
   try {
-    await axios.get('http://localhost:8080/api/logout');
+    await api.get('logout');
     localStorage.removeItem('user');
     router.push('/login');
   } catch (err) {
@@ -417,7 +408,7 @@ const handleLogout = async () => {
 };
 
 onMounted(() => {
-  if (!user.value.id || !['gad_staff', 'college', 'admin'].includes(user.value.role)) {
+  if (!user.value.id || user.value.role !== 'college') {
     router.push('/login');
   }
   fetchSubmissions();
@@ -425,23 +416,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.page-header {
-  padding: 0 0.25rem 1.5rem 0;
-}
-
-.page-title {
-  font-size: 1.5rem;
-  font-weight: 900;
-  letter-spacing: -0.025em;
-  color: #16213e;
-}
-
-.page-subtitle {
-  font-size: 0.75rem;
-  color: #94a3b8;
-  margin-top: 0.25rem;
-}
-
 .stats-container {
   display: grid;
   grid-template-columns: 1fr;
@@ -476,6 +450,7 @@ onMounted(() => {
   gap: 1rem;
 }
 
+/* Icon Wrapper */
 .stat-icon-wrapper {
   padding: 0.75rem;
   border-radius: 0.75rem;
@@ -513,10 +488,12 @@ onMounted(() => {
   color: #d97706;
 }
 
+/* Material Icons */
 .material-symbols-outlined {
   font-size: 1.5rem;
 }
 
+/* Stat Content */
 .stat-content {
   flex: 1;
 }
@@ -530,7 +507,7 @@ onMounted(() => {
 }
 
 .stat-label {
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 700;
   color: #1a1a2e;
   text-transform: uppercase;
@@ -547,7 +524,7 @@ onMounted(() => {
 }
 
 .stat-label-purple {
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 700;
   color: #d4a3e3;
   text-transform: uppercase;
@@ -556,19 +533,20 @@ onMounted(() => {
 }
 
 .stat-sub {
-  font-size: 0.75rem;
-  color: #64748b;
+  font-size: 1rem;
+  color: #94a3b8;
   opacity: 0.7;
   margin: 0.25rem 0 0 0;
 }
 
 .stat-sub-purple {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #b979cc;
   opacity: 0.7;
   margin: 0.25rem 0 0 0;
 }
 
+/* Tabs */
 .tabs-container {
   margin-bottom: 1.5rem;
   border-bottom: 1px solid #e2e8f0;
@@ -594,28 +572,28 @@ onMounted(() => {
 }
 
 .tab-active {
-  border-bottom: 3px solid #990dd1;
-  color: #71009e;
-  background: rgba(153, 13, 209, 0.04);
+  border-bottom: 3px solid #c084fc;
+  color: #d8b4fe;
+  background: rgba(153, 13, 209, 0.1);
 }
 
 .tab-inactive {
   border-bottom: 3px solid transparent;
-  color: #64748b;
+  color: #000000;
 }
 
 .tab-inactive:hover {
   border-bottom: 3px solid #b979cc;
-  color: #990dd1;
-  background: rgba(153, 13, 209, 0.02);
+  color: #d8b4fe;
+  background: rgba(153, 13, 209, 0.05);
 }
 
 .tab-badge {
-  background: #f1f5f9;
-  color: #64748b;
+  background: rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
   padding: 0.125rem 0.5rem;
   border-radius: 30px;
-  font-size: 0.7rem;
+  font-size: 0.95rem;
   font-weight: 600;
 }
 
@@ -624,6 +602,7 @@ onMounted(() => {
   color: #990dd1;
 }
 
+/* Filter Card */
 .filter-card {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   border-radius: 1.25rem;
@@ -652,7 +631,7 @@ onMounted(() => {
 
 .filter-label {
   display: block;
-  font-size: 0.65rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: #b979cc;
   text-transform: uppercase;
@@ -721,7 +700,7 @@ onMounted(() => {
   color: white;
   padding: 0.5rem 1.25rem;
   border-radius: 0.75rem;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
   border: none;
   cursor: pointer;
@@ -763,8 +742,8 @@ onMounted(() => {
 }
 
 .record-count {
-  font-size: 0.7rem;
-  color: #64748b;
+  font-size: 0.95rem;
+  color: #94a3b8;
 }
 
 .count-number {
@@ -773,6 +752,7 @@ onMounted(() => {
   font-size: 0.8rem;
 }
 
+/* Loading State */
 .loading-state {
   background: #ffffff;
   border-radius: 1.25rem;
@@ -782,7 +762,7 @@ onMounted(() => {
 }
 
 .loading-state p {
-  color: #475569;
+  color: #cbd5e1;
   margin-top: 1rem;
 }
 
@@ -800,12 +780,13 @@ onMounted(() => {
   to { transform: rotate(360deg); }
 }
 
+/* Data Table */
 .data-table {
-  background: #cbd5e1;
+  background: #1e293b;
   border-radius: 1.25rem;
   overflow: hidden;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
 }
 
 .overflow-x-auto {
@@ -819,13 +800,13 @@ onMounted(() => {
 
 .table-header-row {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .table-header-cell {
   padding: 1rem 1.5rem;
   text-align: left;
-  font-size: 0.7rem;
+  font-size: 1.1rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -835,23 +816,25 @@ onMounted(() => {
 .clickable-row {
   cursor: pointer;
   transition: all 0.2s ease;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .clickable-row:hover {
-  background: #faf5ff;
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .table-cell {
   padding: 1rem 1.5rem;
+  color: #f1f5f9;
 }
 
+/* Badges */
 .type-badge {
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.8rem;
   border-radius: 30px;
-  font-size: 0.7rem;
+  font-size: 0.95rem;
   font-weight: 700;
 }
 
@@ -870,10 +853,10 @@ onMounted(() => {
   align-items: center;
   padding: 0.2rem 0.6rem;
   border-radius: 30px;
-  font-size: 0.65rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  background: #f1f5f9;
-  color: #475569;
+  background: rgba(255, 255, 255, 0.1);
+  color: #f1f5f9;
 }
 
 .status-badge {
@@ -881,7 +864,7 @@ onMounted(() => {
   align-items: center;
   padding: 0.3rem 0.8rem;
   border-radius: 30px;
-  font-size: 0.7rem;
+  font-size: 0.95rem;
   font-weight: 700;
 }
 
@@ -897,17 +880,6 @@ onMounted(() => {
   border: 1px solid #fecaca;
 }
 
-.status-badge.status-verified,
-.status-badge.status-approved {
-  background: #d1fae5;
-  color: #059669;
-  border: 1px solid #6ee7b7;
-}
-
-.form-badge-inset { background: #fef3c7; color: #b45309; }
-.form-badge-extension { background: #d1fae5; color: #065f46; }
-.form-badge-employee { background: #e0e7ff; color: #3730a3; }
-
 .control-number {
   font-family: monospace;
   font-size: 0.8rem;
@@ -917,18 +889,19 @@ onMounted(() => {
 }
 
 .item-date {
-  font-size: 0.65rem;
+  font-size: 0.9rem;
   color: #94a3b8;
   margin-top: 0.25rem;
 }
 
 .item-title {
   font-weight: 600;
-  color: #1e293b;
-  font-size: 0.85rem;
+  color: #f8fafc;
+  font-size: 1rem;
   line-height: 1.4;
 }
 
+/* Empty State */
 .empty-row {
   border-bottom: none;
 }
@@ -950,23 +923,24 @@ onMounted(() => {
 }
 
 .empty-content p {
-  color: #1a1a2e;
+  color: #cbd5e1;
   font-size: 0.85rem;
 }
 
+/* Pagination */
 .pagination-container {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   flex-wrap: wrap;
   gap: 1rem;
 }
 
 .pagination-info {
-  font-size: 0.75rem;
-  color: #64748b;
+  font-size: 1rem;
+  color: #94a3b8;
 }
 
 .info-highlight {
@@ -976,7 +950,7 @@ onMounted(() => {
 
 .info-total {
   font-weight: 700;
-  color: #1e293b;
+  color: #f8fafc;
 }
 
 .pagination-buttons {
@@ -990,10 +964,10 @@ onMounted(() => {
   border: 1px solid #e2e8f0;
   border-radius: 0.6rem;
   background: #ffffff;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
-  color: #475569;
+  color: #cbd5e1;
   transition: all 0.2s ease;
 }
 
@@ -1014,6 +988,7 @@ onMounted(() => {
   cursor: not-allowed;
 }
 
+/* Responsive */
 @media (max-width: 1024px) {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);

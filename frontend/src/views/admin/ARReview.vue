@@ -29,7 +29,7 @@
             <div class="info-grid">
               <div class="info-item">
                 <span class="info-label">Submitted By</span>
-                <span class="info-value-purple">{{ report.username || 'Dr. Lorem Ipsum' }}</span>
+                <span class="info-value-purple">{{ report.submitter_name || '' }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">Office</span>
@@ -90,7 +90,7 @@
                 </div>
                 <div class="metric-box">
                   <p class="metric-value">{{ report.rating }}</p>
-                  <p class="metric-label">/ 5.0 Rating</p>
+                  <p class="metric-label">/ 100 Rating</p>
                 </div>
               </div>
             </div>
@@ -191,13 +191,18 @@
         </div>
       </div>
     </div>
+
+    <!-- PDF Preview Modal -->
+    <PdfPreviewModal :isOpen="isPdfModalOpen" :fileUrl="pdfFileUrl" @close="closePdfModal" />
   </main>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import axios from 'axios';
+import Swal from 'sweetalert2';
+import api from '../../api';
+import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -217,7 +222,7 @@ const fetchReportDetails = async () => {
   loading.value = true;
   try {
     const id = route.params.id;
-    const response = await axios.get(`http://localhost:8080/api/activity-report/${id}`);
+    const response = await api.get(`activity-report/${id}`);
     if (response.data.success) {
       report.value = response.data.data;
     } else {
@@ -249,19 +254,34 @@ const formatTime = (time) => {
 };
 
 const handleApprove = async () => {
-  if (!confirm('Are you sure you want to approve this report? It will be moved to the archive.')) return;
+  const result = await Swal.fire({
+    title: 'Are you sure?',
+    text: 'You are about to approve this report. It will be moved to the archive.',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#22c55e',
+    cancelButtonColor: '#ef4444',
+    confirmButtonText: 'Yes, approve it!'
+  });
+
+  if (!result.isConfirmed) return;
   
   submitting.value = true;
   try {
     const id = report.value.id;
-    const response = await axios.post(`http://localhost:8080/api/archive-report/${id}`);
+    const response = await api.post(`approve-report/${id}`, {
+      remarks: assessmentRemarks.value
+    });
     if (response.data.success) {
-      alert('Report approved and successfully moved to archive.');
-      router.push('/admin/ar-list');
+      Swal.fire({ icon: 'success', title: 'Approved!', text: 'Report approved and successfully moved to archive.', confirmButtonColor: '#b979cc' }).then(() => {
+        router.push('/admin/ar-list');
+      });
+    } else {
+      Swal.fire({ icon: 'error', title: 'Approval Failed', text: response.data.message || 'Failed to approve report.', confirmButtonColor: '#b979cc' });
     }
   } catch (err) {
     console.error('Error approving report:', err);
-    alert('Failed to approve report.');
+    Swal.fire({ icon: 'error', title: 'Approval Failed', text: 'Failed to approve report.', confirmButtonColor: '#b979cc' });
   } finally {
     submitting.value = false;
   }
@@ -269,28 +289,54 @@ const handleApprove = async () => {
 
 const handleSendRevision = async () => {
   if (!revisionRemarks.value || !revisionDeadline.value) {
-    alert('Please provide both remarks and a deadline.');
+    Swal.fire({ icon: 'warning', title: 'Missing Info', text: 'Please provide both remarks and a deadline.', confirmButtonColor: '#b979cc' });
     return;
   }
 
+  submitting.value = true;
   try {
-    alert('Revision request sent to the proponent.');
-    showRevisionModal.value = false;
-    router.push('/admin/ar-list');
+    const id = report.value.id || report.value.acc_report_id;
+    const response = await api.post(`revision-report/${id}`, {
+      remarks: revisionRemarks.value,
+      deadline: revisionDeadline.value
+    });
+    
+    if (response.data.success) {
+      Swal.fire({ icon: 'success', title: 'Revision Sent', text: 'Revision request sent to the proponent.', confirmButtonColor: '#b979cc' }).then(() => {
+        showRevisionModal.value = false;
+        router.push('/admin/ar-list');
+      });
+    } else {
+      Swal.fire({ icon: 'error', title: 'Failed', text: response.data.message || 'Failed to send revision request.', confirmButtonColor: '#b979cc' });
+    }
   } catch (err) {
     console.error('Error requesting revision:', err);
+    Swal.fire({ icon: 'error', title: 'Failed', text: 'Failed to send revision request.', confirmButtonColor: '#b979cc' });
+  } finally {
+    submitting.value = false;
   }
 };
 
-const previewFile = (fileName) => {
-  if (!fileName) return;
-  window.open(`http://localhost:8080/uploads/${fileName}`, '_blank');
+const isPdfModalOpen = ref(false);
+const pdfFileUrl = ref('');
+
+const previewFile = () => {
+  if (!report.value.attachment) return;
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api/', '') : 'https://gad-ams-2-1.onrender.com');
+  pdfFileUrl.value = `${base}/api/files/drafts/${report.value.attachment}`;
+  isPdfModalOpen.value = true;
+};
+
+const closePdfModal = () => {
+  isPdfModalOpen.value = false;
+  pdfFileUrl.value = '';
 };
 
 const downloadFile = () => {
-  if (!report.value.id) return;
+  if (!report.value.attachment) return;
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api/', '') : 'https://gad-ams-2-1.onrender.com');
   const link = document.createElement('a');
-  link.href = `http://localhost:8080/api/activity-report/attachment/${report.value.id}`;
+  link.href = `${base}/api/files/drafts/${report.value.attachment}`;
   link.download = `Accomplishment_Report_${report.value.control || report.value.id}.pdf`;
   link.click();
 };
@@ -311,8 +357,8 @@ onMounted(() => {
 .error-container { max-width: 48rem; margin: 0 auto; padding: 2.5rem 1.5rem; }
 .error-box { background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 1rem; border-radius: 0 0.75rem 0.75rem 0; }
 .error-title { color: #b91c1c; font-weight: 700; }
-.error-message { color: #dc2626; font-size: 0.875rem; }
-.error-back-btn { margin-top: 1rem; font-size: 0.875rem; font-weight: 700; color: #b91c1c; background: transparent; border: none; cursor: pointer; }
+.error-message { color: #dc2626; font-size: 1.1rem; }
+.error-back-btn { margin-top: 1rem; font-size: 1.1rem; font-weight: 700; color: #b91c1c; background: transparent; border: none; cursor: pointer; }
 .error-back-btn:hover { text-decoration: underline; }
 
 .layout-grid { display: flex; gap: 32px; padding: 2.5rem; max-width: 80rem; margin: 0 auto; }
@@ -398,7 +444,7 @@ button { transition: all 0.2s ease-in-out; cursor: pointer; }
 }
 
 .icon-pink { color: #b979cc; }
-.text-sm-light { font-size: 0.875rem; color: #cbd5e1; font-weight: 500; margin-top: 0.25rem; }
+.text-sm-light { font-size: 1.1rem; color: #cbd5e1; font-weight: 500; margin-top: 0.25rem; }
 .full-width-info { grid-column: span 2; margin-top: 1rem; }
 
 .info-item { display: flex; flex-direction: column; }
@@ -432,7 +478,7 @@ button { transition: all 0.2s ease-in-out; cursor: pointer; }
 .doc-info { display: flex; align-items: center; gap: 12px; }
 .doc-pdf-icon { font-size: 1.875rem; color: #ef4444; }
 .doc-actions { display: flex; gap: 0.5rem; }
-.doc-actions span { font-size: 0.875rem; }
+.doc-actions span { font-size: 1.1rem; }
 .doc-title { font-size: 13px; font-weight: 700; color: white; }
 .doc-meta { font-size: 11px; color: #cbd5e1; margin-top: 2px; }
 .preview-btn { color: #b979cc; font-size: 11px; padding: 6px 12px; border-radius: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(185, 121, 204, 0.15); font-weight: 700; cursor: pointer; }

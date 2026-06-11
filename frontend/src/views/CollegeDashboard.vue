@@ -1,68 +1,73 @@
 <template>
-  <div class="college-dashboard">
-    <DashboardSidebar 
-      roleLabel="Technical Working Group (TWG)" 
-      :menuItems="collegeMenu" 
-      @logout="handleLogout" 
+  <div class="min-h-screen bg-slate-50 flex">
+    <!-- Mobile Sidebar Overlay -->
+    <div v-if="isSidebarOpen" @click="isSidebarOpen = false" class="fixed inset-0 bg-black/50 z-40 lg:hidden"></div>
+
+    <DashboardSidebar
+      :isOpen="isSidebarOpen"
+      @close="isSidebarOpen = false"
+      roleLabel="College/Unit"
+      :menuItems="collegeMenu"
+      @logout="handleLogout"
     />
 
-    <div class="dashboard-main bg-slate-50">
-      <header class="dashboard-header bg-[#1a1a2e] border-b border-purple-900/30">
-        </header>
+    <div class="flex-grow flex flex-col lg:ml-64 min-h-screen transition-all duration-300 w-full relative">
+      <header class="h-20 bg-[#1a1a2e] border-b border-purple-900/30 flex items-center px-6 sticky top-0 z-30">
+        <button @click="isSidebarOpen = true" class="lg:hidden text-white hover:text-primary transition-colors flex items-center">
+          <span class="material-symbols-outlined text-3xl">menu</span>
+        </button>
+      </header>
 
-      <main class="dashboard-main-content">
-        <div class="content-wrapper">
-          <router-view /> 
-        </div>
+      <main class="flex-grow p-4 md:p-10 w-full overflow-x-hidden">
+        <router-view />
       </main>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '../api';
 import DashboardSidebar from '../components/DashboardSidebar.vue';
 
 const router = useRouter();
-const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
+const isSidebarOpen = ref(false);
 
 const collegeMenu = [
   { label: 'New Submission', icon: 'add', href: '/college/submit' },
   { label: 'Dashboard', icon: 'dashboard', href: '/college/dashboard' },
+  { label: 'Submit Design', icon: 'add_task', href: '/college/submit-design' },
+  { label: 'Submit Accomplishment', icon: 'fact_check', href: '/college/submit-report' },
   { label: 'Submitted List', icon: 'list', href: '/college/submitted-list' },
-  { label: 'Archives', icon: 'archive', href: '/college/archive' },
+  { label: 'Technical Assist', icon: 'support_agent', href: '/college/tech-assist' },
   { label: 'Mandates', icon: 'gavel', href: '/college/mandates' },
+  { label: 'Plan & Budget', icon: 'account_balance_wallet', href: '/college/gad-plan-budget' },
+  { label: 'Archives', icon: 'archive', href: '/college/archive' },
   { label: 'User Manual', icon: 'menu_book', href: '/college/user-manual' },
   { label: 'Data Privacy Policy', icon: 'privacy_tip', href: '/college/data-privacy-policy' }
 ];
 
 const handleLogout = async () => {
   try {
-    await axios.get('http://localhost:8080/api/logout');
-    localStorage.removeItem('user');
-    router.push('/login');
+    await api.get('logout');
   } catch (err) {
+    console.error('Logout failed:', err);
+  } finally {
     localStorage.removeItem('user');
+    localStorage.removeItem('authToken');
     router.push('/login');
   }
 };
 
 onMounted(() => {
-  if (!user.value.id || user.value.role !== 'college') {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  if (!user.id || user.role !== 'college') {
     router.push('/login');
   }
 });
 </script>
 
 <style scoped>
-.college-dashboard { min-height: 100vh; display: flex; background-color: #f8fafc; }
-.dashboard-main { flex-grow: 1; margin-left: 256px; display: flex; flex-direction: column; min-height: 100vh; }
-.dashboard-header { position: fixed; top: 0; left: 256px; right: 0; height: 80px; z-index: 10; display: flex; align-items: center; padding: 0 40px; background: #1a1a2e; border-bottom: 1px solid rgba(185, 121, 204, 0.3); }
-.header-title { font-size: 1.5rem; font-weight: 900; color: white; margin: 0; }
-.header-subtitle { font-size: 0.65rem; font-weight: 700; color: #b979cc; text-transform: uppercase; letter-spacing: 0.05em; }
-
-.dashboard-main-content { padding-top: 80px; flex-grow: 1; display: block; width: 100%; }
-.content-wrapper { padding: 40px; width: 100%; }
+/* No custom layout styles needed; handled by Tailwind */
 </style>

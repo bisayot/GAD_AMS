@@ -2,7 +2,6 @@
   <header class="dashboard-header">
     <div class="header-container">
       <div class="header-left">
-        <!-- <img class="header-logo" src="/images/logo.png" alt="BSU Logo" /> -->
         <div class="header-text">
           <span class="header-title">{{ title }}</span>
           <span class="header-context">{{ context }}</span>
@@ -13,10 +12,10 @@
           <span class="search-icon">
             <span class="material-symbols-outlined">search</span>
           </span>
-          <input 
-            class="search-input" 
-            :placeholder="searchPlaceholder" 
-            type="search" 
+          <input
+            class="search-input"
+            :placeholder="searchPlaceholder"
+            type="search"
           />
         </div>
         <div class="action-buttons">
@@ -50,7 +49,6 @@ const userInitial = computed(() => props.username.charAt(0).toUpperCase());
 </script>
 
 <style scoped>
-/* Header Styles */
 .dashboard-header {
   width: 100%;
   position: sticky;
@@ -75,19 +73,11 @@ const userInitial = computed(() => props.username.charAt(0).toUpperCase());
   margin: 0 auto;
 }
 
-/* Left Section */
 .header-left {
   display: flex;
   align-items: center;
   gap: 1rem;
   min-width: 0;
-}
-
-.header-logo {
-  height: 60px;
-  width: auto;
-  display: block;
-  flex-shrink: 0;
 }
 
 .header-text {
@@ -133,7 +123,6 @@ const userInitial = computed(() => props.username.charAt(0).toUpperCase());
   opacity: 0.8;
 }
 
-/* Right Section */
 .header-right {
   display: flex;
   align-items: center;
@@ -147,7 +136,6 @@ const userInitial = computed(() => props.username.charAt(0).toUpperCase());
   }
 }
 
-/* Search Container */
 .search-container {
   position: relative;
   display: none;
@@ -202,7 +190,6 @@ const userInitial = computed(() => props.username.charAt(0).toUpperCase());
   box-shadow: 0 0 0 2px rgba(153, 13, 209, 0.2);
 }
 
-/* Action Buttons */
 .action-buttons {
   display: flex;
   align-items: center;
@@ -238,7 +225,6 @@ const userInitial = computed(() => props.username.charAt(0).toUpperCase());
   color: #cbd5e1;
 }
 
-/* User Avatar */
 .user-avatar {
   width: 2rem;
   height: 2rem;
@@ -264,33 +250,28 @@ const userInitial = computed(() => props.username.charAt(0).toUpperCase());
   user-select: none;
 }
 
-/* Responsive Adjustments */
 @media (max-width: 768px) {
   .header-container {
     padding: 0.75rem 1rem;
   }
-  
-  .header-logo {
-    height: 32px;
-  }
-  
+
   .header-title {
     font-size: 1rem;
   }
-  
+
   .header-context {
     font-size: 0.75rem;
   }
-  
+
   .action-btn .material-symbols-outlined {
     font-size: 1rem;
   }
-  
+
   .user-avatar {
     width: 1.75rem;
     height: 1.75rem;
   }
-  
+
   .user-initial {
     font-size: 0.625rem;
   }
@@ -300,7 +281,7 @@ const userInitial = computed(() => props.username.charAt(0).toUpperCase());
   .header-left {
     gap: 0.5rem;
   }
-  
+
   .header-text {
     gap: 0.25rem;
   }
@@ -311,11 +292,11 @@ const userInitial = computed(() => props.username.charAt(0).toUpperCase());
     gap: 0.5rem;
     padding: 0.5rem 1rem;
   }
-  
+
   .action-buttons {
     gap: 0.25rem;
   }
-  
+
   .search-input {
     width: 10rem;
     padding: 0.375rem 0.5rem 0.375rem 2rem;

@@ -4,7 +4,7 @@
           
           <div class="page-header">
             <h1 class="page-title">Accomplishment Reports Tracker</h1>
-            <p class="page-subtitle">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+            <p class="page-subtitle">Audit evidence logs, review physical outcomes, and process final evaluation matrices for verified activities.</p>
           </div>
 
           <section class="stats-section">
@@ -61,13 +61,14 @@
                 >
                   <option value="all">All Statuses</option>
                   <option value="Pending">Pending Review</option>
+                  <option value="Verified">Verified</option>
                   <option value="Revision Required">Revision Required</option>
                 </select>
                 <span class="select-arrow">▼</span>
               </div>
             </div>
 
-            <!-- <div class="per-page-controls">
+            <div class="per-page-controls">
               <span class="per-page-label">Show</span>
               <select 
                 v-model="perPage"
@@ -78,7 +79,7 @@
                 <option :value="25">25</option>
               </select>
               <span class="per-page-label">records</span>
-            </div> -->
+            </div>
           </section>
 
           <div class="table-container">
@@ -103,9 +104,9 @@
                   
                   <tr 
                     v-else
-                    v-for="item in paginatedReports" 
+                    v-for="item in filteredReports" 
                     :key="item.id"
-                    @click="viewDetails(item.id)"
+                    @click="viewDetails(item.id, item.status)"
                     class="table-row"
                   >
                     <td class="table-cell control-cell">
@@ -175,9 +176,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '../../api';
 
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
@@ -193,10 +194,7 @@ const officeOptions = ref([]);
 const accomplishmentReports = ref([]);
 const currentPage = ref(1);
 const perPage = ref(10);
-
-watch([filters, perPage], () => {
-  currentPage.value = 1;
-}, { deep: true });
+const paginationMeta = ref({ total: 0, from: 0, to: 0, last_page: 1 });
 
 const metricsStats = ref([
   { label: 'Total Reports', value: '0', icon: 'analytics', iconColor: 'text-blue-400', bgClass: 'bg-blue-500/10' },
@@ -209,10 +207,7 @@ const filteredReports = computed(() => {
   let records = accomplishmentReports.value;
   if (filters.value.search) {
     const q = filters.value.search.toLowerCase();
-    records = records.filter(i => 
-      (i.control && i.control.toLowerCase().includes(q)) || 
-      (i.title && i.title.toLowerCase().includes(q))
-    );
+    records = records.filter(i => i.control.toLowerCase().includes(q) || i.title.toLowerCase().includes(q));
   }
   if (filters.value.office !== 'all') {
     records = records.filter(i => i.office === filters.value.office);
@@ -223,62 +218,44 @@ const filteredReports = computed(() => {
   return records;
 });
 
-const paginatedReports = computed(() => {
-  const start = (currentPage.value - 1) * perPage.value;
-  const end = start + perPage.value;
-  return filteredReports.value.slice(start, end);
-});
-
-const paginationMeta = computed(() => {
-  const total = filteredReports.value.length;
-  const lastPage = Math.ceil(total / perPage.value) || 1;
-  const from = total === 0 ? 0 : (currentPage.value - 1) * perPage.value + 1;
-  const to = Math.min(currentPage.value * perPage.value, total);
-  
-  return {
-    total,
-    from,
-    to,
-    last_page: lastPage
-  };
-});
-
 const statusBadgeClass = (status) => {
-  const s = status?.toLowerCase() || '';
-  if (s.includes('verified')) return 'status-badge-verified';
-  if (s.includes('revision')) return 'status-badge-revision';
-  if (s.includes('pending')) return 'status-badge-pending';
+  if (status === 'Verified') return 'status-badge-verified';
+  if (status === 'Revision Required') return 'status-badge-revision';
   return 'status-badge-pending';
 };
 
-const viewDetails = (id) => {
-  router.push(`/admin/ar-review/${id}`);
+const viewDetails = (id, status) => {
+  if (status === 'Pending') {
+    router.push(`/admin/ar-review/${id}`);
+  } else {
+    router.push(`/admin/ar-view/${id}`);
+  }
 };
 
 const fetchReports = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/activity-reports');
+    const response = await api.get('activity-reports');
     if (response.data.success) {
       accomplishmentReports.value = response.data.data;
-      
-      // Update Statistics
-      metricsStats.value[0].value = accomplishmentReports.value.length.toString();
-      metricsStats.value[1].value = accomplishmentReports.value.filter(r => r.status?.toLowerCase().includes('pending')).length.toString();
-      metricsStats.value[2].value = accomplishmentReports.value.filter(r => r.status?.toLowerCase().includes('verified')).length.toString();
-      metricsStats.value[3].value = accomplishmentReports.value.filter(r => r.status?.toLowerCase().includes('revision')).length.toString();
-
-      // Extract Unique Offices for Filter
-      const offices = [...new Set(accomplishmentReports.value.map(r => r.office).filter(Boolean))];
-      officeOptions.value = offices.sort();
+      officeOptions.value = [...new Set(response.data.data.map(r => r.office).filter(Boolean))];
+      const total = accomplishmentReports.value.length;
+      const pending = accomplishmentReports.value.filter(r => r.status === 'Pending').length;
+      const verified = accomplishmentReports.value.filter(r => r.status === 'Verified').length;
+      const revision = accomplishmentReports.value.filter(r => r.status === 'Revision Required').length;
+      metricsStats.value[0].value = String(total);
+      metricsStats.value[1].value = String(pending);
+      metricsStats.value[2].value = String(verified);
+      metricsStats.value[3].value = String(revision);
+      paginationMeta.value = { total, from: total > 0 ? 1 : 0, to: total, last_page: 1 };
     }
   } catch (err) {
-    console.error(err);
+    console.error('Failed to fetch accomplishment reports:', err);
   }
 };
 
 const handleLogout = async () => {
   try {
-    await axios.get('http://localhost:8080/api/logout');
+    await api.get('logout');
     localStorage.removeItem('user');
     router.push('/login');
   } catch (err) {
@@ -352,7 +329,7 @@ onMounted(() => {
 }
 
 .header-subtitle {
-  font-size: 0.5625rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: #b979cc;
@@ -388,8 +365,8 @@ onMounted(() => {
 }
 
 .page-subtitle {
-  font-size: 0.75rem;
-  color: #94a3b8;
+  font-size: 1rem;
+  color: #475569;
   margin-top: 0.25rem;
 }
 
@@ -460,7 +437,7 @@ onMounted(() => {
 }
 
 .stat-label {
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -504,7 +481,7 @@ onMounted(() => {
   top: 50%;
   transform: translateY(-50%);
   color: #94a3b8;
-  font-size: 0.75rem;
+  font-size: 1rem;
 }
 
 .search-input {
@@ -513,7 +490,7 @@ onMounted(() => {
   border-radius: 0.75rem;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(185, 121, 204, 0.2);
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
   color: white;
   transition: all 0.3s;
@@ -525,7 +502,7 @@ onMounted(() => {
 }
 
 .search-input::placeholder {
-  color: #64748b;
+  color: #94a3b8;
 }
 
 .select-wrapper {
@@ -539,7 +516,7 @@ onMounted(() => {
   border-radius: 0.75rem;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(185, 121, 204, 0.2);
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
   color: white;
   appearance: none;
@@ -558,7 +535,7 @@ onMounted(() => {
   top: 50%;
   transform: translateY(-50%);
   color: #94a3b8;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   pointer-events: none;
 }
 
@@ -569,7 +546,7 @@ onMounted(() => {
 }
 
 .per-page-label {
-  font-size: 0.6875rem;
+  font-size: 0.9rem;
   color: #94a3b8;
   font-weight: 500;
 }
@@ -579,7 +556,7 @@ onMounted(() => {
   border-radius: 0.5rem;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(185, 121, 204, 0.2);
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   color: white;
   cursor: pointer;
@@ -617,7 +594,7 @@ onMounted(() => {
 
 .table-header-cell {
   padding: 1rem 1.5rem;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -631,7 +608,7 @@ onMounted(() => {
 .empty-state {
   padding: 3rem 1.5rem;
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #94a3b8;
   font-weight: 500;
 }
@@ -652,7 +629,7 @@ onMounted(() => {
 
 .control-cell {
   font-family: monospace;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #b979cc;
 }
@@ -674,13 +651,13 @@ onMounted(() => {
 .date-cell {
   color: #94a3b8;
   font-family: monospace;
-  font-size: 0.75rem;
+  font-size: 1rem;
 }
 
 .category-badge {
   padding: 0.25rem 0.625rem;
   border-radius: 0.5rem;
-  font-size: 0.5625rem;
+  font-size: 0.8rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -693,7 +670,7 @@ onMounted(() => {
   display: inline-block;
   padding: 0.25rem 0.75rem;
   border-radius: 0.5rem;
-  font-size: 0.5625rem;
+  font-size: 0.8rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -730,7 +707,7 @@ onMounted(() => {
 }
 
 .pagination-info {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #94a3b8;
   font-weight: 500;
 }
@@ -753,7 +730,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   color: white;
   border: 1px solid rgba(185, 121, 204, 0.1);
@@ -778,7 +755,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   transition: all 0.2s;
   cursor: pointer;
