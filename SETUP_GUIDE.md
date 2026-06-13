@@ -2,9 +2,9 @@
 
 ## Issues Fixed
 
-1. **Missing Database Configuration**: Created `backend/app/Config/Database.php` with proper MySQL configuration pointing to `gad_submission_system` database
+1. **Missing Database Configuration**: Created `backend/app/Config/Database.php` with proper MySQL configuration pointing to `gad_submission_systems` database
 2. **Incorrect Backend API URLs**: Updated all frontend components to use `http://localhost:8080/api/` instead of the incorrect `http://localhost/GAD_v12/backend/public/api/` path
-3. **Database Name**: Updated `.env` file to use correct database name `gad_submission_system`
+3. **Database Name**: Updated `.env` file to use correct database name `gad_submission_systems`
 
 ## How to Run
 
@@ -29,14 +29,14 @@ cd frontend
 npm run dev
 ```
 
-The frontend will typically start on `http://localhost:5173`
+The frontend will typically start on `http://localhost:5174`
 
 ### 3. Access the Application
-- Open your browser and navigate to the frontend URL (usually `http://localhost:5173`)
+- Open your browser and navigate to the frontend URL (usually `http://localhost:5174`)
 - Login with one of the test accounts in `users.sql`
 
 ## Database Setup
-The `gad_submission_system` database must exist with the `users` table. Import the `users.sql` file if not already done:
+The `gad_submission_systems` database must exist with the `users` table. Import the `users.sql` file if not already done:
 ```sql
 mysql -u root < users.sql
 ```
@@ -48,5 +48,5 @@ mysql -u root < users.sql
 
 ## Architecture
 - **Backend**: CodeIgniter 4 REST API running on port 8080
-- **Frontend**: Vue 3 with Vite running on port 5173
-- **Database**: MySQL/MariaDB with `gad_submission_system` database
+- **Frontend**: Vue 3 with Vite running on port 5174
+- **Database**: MySQL/MariaDB with `gad_submission_systems` database
