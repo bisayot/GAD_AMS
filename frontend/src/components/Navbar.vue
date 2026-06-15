@@ -1,38 +1,34 @@
 <template>
-  <nav class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md shadow-sm dark:shadow-none">
-    <div class="flex justify-between items-center w-full px-8 py-4 max-w-screen-2xl mx-auto">
-      <div class="text-xl font-bold tracking-tighter text-purple-900 dark:text-purple-100 uppercase font-headline">
-        <router-link to="/">BSU GAD Office</router-link>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div class="navbar-brand">
+        <router-link to="/">BSU GAD Corner</router-link>
       </div>
 
-      <div class="hidden md:flex items-center gap-8 font-manrope tracking-tight font-semibold">
+      <div class="navbar-links">
         <router-link 
           v-for="item in navItems" 
           :key="item.label"
           :to="item.href"
-          class="transition-colors"
-          :class="$route.path === item.href ? 'text-purple-700 dark:text-purple-400 font-bold border-b-2 border-purple-600 pb-1' : 'text-slate-600 dark:text-slate-400 hover:text-purple-600'"
+          class="nav-link"
+          :class="$route.path === item.href ? 'nav-link-active' : 'nav-link-inactive'"
         >
           {{ item.label }}
         </router-link>
       </div>
 
-      <div class="flex items-center gap-4">
-        <div class="relative hidden lg:block">
-          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
-          <input class="bg-surface-container-low border-none rounded-sm pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary w-64 transition-all" placeholder="Search resources..." type="text"/>
+      <div class="navbar-actions">
+        <div class="search-wrapper">
+          <span class="material-symbols-outlined search-icon">search</span>
+          <input class="search-input" placeholder="Search resources..." type="text"/>
         </div>
 
         <template v-if="$route.path === '/login'">
-          <router-link to="/register" class="bg-[#422b68] text-white px-5 py-2 rounded-full font-label text-sm font-semibold tracking-wide hover:opacity-90 transition-all active:scale-95 duration-200 inline-block text-center">
-            Sign Up
-          </router-link>
+          <router-link to="/register" class="btn-signup">Sign Up</router-link>
         </template>
         <template v-else>
-          <span class="text-xs uppercase tracking-widest text-slate-400 font-label">Already have an account?</span>
-          <router-link to="/login" class="bg-gradient-to-br from-primary to-primary-container text-on-primary px-6 py-2 rounded-full font-label text-sm font-semibold hover:scale-95 duration-200 transition-all uppercase tracking-wider inline-block text-center">
-            Portal Login
-          </router-link>
+          <span class="already-text">Already have an account?</span>
+          <router-link to="/login" class="btn-login">Portal Login</router-link>
         </template>
       </div>
     </div>
@@ -42,7 +38,7 @@
 <script setup>
 const navItems = [
   { href: '/', label: 'Home' },
-  { href: '/about', label: 'About Us' },
+  // { href: '/about', label: 'About Us' },
   { href: '/resources', label: 'Resources' },
   { href: '/gad-corner', label: 'GAD Corner' },
   { href: '/contact', label: 'Contact' }
@@ -50,5 +46,27 @@ const navItems = [
 </script>
 
 <style scoped>
-/* Ensure material symbols are available if not globally */
+.navbar { position: fixed; top: 0; width: 100%; z-index: 50; background: #1a1a2e; backdrop-filter: blur(12px); box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-bottom: 1px solid rgba(139, 92, 246, 0.08); }
+.navbar-inner { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 16px 32px; max-width: 1400px; margin: 0 auto; gap: 32px; }
+.navbar-brand { font-size: 20px; font-weight: 900; letter-spacing: -0.03em; color: #990dd1; text-transform: uppercase; white-space: nowrap; }
+.navbar-brand a { color: inherit; text-decoration: none; }
+.navbar-links { display: flex; align-items: center; gap: 32px; font-weight: 600; letter-spacing: -0.01em; }
+.nav-link { text-decoration: none; transition: color 0.2s; font-size: 16px; }
+.nav-link-active { color: #fff; font-weight: 700; border-bottom: 2px solid #9333ea; padding-bottom: 4px; }
+.nav-link-inactive { color: #475569; }
+.nav-link-inactive:hover { color: #fff; }
+.navbar-actions { display: flex; align-items: center; gap: 16px; }
+.search-wrapper { position: relative; display: block; }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 16px; color: #94a3b8; }
+.search-input { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 16px 8px 40px; font-size: 13px; width: 240px; color: #1e293b; transition: all 0.2s; outline: none; }
+.search-input::placeholder { color: #94a3b8; }
+.search-input:focus { border-color: #9333ea; box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.15); background: #fff; }
+.already-text { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: #94a3b8; white-space: nowrap; }
+.btn-signup { background: #422b68; color: white; padding: 8px 20px; border-radius: 9999px; font-size: 13px; font-weight: 600; letter-spacing: 0.05em; text-decoration: none; display: inline-block; text-align: center; transition: all 0.2s; }
+.btn-signup:hover { opacity: 0.9; }
+.btn-signup:active { transform: scale(0.95); }
+.btn-login { background: linear-gradient(135deg, #7e22ce 0%, #a855f7 100%); color: white; padding: 8px 24px; border-radius: 9999px; font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; display: inline-block; text-align: center; transition: all 0.2s; }
+.btn-login:hover { transform: scale(0.97); box-shadow: 0 4px 12px rgba(126, 34, 206, 0.3); }
+@media (max-width: 1024px) { .search-wrapper { display: none; } .already-text { display: none; } }
+@media (max-width: 768px) { .navbar-links { display: none; } .navbar-inner { padding: 12px 20px; } }
 </style>

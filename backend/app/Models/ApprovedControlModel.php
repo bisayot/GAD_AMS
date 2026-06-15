@@ -17,21 +17,23 @@ class ApprovedControlModel extends Model
      * @param int $userId The ID of the user.
      * @return array An array of objects containing control number and activity design details.
      */
-    public function getApprovedControlsWithActivityDetails(int $userId): array
+    public function getApprovedControlsWithActivityDetails(int $userId = null): array
     {
-        return $this->select('control_number.control_number,
-                              archived_activity_designs.activity_title,
-                              archived_activity_designs.start_date,
-                              archived_activity_designs.end_date,
-                              archived_activity_designs.start_time,
-                              archived_activity_designs.end_time,
-                              archived_activity_designs.venue,
-                              archived_activity_designs.target_participants')
-                    ->join('archived_activity_designs', 'archived_activity_designs.original_act_design_id = control_number.act_design_id')
-                    ->join('accomplishment_report', 'accomplishment_report.control_number = control_number.control_number', 'left')
-                    ->where('archived_activity_designs.user_id', $userId)
-                    ->where('archived_activity_designs.status', 'Approved')
-                    ->where('accomplishment_report.id IS NULL')
-                    ->findAll();
+        $builder = $this->select('control_number.control_number, 
+                                  control_number.act_design_id,
+                                  archived_activity_designs.activity_title,
+                                  archived_activity_designs.start_date,
+                                  archived_activity_designs.end_date,
+                                  archived_activity_designs.start_time,
+                                  archived_activity_designs.end_time,
+                                  COALESCE(venues.venue_name, archived_activity_designs.venue) as venue')
+                        ->join('archived_activity_designs', 'archived_activity_designs.original_act_design_id = control_number.act_design_id', 'inner')
+                        ->join('venues', 'venues.venue_id = archived_activity_designs.venue_id', 'left');
+
+        if ($userId !== null) {
+            $builder->where('control_number.user_id', $userId);
+        }
+
+        return $builder->findAll();
     }
 }
