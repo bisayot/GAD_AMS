@@ -175,11 +175,18 @@ const activityLogs = ref([]);
 
 const fetchStats = async () => {
   try {
-    const [designsRes, reportsRes] = await Promise.all([
+    const [designsRes, reportsRes, budgetRes] = await Promise.all([
       api.get('activity-designs'),
-      api.get('activity-reports')
+      api.get('activity-reports'),
+      api.get('budget/summary')
     ]);
     
+    if (budgetRes.data.success) {
+      const b = budgetRes.data.data;
+      metricsStats.value[2].value = '₱' + Number(b.total_budget).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      metricsStats.value[3].value = '₱' + Number(b.remaining_balance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
     if (designsRes.data.success) {
       const pendingDesigns = designsRes.data.data.filter(d => d.status === 'Pending').length;
       metricsStats.value[0].value = pendingDesigns.toString();
@@ -305,7 +312,7 @@ onMounted(() => {
 .log-item { display: flex; gap: 12px; align-items: flex-start; }
 .log-icon { width: 24px; height: 24px; border-radius: 6px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(147, 51, 234, 0.2); display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
 .log-content { min-width: 0; }
-.log-action { font-size: 13px; color: #e2e8f0; line-height: 1.4; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.log-action { font-size: 13px; color: #e2e8f0; line-height: 1.4; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .log-time { font-size: 13px; font-family: monospace; color: #94a3b8; margin-top: 2px; }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }

@@ -8,7 +8,15 @@
 
     <div class="dashboard-main bg-slate-50">
       <header class="dashboard-header bg-[#1a1a2e] border-b border-purple-900/30">
-        </header>
+        <div class="flex items-center justify-between w-full h-full">
+          <div>
+            <h2 class="header-title">BSU GAD-AMS</h2>
+            <span class="header-subtitle">Activities Management System</span>
+          </div>
+          <div class="flex items-center gap-3">
+          </div>
+        </div>
+      </header>
 
       <main class="dashboard-main-content">
         <div class="content-wrapper">

@@ -8,7 +8,15 @@
 
     <div class="dashboard-main bg-slate-50">
       <header class="dashboard-header bg-[#1a1a2e] border-b border-purple-900/30">
-        </header>
+        <div class="flex items-center justify-between w-full h-full">
+          <div>
+            <h2 class="header-title">BSU GAD-AMS</h2>
+            <span class="header-subtitle">Activities Management System</span>
+          </div>
+          <div class="flex items-center gap-3">
+          </div>
+        </div>
+      </header>
 
       <main class="dashboard-main-content">
         <div class="content-wrapper">
@@ -20,7 +28,7 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import DashboardSidebar from '../components/DashboardSidebar.vue';
@@ -69,6 +77,8 @@ onMounted(() => {
 
 .dashboard-main { flex-grow: 1; margin-left: 256px; display: flex; flex-direction: column; min-height: 100vh; }
 .dashboard-header { position: fixed; top: 0; left: 256px; right: 0; height: 80px; z-index: 10; display: flex; align-items: center; padding: 0 40px; background: #1a1a2e; border-bottom: 1px solid rgba(185, 121, 204, 0.3); }
+.header-title { font-size: 1.5rem; font-weight: 900; color: white; margin: 0; }
+.header-subtitle { font-size: 0.65rem; font-weight: 700; color: #b979cc; text-transform: uppercase; letter-spacing: 0.05em; }
 .dashboard-main-content { padding-top: 80px; flex-grow: 1; display: block; width: 100%; }
 .content-wrapper { padding: 40px; width: 100%; }
 

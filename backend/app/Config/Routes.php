@@ -113,6 +113,14 @@ $routes->group('api', function($routes) {
     $routes->post('revision-report/(:num)', 'AccomplishmentReportController::revisionReport/$1');
 
     // ----------------------------------------------------------------
+    // BUDGET ROUTES
+    // ----------------------------------------------------------------
+    $routes->options('budget/summary', 'BudgetController::optionsHandler');
+    $routes->get('budget/summary', 'BudgetController::getSummary');
+    $routes->options('budget/gad-plan', 'BudgetController::optionsHandler');
+    $routes->get('budget/gad-plan', 'BudgetController::getGadPlan');
+
+    // ----------------------------------------------------------------
     // FILE SERVING ROUTES (serve PDFs from writable/uploads)
     // ----------------------------------------------------------------
     $routes->get('files/drafts/(:segment)', 'FileController::serveDraft/$1');

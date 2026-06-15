@@ -158,6 +158,8 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 
+import api from '../../api';
+
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 const showNotifications = ref(false);
@@ -244,10 +246,11 @@ const fetchDashboardData = async () => {
   try {
     const currentUserId = Number(user.value.id || user.value.user_id);
     
-    // Fetch both types of submissions from the API
-    const [designsRes, reportsRes] = await Promise.all([
-      axios.get('http://localhost:8080/api/activity-designs'),
-      axios.get('http://localhost:8080/api/activity-reports')
+    // Fetch both types of submissions and budget summary from the API
+    const [designsRes, reportsRes, budgetRes] = await Promise.all([
+      api.get('activity-designs'),
+      api.get('activity-reports'),
+      api.get('budget/summary')
     ]);
 
     const allDesigns = designsRes.data.success ? designsRes.data.data : [];
@@ -293,6 +296,12 @@ const fetchDashboardData = async () => {
     metricsStats.value[0].value = userPending.length.toString();
     metricsStats.value[1].value = formattedDesigns.filter(d => Number(d.user_id) === currentUserId).length.toString();
     metricsStats.value[2].value = formattedReports.filter(r => Number(r.user_id) === currentUserId).length.toString();
+    
+    if (budgetRes && budgetRes.data && budgetRes.data.success) {
+      const b = budgetRes.data.data;
+      metricsStats.value[3].value = '₱' + (b.total_budget / 1000000).toFixed(1) + 'M';
+      metricsStats.value[4].value = Number(b.utilization_rate).toFixed(2) + '%';
+    }
   } catch (err) {
     console.error('Error fetching dashboard data:', err);
   }
@@ -882,6 +891,7 @@ onMounted(() => {
   font-weight: 500;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

@@ -194,17 +194,17 @@ Once the system is running, you can log in or register accounts for different wo
 1. **Admin (GAD Office)**
    * **Role value in DB:** `admin`
    * **Key Tasks:** View the complete admin dashboard, review submitted activity designs and accomplishment reports, approve or request revisions, manage GAD plan/budgets, map mandates, and generate annual Excel reports.
-   * **Seeded Account:** `gad.office@bsu.edu.ph` / Username: `Gender And Development`
+   * **Seeded Account:** `gad.office@bsu.edu.ph` / Password: `admin123!`
 
 2. **GAD Staff**
    * **Role value in DB:** `gad_staff`
    * **Key Tasks:** Monitor submitted documents, view mandates progress, monitor budget balances, and generate annual reports. (Read-only view for uploaded files).
-   * **Seeded Account:** `gad.staff@bsu.edu.ph` / Username: `gad.staff`
+   * **Seeded Account:** `gad.staff@bsu.edu.ph` / Password: `staff123!`
 
 3. **Colleges / Departments**
    * **Role value in DB:** `college`
    * **Key Tasks:** Create and submit new Activity Designs, upload drafts, track submission status, and submit Accomplishment Reports once activity designs are approved.
-   * **Seeded Account:** `ca@bsu.edu.ph` / Username: `College of Agriculture`
+   * **Seeded Account:** `ca@bsu.edu.ph` / Password: `password123!`
 
 > 💡 **Tip:** If you need to access seeded accounts or register a new custom role, you can use the **Register** link on the login screen. Alternatively, you can reset database passwords locally using PHP's `password_hash()` or standard MySQL queries if needed.
 

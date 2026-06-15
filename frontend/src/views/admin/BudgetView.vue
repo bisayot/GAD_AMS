@@ -132,7 +132,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import api from '../../api';
 
 // Metric Aggregates (Staged to bind directly to database totals later)
 const totalBudget = ref('₱0');
@@ -144,9 +145,55 @@ const utilizationRate = ref('0.00%');
 const mandates = ref([]);
 
 // Sidebar Dynamic Context Parameters
-const currentFrameworkStatus = ref('');
-const statusDescription = ref('');
-const systemNoticeText = ref('');
+const currentFrameworkStatus = ref('Active');
+const statusDescription = ref('The university GAD plan is currently being executed for the current fiscal year.');
+const systemNoticeText = ref('Budget balances are synchronized in real-time with submitted activity designs and accomplishment reports.');
+
+const fetchBudgetData = async () => {
+  try {
+    const [summaryRes, planRes, archivesRes] = await Promise.all([
+      api.get('budget/summary'),
+      api.get('budget/gad-plan'),
+      api.get('archives')
+    ]);
+
+    if (summaryRes.data.success) {
+      const b = summaryRes.data.data;
+      totalBudget.value = '₱' + Number(b.total_budget).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      totalUtilized.value = '₱' + Number(b.total_utilized).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      remainingBalance.value = '₱' + Number(b.remaining_balance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      utilizationRate.value = Number(b.utilization_rate).toFixed(2) + '%';
+    }
+
+    if (planRes.data.success) {
+      const approvedDesigns = archivesRes.data.success ? (archivesRes.data.data || []).filter(item => item.type === 'design') : [];
+      
+      mandates.value = planRes.data.data.map(item => {
+        const utilizedForThisGpb = approvedDesigns
+          .filter(d => Number(d.gpb_id) === Number(item.gpb_id))
+          .reduce((sum, d) => sum + (Number(d.proposed_budget) || 0), 0);
+
+        const allocated = Number(item.gad_budget) || 0;
+        const rate = allocated > 0 ? (utilizedForThisGpb / allocated) * 100 : 0;
+
+        return {
+          id: item.gpb_id,
+          title: item.gender_issue_mandate || 'No Mandate Title',
+          desc: item.gad_activity || 'No Activity Description',
+          utilized: '₱' + utilizedForThisGpb.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+          total: '₱' + allocated.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+          percent: rate.toFixed(2) + '%'
+        };
+      });
+    }
+  } catch (err) {
+    console.error('Error fetching budget data:', err);
+  }
+};
+
+onMounted(() => {
+  fetchBudgetData();
+});
 </script>
 
 <style scoped>
