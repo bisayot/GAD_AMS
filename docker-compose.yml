@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: gad_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ''
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+      MYSQL_DATABASE: gad_submission_system
+    ports:
+      - '3306:3306'
+    volumes:
+      - ./gad_submission_system.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql_data:/var/lib/mysql
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: gad_backend
+    restart: always
+    ports:
+      - '8080:80'
+    environment:
+      CI_ENVIRONMENT: development
+      database.default.hostname: db
+      database.default.database: gad_submission_system
+      database.default.username: root
+      database.default.password: ''
+      database.default.DBDriver: MySQLi
+      database.default.port: 3306
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/var/www/html
+      - /var/www/html/vendor
+
+volumes:
+  mysql_data:
