@@ -51,6 +51,10 @@ $routes->group('api', function($routes) {
     $routes->options('update-design/(:num)', 'ActivityDesignController::updateDesign/$1');
     $routes->post('update-design/(:num)', 'ActivityDesignController::updateDesign/$1');
 
+    // In app/Config/Routes.php
+    $routes->get('get-venues', 'ActivityDesignController::getVenues');
+    $routes->get('get-control-numbers/(:num)', 'ActivityDesignController::getControlNumbers/$1');
+
     // ----------------------------------------------------------------
     // ACCOMPLISHMENT REPORT ROUTES (new)
     // ----------------------------------------------------------------
