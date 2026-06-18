@@ -25,3 +25,5 @@ backend/writable/
 
 # Production builds
 frontend/dist/
+"backend/.env" 
+"frontend/.env.local" 
