@@ -1,0 +1,829 @@
+<template>
+    <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
+      <h1 class="text-3xl font-bold text-slate-900">Welcome, {{ displayName }}!</h1>
+      <p class="text-slate-500 mt-2">Manage your college's GAD programs, submit activity designs, and upload accomplishment reports.</p>
+    </div><br>
+    
+  <div class="dashboard-grid">
+    <div class="main-content-area">
+      
+      <section class="stats-section">
+        <div v-for="stat in metricsStats" :key="stat.label" class="stat-card">
+            <div class="stat-card-inner">
+            <div :class="['stat-icon', stat.bgClass]">
+                <span class="material-symbols-outlined stat-icon-symbol" :class="stat.iconColor">{{ stat.icon }}</span>
+            </div>
+            <div class="stat-info">
+                <h3 class="stat-value">{{ stat.value }}</h3>
+                <p class="stat-label">{{ stat.label }}</p>
+            </div>
+            </div>
+        </div>
+      </section>
+
+      <div class="table-card">
+        <div class="table-header-section">
+          <h3 class="table-title">Your Submissions</h3>
+          <router-link to="/college/submit">
+            <button class="new-submission-btn">
+              <span class="material-symbols-outlined">add</span>
+              New Submission
+            </button>
+          </router-link>
+        </div>
+        
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr class="table-header-row">
+                <th class="table-header-cell">Control No.</th>
+                <th class="table-header-cell">Title</th>
+                <th class="table-header-cell">Status</th>
+                <th class="table-header-cell text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="table-body">
+              <tr v-if="submissions.length === 0" class="empty-row">
+                <td colspan="4" class="empty-cell">
+                  <div class="empty-content">
+                    <span class="material-symbols-outlined empty-icon">history_edu</span>
+                    <p>No submissions recorded yet</p>
+                  </div>
+                </td>
+              </tr>
+              <tr v-else v-for="sub in submissions" :key="sub.id" class="clickable-row">
+                <td class="control-number-cell">{{ sub.control }}</td>
+                <td class="title-cell">{{ sub.title }}</td>
+                <td class="status-cell">
+                  <span :class="['status-pill', sub.statusClass]">
+                    {{ sub.status }}
+                  </span>
+                </td>
+                <td class="actions-cell text-right">
+                  <button class="view-button" @click="viewSubmission(sub)">
+                    <span class="material-symbols-outlined view-icon">visibility</span>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-area">
+      
+      <div class="calendar-card">
+        <h3 class="widget-title">Calendar</h3>
+        <div class="calendar-container">
+          <div class="calendar-header">
+            <span class="material-symbols-outlined nav-icon" @click="prevMonth">chevron_left</span>
+            <span class="calendar-month">{{ currentMonthYear }}</span>
+            <span class="material-symbols-outlined nav-icon" @click="nextMonth">chevron_right</span>
+          </div>
+          <div class="weekdays-grid">
+            <span v-for="day in ['S', 'M', 'T', 'W', 'T', 'F', 'S']" :key="day" class="weekday-label">{{ day }}</span>
+          </div>
+          <div class="dates-grid">
+            <div 
+              v-for="(day, idx) in calendarDays" 
+              :key="idx" 
+              class="date-cell"
+              :class="{ 
+                'date-cell-past': day.isPast, 
+                'date-cell-future': day.isFuture,
+                'date-cell-today': day.isToday && !day.isRevision && !day.isARDue,
+                'date-cell-revision': day.isRevision,
+                'date-cell-ardue': day.isARDue
+              }"
+            >
+              <template v-if="!day.blank">{{ day.date }}</template>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="deadlines-card">
+        <h3 class="widget-title">Upcoming Deadlines</h3>
+        <div class="deadlines-list">
+          <div v-if="deadlines.length === 0" class="empty-deadlines">
+            <span class="material-symbols-outlined empty-icon-small">event_busy</span>
+            <p>All clear! No upcoming deadlines.</p>
+          </div>
+          <div v-else v-for="deadline in deadlines" :key="deadline.id" class="deadline-item">
+            <div class="deadline-header-row">
+              <span :class="['deadline-badge', deadline.badgeClass]">
+                {{ deadline.type }}
+              </span>
+              <span class="deadline-date-text">{{ deadline.date }}</span>
+            </div>
+            <h4 class="deadline-title">{{ deadline.title }}</h4>
+            <p class="deadline-control-text">Control: {{ deadline.control }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import api from '../../api';
+
+const router = useRouter();
+const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
+
+const displayName = computed(() => {
+  if (user.value.full_name && user.value.full_name.trim() !== '') {
+    return user.value.full_name;
+  }
+  return '(TWG)';
+});
+
+const calendarBaseDate = ref(new Date());
+
+const prevMonth = () => {
+  const d = new Date(calendarBaseDate.value);
+  d.setMonth(d.getMonth() - 1);
+  calendarBaseDate.value = d;
+};
+
+const nextMonth = () => {
+  const d = new Date(calendarBaseDate.value);
+  d.setMonth(d.getMonth() + 1);
+  calendarBaseDate.value = d;
+};
+
+const currentMonthYear = computed(() => {
+  return calendarBaseDate.value.toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase();
+});
+
+const calendarDays = computed(() => {
+  const currentDate = calendarBaseDate.value;
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  
+  const days = [];
+  
+  const prevMonthDays = new Date(year, month, 0).getDate();
+  for (let i = 0; i < firstDay; i++) {
+    days.push({ date: prevMonthDays - firstDay + i + 1, blank: true, isPast: true });
+  }
+  
+  const today = new Date();
+  for (let i = 1; i <= daysInMonth; i++) {
+    const d = new Date(year, month, i);
+    d.setHours(0,0,0,0);
+    
+    let isRevision = false;
+    let isARDue = false;
+    
+    deadlines.value.forEach(dl => {
+       if (dl.type.includes('Revision')) {
+          if (d.getTime() === new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()) {
+             isRevision = true;
+          }
+       } else if (dl.type.includes('AR Due')) {
+          const dlDate = new Date(dl.sortDate);
+          dlDate.setHours(0,0,0,0);
+          if (d.getTime() === dlDate.getTime()) {
+             isARDue = true;
+          }
+       }
+    });
+    
+    days.push({
+      date: i,
+      blank: false,
+      isToday: d.getTime() === new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime(),
+      isRevision,
+      isARDue
+    });
+  }
+  
+  const remaining = 42 - days.length; 
+  for(let i=1; i<=remaining; i++) {
+     if (days.length % 7 === 0 && remaining < 7) break;
+     days.push({ date: i, blank: true, isFuture: true });
+  }
+  
+  return days;
+});
+
+const metricsStats = ref([
+  { label: 'Pending Reviews', value: '0', icon: 'schedule', iconColor: 'text-amber-400', bgClass: 'bg-amber-500/10' },
+  { label: 'Total Act Designs', value: '0', icon: 'description', iconColor: 'text-purple-400', bgClass: 'bg-purple-500/10' },
+  { label: 'Total Acc Reports', value: '0', icon: 'analytics', iconColor: 'text-blue-400', bgClass: 'bg-blue-500/10' },
+]);
+
+
+const submissions = ref([]);
+const deadlines = ref([]);
+
+const getStatusClass = (status) => {
+  const s = (status || '').toLowerCase();
+  if (s === 'approved' || s === 'verified' || s === 'completed') return 'status-approved';
+  if (s === 'pending') return 'status-review';
+  if (s === 'revision required' || s === 'revision') return 'status-revision';
+  return 'status-approved';
+};
+
+const formatStatus = (status) => {
+  if (!status) return 'Unknown';
+  if (status.toLowerCase() === 'revision required') return 'For Revision';
+  return status.charAt(0).toUpperCase() + status.slice(1);
+};
+
+const fetchSubmissions = async () => {
+  try {
+    const [adRes, arRes, archiveRes] = await Promise.all([
+      api.get(`activity-designs/${user.value.id}`),
+      api.get(`activity-reports/${user.value.id}`),
+      api.get(`archives?user_id=${user.value.id}&role=${user.value.role || 'college'}`)
+    ]);
+    
+    let pendingCount = 0;
+    let adCount = 0;
+    let arCount = 0;
+    
+    let allSubmissions = [];
+
+    // Helper function to check if status is pending or needs revision
+    const isPendingOrRevision = (status) => {
+      const s = (status || '').toLowerCase();
+      return s === 'pending' || s === 'revision required' || s === 'for revision';
+    };
+
+    if (adRes.data.success) {
+      const designs = adRes.data.data;
+      adCount = designs.length;
+      designs.forEach(d => {
+        if (isPendingOrRevision(d.status)) pendingCount++;
+        allSubmissions.push({
+          id: d.act_design_id,
+          control: d.control || 'N/A',
+          title: d.title,
+          status: formatStatus(d.status),
+          statusClass: getStatusClass(d.status),
+          type: 'design'
+        });
+      });
+    }
+
+    if (arRes.data.success) {
+      const reports = arRes.data.data;
+      arCount = reports.length;
+      reports.forEach(r => {
+        if (isPendingOrRevision(r.status)) pendingCount++;
+        allSubmissions.push({
+          id: r.id,
+          control: r.control || 'N/A',
+          title: r.title,
+          status: formatStatus(r.status),
+          statusClass: getStatusClass(r.status),
+          type: 'report'
+        });
+      });
+    }
+
+    if (archiveRes.data && archiveRes.data.success) {
+      const archives = archiveRes.data.data || [];
+      archives.forEach(item => {
+        if (item.type === 'design') adCount++;
+        else if (item.type === 'report') arCount++;
+      });
+    }
+
+    metricsStats.value[0].value = pendingCount.toString();
+    metricsStats.value[1].value = adCount.toString();
+    metricsStats.value[2].value = arCount.toString();
+    
+    allSubmissions.sort((a, b) => b.id - a.id);
+    submissions.value = allSubmissions.slice(0, 5);
+  } catch (error) {
+    console.error("Error fetching submissions for dashboard", error);
+  }
+};
+
+const fetchDeadlines = async () => {
+  try {
+    const [adRes, arRes, archiveRes] = await Promise.all([
+      api.get(`activity-designs/${user.value.id}`),
+      api.get(`activity-reports/${user.value.id}`),
+      api.get(`archives?user_id=${user.value.id}&role=${user.value.role || 'twg'}`)
+    ]);
+    
+    let allDeadlines = [];
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    const formatDays = (targetDateStr) => {
+      if (!targetDateStr) return 'ASAP';
+      const target = new Date(targetDateStr);
+      target.setHours(0,0,0,0);
+      const diffTime = target - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (diffDays < 0) return 'Overdue';
+      if (diffDays === 0) return 'Today';
+      if (diffDays === 1) return 'Tomorrow';
+      return `In ${diffDays} days`;
+    };
+
+    const designs = adRes.data.success ? adRes.data.data : [];
+    const reports = arRes.data.success ? arRes.data.data : [];
+
+    if (archiveRes.data && archiveRes.data.success) {
+      const archives = archiveRes.data.data || [];
+      archives.forEach(item => {
+        if (item.type === 'design' && (item.status || '').toLowerCase() === 'approved') {
+          designs.push({
+             act_design_id: item.original_id,
+             status: item.status,
+             control: item.control,
+             title: item.title,
+             end_date: item.end_date
+          });
+        }
+      });
+    }
+
+    designs.forEach(d => {
+      const status = (d.status || '').toLowerCase();
+      if (status === 'revision required' || status === 'for revision') {
+         allDeadlines.push({
+           id: 'ad_rev_' + d.act_design_id,
+           type: 'AD Revision',
+           badgeClass: 'badge-revision',
+           date: 'ASAP',
+           title: d.title || d.activity_title,
+           control: d.control || 'N/A',
+           sortDate: new Date(0)
+         });
+      }
+      if (status === 'approved') {
+         const hasReport = reports.some(r => r.act_design_id === d.act_design_id || (r.control_number && r.control_number === d.control) || (r.control && r.control === d.control));
+         if (!hasReport && d.end_date) {
+            const arDeadline = new Date(d.end_date);
+            arDeadline.setDate(arDeadline.getDate() + 3);
+            allDeadlines.push({
+               id: 'ar_due_' + d.act_design_id,
+               type: 'AR Due',
+               badgeClass: 'badge-submission',
+               date: formatDays(arDeadline),
+               title: d.title || d.activity_title,
+               control: d.control || 'N/A',
+               sortDate: arDeadline
+            });
+         }
+      }
+    });
+
+    reports.forEach(r => {
+      const status = (r.status || '').toLowerCase();
+      if (status === 'revision required' || status === 'for revision') {
+         allDeadlines.push({
+           id: 'ar_rev_' + r.id,
+           type: 'AR Revision',
+           badgeClass: 'badge-revision',
+           date: 'ASAP',
+           title: r.title || r.activity_title,
+           control: r.control || 'N/A',
+           sortDate: new Date(0)
+         });
+      }
+    });
+
+    allDeadlines.sort((a, b) => a.sortDate - b.sortDate);
+    deadlines.value = allDeadlines.slice(0, 5);
+  } catch (err) {
+    console.error('Error fetching deadlines', err);
+  }
+};
+
+const loadDashboardData = async () => {
+  await Promise.all([fetchSubmissions(), fetchDeadlines()]);
+};
+
+const viewSubmission = (sub) => {
+  if (sub.type === 'design') {
+    if (sub.status.toLowerCase() === 'for revision' || sub.status.toLowerCase() === 'revision required') {
+      router.push(`/college/ad-revision/${sub.id}`);
+    } else {
+      router.push(`/college/ad-view/${sub.id}`);
+    }
+  } else {
+    if (sub.status.toLowerCase() === 'for revision' || sub.status.toLowerCase() === 'revision required') {
+      router.push(`/college/ar-revision/${sub.id}`);
+    } else {
+      router.push(`/college/ar-view/${sub.id}`);
+    }
+  }
+};
+
+onMounted(() => {
+  if (user.value && user.value.id) {
+    loadDashboardData();
+  }
+});
+</script>
+
+<style scoped>
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 1200px) {
+  .dashboard-grid {
+    grid-template-columns: 2.2fr 1fr;
+  }
+}
+
+.main-content-area, .grid-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+.sidebar-area {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Base Card Layout Rules */
+.table-card, .calendar-card, .deadlines-card {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 1px solid rgba(185, 121, 204, 0.15);
+  padding: 1.75rem;
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.601);
+}
+
+.table-title, .widget-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.stats-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.stat-card {
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(147, 51, 234, 0.15);
+  background: #16213e;
+  transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+}
+
+.stat-card-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-icon-symbol {
+  font-size: 1.125rem;
+}
+
+.stat-value {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color:#fff;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: #cbd5e1;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.new-submission-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.813rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%);
+  border: none;
+  border-radius: 0.75rem;
+  padding: 0.625rem 1.25rem;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(153, 13, 209, 0.4);
+  transition: all 0.2s ease;
+}
+
+.new-submission-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(153, 13, 209, 0.6);
+  filter: brightness(1.1);
+}
+
+.table-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  min-width: 800px;
+}
+
+.table-header-row {
+  font-size: 0.60rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #b979cc;
+  border-bottom: 1px solid rgba(185, 121, 204, 0.2);
+}
+
+.table-header-cell {
+  padding: 0.75rem 1rem 1rem 1rem;
+}
+
+.clickable-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background-color 0.2s ease;
+}
+
+.clickable-row:hover {
+  background-color: rgba(185, 121, 204, 0.06);
+}
+
+.control-number-cell {
+  padding: 1.25rem 1rem;
+  font-weight: 700;
+  color: #b979cc;
+  font-size: 1.1rem;
+}
+
+.title-cell {
+  padding: 1.25rem 1rem;
+  color: #ffffff;
+  font-size: 1.1rem;
+}
+
+.status-cell {
+  padding: 1.25rem 1rem;
+}
+
+.status-pill {
+  display: inline-flex;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.status-approved { background-color: rgba(34, 197, 94, 0.15); color: #4ade80; }
+.status-review { background-color: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+.status-revision { background-color: rgba(239, 68, 68, 0.15); color: #f87171; }
+
+.actions-cell {
+  padding: 1.25rem 1rem;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.view-button {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(185, 121, 204, 0.15);
+  border-radius: 0.5rem;
+  padding: 0.45rem;
+  cursor: pointer;
+  color: #cbd5e1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.view-button:hover {
+  color: #ffffff;
+  background: rgba(153, 13, 209, 0.2);
+  border-color: #b979cc;
+}
+
+.view-icon {
+  font-size: 1.2rem;
+}
+
+.empty-cell {
+  padding: 5rem 2rem;
+  text-align: center;
+}
+
+.empty-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  color: rgba(185, 121, 204, 0.3);
+}
+
+.empty-content p, .empty-deadlines p {
+  color: #cbd5e1;
+  font-size: 0.70rem;
+  margin: 0;
+  opacity: 0.7;
+}
+
+.calendar-card .widget-title {
+  margin-bottom: 1.5rem;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.nav-icon {
+  cursor: pointer;
+  color: #b979cc;
+}
+
+.calendar-month {
+  font-weight: 700;
+  color: #fff;
+}
+
+.weekdays-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  margin-bottom: 0.75rem;
+}
+
+.weekday-label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #b979ccc1;
+}
+
+.dates-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.date-cell {
+  position: relative;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.date-cell:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.date-cell-past {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.date-cell-future {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.date-cell-revision {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  color: #fff;
+}
+
+.date-cell-ardue {
+  background: rgba(234, 179, 8, 0.2);
+  border: 1px solid rgba(234, 179, 8, 0.5);
+  color: #fff;
+}
+
+.date-cell-today {
+  border: 1px solid rgba(147, 51, 234, 0.5);
+  color: #c084fc;
+}
+
+/* Contextual Target Evaluation Logs */
+.deadlines-card .widget-title {
+  margin-bottom: 1.5rem;
+}
+
+.deadlines-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.empty-deadlines {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2.5rem 1rem;
+}
+
+.empty-icon-small {
+  font-size: 2.25rem;
+  color: rgba(185, 121, 204, 0.3);
+}
+
+.deadline-item {
+  padding: 1rem;
+  border-radius: 0.875rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(185, 121, 204, 0.1);
+  transition: all 0.2s ease;
+}
+
+.deadline-item:hover {
+  border-color: rgba(185, 121, 204, 0.3);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.deadline-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.625rem;
+}
+
+.deadline-badge {
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.688rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.badge-revision { background-color: rgba(239, 68, 68, 0.15); color: #f87171; }
+.badge-submission { background-color: rgba(234, 179, 8, 0.15); color: #facc15; }
+
+.deadline-date-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  opacity: 0.8;
+}
+
+.deadline-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 0.375rem 0;
+  line-height: 1.4;
+}
+
+.deadline-control-text {
+  font-size: 1rem;
+  color: #b979cc;
+  margin: 0;
+}
+</style>
