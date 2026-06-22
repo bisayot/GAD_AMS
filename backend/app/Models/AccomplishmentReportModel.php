@@ -12,7 +12,7 @@ class AccomplishmentReportModel extends Model // No change needed here, class na
 	protected $useAutoIncrement     = true;
 	protected $insertID             = 0;
 	protected $returnType           = 'array';
-	protected $useSoftDelete        = false;
+	protected $useSoftDeletes   = true;
 	protected $protectFields        = true;
 
     protected $allowedFields = [
@@ -32,7 +32,8 @@ class AccomplishmentReportModel extends Model // No change needed here, class na
         "rating",
         "attachment",
         "user_id",
-        "status"
+        "status",
+        "deleted_at"
     ];
 
 	// Dates

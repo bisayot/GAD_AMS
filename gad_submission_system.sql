@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 18, 2026 at 09:58 AM
+-- Generation Time: Jun 22, 2026 at 04:49 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -40,6 +40,12 @@ CREATE TABLE `accomplishment_budget_items` (
   `transportation` decimal(15,2) DEFAULT 0.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `accomplishment_budget_items`
+--
+
+
+
 -- --------------------------------------------------------
 
 --
@@ -56,6 +62,11 @@ CREATE TABLE `accomplishment_evaluation_results` (
   `restrooms` decimal(4,2) DEFAULT 0.00,
   `food_and_drinks` decimal(4,2) DEFAULT 0.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `accomplishment_evaluation_results`
+--
+
 
 -- --------------------------------------------------------
 
@@ -83,10 +94,15 @@ CREATE TABLE `accomplishment_report` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `remarks` text DEFAULT NULL,
   `venue_id` int(11) DEFAULT NULL,
-  `assessment_date` date DEFAULT NULL
+  `assessment_date` date DEFAULT NULL,
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
+--
+-- Dumping data for table `accomplishment_report`
+--
+
+
 
 --
 -- Table structure for table `activity_budget_items`
@@ -109,13 +125,6 @@ CREATE TABLE `activity_budget_items` (
 -- Dumping data for table `activity_budget_items`
 --
 
-INSERT INTO `activity_budget_items` (`item_id`, `act_design_id`, `meals_and_snacks`, `function_room_venue`, `accommodation`, `equipment_rental`, `professional_fee_honoria`, `tokens`, `materials_and_supplies`, `transportation`) VALUES
-(11, 33, 3200.00, 3500.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00),
-(12, 34, 7400.00, 0.00, 0.00, 0.00, 0.00, 1500.00, 0.00, 0.00),
-(13, 35, 15000.00, 0.00, 0.00, 0.00, 0.00, 2500.00, 0.00, 0.00),
-(14, 36, 5000.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00);
-
--- --------------------------------------------------------
 
 --
 -- Table structure for table `activity_design`
@@ -139,19 +148,13 @@ CREATE TABLE `activity_design` (
   `remarks` text DEFAULT NULL,
   `accomplishment_deadline` date DEFAULT NULL,
   `venue_id` int(11) DEFAULT NULL,
-  `assessment_date` date DEFAULT NULL
+  `assessment_date` date DEFAULT NULL,
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `activity_design`
 --
-
-INSERT INTO `activity_design` (`act_design_id`, `activity_title`, `start_date`, `end_date`, `start_time`, `end_time`, `status`, `attachment`, `user_id`, `gpb_id`, `venue`, `target_participants`, `proposed_budget`, `form_type`, `remarks`, `accomplishment_deadline`, `venue_id`, `assessment_date`) VALUES
-(33, 'Monthly Study Habit', '2026-06-18', '2026-06-20', '08:00:00', '21:00:00', 'Revision Required', '1781759444_99180822be18280f6f9a.pdf', 2, NULL, NULL, 524, 6700, 'student', 'The Budget input is not aligned with the submitted document, double check', '2026-06-22', 2, NULL),
-(35, 'Monthly Study Habit 3', '2026-06-30', '2026-07-13', '08:30:00', '17:30:00', 'Pending', '1781759857_ce4edb79f5db6db1b47d.pdf', 2, NULL, NULL, 467, 17500, 'student', NULL, NULL, 10, NULL),
-(36, 'CIS Inset 2026', '2040-06-22', '2027-06-22', '01:00:00', '05:00:00', 'Pending', '1781767035_27824fd499116e0659e2.pdf', 51, NULL, 'BSU Gymnasium', 1, 5000, 'inset', 'change date', '2026-06-21', 1, NULL);
-
--- --------------------------------------------------------
 
 --
 -- Table structure for table `archived_accomplishment_reports`
@@ -182,7 +185,11 @@ CREATE TABLE `archived_accomplishment_reports` (
   `assessment_date` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
+--
+-- Dumping data for table `archived_accomplishment_reports`
+--
+
+
 
 --
 -- Table structure for table `archived_activity_designs`
@@ -215,10 +222,6 @@ CREATE TABLE `archived_activity_designs` (
 -- Dumping data for table `archived_activity_designs`
 --
 
-INSERT INTO `archived_activity_designs` (`archive_id`, `original_act_design_id`, `activity_title`, `start_date`, `end_date`, `start_time`, `end_time`, `status`, `attachment`, `user_id`, `gpb_id`, `venue`, `target_participants`, `proposed_budget`, `form_type`, `assessment_date`, `accomplishment_deadline`, `remarks`, `archived_at`, `venue_id`) VALUES
-(20, 34, 'Monthly Study Habit 2', '2026-06-30', '2026-07-01', '07:14:00', '22:00:00', 'Approved', '1781759715_bb4a92a2878f35000ab4.pdf', 2, NULL, NULL, 435, 8900, 'extension', '2026-07-01', '2026-07-06', '', '2026-06-18 05:37:25', 7);
-
--- --------------------------------------------------------
 
 --
 -- Table structure for table `control_number`
@@ -235,10 +238,7 @@ CREATE TABLE `control_number` (
 -- Dumping data for table `control_number`
 --
 
-INSERT INTO `control_number` (`control_number_id`, `control_number`, `act_design_id`, `user_id`) VALUES
-(23, '2026-5351', 34, NULL);
 
--- --------------------------------------------------------
 
 --
 -- Table structure for table `gad_plan_budget`
@@ -419,6 +419,53 @@ CREATE TABLE `mandate` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `messages`
+--
+
+CREATE TABLE `messages` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `sender_id` int(11) UNSIGNED NOT NULL,
+  `recipient_id` int(11) UNSIGNED NOT NULL,
+  `parent_id` int(11) UNSIGNED DEFAULT NULL,
+  `title` varchar(255) NOT NULL,
+  `message_text` text NOT NULL,
+  `document_type` varchar(100) DEFAULT NULL,
+  `document_id` text DEFAULT NULL,
+  `is_read` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` datetime DEFAULT NULL,
+  `deleted_by_sender_at` datetime DEFAULT NULL,
+  `deleted_by_recipient_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `migrations`
+--
+
+CREATE TABLE `migrations` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `version` varchar(255) NOT NULL,
+  `class` varchar(255) NOT NULL,
+  `group` varchar(255) NOT NULL,
+  `namespace` varchar(255) NOT NULL,
+  `time` int(11) NOT NULL,
+  `batch` int(11) UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `migrations`
+--
+
+INSERT INTO `migrations` (`id`, `version`, `class`, `group`, `namespace`, `time`, `batch`) VALUES
+(1, '2026-06-19-022849', 'App\\Database\\Migrations\\CreateMessagesTable', 'default', 'App', 1781836185, 1),
+(2, '2026-06-19-033911', 'App\\Database\\Migrations\\AlterMessagesDocumentId', 'default', 'App', 1781840369, 2),
+(3, '2026-06-19-063936', 'App\\Database\\Migrations\\AddThreadAndTrashToMessages', 'default', 'App', 1781851202, 3),
+(4, '2026-06-19-082034', 'App\\Database\\Migrations\\AddDeletedAtToDocuments', 'default', 'App', 1781857260, 4);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `office_units`
 --
 
@@ -433,11 +480,11 @@ CREATE TABLE `office_units` (
 
 INSERT INTO `office_units` (`office_id`, `office_name`) VALUES
 (25, 'Accounting Office'),
-(28, 'Bokod Focal Person, University Health Services'),
+(28, 'Bokod Focal Person'),
 (23, 'BSU Office of Student Services'),
 (14, 'Budget Office'),
 (31, 'Budget Office Buguias Campus'),
-(29, 'Buguias Focal Person, College of Agriculture'),
+(29, 'Buguias Focal Person'),
 (2, 'College of Agriculture'),
 (8, 'College of Applied Techonology BSU Bokod Campus'),
 (36, 'College of Arts and Humanities'),
@@ -572,7 +619,7 @@ INSERT INTO `users` (`id`, `username`, `email`, `email_verified_at`, `password`,
 (45, 'College of Education BSU Bokod Campus', 'bokod.ce@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 45, NULL, 'Bokod-CE', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
 (46, 'College of Forestry', 'cf@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 46, NULL, 'CF', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
 (47, 'gad.staff', 'gad.staff@bsu.edu.ph', NULL, '$2y$12$fbD/jvk.znEQnBmKq4.ebOojmijHJO/zU7.P7Tzo.zV3FgvP8PzNe', NULL, NULL, 'gad_staff', 'GAD Staff User', NULL, 1, NULL, 'GAD-STAFF', NULL, NULL, '2026-03-26 15:53:56', '2026-06-17 23:26:30'),
-(51, 'marksantos', 'marksantos@gmail.com', NULL, '$2y$10$XpBQvnSPe15XDdOdDySVf.5ri9Y2wCDwqZcdGLoOXmjClhEZTA6Aa', NULL, NULL, 'college', 'Mark Santos', NULL, 32, NULL, NULL, NULL, NULL, '2026-06-17 12:57:12', '2026-06-17 12:57:12');
+(51, 'marksantos', 'marksantos@gmail.com', NULL, '$2y$10$XpBQvnSPe15XDdOdDySVf.5ri9Y2wCDwqZcdGLoOXmjClhEZTA6Aa', NULL, NULL, 'college', 'Mark Santos', NULL, 32, NULL, NULL, NULL, NULL, '2026-06-17 12:57:12', '2026-06-22 02:44:31');
 
 -- --------------------------------------------------------
 
@@ -767,6 +814,18 @@ ALTER TABLE `mandate`
   ADD KEY `fk_mandate_gpb` (`gpb_id`);
 
 --
+-- Indexes for table `messages`
+--
+ALTER TABLE `messages`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `migrations`
+--
+ALTER TABLE `migrations`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `office_units`
 --
 ALTER TABLE `office_units`
@@ -809,19 +868,19 @@ ALTER TABLE `venues`
 -- AUTO_INCREMENT for table `accomplishment_budget_items`
 --
 ALTER TABLE `accomplishment_budget_items`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `accomplishment_evaluation_results`
 --
 ALTER TABLE `accomplishment_evaluation_results`
-  MODIFY `evaluation_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `evaluation_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `accomplishment_report`
 --
 ALTER TABLE `accomplishment_report`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `activity_budget_items`
@@ -839,19 +898,19 @@ ALTER TABLE `activity_design`
 -- AUTO_INCREMENT for table `archived_accomplishment_reports`
 --
 ALTER TABLE `archived_accomplishment_reports`
-  MODIFY `archive_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `archive_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `archived_activity_designs`
 --
 ALTER TABLE `archived_activity_designs`
-  MODIFY `archive_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `archive_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `control_number`
 --
 ALTER TABLE `control_number`
-  MODIFY `control_number_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `control_number_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `gad_plan_budget`
@@ -870,6 +929,18 @@ ALTER TABLE `gpb_budget_breakdown`
 --
 ALTER TABLE `mandate`
   MODIFY `mandate_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `messages`
+--
+ALTER TABLE `messages`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+
+--
+-- AUTO_INCREMENT for table `migrations`
+--
+ALTER TABLE `migrations`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `office_units`

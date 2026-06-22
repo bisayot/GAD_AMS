@@ -126,6 +126,7 @@ class ActivityDesignController extends BaseController
             ->join('users', 'users.id = ad.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->join('control_number as cn', 'cn.act_design_id = ad.act_design_id', 'left')
+            ->where('ad.deleted_at', null)
             ->get()->getResultArray();
 
         usort($active, function($a, $b) {
@@ -153,6 +154,7 @@ class ActivityDesignController extends BaseController
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->join('control_number as cn', 'cn.act_design_id = ad.act_design_id', 'left')
             ->where('ad.user_id', $userId)
+            ->where('ad.deleted_at', null)
             ->get()->getResultArray();
 
         usort($active, function($a, $b) {
@@ -543,5 +545,55 @@ class ActivityDesignController extends BaseController
             'success' => true,
             'message' => 'Sent for revision successfully'
         ]);
+    }
+
+    public function updateDeadline($id = null)
+    {
+        if (!$id) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Design ID required'])->setStatusCode(400);
+        }
+
+        $body = $this->request->getJSON(true) ?? $this->request->getPost();
+        $deadline = $body['deadline'] ?? null;
+        $isArchived = filter_var($body['is_archived'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        if (!$deadline) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Deadline required'])->setStatusCode(400);
+        }
+
+        $db = \Config\Database::connect();
+        $table = $isArchived ? 'archived_activity_designs' : 'activity_design';
+        $idColumn = $isArchived ? 'original_act_design_id' : 'act_design_id';
+
+        try {
+            $updated = $db->table($table)->where($idColumn, $id)->update(['accomplishment_deadline' => $deadline]);
+            if ($updated) {
+                return $this->response->setJSON(['success' => true, 'message' => 'Deadline updated successfully']);
+            }
+            return $this->response->setJSON(['success' => false, 'message' => 'No changes made or record not found']);
+        } catch (\Exception $e) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Server Error: ' . $e->getMessage()])->setStatusCode(500);
+        }
+    }
+
+    public function trash($id = null)
+    {
+        if (!$id) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Design ID required'])->setStatusCode(400);
+        }
+
+        $model = new ActivityDesignModel();
+        
+        // Find if it exists first
+        $design = $model->find($id);
+        if (!$design) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Activity design not found'])->setStatusCode(404);
+        }
+
+        if ($model->delete($id)) {
+            return $this->response->setJSON(['success' => true, 'message' => 'Activity design moved to trash successfully']);
+        }
+
+        return $this->response->setJSON(['success' => false, 'message' => 'Failed to move activity design to trash'])->setStatusCode(500);
     }
 }

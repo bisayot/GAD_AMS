@@ -126,6 +126,7 @@ class AccomplishmentReportController extends BaseController
             ->join('control_number as cn', 'cn.control_number = ar.control_number', 'left')
             ->join('archived_activity_designs as ad', 'ad.original_act_design_id = cn.act_design_id', 'left')
             ->where('ar.status !=', 'Verified')
+            ->where('ar.deleted_at', null)
             ->get()->getResultArray();
 
         $archived = $db->table('archived_accomplishment_reports as aar')
@@ -230,6 +231,7 @@ class AccomplishmentReportController extends BaseController
             ->join('archived_activity_designs as ad', 'ad.original_act_design_id = cn.act_design_id', 'left')
             ->where('ar.user_id', $userId)
             ->where('ar.status !=', 'Verified')
+            ->where('ar.deleted_at', null)
             ->get()->getResultArray();
 
         $archived = $db->table('archived_accomplishment_reports as aar')
@@ -463,5 +465,26 @@ class AccomplishmentReportController extends BaseController
             'success' => true,
             'message' => 'Sent for revision successfully'
         ]);
+    }
+
+    public function trash($id = null)
+    {
+        if (!$id) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Report ID required'])->setStatusCode(400);
+        }
+
+        $model = new AccomplishmentReportModel();
+        
+        // Find if it exists first
+        $report = $model->find($id);
+        if (!$report) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Accomplishment report not found'])->setStatusCode(404);
+        }
+
+        if ($model->delete($id)) {
+            return $this->response->setJSON(['success' => true, 'message' => 'Accomplishment report moved to trash successfully']);
+        }
+
+        return $this->response->setJSON(['success' => false, 'message' => 'Failed to move accomplishment report to trash'])->setStatusCode(500);
     }
 }

@@ -217,6 +217,9 @@
                 <button @click="showCancelModal = true" class="btn-cancel-req">
                   <span class="material-symbols-outlined">cancel</span> CANCEL REQUEST
                 </button>
+                <button @click="handleTrash" class="btn-trash">
+                  <span class="material-symbols-outlined">delete</span> MOVE TO TRASH
+                </button>
                 <button @click="router.back()" class="btn-back">
                   ← Back to Submissions
                 </button>
@@ -485,6 +488,39 @@ const handleConfirmCancel = async () => {
   }
 };
 
+const handleTrash = async () => {
+  const result = await Swal.fire({
+    title: 'Move to Trash?',
+    text: 'This activity design will be moved to the trash bin.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: 'Yes, move to trash'
+  });
+
+  if (!result.isConfirmed) return;
+  
+  submitting.value = true;
+  try {
+    const id = design.value.act_design_id;
+    const response = await api.delete(`activity-designs/trash/${id}`);
+    
+    if (response.data.success) {
+      Swal.fire({ icon: 'success', title: 'Trashed', text: 'Activity design moved to trash.', confirmButtonColor: '#b979cc' }).then(() => {
+        router.push('/admin/ad-list');
+      });
+    } else {
+      Swal.fire({ icon: 'error', title: 'Failed', text: response.data.message || 'Failed to trash request.', confirmButtonColor: '#b979cc' });
+    }
+  } catch (err) {
+    console.error('Error trashing request:', err);
+    Swal.fire({ icon: 'error', title: 'Failed', text: 'Failed to trash request.', confirmButtonColor: '#b979cc' });
+  } finally {
+    submitting.value = false;
+  }
+};
+
 const formatFormType = (type) => {
   if (!type) return '---';
   const map = {
@@ -693,6 +729,13 @@ button { transition: all 0.2s ease-in-out; cursor: pointer; }
   display: flex; align-items: center; justify-content: center; gap: 10px;
 }
 .btn-cancel-req:hover { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; }
+
+.btn-trash {
+  width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444;
+  border-radius: 14px; padding: 14px; font-size: 12px; font-weight: 800; text-transform: uppercase;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.btn-trash:hover { background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #fca5a5; }
 
 .btn-back { display: block; width: 100%; padding: 12px; font-size: 11px; color: #cbd5e1; text-align: center; border-radius: 12px; background: transparent; border: 1px solid rgba(185, 121, 204, 0.15); margin-top: 8px; }
 .btn-back:hover { color: white; border-color: #b979cc; background: rgba(185, 121, 204, 0.05); }

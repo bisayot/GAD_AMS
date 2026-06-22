@@ -639,8 +639,7 @@ const submitReport = async () => {
     });
     
     formData.append('user_id', user.value.id);
-    
-    const response = await api.post('submit-activity-report', formData, {
+    const response = await api.post('accomplishment-reports/submit', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }

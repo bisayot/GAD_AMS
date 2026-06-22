@@ -170,7 +170,12 @@
               </div>
 
               <div class="info-item mb-4">
-                <span class="info-label">Accomplishment Deadline</span>
+                <span class="info-label" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  Accomplishment Deadline
+                  <button @click="editDeadline" class="edit-btn" title="Edit Deadline" style="background: none; border: none; cursor: pointer; color: #b979cc; padding: 0;">
+                    <span class="material-symbols-outlined" style="font-size: 14px;">edit</span>
+                  </button>
+                </span>
                 <span class="info-value-white">{{ formatDate(design.accomplishment_deadline) || '---' }}</span>
               </div>
 
@@ -297,6 +302,50 @@ const previewFile = (fileName) => {
 const closePdfModal = () => {
   isPdfModalOpen.value = false;
   pdfFileUrl.value = '';
+};
+
+import Swal from 'sweetalert2';
+
+const editDeadline = async () => {
+  const { value: formValues } = await Swal.fire({
+    title: 'Edit Accomplishment Deadline',
+    html: `<input type="date" id="swal-input-deadline" class="swal2-input" value="${design.value.accomplishment_deadline || ''}" min="${design.value.end_date ? design.value.end_date.split(' ')[0] : ''}">`,
+    focusConfirm: false,
+    showCancelButton: true,
+    confirmButtonColor: '#9333ea',
+    background: '#16213e',
+    color: '#ffffff',
+    preConfirm: () => {
+      return document.getElementById('swal-input-deadline').value;
+    }
+  });
+
+  if (formValues) {
+    try {
+      const response = await api.post(`update-deadline/${design.value.act_design_id || route.params.id}`, {
+        deadline: formValues,
+        is_archived: design.value.is_archived
+      });
+      if (response.data.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Accomplishment deadline updated.',
+          confirmButtonColor: '#9333ea',
+          background: '#16213e',
+          color: '#ffffff',
+          timer: 1500,
+          showConfirmButton: false
+        });
+        design.value.accomplishment_deadline = formValues;
+      } else {
+        Swal.fire({ icon: 'error', title: 'Error', text: response.data.message || 'Update failed', background: '#16213e', color: '#ffffff' });
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to update deadline.', background: '#16213e', color: '#ffffff' });
+    }
+  }
 };
 
 onMounted(() => {

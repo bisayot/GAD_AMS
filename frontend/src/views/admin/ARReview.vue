@@ -297,6 +297,9 @@
                 <button @click="showRevisionModal = true" class="btn-revision">
                   <span class="material-symbols-outlined">edit_note</span> REVISION
                 </button>
+                <button @click="handleTrash" class="btn-trash">
+                  <span class="material-symbols-outlined">delete</span> MOVE TO TRASH
+                </button>
                 <button @click="router.back()" class="btn-back">
                   ← Back to List
                 </button>
@@ -487,6 +490,39 @@ const handleSendRevision = async () => {
   } catch (err) {
     console.error('Error requesting revision:', err);
     Swal.fire({ icon: 'error', title: 'Failed', text: 'Failed to send revision request.', confirmButtonColor: '#b979cc' });
+  } finally {
+    submitting.value = false;
+  }
+};
+
+const handleTrash = async () => {
+  const result = await Swal.fire({
+    title: 'Move to Trash?',
+    text: 'This accomplishment report will be moved to the trash bin.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: 'Yes, move to trash'
+  });
+
+  if (!result.isConfirmed) return;
+  
+  submitting.value = true;
+  try {
+    const id = report.value.id || report.value.acc_report_id;
+    const response = await api.delete(`accomplishment-reports/trash/${id}`);
+    
+    if (response.data.success) {
+      Swal.fire({ icon: 'success', title: 'Trashed', text: 'Accomplishment report moved to trash.', confirmButtonColor: '#b979cc' }).then(() => {
+        router.push('/admin/ar-list');
+      });
+    } else {
+      Swal.fire({ icon: 'error', title: 'Failed', text: response.data.message || 'Failed to trash report.', confirmButtonColor: '#b979cc' });
+    }
+  } catch (err) {
+    console.error('Error trashing report:', err);
+    Swal.fire({ icon: 'error', title: 'Failed', text: 'Failed to trash report.', confirmButtonColor: '#b979cc' });
   } finally {
     submitting.value = false;
   }
@@ -805,6 +841,13 @@ button { transition: all 0.2s ease-in-out; cursor: pointer; }
 }
 
 .btn-revision:hover { background: rgba(0,0,0,0.5); border-color: rgba(185, 121, 204, 0.5); }
+
+.btn-trash {
+  width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444;
+  border-radius: 14px; padding: 14px; font-size: 12px; font-weight: 800; text-transform: uppercase;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.btn-trash:hover { background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #fca5a5; }
 
 .btn-back { display: block; width: 100%; padding: 12px; font-size: 11px; color: #cbd5e1; text-align: center; border-radius: 12px; background: transparent; border: 1px solid rgba(185, 121, 204, 0.15); margin-top: 8px; }
 .btn-back:hover { color: white; border-color: #b979cc; background: rgba(185, 121, 204, 0.05); }

@@ -61,18 +61,37 @@ const handleScroll = () => {
   lastScrollY.value = currentScrollY;
 };
 
-const adminMenu = [
+const adminMenu = ref([
   { label: 'Dashboard', icon: 'dashboard', href: '/admin/dashboard' },
+  { label: 'Messages', icon: 'mail', href: '/admin/messages', badge: 0 },
   { label: 'Submitted List', icon: 'folder', href: '/admin/submitted-list' },
   { label: 'Activity Design List', icon: 'description', href: '/admin/ad-list' },
   { label: 'Accomplishment Report List', icon: 'description', href: '/admin/ar-list' },
   { label: 'Archives', icon: 'archive', href: '/admin/archive' },
+  { label: 'Trash Bin', icon: 'delete', href: '/admin/trash-bin' },
   { label: 'Mandates Management', icon: 'account_balance', href: '/admin/mandates' },
   { label: 'Report Monitoring', icon: 'bar_chart', href: '/admin/reports' },
   { label: 'Budget Monitoring', icon: 'account_balance_wallet', href: '/admin/budget' },
+  { label: 'User Management', icon: 'manage_accounts', href: '/admin/user-management' },
   { label: 'User Manual', icon: 'help', href: '/admin/user-manual' },
   { label: 'Data Privacy Policy', icon: 'privacy_tip', href: '/admin/data-privacy-policy' }
-];
+]);
+
+const fetchUnreadCount = async () => {
+  if (user.value?.id) {
+    try {
+      const res = await api.get(`/messages/unread-count/${user.value.id}`);
+      if (res.data.success) {
+        const msgItem = adminMenu.value.find(m => m.label === 'Messages');
+        if (msgItem) msgItem.badge = res.data.count;
+      }
+    } catch (err) {
+      console.error('Failed to fetch unread count:', err);
+    }
+  }
+};
+
+let unreadInterval;
 
 const handleLogout = async () => {
   try {
@@ -91,11 +110,15 @@ onMounted(() => {
   user.value = JSON.parse(localStorage.getItem('user') || '{}');
   if (!user.value.id || user.value.role !== 'admin') {
     router.push('/login');
+  } else {
+    fetchUnreadCount();
+    unreadInterval = setInterval(fetchUnreadCount, 30000); // Check every 30 seconds
   }
 });
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
+  if (unreadInterval) clearInterval(unreadInterval);
 });
 </script>
 

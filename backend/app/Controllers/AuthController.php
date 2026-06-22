@@ -41,6 +41,10 @@ class AuthController extends ResourceController
             return $this->failUnauthorized("User not found for identity: $identity");
         }
 
+        if (!empty($user['deleted_at'])) {
+            return $this->failUnauthorized("Your account has been suspended. Please contact the director.");
+        }
+
         if (!password_verify($password, $user['password'])) {
             // Debug: Check if it's a legacy MD5 or something (unlikely but let's check)
             if (md5($password) === $user['password']) {
@@ -330,6 +334,17 @@ class AuthController extends ResourceController
 
         $db->table('office_units')->insert(['office_name' => $cleanName]);
         return $this->respondCreated(['new_id' => $db->insertID()]);
+    }
+
+    public function getAllUsers() {
+        $db = \Config\Database::connect();
+        $users = $db->table('users')
+            ->select('users.id, users.email, users.full_name, users.role, users.office_id, users.deleted_at, user_profiles.user_role, office_units.office_name')
+            ->join('user_profiles', 'user_profiles.user_id = users.id', 'left')
+            ->join('office_units', 'office_units.office_id = users.office_id', 'left')
+            ->get()
+            ->getResultArray();
+        return $this->respond($users);
     }
 
     protected function verifyTurnstile($token)
