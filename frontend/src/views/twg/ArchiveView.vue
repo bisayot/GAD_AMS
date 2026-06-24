@@ -201,7 +201,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '../../api';
 
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
@@ -304,7 +304,7 @@ const visiblePages = computed(() => {
 const fetchArchives = async () => {
   loading.value = true;
   try {
-    const response = await axios.get('http://localhost:8080/api/archives');
+    const response = await api.get('/archives');
     
     if (response.data.success) {
       // Only include records that were submitted by the current user
@@ -389,7 +389,7 @@ const viewItem = (item) => {
 
 const handleLogout = async () => {
   try {
-    await axios.get('http://localhost:8080/api/logout');
+    await api.get('/logout');
     localStorage.removeItem('user');
     router.push('/login');
   } catch (err) {

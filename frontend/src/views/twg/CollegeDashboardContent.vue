@@ -125,7 +125,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '../../api';
 
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
@@ -174,8 +174,8 @@ const fetchSubmissions = async () => {
     const userId = user.value.id || user.value.user_id;
     
     const [designsRes, reportsRes] = await Promise.all([
-      axios.get(`http://localhost:8080/api/activity-designs/${userId}`),
-      axios.get(`http://localhost:8080/api/activity-reports/${userId}`)
+      api.get(`/activity-designs/${userId}`),
+      api.get(`/activity-reports/${userId}`)
     ]);
 
     const designs = (designsRes.data.data || []).map(d => ({

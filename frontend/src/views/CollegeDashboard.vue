@@ -30,7 +30,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '../api';
 import DashboardSidebar from '../components/DashboardSidebar.vue';
 
 const router = useRouter();
@@ -48,7 +48,7 @@ const collegeMenu = [
 
 const handleLogout = async () => {
   try {
-    await axios.get('http://localhost:8080/api/logout');
+    await api.get('/logout');
     localStorage.removeItem('user');
     router.push('/login');
   } catch (err) {

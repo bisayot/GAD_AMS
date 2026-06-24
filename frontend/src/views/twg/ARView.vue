@@ -244,7 +244,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import api from '../../api';
+import api, { API_BASE_URL } from '../../api';
 import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
 
 const route = useRoute();
@@ -399,7 +399,7 @@ const pdfFileUrl = ref('');
 
 const previewFile = (fileName) => {
   if (!fileName) return;
-  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api/', '') : 'http://localhost:8080');
+  const base = API_BASE_URL.replace('/api/', '');
   pdfFileUrl.value = `${base}/api/files/drafts/${fileName}`;
   isPdfModalOpen.value = true;
 };

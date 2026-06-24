@@ -18,6 +18,17 @@ class App extends BaseConfig
      */
     public string $baseURL = 'http://localhost:8080/';
 
+    public function __construct()
+    {
+        parent::__construct();
+
+        $codespaceName = getenv('CODESPACE_NAME');
+        $portForwardingDomain = getenv('GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN');
+        if (!empty($codespaceName) && !empty($portForwardingDomain)) {
+            $this->baseURL = "https://{$codespaceName}-8080.{$portForwardingDomain}/";
+        }
+    }
+
     /**
      * Allowed Hostnames in the Site URL other than the hostname in the baseURL.
      * If you want to accept multiple Hostnames, set this.

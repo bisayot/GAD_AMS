@@ -26,7 +26,10 @@ class Cors extends BaseConfig
      */
     public array $default = [
         'allowedOrigins'         => ['https://gad-ams-2.vercel.app', 'https://gadams.vercel.app', 'http://localhost:5173'],
-        'allowedOriginsPatterns' => [],
+        'allowedOriginsPatterns' => [
+            'https://[a-zA-Z0-9\-]+-5173\.(preview\.)?app\.github\.dev',
+            'http://(localhost|127\.0\.0\.1)(:\d+)?'
+        ],
         'allowedHeaders'         => ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
         'allowedMethods'         => ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
         'exposedHeaders'         => [],
