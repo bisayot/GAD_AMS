@@ -1,0 +1,5 @@
+{
+  "name": "PHP 8.2 Codespace",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "updateContentCommand": "ln -sf /usr/bin/php8.2 /home/codespace/.php/current/bin/php"
+}
