@@ -1,288 +1,423 @@
 <template>
   <main class="messages-main-content">
     <div class="messages-content-wrapper">
-      <div class="messages-header">
+      <div class="header-section" style="margin-bottom: 1rem;">
         <div>
-          <h1 class="messages-title">Messages</h1>
-          <p class="messages-subtitle">View and manage your messages here.</p>
+          <h1 class="page-title">Messages</h1>
+          <p class="page-subtitle">View and manage your conversations here.</p>
+        </div>
+      </div>
+      
+      <div class="info-note" v-if="isTWG" style="margin: 0 0 1.5rem 0; padding: 1rem 1.5rem; background-color: #1e293b; border: 1px solid rgba(147, 51, 234, 0.3); border-left: 4px solid #9333ea; border-radius: 0.75rem; display: flex; align-items: flex-start; gap: 1rem;">
+        <div style="background: rgba(147, 51, 234, 0.2); padding: 0.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+          <span class="material-symbols-outlined" style="color: #c084fc; font-size: 1.2rem;">info</span>
+        </div>
+        <div>
+          <h4 style="margin: 0 0 0.25rem 0; color: #f8fafc; font-size: 1rem; font-weight: 600;">Note</h4>
+          <p style="margin: 0; color: #cbd5e1; font-size: 0.9rem; line-height: 1.4;">For document inquiries, it's recommended to send a message to the <strong style="color: #ffffff;">Director</strong>. For general concerns, it's recommended to send a message to the <strong style="color: #ffffff;">Staff</strong>.</p>
         </div>
       </div>
 
-
-
-
-
-      <div class="messages-container">
-        <div class="messages-section">
-          <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <span class="title-indicator"></span>
-              <h4 class="section-title" style="margin: 0;">Messages</h4>
+      <!-- Main Messenger Layout -->
+      <div class="messenger-container">
+        <!-- Sidebar -->
+        <div class="messenger-sidebar" :class="{ 'hidden-on-mobile': rightPaneMode !== 'none' }">
+           <div class="sidebar-top">
+              <div class="sidebar-header">
+                 <h2>Chats</h2>
+                 <div class="sidebar-actions">
+                     <button @click="toggleSelectionMode" class="icon-btn" :class="{'active-selection': isSelectionMode}" title="Select Multiple">
+                        <span class="material-symbols-outlined">checklist</span>
+                     </button>
+                    <button @click="fetchMessages" class="icon-btn" title="Refresh">
+                       <span class="material-symbols-outlined">refresh</span>
+                    </button>
+                    <button v-if="hasAnnouncementFeature" @click="rightPaneMode = 'announce'" class="icon-btn" title="Make Announcement">
+                       <span class="material-symbols-outlined">campaign</span>
+                    </button>
+                    <button @click="rightPaneMode = 'compose'" class="icon-btn primary-icon-btn" title="New Message">
+                       <span class="material-symbols-outlined">edit_square</span>
+                    </button>
+                 </div>
+              </div>
+              <div class="sidebar-tabs">
+                 <button :class="{active: activeTab === 'chats'}" @click="activeTab = 'chats'">All Chats</button>
+                 <button :class="{active: activeTab === 'trash'}" @click="activeTab = 'trash'">Trash</button>
+              </div>
+           </div>
+           
+           <div class="conversation-list">
+              <div v-if="loadingMessages" class="loading-state">
+                 <div class="spinner"></div>
+              </div>
+              <div v-else-if="filteredConversations.length === 0" class="empty-state">
+                 <span class="material-symbols-outlined">{{ activeTab === 'trash' ? 'delete' : 'forum' }}</span>
+                 <p>No conversations found</p>
+              </div>
+              <div v-else 
+                   v-for="conv in filteredConversations" 
+                   :key="conv.thread_id" 
+                   class="conversation-item" 
+                   :class="{active: activeConversationId === conv.thread_id && rightPaneMode === 'chat', selected: selectedThreads.includes(conv.thread_id)}"
+                   @click="selectConversation(conv)">
+                 <div v-if="isSelectionMode" class="conv-checkbox">
+                    <input type="checkbox" :checked="selectedThreads.includes(conv.thread_id)" @click="toggleThreadSelection(conv.thread_id, $event)">
+                 </div>
+                 <div class="conv-avatar">
+                    <span class="material-symbols-outlined">person</span>
+                    <div v-if="conv.unread_count > 0 && activeTab !== 'trash'" class="unread-badge"></div>
+                 </div>
+                 <div class="conv-details">
+                    <div class="conv-header">
+                       <span class="conv-name" :class="{unread: conv.unread_count > 0 && activeTab !== 'trash'}">{{ conv.other_party }}</span>
+                       <span class="conv-time">{{ conv.latest_time_short }}</span>
+                    </div>
+                    <div class="conv-role">{{ conv.role }} &bull; {{ getOfficeName(conv.office_id) }}</div>
+                    <div class="conv-preview" :class="{unread: conv.unread_count > 0 && activeTab !== 'trash'}">
+                       <span v-if="conv.is_announcement" class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle; color: #facc15;">campaign</span>
+                       {{ conv.preview }}
+                    </div>
+                 </div>
+               </div>
             </div>
-            <button @click="showCreateModal = !showCreateModal" class="btn-primary" style="padding: 0.5rem 1rem; border-radius: 0.5rem; background: linear-gradient(135deg, #9333ea, #c084fc); border: none; color: white; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 500; font-size: 0.95rem; transition: transform 0.3s, box-shadow 0.3s; box-shadow: 0 4px 6px rgba(147, 51, 234, 0.2);">
-              <span class="material-symbols-outlined" style="font-size: 1.2rem;">{{ showCreateModal ? 'close' : 'add' }}</span>
-              {{ showCreateModal ? 'Cancel' : 'Create New Message' }}
-            </button>
-          </div>
+            
+            <div v-if="isSelectionMode" class="bulk-action-toolbar">
+              <span class="selected-count">{{ selectedThreads.length }} selected</span>
+              <div class="bulk-actions">
+                 <button v-if="activeTab === 'chats'" @click="bulkTrash" :disabled="selectedThreads.length === 0" class="bulk-btn trash-btn">Trash</button>
+                 <button v-if="activeTab === 'trash'" @click="bulkRestore" :disabled="selectedThreads.length === 0" class="bulk-btn restore-btn">Restore</button>
+                 <button v-if="activeTab === 'trash'" @click="bulkPermanentlyDelete" :disabled="selectedThreads.length === 0" class="bulk-btn delete-btn">Delete</button>
+              </div>
+           </div>
+        </div>
 
-          <!-- Create Message Panel (Top) -->
-          <transition name="slide-down">
-            <div v-if="showCreateModal" class="create-message-panel">
-              <div class="panel-header">
-                <h2 class="panel-title">Create New Message</h2>
-                <button @click="showCreateModal = false" class="close-btn">
-                  <span class="material-symbols-outlined">close</span>
-                </button>
+        <!-- Chat Pane -->
+        <div class="messenger-chat-pane" :class="{ 'hidden-on-mobile': rightPaneMode === 'none' }">
+           
+           <!-- State: NO CHAT SELECTED -->
+           <div v-if="rightPaneMode === 'none'" class="no-chat-selected">
+              <div class="no-chat-icon"><span class="material-symbols-outlined">forum</span></div>
+              <h3>Your Messages</h3>
+              <p>Select a conversation from the sidebar or start a new one.</p>
+           </div>
+
+           <!-- State: COMPOSE MESSAGE -->
+           <div v-else-if="rightPaneMode === 'compose'" class="compose-pane">
+              <div class="chat-header">
+                 <div class="chat-header-info" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <button class="mobile-back-btn" @click="rightPaneMode = 'none'"><span class="material-symbols-outlined">arrow_back</span></button>
+                    <h3>New Message</h3>
+                 </div>
+                 <div class="chat-header-actions">
+                    <button @click="rightPaneMode = 'none'" class="icon-btn" title="Cancel"><span class="material-symbols-outlined">close</span></button>
+                 </div>
               </div>
               
-              <div class="panel-body">
-                <!-- To: Field -->
+              <div class="compose-body">
                 <div class="form-group">
-                  <label class="form-label">To:</label>
+                  <label class="form-label">Select Recipients:</label>
                   
-                  <!-- Role Filter -->
                   <div class="filter-group">
-                    <label class="sub-label">Select Role:</label>
+                    <label class="sub-label">Filters (Optional):</label>
                     <div class="role-buttons">
-                      <button 
-                        v-for="role in roles" 
-                        :key="role.value"
-                        @click="selectRole(role.value)"
-                        :class="['role-btn', { active: selectedRole === role.value }]"
-                      >
+                      <button v-for="role in roles" :key="role.value" @click="selectRole(role.value)" :class="['role-btn', { active: selectedRole === role.value }]">
                         {{ role.label }}
                       </button>
                     </div>
-                  </div>
-
-                  <!-- Office Filter (for TWG and Non-TWG) -->
-                  <div v-if="selectedRole && selectedRole !== 'Staff'" class="filter-group">
-                    <label class="sub-label">Select Office:</label>
-                    <div class="office-buttons">
-                      <button 
-                        v-for="office in offices" 
-                        :key="office.value"
-                        @click="selectOffice(office.value)"
-                        :class="['office-btn', { active: selectedOffice === office.value }]"
-                      >
+                    <div v-if="selectedRole && selectedRole !== 'Director' && selectedRole !== 'Staff' && !isTWG" class="office-buttons" style="margin-top: 0.5rem;">
+                      <button v-for="office in offices" :key="office.value" @click="selectOffice(office.value)" :class="['office-btn', { active: selectedOffice === office.value }]">
                         {{ office.label }}
                       </button>
                     </div>
                   </div>
 
-                  <!-- User Selection -->
-                  <div v-if="selectedRole && (selectedRole === 'Staff' || selectedOffice)" class="filter-group">
-                    <label class="sub-label">Select User(s):</label>
+                  <div class="filter-group">
+                    <label class="sub-label">Search Users by Name or Email:</label>
+                    <input v-model="userSearchQuery" type="text" class="form-input" placeholder="Type to search..." style="margin-bottom: 0.5rem;">
+                    
                     <div class="user-list">
                       <label v-for="user in filteredUsers" :key="user.id" class="user-item">
                         <input type="checkbox" :value="user.id" v-model="selectedUsers">
                         <span>{{ user.full_name }} <span class="user-email" v-if="user.email">({{ user.email }})</span></span>
                       </label>
-                      <div v-if="filteredUsers.length === 0" class="no-users-msg">
-                        No users found for this selection.
-                      </div>
+                      <div v-if="filteredUsers.length === 0" class="no-users-msg">No users found.</div>
+                    </div>
+                  </div>
+                  
+                  <div v-if="selectedUsers.length > 0" class="filter-group" style="margin-top: 1rem;">
+                    <label class="sub-label">Selected Recipients:</label>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                       <span v-for="userId in selectedUsers" :key="'sel_'+userId" style="background: rgba(147, 51, 234, 0.2); color: #e9d5ff; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem; border: 1px solid rgba(147,51,234,0.4);">
+                          {{ getUserName(userId) }}
+                          <span @click="removeUser(userId)" class="material-symbols-outlined" style="font-size: 1rem; cursor: pointer;">close</span>
+                       </span>
                     </div>
                   </div>
                 </div>
 
-
-
-                <!-- Title Field -->
                 <div v-if="selectedUsers.length > 0" class="form-group">
-                  <label class="form-label">Title:</label>
-                  <input v-model="messageTitle" type="text" class="form-input" placeholder="Enter message title">
-                </div>
-
-                <!-- Message Field -->
-                <div v-if="messageTitle" class="form-group">
-                  <label class="form-label">Message:</label>
-                  <textarea v-model="messageText" class="form-textarea" rows="6" placeholder="Enter your message"></textarea>
-                </div>
-              </div>
-
-              <div v-if="messageText" class="panel-footer">
-                <button @click="showCreateModal = false" class="btn-secondary">Cancel</button>
-                <button @click="sendMessage" class="btn-primary">Send Message</button>
-              </div>
-            </div>
-          </transition>
-
-          <div class="messages-layout" style="display: flex; gap: 2rem; align-items: flex-start; margin-top: 1rem;">
-            <div class="messages-sidebar" style="flex: 0 0 150px; display: flex; flex-direction: column; gap: 0.5rem;">
-               <div class="sidebar-item" @click="activeTab = 'inbox'; fetchMessages()" style="padding: 0.75rem 1rem; cursor: pointer; border-radius: 0.5rem; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease; color: #cbd5e1;" :style="activeTab === 'inbox' ? 'background: rgba(147, 51, 234, 0.2); color: #c084fc; border: 1px solid rgba(147, 51, 234, 0.5);' : 'border: 1px solid transparent;'">
-                 <span class="material-symbols-outlined">inbox</span> Inbox
-               </div>
-               <div class="sidebar-item" @click="activeTab = 'sent'; fetchMessages()" style="padding: 0.75rem 1rem; cursor: pointer; border-radius: 0.5rem; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease; color: #cbd5e1;" :style="activeTab === 'sent' ? 'background: rgba(147, 51, 234, 0.2); color: #c084fc; border: 1px solid rgba(147, 51, 234, 0.5);' : 'border: 1px solid transparent;'">
-                 <span class="material-symbols-outlined">send</span> Sent
-               </div>
-               <div class="sidebar-item" @click="activeTab = 'trash'; fetchMessages()" style="padding: 0.75rem 1rem; cursor: pointer; border-radius: 0.5rem; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease; color: #cbd5e1;" :style="activeTab === 'trash' ? 'background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.5);' : 'border: 1px solid transparent;'">
-                 <span class="material-symbols-outlined">delete</span> Trash
-               </div>
-            </div>
-
-            <div class="messages-list-wrapper" style="flex: 1;">
-              <div class="messages-list">
-                <div v-if="messages.length === 0" class="empty-state">
-                  <div class="empty-icon">
-                    <span class="material-symbols-outlined">{{ activeTab === 'trash' ? 'delete' : (activeTab === 'inbox' ? 'mail' : 'send') }}</span>
+                  <label class="form-label">Attach Documents (Optional):</label>
+                  <div class="checkbox-list" style="max-height: 150px; overflow-y: auto; padding: 0.5rem; border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; background: rgba(0,0,0,0.2); margin-top: 0.5rem;">
+                    <label v-for="doc in allUserDocuments" :key="doc.id" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0; cursor: pointer; color: #f8fafc; font-size: 0.9rem;">
+                      <input type="checkbox" :value="doc.id" v-model="selectedDocuments" style="accent-color: #9333ea;">
+                      {{ doc.title }} <span style="color:#94a3b8; font-size: 0.8rem;">({{ doc.type }})</span>
+                    </label>
+                    <div v-if="allUserDocuments.length === 0" style="color: #94a3b8; font-size: 0.9rem; padding: 0.5rem; text-align: center;">No documents available.</div>
                   </div>
-                  <h5 class="empty-title">No {{ activeTab === 'inbox' ? 'Inbox' : (activeTab === 'sent' ? 'Sent' : 'Trashed') }} Messages</h5>
-                  <p class="empty-text">You have no messages here.</p>
+                </div>
+
+
+
+                <div v-if="selectedUsers.length > 0" class="form-group">
+                  <label class="form-label">Message:</label>
+                  <textarea v-model="messageText" class="form-textarea" rows="4" placeholder="Enter your message"></textarea>
                 </div>
                 
-                <div v-if="activeTab === 'trash' && messages.length > 0" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
-                  <label style="color: #cbd5e1; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                    <input type="checkbox" @change="e => selectedTrashIds = e.target.checked ? messages.map(m => m.id) : []" :checked="selectedTrashIds.length === messages.length && messages.length > 0" style="accent-color: #ef4444;">
-                    Select All
-                  </label>
-                  <button @click="permanentlyDeleteSelected" :disabled="selectedTrashIds.length === 0" class="btn-primary" style="background: #ef4444; padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; color: white; cursor: pointer; font-size: 0.85rem;" :style="{ opacity: selectedTrashIds.length === 0 ? 0.5 : 1 }">
-                    Permanently Delete Selected
-                  </button>
-                </div>
-
-                <div v-for="message in messages" :key="message.id" class="message-card" @click="toggleMessageExpand(message)" style="cursor: pointer; position: relative;">
-                  <div v-if="activeTab === 'trash'" style="position: absolute; left: 1rem; top: 1.5rem;" @click.stop>
-                    <input type="checkbox" :value="message.id" v-model="selectedTrashIds" style="accent-color: #ef4444;">
-                  </div>
-                  <div :style="{ paddingLeft: activeTab === 'trash' ? '2.5rem' : '0' }">
-                    <div class="message-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
-                      <div class="message-sender" style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
-                        <span class="badge" style="background: rgba(147, 51, 234, 0.2); color: #c084fc; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.8rem; border: 1px solid rgba(147, 51, 234, 0.3);">{{ message.role || 'Unknown' }}</span>
-                        <span class="sender-office" style="color: #e2e8f0; font-size: 0.95rem; font-weight: 500;">{{ getOfficeName(message.office_id) }}</span>
-                        <span class="sender-email" style="color: #94a3b8; font-size: 0.9rem;">&lt;{{ message.email || 'No email' }}&gt;</span>
-                        <span v-if="activeTab === 'inbox' && message.is_read == 0" class="badge" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; border: 1px solid rgba(59, 130, 246, 0.3);">New</span>
-                      </div>
-                      <div class="message-actions" style="display: flex; align-items: center; gap: 1rem;">
-                        <span class="message-date" style="color: #64748b; font-size: 0.875rem;">{{ activeTab === 'trash' ? 'Deleted: ' + message.deleted_date : message.date }}</span>
-                        <button v-if="activeTab === 'inbox' || activeTab === 'sent'" @click.stop="moveToTrash(message.id)" title="Move to Trash" style="background: transparent; border: none; color: #64748b; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center;">
-                          <span class="material-symbols-outlined" style="font-size: 1.2rem;">delete</span>
-                        </button>
-                        <button v-if="activeTab === 'trash'" @click.stop="restoreMessage(message.id)" title="Restore Message" style="background: transparent; border: none; color: #10b981; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center;">
-                          <span class="material-symbols-outlined" style="font-size: 1.2rem;">restore_from_trash</span>
-                        </button>
-                      </div>
-                    </div>
-                    
-                    <h5 class="message-title" style="margin-top: 0.5rem;" :style="{ fontWeight: (activeTab === 'inbox' && message.is_read == 0) ? '700' : '500', color: (activeTab === 'inbox' && message.is_read == 0) ? '#f8fafc' : '#e2e8f0' }">{{ message.title }}</h5>
-                  
-                  <transition name="expand">
-                    <div v-if="expandedMessageId === message.id" class="message-expanded-content" style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
-                      <p class="message-preview" style="color: #cbd5e1; line-height: 1.6; margin: 0; white-space: pre-wrap;">{{ message.preview }}</p>
-                      
-                      <!-- Document Attachment Badge -->
-                      <div v-if="message.document_type && message.document_id" class="message-attachment" style="margin-top: 1.5rem; padding: 0.75rem 1rem; background: rgba(147, 51, 234, 0.1); border-radius: 0.5rem; display: inline-flex; align-items: center; gap: 0.75rem; border: 1px solid rgba(185, 121, 204, 0.2);">
-                        <span class="material-symbols-outlined" style="color: #c084fc; font-size: 1.2rem;">attachment</span>
-                        <span style="color: #cbd5e1; font-size: 0.95rem;">
-                          <strong>Attached:</strong> {{ message.document_type }}
-                        </span>
-                        <div style="display: flex; gap: 0.5rem;">
-                          <button v-for="docId in (message.document_id ? message.document_id.split(',') : [])" :key="docId" @click.stop="(message.document_type === 'Activity Design' || message.document_type === 'design') ? viewAttachedDesign(docId) : viewAttachedReport(docId)" class="btn-view-doc" style="background: #9333ea; color: white; border: none; padding: 0.3rem 0.75rem; border-radius: 0.25rem; cursor: pointer; font-size: 0.85rem; transition: background 0.3s;">
-                            View {{ (message.document_type === 'Activity Design' || message.document_type === 'design') ? 'Design' : 'Report' }}
-                          </button>
-                        </div>
-                      </div>
-
-                      <!-- Thread History -->
-                      <div v-if="threadHistory.length > 1" class="message-thread" style="margin-bottom: 1.5rem; background: rgba(0,0,0,0.15); border-radius: 0.5rem; padding: 1rem; border: 1px solid rgba(255,255,255,0.05);">
-                        <h6 style="color: #94a3b8; margin: 0 0 1rem 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Thread History</h6>
-                        <div v-for="(threadMsg, idx) in threadHistory" :key="threadMsg.id" style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                          <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                            <span style="color: #cbd5e1; font-weight: 500; font-size: 1rem;">{{ threadMsg.sender_name }} <span style="color: #64748b; font-size: 0.9rem;">({{ threadMsg.sender_role }})</span></span>
-                            <span style="color: #64748b; font-size: 0.85rem;">{{ threadMsg.date }}</span>
-                          </div>
-                          <p :style="{ color: '#94a3b8', margin: threadMsg.document_id ? '0 0 0.5rem 0' : '0', fontSize: '1rem', whiteSpace: 'pre-wrap' }">{{ threadMsg.message }}</p>
-                          <div v-if="threadMsg.document_id" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                            <button v-for="docId in threadMsg.document_id.split(',')" :key="docId" @click.stop="(threadMsg.document_type === 'Activity Design' || threadMsg.document_type === 'design') ? viewAttachedDesign(docId) : viewAttachedReport(docId)" class="btn-view-doc" style="background: rgba(147, 51, 234, 0.2); color: #c084fc; border: 1px solid rgba(147, 51, 234, 0.3); padding: 0.2rem 0.6rem; border-radius: 0.25rem; cursor: pointer; font-size: 0.75rem; transition: background 0.3s;">
-                              View {{ (threadMsg.document_type === 'Activity Design' || threadMsg.document_type === 'design') ? 'Design' : 'Report' }}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div style="margin-top: 1.5rem;" v-if="activeTab !== 'trash' && replyingToId !== message.id">
-                        <button @click.stop="replyToMessage(message)" class="btn-reply" style="background: rgba(147, 51, 234, 0.2); color: #c084fc; border: 1px solid rgba(147, 51, 234, 0.5); padding: 0.5rem 1.25rem; border-radius: 0.5rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 500; transition: all 0.3s ease;">
-                          <span class="material-symbols-outlined" style="font-size: 1.1rem;">reply</span> Reply
-                        </button>
-                      </div>
-
-                      <!-- Inline Reply Form -->
-                      <transition name="slide-down">
-                        <div v-if="replyingToId === message.id" class="inline-reply-form" @click.stop style="margin-top: 1.5rem; background: rgba(0,0,0,0.3); border-radius: 0.5rem; border: 1px solid rgba(147,51,234,0.3); padding: 1.5rem;">
-                          <h5 style="margin: 0 0 1rem 0; color: #f8fafc; display: flex; justify-content: space-between; align-items: center;">
-                            Reply to {{ replyMessageContext?.sender }}
-                            <button @click="cancelReply" class="btn-close" style="background: transparent; border: none; color: #94a3b8; cursor: pointer;">
-                              <span class="material-symbols-outlined">close</span>
-                            </button>
-                          </h5>
-                          
-
-                          
-                          <div class="form-group" style="margin-bottom: 1.5rem;">
-                            <label style="display: block; margin-bottom: 0.5rem; color: #cbd5e1; font-size: 0.9rem;">Message:</label>
-                            <textarea 
-                              v-model="replyText" 
-                              class="form-control" 
-                              rows="5" 
-                              style="width: 100%; border-radius: 0.5rem; padding: 1rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #f8fafc; resize: vertical;"
-                              placeholder="Type your reply here..."
-                            ></textarea>
-                          </div>
-                          
-                          <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                            <button @click="cancelReply" class="btn-secondary" style="padding: 0.5rem 1rem; border-radius: 0.25rem; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #f8fafc; cursor: pointer;">Cancel</button>
-                            <button @click="sendReply" class="btn-primary" style="padding: 0.5rem 1rem; border-radius: 0.25rem; background: #9333ea; border: none; color: white; cursor: pointer; font-weight: 500;">Send Reply</button>
-                          </div>
-                        </div>
-                      </transition>
-                    </div>
-                  </transition>
-                  </div>
+                <div v-if="messageText" class="panel-footer" style="padding-bottom: 2rem;">
+                  <button @click="sendMessage" class="btn-primary" style="width: 100%;">Send Message</button>
                 </div>
               </div>
-            </div>
-          </div>
+           </div>
+
+           <!-- State: MAKE ANNOUNCEMENT -->
+           <div v-else-if="rightPaneMode === 'announce'" class="compose-pane">
+              <div class="chat-header">
+                 <div class="chat-header-info" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <button class="mobile-back-btn" @click="rightPaneMode = 'none'"><span class="material-symbols-outlined">arrow_back</span></button>
+                    <h3 style="color: #c084fc; display: flex; align-items: center; gap: 0.5rem;"><span class="material-symbols-outlined">campaign</span> Make Announcement</h3>
+                 </div>
+                 <div class="chat-header-actions">
+                    <button @click="rightPaneMode = 'none'" class="icon-btn" title="Cancel"><span class="material-symbols-outlined">close</span></button>
+                 </div>
+              </div>
+              
+              <div class="compose-body">
+                <div class="form-group">
+                  <label class="form-label">Target Audience:</label>
+                  <select v-model="announceTargetType" class="form-control">
+                    <option value="">Select Audience...</option>
+                    <option value="all">Whole University</option>
+                    <option value="role">Specific Role</option>
+                    <option value="office">Specific Office / Unit</option>
+                  </select>
+                </div>
+
+                <div v-if="announceTargetType === 'role'" class="form-group">
+                  <label class="form-label">Select Role:</label>
+                  <select v-model="announceTargetValue" class="form-control">
+                    <option value="">Select Role...</option>
+                    <option v-for="role in roles" :key="role.value" :value="role.value">{{ role.label }}</option>
+                  </select>
+                </div>
+
+                <div v-if="announceTargetType === 'office'" class="form-group">
+                  <label class="form-label">Select Office:</label>
+                  <select v-model="announceTargetValue" class="form-control">
+                    <option value="">Select Office...</option>
+                    <option v-for="office in offices" :key="office.value" :value="office.value">{{ office.label }}</option>
+                  </select>
+                </div>
+
+
+
+                <div v-if="announceTargetType && (announceTargetType === 'all' || announceTargetValue)" class="form-group">
+                  <label class="form-label">Message:</label>
+                  <textarea v-model="announceMessage" class="form-textarea" rows="6" placeholder="Enter your announcement details"></textarea>
+                </div>
+
+                <div v-if="announceMessage" class="panel-footer" style="padding-bottom: 2rem;">
+                  <button @click="sendAnnouncement" class="btn-primary" style="width: 100%; background: linear-gradient(135deg, #9333ea, #c084fc);">Broadcast Announcement</button>
+                </div>
+              </div>
+           </div>
+           
+           <!-- State: ACTIVE CHAT -->
+           <div v-else-if="rightPaneMode === 'chat' && activeConversationId" class="active-chat-wrapper">
+              <!-- Chat Header -->
+              <div class="chat-header">
+                 <div class="chat-header-info" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <button class="mobile-back-btn" @click="rightPaneMode = 'none'"><span class="material-symbols-outlined">arrow_back</span></button>
+                    <div>
+                        <h3>{{ activeConversation?.other_party }}</h3>
+                        <span class="chat-role">{{ activeConversation?.role }} &bull; {{ getOfficeName(activeConversation?.office_id) }}</span>
+                    </div>
+                 </div>
+                 <div class="chat-header-actions">
+                    <button v-if="activeTab !== 'trash'" @click="trashConversation(activeConversation?.thread_id)" class="icon-btn danger-icon-btn" title="Move to Trash">
+                       <span class="material-symbols-outlined">delete</span>
+                    </button>
+                    <button v-if="activeTab === 'trash'" @click="restoreConversation(activeConversation?.thread_id)" class="icon-btn success-icon-btn" title="Restore Chat">
+                       <span class="material-symbols-outlined">restore_from_trash</span>
+                    </button>
+                    <button v-if="activeTab === 'trash'" @click="permanentlyDeleteConversation(activeConversation?.thread_id)" class="icon-btn danger-icon-btn" title="Permanently Delete">
+                       <span class="material-symbols-outlined">delete_forever</span>
+                    </button>
+                 </div>
+              </div>
+              
+              <!-- Chat History -->
+              <div class="chat-history" ref="chatHistoryContainer">
+                 <div v-if="loadingThread" class="loading-state"><div class="spinner"></div></div>
+                 <div v-else class="chat-bubbles-container">
+                    <div v-for="msg in activeThreadHistory" :key="msg.id" 
+                         class="chat-message-row"
+                         :class="{'sent': msg.sender_id == user.id, 'received': msg.sender_id != user.id}">
+                       
+                       <div class="chat-bubble">
+
+                          
+                          <div class="msg-text">{{ msg.message }}</div>
+                          
+                          <div v-if="msg.document_id" class="msg-attachments">
+                             <div class="attachment-label"><span class="material-symbols-outlined">attachment</span> Attachments</div>
+                             <div class="attachment-list">
+                                <button v-for="docId in msg.document_id.split(',')" :key="docId" 
+                                        @click="docId.startsWith('design_') ? viewAttachedDesign(docId) : viewAttachedReport(docId)" 
+                                        class="attachment-btn">
+                                   View {{ docId.startsWith('design_') ? 'Design' : 'Report' }}
+                                </button>
+                             </div>
+                          </div>
+                          
+                          <div class="msg-time">{{ msg.date }}</div>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+              
+              <!-- Chat Composer (Hidden if it's an announcement) -->
+              <div class="chat-composer" v-if="activeTab !== 'trash' && !activeConversation?.is_announcement">
+                 <div v-if="composerDocuments.length > 0" class="composer-attachments-preview">
+                    <span v-for="docId in composerDocuments" :key="docId" class="doc-chip">
+                       {{ getDocTitle(docId) }}
+                       <span @click="composerDocuments = composerDocuments.filter(id => id !== docId)" class="material-symbols-outlined">close</span>
+                    </span>
+                 </div>
+                 
+                 <div class="composer-input-area">
+                    <button @click="showAttachmentMenu = !showAttachmentMenu" class="icon-btn attach-btn" title="Attach Document">
+                       <span class="material-symbols-outlined">attach_file</span>
+                    </button>
+                    
+                    <textarea 
+                       v-model="composerText" 
+                       @keydown.enter.prevent="handleEnter"
+                       placeholder="Type a message..." 
+                       rows="1"
+                       ref="composerTextarea"
+                       @input="adjustTextareaHeight"
+                       class="composer-textarea"></textarea>
+                       
+                    <button @click="sendReply" :disabled="!composerText.trim() && composerDocuments.length === 0" class="send-btn" title="Send">
+                       <span class="material-symbols-outlined">send</span>
+                    </button>
+                 </div>
+                 
+                 <div v-if="showAttachmentMenu" class="attachment-menu">
+                    <div class="attachment-menu-header">
+                       <h4>Select Documents</h4>
+                       <button @click="showAttachmentMenu = false"><span class="material-symbols-outlined">close</span></button>
+                    </div>
+                    <div class="attachment-menu-list">
+                       <label v-for="doc in activeChatUserDocs" :key="doc.id" class="doc-checkbox">
+                          <input type="checkbox" :value="doc.id" v-model="composerDocuments">
+                          <span>{{ doc.title }} ({{ doc.type }})</span>
+                       </label>
+                       <div v-if="activeChatUserDocs.length === 0" class="no-docs">No documents found.</div>
+                    </div>
+                 </div>
+</div>
+              <div class="announcement-banner" v-else-if="activeConversation?.is_announcement">
+                 <span class="material-symbols-outlined">campaign</span>
+                 <p>This is a broadcast announcement. Replies are disabled.</p>
+              </div>
+           </div>
         </div>
       </div>
-      
     </div>
-  </main>
+            </main>
 </template>
 
+
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import api from '../../api';
 
 const router = useRouter();
+const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 
-const messages = ref([]);
-const showCreateModal = ref(false);
+// Extracted Specifics
+const roles = [
+  { value: 'Staff', label: 'Staff' },
+  { value: 'TWG', label: 'TWG' },
+  { value: 'Non-TWG', label: 'Non-TWG' }
+];
+const isTWG = ref(false);
+const hasAnnouncementFeature = ref(true);
+const viewAttachedDesign = (docId) => { 
+  if (!docId) return; 
+  const doc = activeChatUserDocs.value.find(d => d.id === docId);
+  const isPending = doc && doc.title.includes('(Pending)');
+  router.push({ name: isPending ? 'admin-ad-review' : 'admin-ad-view', params: { id: docId.replace('design_', '') } }); 
+};
+const viewAttachedReport = (docId) => { 
+  if (!docId) return; 
+  const doc = activeChatUserDocs.value.find(d => d.id === docId);
+  const isPending = doc && doc.title.includes('(Pending)');
+  router.push({ name: isPending ? 'admin-ar-review' : 'admin-ar-view', params: { id: docId.replace('report_', '') } }); 
+};
+
+// Layout State
+const activeTab = ref('chats');
+const isSelectionMode = ref(false);
+const selectedThreads = ref([]);
+
+
+
+ 
+const loadingMessages = ref(true);
+const conversations = ref([]);
+const trashedConversations = ref([]);
+const activeConversationId = ref(null);
+const activeConversation = ref(null);
+const activeThreadHistory = ref([]);
+const loadingThread = ref(false);
+const chatHistoryContainer = ref(null);
+
+// Right Pane Mode: 'none', 'chat', 'compose', 'announce'
+const rightPaneMode = ref('none');
+
+// Compose State
 const selectedRole = ref('');
 const selectedOffice = ref('');
+const userSearchQuery = ref('');
 const selectedUsers = ref([]);
-const selectedDocumentType = ref('');
 const selectedDocuments = ref([]);
-const pendingDesigns = ref([]);
-const pendingReports = ref([]);
+const allUserDocuments = ref([]);
 const messageTitle = ref('');
 const messageText = ref('');
 const allUsers = ref([]);
 const offices = ref([]);
-const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 
-const activeTab = ref('inbox');
-const expandedMessageId = ref(null);
-const threadHistory = ref([]);
-const selectedTrashIds = ref([]);
-const showReplyModal = ref(false); // kept for safety
-const replyingToId = ref(null);
-const replyMessageContext = ref(null);
-const replyText = ref('');
-const replyDocumentType = ref('');
-const replyDocuments = ref([]);
-const replyPendingDesigns = ref([]);
-const replyPendingReports = ref([]);
+// Announce State
+const announceTargetType = ref('');
+const announceTargetValue = ref('');
+const announceTitle = ref('');
+const announceMessage = ref('');
+
+// Inline Chat Composer State
+const composerText = ref('');
+const composerDocuments = ref([]);
+const showAttachmentMenu = ref(false);
+const activeChatUserDocs = ref([]);
+const composerTextarea = ref(null);
+
+const getUserName = (id) => {
+  const u = allUsers.value.find(x => x.id === id);
+  return u ? u.full_name : 'Unknown';
+};
 
 const getOfficeName = (id) => {
   if (!id) return 'Unknown Office';
@@ -290,190 +425,94 @@ const getOfficeName = (id) => {
   return office ? office.label : 'Unknown Office';
 };
 
-const fetchMessages = async () => {
-  if (user.value.id) {
-    try {
-      const endpoint = activeTab.value === 'inbox' ? `messages/inbox/${user.value.id}` 
-                     : activeTab.value === 'sent' ? `messages/sent/${user.value.id}`
-                     : `messages/trashed/${user.value.id}`;
-      const response = await api.get(endpoint);
-      if (response.data.success) {
-        messages.value = response.data.data;
-        selectedTrashIds.value = [];
-        expandedMessageId.value = null;
-      }
-    } catch (err) {
-      console.error('Error fetching messages:', err);
-    }
+const removeUser = (id) => {
+  selectedUsers.value = selectedUsers.value.filter(u => u !== id);
+};
+
+const adjustTextareaHeight = () => {
+  if (composerTextarea.value) {
+    composerTextarea.value.style.height = 'auto';
+    composerTextarea.value.style.height = Math.min(composerTextarea.value.scrollHeight, 120) + 'px';
   }
 };
 
-const toggleMessageExpand = async (message) => {
-  if (expandedMessageId.value === message.id) {
-    expandedMessageId.value = null;
+const handleEnter = (e) => {
+  if (!e.shiftKey) {
+    sendReply();
   } else {
-    expandedMessageId.value = message.id;
-    // Mark as read
-    if (activeTab.value === 'inbox' && message.is_read == 0) {
-      api.post(`/messages/read/${message.id}`).then(() => {
-        message.is_read = 1;
-      }).catch(err => console.error("Error marking as read", err));
-    }
-    // Fetch thread
-    threadHistory.value = [];
-    api.get(`/messages/thread/${message.id}`).then(res => {
-      if (res.data.success) {
-        threadHistory.value = res.data.data;
-      }
-    }).catch(err => console.error("Error fetching thread", err));
+    composerText.value += '\n';
+    adjustTextareaHeight();
   }
 };
-
-const moveToTrash = async (messageId) => {
-  try {
-    const res = await api.post(`/messages/trash/${messageId}`, { user_id: user.value.id });
-    if (res.data.success) {
-      Swal.fire({ icon: 'success', title: 'Trashed', text: 'Message moved to trash.', timer: 1500, showConfirmButton: false });
-      fetchMessages();
-    }
-  } catch (err) {
-    Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to trash message' });
-  }
-};
-
-const restoreMessage = async (messageId) => {
-  try {
-    const res = await api.post(`/messages/restore/${messageId}`, { user_id: user.value.id });
-    if (res.data.success) {
-      Swal.fire({ icon: 'success', title: 'Restored', text: 'Message restored.', timer: 1500, showConfirmButton: false });
-      fetchMessages();
-    }
-  } catch (err) {
-    Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to restore message' });
-  }
-};
-
-const permanentlyDeleteSelected = async () => {
-  if (selectedTrashIds.value.length === 0) return;
-  const result = await Swal.fire({
-    title: 'Are you sure?',
-    text: "You won't be able to revert this!",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#ef4444',
-    cancelButtonColor: '#64748b',
-    confirmButtonText: 'Yes, delete permanently!'
-  });
-  if (result.isConfirmed) {
-    try {
-      const res = await api.post('/messages/permanently-delete', { 
-        user_id: user.value.id, 
-        message_ids: selectedTrashIds.value 
-      });
-      if (res.data.success) {
-        Swal.fire({ icon: 'success', title: 'Deleted!', text: 'Messages have been permanently deleted.', timer: 1500, showConfirmButton: false });
-        fetchMessages();
-      }
-    } catch (err) {
-      Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to delete messages permanently' });
-    }
-  }
-};
-
-const selectRole = (roleValue) => {
-  selectedRole.value = roleValue;
-  selectedOffice.value = '';
-  selectedUsers.value = [];
-  selectedDocumentType.value = '';
-  selectedDocuments.value = [];
-  messageTitle.value = '';
-  messageText.value = '';
-};
-
-const selectOffice = (officeValue) => {
-  selectedOffice.value = officeValue;
-  selectedUsers.value = [];
-  selectedDocumentType.value = '';
-  selectedDocuments.value = [];
-  messageTitle.value = '';
-  messageText.value = '';
-};
-
-watch(selectedUsers, async (newVal) => {
-  if (newVal.length > 0) {
-    try {
-      const fetchPromises = newVal.map(async (userId) => {
-        try {
-          const [designsRes, reportsRes] = await Promise.all([
-            api.get(`activity-designs/${userId}`),
-            api.get(`activity-reports/${userId}`)
-          ]);
-          
-          const designsList = designsRes.data.data || [];
-          const designs = designsList
-            .filter(d => d.status === 'Pending')
-            .map(d => ({
-              id: `design_${d.act_design_id}`,
-              title: d.title,
-              type: 'Activity Design'
-            }));
-            
-          const reportsList = reportsRes.data.data || [];
-          const reports = reportsList
-            .filter(r => r.status === 'Pending')
-            .map(r => ({
-              id: `report_${r.id}`,
-              title: r.title,
-              type: 'Accomplishment Report'
-            }));
-            
-          return { designs, reports };
-        } catch (e) {
-          console.error(`Error fetching docs for user ${userId}`, e);
-          return { designs: [], reports: [] };
-        }
-      });
-      
-      const allResults = await Promise.all(fetchPromises);
-      pendingDesigns.value = allResults.flatMap(r => r.designs);
-      pendingReports.value = allResults.flatMap(r => r.reports);
-      
-      const currentList = selectedDocumentType.value === 'design' ? pendingDesigns.value : (selectedDocumentType.value === 'report' ? pendingReports.value : []);
-      if (selectedDocuments.value.length > 0) {
-        selectedDocuments.value = selectedDocuments.value.filter(id => currentList.find(d => d.id === id));
-      }
-    } catch (err) {
-      console.error('Error fetching user documents:', err);
-    }
-  } else {
-    pendingDesigns.value = [];
-    pendingReports.value = [];
-    selectedDocumentType.value = '';
-    selectedDocuments.value = [];
-  }
-});
-
-const roles = [
-  { value: 'Staff', label: 'Staff' },
-  { value: 'TWG', label: 'TWG' },
-  { value: 'Non-TWG', label: 'Non-TWG' }
-];
 
 const filteredUsers = computed(() => {
-  let users = allUsers.value.filter(u => u.user_role === selectedRole.value);
+  let users = allUsers.value;
+  
+  if (selectedRole.value) {
+    users = users.filter(u => u.user_role === selectedRole.value);
+  }
   if (selectedOffice.value) {
     users = users.filter(u => String(u.office_id) === String(selectedOffice.value));
   }
+  
+  if (userSearchQuery.value.trim()) {
+    const q = userSearchQuery.value.toLowerCase();
+    users = users.filter(u => 
+      (u.full_name && u.full_name.toLowerCase().includes(q)) || 
+      (u.email && u.email.toLowerCase().includes(q))
+    );
+  }
+  
   return users;
 });
 
+const selectRole = (roleValue) => {
+  selectedRole.value = roleValue === selectedRole.value ? '' : roleValue;
+};
+
+const selectOffice = (officeValue) => {
+  selectedOffice.value = officeValue === selectedOffice.value ? '' : officeValue;
+};
+
+
+
+const fetchMyDocuments = async () => {
+  if (!user.value.id) return;
+  try {
+    const role = user.value.user_role || 'TWG';
+    let designsUrl = `activity-designs/${user.value.id}`;
+    let reportsUrl = `activity-reports/${user.value.id}`;
+    if (role === 'Director' || role === 'Admin') {
+       designsUrl = 'activity-designs';
+       reportsUrl = 'activity-reports';
+    }
+    const [designsRes, reportsRes, archivesRes] = await Promise.all([
+      api.get(designsUrl),
+      api.get(reportsUrl),
+      api.get(`archives?user_id=${user.value.id}&role=${role}`)
+    ]);
+    const activeDesigns = (designsRes.data?.data || []).map(d => ({
+      id: `design_${d.act_design_id}`, title: `${d.title} (${d.status})`, type: 'Activity Design'
+    }));
+    const activeReports = (reportsRes.data?.data || []).map(r => ({
+      id: `report_${r.id}`, title: `${r.title} (${r.status})`, type: 'Accomplishment Report'
+    }));
+    const archivesList = archivesRes.data?.data || [];
+    const archivedDesigns = archivesList.filter(a => a.type === 'design').map(d => ({
+      id: `design_${d.original_id}`, title: `${d.title} (Archived)`, type: 'Activity Design'
+    }));
+    const archivedReports = archivesList.filter(a => a.type === 'report').map(r => ({
+      id: `report_${r.original_id}`, title: `${r.title} (Archived)`, type: 'Accomplishment Report'
+    }));
+    allUserDocuments.value = [...activeDesigns, ...activeReports, ...archivedDesigns, ...archivedReports];
+  } catch(e) { console.error('Error fetching my docs:', e); }
+};
+
 const fetchUsers = async () => {
     try {
-      const [usersResponse, officesResponse] = await Promise.all([
-        api.get('users'),
-        api.get('office_units')
-      ]);
+      const usersResponse = await api.get('users');
       allUsers.value = usersResponse.data;
+      const officesResponse = await api.get('office_units');
       offices.value = officesResponse.data.map(office => ({
         value: office.unit_id || office.office_id,
         label: office.unit_name || office.office_name
@@ -483,662 +522,716 @@ const fetchUsers = async () => {
     }
 };
 
+const processMessagesToConversations = (inbox, sent) => {
+  const threads = {};
+  
+  const processMsg = (msg, type) => {
+    const threadId = msg.parent_id || msg.id;
+    const isUnread = type === 'inbox' && msg.is_read == 0;
+    
+    let displayParty = msg.sender;
+    if (msg.is_announcement == 1) {
+        if (type === 'sent' || msg.direction === 'sent') {
+            displayParty = 'Broadcast Announcements';
+        } else {
+            // Role-based Announcements thread
+            const role = msg.role || 'System';
+            displayParty = `${role} Announcements`;
+        }
+    }
+
+    if (!threads[threadId]) {
+       threads[threadId] = {
+          thread_id: threadId,
+          latest_msg: msg,
+          other_party: displayParty,
+          other_party_id: msg.sender_id,
+          role: (msg.is_announcement == 1 && (type === 'sent' || msg.direction === 'sent')) ? (user.value.user_role || user.value.role) : msg.role,
+          office_id: (msg.is_announcement == 1 && (type === 'sent' || msg.direction === 'sent')) ? user.value.office_id : msg.office_id,
+          unread_count: isUnread ? 1 : 0,
+          is_announcement: msg.is_announcement == 1
+       };
+    } else {
+       if (new Date(msg.created_at || msg.date) > new Date(threads[threadId].latest_msg.created_at || threads[threadId].latest_msg.date)) {
+          threads[threadId].latest_msg = msg;
+          threads[threadId].other_party = displayParty;
+          threads[threadId].other_party_id = msg.sender_id;
+          threads[threadId].role = (msg.is_announcement == 1 && type === 'sent') ? (user.value.user_role || user.value.role) : msg.role;
+          threads[threadId].office_id = (msg.is_announcement == 1 && type === 'sent') ? user.value.office_id : msg.office_id;
+          threads[threadId].is_announcement = msg.is_announcement == 1;
+       }
+       if (isUnread) threads[threadId].unread_count++;
+    }
+  };
+
+  inbox.forEach(m => processMsg(m, 'inbox'));
+  sent.forEach(m => processMsg(m, 'sent'));
+
+  return Object.values(threads).map(t => {
+    const d = new Date(t.latest_msg.date);
+    const now = new Date();
+    let timeShort = t.latest_msg.date;
+    if (d.toDateString() === now.toDateString()) {
+      timeShort = d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    } else {
+      timeShort = d.toLocaleDateString([], {month: 'short', day: 'numeric'});
+    }
+    
+    return {
+      ...t,
+      latest_time_short: timeShort,
+      latest_time: d,
+      preview: t.latest_msg.preview || 'Attachment'
+    };
+  }).sort((a, b) => b.latest_time - a.latest_time);
+};
+
+const fetchMessages = async () => {
+  if (user.value.id) {
+    loadingMessages.value = true;
+    try {
+      const [inboxRes, sentRes, trashRes] = await Promise.all([
+         api.get(`messages/inbox/${user.value.id}`),
+         api.get(`messages/sent/${user.value.id}`),
+         api.get(`messages/trashed/${user.value.id}`)
+      ]);
+      
+      if (inboxRes.data.success && sentRes.data.success) {
+         conversations.value = processMessagesToConversations(inboxRes.data.data, sentRes.data.data);
+      }
+      if (trashRes.data.success) {
+         trashedConversations.value = processMessagesToConversations(trashRes.data.data, []);
+      }
+    } catch (err) {
+      console.error('Error fetching messages:', err);
+    } finally {
+      loadingMessages.value = false;
+    }
+  }
+};
+
+const filteredConversations = computed(() => {
+   return activeTab.value === 'trash' ? trashedConversations.value : conversations.value;
+});
+
+const scrollToBottom = () => {
+   nextTick(() => {
+      if (chatHistoryContainer.value) {
+         chatHistoryContainer.value.scrollTop = chatHistoryContainer.value.scrollHeight;
+      }
+   });
+};
+
+const toggleSelectionMode = () => {
+    isSelectionMode.value = !isSelectionMode.value;
+    if (!isSelectionMode.value) {
+        selectedThreads.value = [];
+    }
+};
+
+const toggleThreadSelection = (threadId, event) => {
+    event.stopPropagation();
+    const index = selectedThreads.value.indexOf(threadId);
+    if (index === -1) {
+        selectedThreads.value.push(threadId);
+    } else {
+        selectedThreads.value.splice(index, 1);
+    }
+};
+
+const bulkTrash = async () => {
+    if (selectedThreads.value.length === 0) return;
+    try {
+        const res = await api.post('messages/bulk-trash', {
+            user_id: user.value.id,
+            message_ids: selectedThreads.value
+        });
+        if (res.data.success) {
+            Swal.fire({ icon: 'success', title: 'Trashed', text: 'Selected conversations moved to trash.', timer: 1500, showConfirmButton: false });
+            isSelectionMode.value = false;
+            selectedThreads.value = [];
+            fetchMessages();
+        }
+    } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to trash conversations' });
+    }
+};
+
+const bulkRestore = async () => {
+    if (selectedThreads.value.length === 0) return;
+    try {
+        const res = await api.post('messages/bulk-restore', {
+            user_id: user.value.id,
+            message_ids: selectedThreads.value
+        });
+        if (res.data.success) {
+            Swal.fire({ icon: 'success', title: 'Restored', text: 'Selected conversations restored.', timer: 1500, showConfirmButton: false });
+            isSelectionMode.value = false;
+            selectedThreads.value = [];
+            fetchMessages();
+        }
+    } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to restore conversations' });
+    }
+};
+
+const bulkPermanentlyDelete = async () => {
+    if (selectedThreads.value.length === 0) return;
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this! Selected conversations will be deleted permanently.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Yes, delete permanently!'
+    });
+    if (result.isConfirmed) {
+        try {
+            const res = await api.post('messages/permanently-delete', {
+                user_id: user.value.id,
+                message_ids: selectedThreads.value
+            });
+            if (res.data.success) {
+                Swal.fire({ icon: 'success', title: 'Deleted', text: 'Selected conversations deleted permanently.', timer: 1500, showConfirmButton: false });
+                isSelectionMode.value = false;
+                selectedThreads.value = [];
+                fetchMessages();
+            }
+        } catch (err) {
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to delete permanently' });
+        }
+    }
+};
+
+const selectConversation = async (conv) => {
+   if (isSelectionMode.value) {
+       const index = selectedThreads.value.indexOf(conv.thread_id);
+       if (index === -1) selectedThreads.value.push(conv.thread_id);
+       else selectedThreads.value.splice(index, 1);
+       return;
+   }
+   activeConversationId.value = conv.thread_id;
+   activeConversation.value = conv;
+   rightPaneMode.value = 'chat';
+   conv.unread_count = 0;
+   
+   loadingThread.value = true;
+   activeThreadHistory.value = [];
+   composerText.value = '';
+   composerDocuments.value = [];
+   showAttachmentMenu.value = false;
+   
+   try {
+      const res = await api.get(`messages/thread/${conv.thread_id}`);
+      if (res.data.success) {
+         activeThreadHistory.value = res.data.data;
+         
+         activeThreadHistory.value.forEach(msg => {
+            if (String(msg.sender_id) !== String(user.value.id) && msg.is_read == 0) {
+               api.post(`messages/read/${msg.id}`, {}).catch(()=>{}).then(()=>{
+                  conv.unread_count = 0; 
+               });
+            }
+         });
+         
+         scrollToBottom();
+         
+         activeChatUserDocs.value = allUserDocuments.value;
+      }
+   } catch (err) {
+      console.error('Error fetching thread:', err);
+   } finally {
+      loadingThread.value = false;
+   }
+};
+
+const getDocTitle = (docId) => {
+   const d = activeChatUserDocs.value.find(x => x.id === docId);
+   return d ? d.title : docId;
+};
+
 const sendMessage = async () => {
   if (!user.value.id) return;
   try {
+    let threadId = null;
+    if (selectedUsers.value.length === 1) {
+        const targetId = selectedUsers.value[0];
+        const existingConv = conversations.value.find(c => String(c.other_party_id) === String(targetId) && !c.is_announcement);
+        if (existingConv) {
+            threadId = existingConv.thread_id;
+        }
+    }
+
     const payload = {
       sender_id: user.value.id,
       to: selectedUsers.value,
+      parent_id: threadId,
       title: messageTitle.value,
       message: messageText.value,
-      document_type: selectedDocumentType.value || null,
-      document_id: selectedDocuments.value.length > 0 ? selectedDocuments.value : null
+      document_type: selectedDocuments.value.length > 0 ? 'Mixed' : null,
+      document_id: selectedDocuments.value.length > 0 ? selectedDocuments.value.join(',') : null
     };
     
     const response = await api.post('messages/send', payload);
     if (response.data.success) {
-      showCreateModal.value = false;
+      if (threadId) {
+         const existingConv = conversations.value.find(c => c.thread_id === threadId);
+         if (existingConv) {
+            selectConversation(existingConv);
+         } else {
+            rightPaneMode.value = 'none';
+         }
+      } else {
+         rightPaneMode.value = 'none';
+      }
+      
       selectRole('');
-      Swal.fire({
-        icon: 'success',
-        title: 'Success!',
-        text: 'Message sent successfully.',
-        confirmButtonColor: '#9333ea'
-      });
-      if (activeTab.value === 'sent') fetchMessages();
+      selectedOffice.value = '';
+      userSearchQuery.value = '';
+      selectedUsers.value = [];
+      messageTitle.value = '';
+      messageText.value = '';
+      selectedDocuments.value = [];
+      Swal.fire({ icon: 'success', title: 'Success!', text: 'Message sent successfully.', timer: 1500, showConfirmButton: false });
+      fetchMessages();
     }
   } catch (err) {
-    console.error('Error sending message:', err);
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Failed to send message.',
-      confirmButtonColor: '#ef4444'
-    });
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to send message.' });
   }
 };
 
-const replyToMessage = async (message) => {
-  replyMessageContext.value = message;
-  replyText.value = '';
-  replyDocumentType.value = '';
-  replyDocuments.value = [];
-  replyingToId.value = message.id;
-
-  try {
-    const designsRes = await api.get('/activity-designs');
-    replyPendingDesigns.value = designsRes.data.filter(d => d.status === 'Pending');
-    const reportsRes = await api.get('/accomplishment-reports');
-    replyPendingReports.value = reportsRes.data.filter(r => r.status === 'Pending');
-  } catch (error) {
-    console.error('Error fetching documents for reply:', error);
+const sendAnnouncement = async () => {
+  if (!user.value.id) return;
+  if (!announceTargetType.value) {
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Please select a target audience.' });
+    return;
   }
-};
-
-const cancelReply = () => {
-  replyingToId.value = null;
-  replyMessageContext.value = null;
-  replyText.value = '';
-  replyDocumentType.value = '';
-  replyDocuments.value = [];
-};
-
-const sendReply = async () => {
-  if (!replyText.value) {
-    Swal.fire({ icon: 'error', title: 'Error', text: 'Message cannot be empty.' });
+  if (announceTargetType.value !== 'all' && !announceTargetValue.value) {
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Please select a specific role or office.' });
+    return;
+  }
+  if (!announceMessage.value) {
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Please fill in all fields.' });
     return;
   }
 
   try {
     const payload = {
       sender_id: user.value.id,
-      to: [replyMessageContext.value.sender_id],
-      parent_id: replyMessageContext.value.parent_id || replyMessageContext.value.id,
-      title: replyMessageContext.value.title.startsWith('Re:') ? replyMessageContext.value.title : `Re: ${replyMessageContext.value.title}`,
-      message: replyText.value,
-      document_type: replyDocumentType.value || null,
-      document_id: replyDocuments.value.length > 0 ? replyDocuments.value : null
+      target_type: announceTargetType.value,
+      target_value: announceTargetValue.value,
+      title: announceTitle.value,
+      message: announceMessage.value
     };
-
-    const response = await api.post('/messages/send', payload);
+    
+    const response = await api.post('messages/announce', payload);
     if (response.data.success) {
+      rightPaneMode.value = 'none';
+      announceTargetType.value = '';
+      announceTargetValue.value = '';
+      announceTitle.value = '';
+      announceMessage.value = '';
       Swal.fire({
         icon: 'success',
-        title: 'Sent!',
-        text: 'Reply sent successfully.',
-        timer: 1500,
-        showConfirmButton: false
+        title: 'Success!',
+        text: 'Announcement broadcasted successfully.',
+        confirmButtonColor: '#3b82f6'
       });
-      cancelReply();
-      if (activeTab.value === 'inbox') fetchMessages();
-    } else {
-      Swal.fire({ icon: 'error', title: 'Error', text: response.data.message || 'Failed to send reply.' });
+      fetchMessages();
     }
-  } catch (error) {
-    console.error('Error sending reply:', error);
+  } catch (err) {
+    console.error('Error sending announcement:', err);
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to send announcement.' });
+  }
+};
+
+const sendReply = async () => {
+  if (!composerText.value.trim() && composerDocuments.value.length === 0) return;
+  if (!activeConversation.value) return;
+
+  const originalTitle = activeThreadHistory.value[0]?.title || '';
+  const replyTitle = originalTitle.startsWith('Re:') ? originalTitle : (originalTitle ? `Re: ${originalTitle}` : 'Re: Message');
+
+  try {
+    const payload = {
+      sender_id: user.value.id,
+      to: [activeConversation.value.other_party_id],
+      parent_id: activeConversation.value.thread_id,
+      title: replyTitle,
+      message: composerText.value.trim(),
+      document_type: composerDocuments.value.length > 0 ? 'Mixed' : null,
+      document_id: composerDocuments.value.length > 0 ? composerDocuments.value.join(',') : null
+    };
+    
+    const response = await api.post('messages/send', payload);
+    if (response.data.success) {
+      composerText.value = '';
+      composerDocuments.value = [];
+      showAttachmentMenu.value = false;
+      adjustTextareaHeight();
+      
+      selectConversation(activeConversation.value);
+      fetchMessages(); 
+    }
+  } catch (err) {
     Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to send reply.' });
   }
 };
 
-const viewAttachedDesign = (docId) => {
-  if (!docId) return;
-  const id = docId.replace('design_', '');
-  router.push({ name: 'admin-ad-review', params: { id } });
+const trashConversation = async (threadId) => {
+   if(!threadId) return;
+   try {
+     const res = await api.post(`messages/trash/${threadId}`, { user_id: user.value.id });
+     if (res.data.success) {
+       Swal.fire({ icon: 'success', title: 'Trashed', text: 'Conversation moved to trash.', timer: 1500, showConfirmButton: false });
+       rightPaneMode.value = 'none';
+       activeConversationId.value = null;
+       activeConversation.value = null;
+       fetchMessages();
+     }
+   } catch (err) {
+     Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to trash conversation' });
+   }
 };
 
-const viewAttachedReport = (docId) => {
-  if (!docId) return;
-  const id = docId.replace('report_', '');
-  router.push({ name: 'admin-ar-review', params: { id } });
+const restoreConversation = async (threadId) => {
+   if(!threadId) return;
+   try {
+     const res = await api.post(`messages/restore/${threadId}`, { user_id: user.value.id });
+     if (res.data.success) {
+       Swal.fire({ icon: 'success', title: 'Restored', text: 'Conversation restored.', timer: 1500, showConfirmButton: false });
+       rightPaneMode.value = 'none';
+       activeConversationId.value = null;
+       activeConversation.value = null;
+       fetchMessages();
+     }
+   } catch (err) {
+     Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to restore conversation' });
+   }
 };
+
+const permanentlyDeleteConversation = async (threadId) => {
+   if(!threadId) return;
+   const result = await Swal.fire({
+     title: 'Are you sure?',
+     text: "You won't be able to revert this!",
+     icon: 'warning',
+     showCancelButton: true,
+     confirmButtonColor: '#ef4444',
+     cancelButtonColor: '#64748b',
+     confirmButtonText: 'Yes, delete permanently!'
+   });
+   if (result.isConfirmed) {
+     try {
+       const res = await api.post('messages/permanently-delete', { 
+         user_id: user.value.id, 
+         message_ids: [threadId] 
+       });
+       if (res.data.success) {
+         Swal.fire({ icon: 'success', title: 'Deleted!', text: 'Conversation permanently deleted.', timer: 1500, showConfirmButton: false });
+         rightPaneMode.value = 'none';
+         activeConversationId.value = null;
+         activeConversation.value = null;
+         fetchMessages();
+       }
+     } catch (err) {
+       Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to delete permanently' });
+     }
+   }
+};
+
+watch(activeTab, () => {
+   rightPaneMode.value = 'none';
+   activeConversationId.value = null;
+   activeConversation.value = null;
+   isSelectionMode.value = false;
+   selectedThreads.value = [];
+});
 
 onMounted(() => {
   fetchUsers();
+  fetchMyDocuments();
   fetchMessages();
 });
 </script>
 
+
 <style scoped>
-.messages-main-content {
-  padding-left: 0;
-  flex-grow: 1;
+.messages-main-content { padding: 0; flex-grow: 1; height: 100%; display: flex; flex-direction: column; }
+.messages-content-wrapper { display: flex; flex-direction: column; flex-grow: 1; height: calc(100vh - 2rem); min-height: 95vh; }
+.header-section { flex-shrink: 0; }
+.page-title { font-size: 2rem; color: #1e293b; font-weight: 900; letter-spacing: -0.025em; margin-bottom: 0.25rem; }
+.page-subtitle { color: #64748b; font-size: 0.95rem; }
+
+/* System Dark Theme inside the app container */
+.messenger-container {
+   flex-grow: 1;
+   display: flex;
+   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+   border: 1px solid rgba(185, 121, 204, 0.15);
+   border-radius: 1rem;
+   overflow: hidden;
+   box-shadow: 0 20px 25px -5px rgba(0,0,0,0.25);
+   backdrop-filter: blur(8px);
+   max-width: 100%;
+}
+
+.messenger-sidebar {
+   width: 350px;
+   background: rgba(0, 0, 0, 0.2);
+   border-right: 1px solid rgba(185, 121, 204, 0.15);
+   display: flex;
+   flex-direction: column;
+   flex-shrink: 0;
+}
+
+.sidebar-top {
+   padding: 1rem;
+   border-bottom: 1px solid rgba(185, 121, 204, 0.15);
+}
+
+.sidebar-header {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   margin-bottom: 1rem;
+}
+.sidebar-header h2 { color: #f8fafc; font-size: 1.25rem; margin: 0; font-weight: 700; }
+.sidebar-actions { display: flex; gap: 0.5rem; }
+.icon-btn { 
+   background: transparent; border: none; color: #94a3b8; cursor: pointer; 
+   width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+   transition: background 0.2s, color 0.2s;
+}
+.icon-btn:hover { background: rgba(185, 121, 204, 0.1); color: #f8fafc; }
+.primary-icon-btn { background: linear-gradient(135deg, #9333ea 0%, #c084fc 100%); color: white; }
+.primary-icon-btn:hover { box-shadow: 0 4px 12px rgba(147, 51, 234, 0.4); transform: translateY(-1px); }
+.danger-icon-btn:hover { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+.success-icon-btn:hover { background: rgba(34, 197, 94, 0.2); color: #86efac; }
+
+.sidebar-tabs {
+   display: flex;
+   background: rgba(0,0,0,0.3);
+   border-radius: 0.5rem;
+   padding: 0.25rem;
+   border: 1px solid rgba(185, 121, 204, 0.1);
+}
+.sidebar-tabs button {
+   flex: 1; padding: 0.5rem; border: none; background: transparent; color: #94a3b8;
+   border-radius: 0.35rem; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s;
+}
+.sidebar-tabs button.active {
+   background: rgba(147, 51, 234, 0.2); color: #c084fc; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border: 1px solid rgba(147, 51, 234, 0.3);
+}
+
+.conversation-list {
+   flex-grow: 1;
+   overflow-y: auto;
+   padding: 0.5rem;
+}
+.conversation-item {
+   display: flex; gap: 0.75rem; padding: 0.75rem; border-radius: 0.5rem;
+   cursor: pointer; transition: background 0.2s; margin-bottom: 0.25rem; border: 1px solid transparent;
+}
+.conversation-item:hover { background: rgba(185, 121, 204, 0.05); border-color: rgba(185, 121, 204, 0.1); }
+.conversation-item.active { background: rgba(185, 121, 204, 0.15); border-color: rgba(185, 121, 204, 0.3); }
+
+.conv-avatar {
+   width: 44px; height: 44px; border-radius: 50%; background: rgba(0,0,0,0.3); border: 1px solid rgba(185, 121, 204, 0.2);
+   display: flex; align-items: center; justify-content: center; color: #c084fc; position: relative; flex-shrink: 0;
+}
+.unread-badge {
+   position: absolute; top: -2px; right: -2px; width: 12px; height: 12px;
+   background: #3b82f6; border-radius: 50%; border: 2px solid #16213e;
+}
+
+.conv-details { flex-grow: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+.conv-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.25rem; }
+.conv-name { color: #f8fafc; font-weight: 600; font-size: 1.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.conv-name.unread { color: #60a5fa; font-weight: 700; }
+.conv-time { color: #64748b; font-size: 0.75rem; white-space: nowrap; }
+.conv-role { color: #94a3b8; font-size: 0.85rem; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.conv-preview { color: #94a3b8; font-size: 1.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.conv-preview.unread { color: #cbd5e1; font-weight: 500; }
+
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #64748b; text-align: center; padding: 2rem; }
+.empty-state .material-symbols-outlined { font-size: 3rem; color: rgba(148, 163, 184, 0.2); margin-bottom: 1rem; }
+
+.messenger-chat-pane {
+   flex-grow: 1;
+   display: flex;
+   flex-direction: column;
+   background: transparent;
+   position: relative;
+   min-width: 0;
 }
 
-.messages-content-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+.no-chat-selected {
+   display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;
+   color: #64748b; text-align: center;
 }
+.no-chat-icon { width: 80px; height: 80px; border-radius: 50%; background: rgba(0,0,0,0.2); border: 1px solid rgba(185, 121, 204, 0.1); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; }
+.no-chat-icon span { font-size: 2.5rem; color: rgba(147, 51, 234, 0.4); }
 
-.messages-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 0.25rem;
-}
-
-.messages-title {
-  font-size: 1.5rem;
-  font-weight: 900;
-  letter-spacing: -0.025em;
-  color: #1a1a2e;
-}
-
-.messages-subtitle {
-  font-size: 1rem;
-  color: #475569;
-  margin-top: 0.25rem;
-}
-
-.create-message-btn {
-  background: linear-gradient(135deg, #9333ea 0%, #c084fc 100%);
-  border: none;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.75rem;
-  font-size: 0.95rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-.create-message-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-}
-
-.stats-section {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
-}
-
-.stat-card {
-  padding: 1rem;
-  border-radius: 1rem;
-  border: 1px solid rgba(185, 121, 204, 0.15);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(8px);
-  transition: all 0.3s;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-}
-
-.stat-card:hover {
-  transform: translateY(-4px);
-}
-
-.stat-card-inner {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.stat-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.stat-icon-symbol {
-  font-weight: 500;
-  font-size: 1.125rem;
-}
-
-/* Icon Colors */
-.text-purple-400 { color: #c084fc; }
-.text-blue-400 { color: #60a5fa; }
-.text-amber-400 { color: #fbbf24; }
-.text-green-400 { color: #4ade80; }
-
-/* Background Classes */
-.bg-purple-500\/10 { background: rgba(168, 85, 247, 0.1); }
-.bg-blue-500\/10 { background: rgba(59, 130, 246, 0.1); }
-.bg-amber-500\/10 { background: rgba(245, 158, 11, 0.1); }
-.bg-green-500\/10 { background: rgba(34, 197, 94, 0.1); }
-
-.stat-info {
-  min-width: 0;
-}
-
-.stat-value {
-  font-size: 1.25rem;
-  font-weight: 900;
-  letter-spacing: -0.025em;
-  color: white;
-  line-height: 1.25;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.stat-label {
-  font-size: 0.85rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: rgba(203, 213, 225, 0.7);
-  margin-top: 0.125rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.messages-section {
-  border-radius: 1rem;
-  border: 1px solid rgba(185, 121, 204, 0.15);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(8px);
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  padding: 1.5rem;
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1.25rem;
-}
-
-.title-indicator {
-  width: 0.375rem;
-  height: 1rem;
-  background: linear-gradient(to bottom, #9333ea, #c084fc);
-  border-radius: 9999px;
-}
-
-.section-title {
-  font-weight: 700;
-  color: #ffffff;
-  font-size: 1.125rem;
-  margin: 0;
-}
-
-.messages-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.empty-state {
-  border: 1px solid rgba(147, 51, 234, 0.15);
-  background: transparent;
-  padding: 3rem;
-  border-radius: 0.75rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  margin-top: 0.5rem;
-}
-
-.empty-icon {
-  width: 64px;
-  height: 64px;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(147, 51, 234, 0.1);
-  border-radius: 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 1rem;
-}
-
-.empty-icon .material-symbols-outlined {
-  font-size: 2rem;
-  color: #c084fc;
-}
-
-.empty-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #c084fc;
-  margin-bottom: 0.5rem;
-}
-
-.empty-text {
-  font-size: 1rem;
-  color: #94a3b8;
-}
-
-.message-card {
-  border: 1px solid rgba(185, 121, 204, 0.1);
-  border-radius: 0.75rem;
-  padding: 1.25rem;
-  background: rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
-}
-
-.message-card:hover {
-  background: rgba(185, 121, 204, 0.05);
-  border-color: rgba(185, 121, 204, 0.3);
-  transform: translateX(4px);
-}
-
-.message-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-}
-
-.message-sender {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.sender-icon {
-  color: #c084fc;
-  font-size: 1.25rem;
-}
-
-.sender-name {
-  color: #f1f5f9;
-  font-weight: 600;
-  font-size: 1rem;
-}
-
-.message-date {
-  color: #94a3b8;
-  font-size: 0.85rem;
-  font-family: monospace;
-}
-
-.message-title {
-  color: #ffffff;
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.message-preview {
-  color: #cbd5e1;
-  font-size: 1rem;
-  line-height: 1.5;
-}
-
-/* Panel Styles */
-.create-message-panel {
-  border-radius: 1rem;
-  border: 1px solid rgba(185, 121, 204, 0.15);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(8px);
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  color: white;
-}
-
-/* Transitions */
-.slide-down-enter-active,
-.slide-down-leave-active {
-  transition: all 0.3s ease-out;
-  transform-origin: top;
-}
-.slide-down-enter-from,
-.slide-down-leave-to {
-  opacity: 0;
-  transform: translateY(-20px) scaleY(0.95);
-}
-
-.panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(185, 121, 204, 0.15);
-}
-
-.panel-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin: 0;
-}
-
-.close-btn {
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(185, 121, 204, 0.1);
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  transition: background 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.close-btn:hover {
-  background: rgba(185, 121, 204, 0.1);
-}
-
-.close-btn .material-symbols-outlined {
-  font-size: 1.5rem;
-  color: #c084fc;
-}
-
-.panel-body {
-  padding: 1.5rem 0;
-}
-
-.panel-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(185, 121, 204, 0.15);
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-label {
-  display: block;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #ffffff;
-  margin-bottom: 0.75rem;
-}
-
-.sub-label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #cbd5e1;
-  margin-bottom: 0.5rem;
-}
-
-.filter-group {
-  margin-bottom: 1.25rem;
-}
-
-.role-buttons,
-.office-buttons {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.role-btn,
-.office-btn {
-  padding: 0.625rem 1.25rem;
-  border: 1px solid rgba(185, 121, 204, 0.2);
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 0.75rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  color: #cbd5e1;
-}
-
-.role-btn:hover,
-.office-btn:hover {
-  border-color: #c084fc;
-  color: #c084fc;
-  background: rgba(185, 121, 204, 0.05);
-}
-
-.role-btn.active,
-.office-btn.active {
-  background: linear-gradient(135deg, #9333ea 0%, #c084fc 100%);
-  border-color: transparent;
-  color: white;
-}
-
-.user-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  max-height: 200px;
-  overflow-y: auto;
-  border: 1px solid rgba(185, 121, 204, 0.15);
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 0.75rem;
-  padding: 0.75rem;
-}
-
-.user-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: background 0.3s ease;
-  color: #f1f5f9;
-}
-
-.user-item:hover {
-  background: rgba(185, 121, 204, 0.1);
-}
-
-.user-item input[type="checkbox"] {
-  width: 1.25rem;
-  height: 1.25rem;
-  accent-color: #c084fc;
-}
-
-.user-email {
-  color: #94a3b8;
-  font-size: 0.85em;
-  margin-left: 0.25rem;
-}
-
-.no-users-msg {
-  color: #94a3b8;
-  font-style: italic;
-  padding: 0.5rem;
-}
-
-.form-input {
-  width: 100%;
-  padding: 0.875rem 1rem;
-  border: 1px solid rgba(185, 121, 204, 0.2);
-  background: rgba(0, 0, 0, 0.2);
-  color: white;
-  border-radius: 0.75rem;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
-}
-
-.form-input::placeholder {
-  color: #64748b;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: #c084fc;
-}
-
-.form-textarea {
-  width: 100%;
-  padding: 0.875rem 1rem;
-  border: 1px solid rgba(185, 121, 204, 0.2);
-  background: rgba(0, 0, 0, 0.2);
-  color: white;
-  border-radius: 0.75rem;
-  font-size: 1rem;
-  font-family: inherit;
-  transition: border-color 0.3s ease;
-  resize: vertical;
-}
-
-.form-textarea::placeholder {
-  color: #64748b;
-}
-
-.form-textarea:focus {
-  outline: none;
-  border-color: #c084fc;
-}
-
-.btn-primary,
-.btn-secondary {
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.75rem;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #9333ea 0%, #c084fc 100%);
-  border: none;
-  color: white;
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px -5px rgba(147, 51, 234, 0.4);
-}
-
-.btn-secondary {
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(185, 121, 204, 0.2);
-  color: #cbd5e1;
-}
-
-.btn-secondary:hover {
-  border-color: #c084fc;
-  color: white;
-  background: rgba(185, 121, 204, 0.1);
-}
-
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
-}
+.active-chat-wrapper, .compose-pane { display: flex; flex-direction: column; height: 100%; }
 
-::-webkit-scrollbar-thumb {
-  background: rgba(185, 121, 204, 0.3);
-  border-radius: 99px;
+.chat-header {
+   padding: 1rem 1.5rem; border-bottom: 1px solid rgba(185, 121, 204, 0.15);
+   display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2);
 }
+.chat-header-info h3 { color: #f8fafc; margin: 0 0 0.25rem 0; font-size: 1.1rem; }
+.chat-role { color: #94a3b8; font-size: 0.85rem; }
+.chat-header-actions { display: flex; gap: 0.5rem; }
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(153, 13, 209, 0.5);
+.mobile-back-btn {
+   display: none; background: transparent; border: none; color: #f8fafc; padding: 0.25rem;
+   margin-right: 0.5rem; cursor: pointer; border-radius: 50%; align-items: center; justify-content: center;
 }
+.mobile-back-btn:hover { background: rgba(255,255,255,0.1); }
 
-/* Responsive */
 @media (max-width: 768px) {
-  .messages-content-wrapper {
-    padding: 20px;
-  }
+   .mobile-back-btn { display: flex; }
+   .hidden-on-mobile { display: none !important; }
+   .messenger-sidebar { width: 100%; border-right: none; }
 }
+
+.chat-history {
+   flex-grow: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem;
+}
+.chat-bubbles-container { display: flex; flex-direction: column; gap: 1rem; }
+.chat-message-row { display: flex; width: 100%; }
+.chat-message-row.sent { justify-content: flex-end; }
+.chat-message-row.received { justify-content: flex-start; }
+
+.chat-bubble {
+   max-width: 85%; padding: 0.75rem 1rem; border-radius: 1rem; position: relative;
+   display: flex; flex-direction: column; gap: 0.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.chat-message-row.received .chat-bubble {
+   background: rgba(0,0,0,0.3); color: #f8fafc; border-bottom-left-radius: 0.25rem; border: 1px solid rgba(185, 121, 204, 0.1);
+}
+.chat-message-row.sent .chat-bubble {
+   background: linear-gradient(135deg, #9333ea 0%, #c084fc 100%); color: white; border-bottom-right-radius: 0.25rem;
+}
+
+.msg-title { font-weight: 700; font-size: 1.3rem; margin: 0; padding-bottom: 0.25rem; border-bottom: 1px solid rgba(255,255,255,0.2); }
+.msg-text { font-size: 1.25rem; line-height: 1.6; white-space: pre-wrap; }
+.msg-time { font-size: 0.7rem; opacity: 0.7; align-self: flex-end; margin-top: 0.25rem; font-family: monospace; }
+
+.msg-attachments {
+   background: rgba(0,0,0,0.15); padding: 0.5rem; border-radius: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; border: 1px solid rgba(255,255,255,0.1);
+}
+.attachment-label { font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 0.25rem; opacity: 0.9; }
+.attachment-label span { font-size: 1rem; }
+.attachment-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.attachment-btn {
+   background: rgba(255,255,255,0.2); border: none; color: white; padding: 0.25rem 0.5rem;
+   border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; transition: background 0.2s;
+}
+.attachment-btn:hover { background: rgba(255,255,255,0.3); }
+
+.chat-composer {
+   padding: 1rem 1.5rem; background: rgba(0,0,0,0.2); border-top: 1px solid rgba(185, 121, 204, 0.15);
+   position: relative;
+}
+.composer-input-area {
+   display: flex; align-items: flex-end; gap: 0.75rem; background: rgba(0,0,0,0.3);
+   border: 1px solid rgba(185, 121, 204, 0.2); padding: 0.5rem; border-radius: 1.5rem; transition: border-color 0.3s;
+}
+.composer-input-area:focus-within { border-color: #c084fc; box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.2); }
+
+.composer-textarea {
+   flex-grow: 1; background: transparent; border: none; color: #f8fafc; font-size: 1.15rem;
+   font-family: inherit; resize: none; padding: 0.5rem 0; outline: none; max-height: 120px; line-height: 1.5;
+}
+.composer-textarea::placeholder { color: #64748b; }
+
+.attach-btn { color: #94a3b8; }
+.attach-btn:hover { color: #c084fc; background: rgba(147,51,234,0.1); }
+.send-btn {
+   background: linear-gradient(135deg, #9333ea 0%, #c084fc 100%); border: none; color: white; width: 36px; height: 36px; border-radius: 50%;
+   display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+}
+.send-btn:hover:not(:disabled) { transform: scale(1.05); box-shadow: 0 4px 10px rgba(147, 51, 234, 0.4); }
+.send-btn:disabled { background: rgba(0,0,0,0.3); color: #64748b; cursor: not-allowed; border: 1px solid rgba(255,255,255,0.1); }
+
+.attachment-menu {
+   position: absolute; bottom: 100%; left: 1.5rem; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border: 1px solid rgba(185, 121, 204, 0.3);
+   border-radius: 0.75rem; padding: 1rem; width: 300px; box-shadow: 0 -5px 15px rgba(0,0,0,0.5); margin-bottom: 0.5rem; z-index: 10;
+}
+.attachment-menu-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; }
+.attachment-menu-header h4 { margin: 0; color: #f8fafc; font-size: 0.95rem; }
+.attachment-menu-header button { background: none; border: none; color: #94a3b8; cursor: pointer; }
+.attachment-menu-list { display: flex; flex-direction: column; gap: 0.5rem; max-height: 200px; overflow-y: auto; }
+.doc-checkbox { display: flex; align-items: center; gap: 0.5rem; color: #cbd5e1; font-size: 0.85rem; cursor: pointer; }
+.doc-checkbox input { accent-color: #9333ea; }
+
+.composer-attachments-preview { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
+.doc-chip {
+   background: rgba(147, 51, 234, 0.2); color: #e9d5ff; padding: 0.25rem 0.5rem; border-radius: 0.25rem;
+   font-size: 0.8rem; display: flex; align-items: center; gap: 0.25rem; border: 1px solid rgba(147,51,234,0.3);
+}
+.doc-chip span { font-size: 1rem; cursor: pointer; }
+
+/* COMPOSE & ANNOUNCE BODY */
+.compose-body { flex-grow: 1; padding: 1.5rem; overflow-y: auto; }
+.form-group { margin-bottom: 1.25rem; }
+.form-label { display: block; font-weight: 600; color: #f8fafc; margin-bottom: 0.5rem; font-size: 0.95rem; }
+.sub-label { display: block; color: #cbd5e1; font-size: 0.85rem; margin-bottom: 0.25rem; }
+.filter-group { margin-bottom: 1rem; }
+.role-buttons, .office-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.role-btn, .office-btn { background: rgba(0,0,0,0.2); border: 1px solid rgba(185, 121, 204, 0.2); color: #cbd5e1; padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; font-size: 0.85rem; }
+.role-btn.active, .office-btn.active { background: linear-gradient(135deg, #9333ea 0%, #c084fc 100%); color: white; border-color: transparent; }
+
+.user-list { border: 1px solid rgba(185, 121, 204, 0.15); border-radius: 0.5rem; max-height: 200px; overflow-y: auto; padding: 0.5rem; background: rgba(0,0,0,0.2); }
+.user-item { display: flex; align-items: center; gap: 0.5rem; color: #f8fafc; padding: 0.4rem 0.25rem; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.user-item:last-child { border-bottom: none; }
+.user-item input { accent-color: #9333ea; width: 16px; height: 16px; }
+.user-email { color: #94a3b8; font-size: 0.8rem; }
+.no-users-msg { color: #94a3b8; font-size: 0.9rem; padding: 0.5rem; text-align: center; }
+
+.form-input, .form-textarea, select.form-control { width: 100%; padding: 0.75rem; border-radius: 0.5rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(185, 121, 204, 0.2); color: white; font-family: inherit; }
+select.form-control option { background: #1e293b; color: #f8fafc; }
+.form-textarea { resize: vertical; }
+
+.panel-footer { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(185, 121, 204, 0.15); }
+.btn-primary { background: linear-gradient(135deg, #9333ea 0%, #c084fc 100%); color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 0.5rem; cursor: pointer; font-weight: 600; box-shadow: 0 4px 6px rgba(147, 51, 234, 0.2); transition: transform 0.2s; font-size: 1rem; }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 12px rgba(147, 51, 234, 0.3); }
+
+.spinner { border: 3px solid rgba(255,255,255,0.1); border-top-color: #9333ea; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-state { display: flex; justify-content: center; padding: 2rem; }
+
+.announcement-banner {
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   gap: 0.5rem;
+   padding: 1rem;
+   background: rgba(185, 121, 204, 0.1);
+   color: #cbd5e1;
+   border-top: 1px solid rgba(255, 255, 255, 0.05);
+   font-style: italic;
+   font-size: 0.95rem;
+}
+.announcement-banner .material-symbols-outlined {
+   font-size: 1.25rem;
+   color: #b979cc;
+}
+
+
+.conv-checkbox { display: flex; align-items: center; margin-right: 0.5rem; }
+.conv-checkbox input { width: 18px; height: 18px; accent-color: #9333ea; cursor: pointer; }
+.conversation-item.selected { background: rgba(147, 51, 234, 0.15); border-color: rgba(147, 51, 234, 0.3); }
+.active-selection { background: rgba(147, 51, 234, 0.2) !important; color: #c084fc !important; }
+.bulk-action-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: rgba(0, 0, 0, 0.4); border-top: 1px solid rgba(185, 121, 204, 0.15); }
+.selected-count { color: #f8fafc; font-size: 0.9rem; font-weight: 600; }
+.bulk-actions { display: flex; gap: 0.5rem; }
+.bulk-btn { border: none; padding: 0.4rem 0.75rem; border-radius: 0.25rem; cursor: pointer; font-size: 0.85rem; font-weight: 600; color: white; transition: opacity 0.2s; }
+.bulk-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.bulk-btn.trash-btn { background: #eab308; }
+.bulk-btn.restore-btn { background: #3b82f6; }
+.bulk-btn.delete-btn { background: #ef4444; }
 </style>
+

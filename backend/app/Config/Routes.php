@@ -28,6 +28,16 @@ $routes->group('api', function($routes) {
     $routes->post('add_office', 'AuthController::addOffice');
     $routes->options('office_units', 'AuthController::handleOptions');
     $routes->options('add_office', 'AuthController::handleOptions');
+
+    // ----------------------------------------------------------------
+    // OFFICE MANAGEMENT ROUTES (new)
+    // ----------------------------------------------------------------
+    $routes->options('offices', 'AuthController::handleOptions');
+    $routes->get('offices', 'OfficeController::index');
+    $routes->post('offices', 'OfficeController::create');
+    $routes->options('offices/(:num)', 'AuthController::handleOptions');
+    $routes->put('offices/(:num)', 'OfficeController::update/$1');
+    $routes->delete('offices/(:num)', 'OfficeController::delete/$1');
     $routes->get('users', 'AuthController::getAllUsers');
     $routes->options('users', 'AuthController::handleOptions');
 
@@ -40,6 +50,21 @@ $routes->group('api', function($routes) {
     $routes->post('users/restore/(:num)', 'UserManagementController::restore/$1');
     $routes->options('users/delete/(:num)', 'AuthController::handleOptions');
     $routes->delete('users/delete/(:num)', 'UserManagementController::permanentlyDelete/$1');
+    $routes->options('users/create', 'AuthController::handleOptions');
+    $routes->post('users/create', 'UserManagementController::create');
+    $routes->options('users/update/(:num)', 'AuthController::handleOptions');
+    $routes->post('users/update/(:num)', 'UserManagementController::update/$1');
+
+    $routes->options('users/profile', 'AuthController::handleOptions');
+    $routes->get('users/profile', 'UserManagementController::getProfile');
+    $routes->options('users/profile/update', 'AuthController::handleOptions');
+    $routes->post('users/profile/update', 'UserManagementController::updateProfile');
+
+    // ----------------------------------------------------------------
+    // ACTIVITY LOGS ROUTES (new)
+    // ----------------------------------------------------------------
+    $routes->options('activity-logs', 'AuthController::handleOptions');
+    $routes->get('activity-logs', 'ActivityLogController::index');
 
     // ----------------------------------------------------------------
     // CLOUDFLARE R2 STORAGE ROUTE (existing)
@@ -50,7 +75,8 @@ $routes->group('api', function($routes) {
     // ----------------------------------------------------------------
     // ACTIVITY DESIGN ROUTES (new)
     // ----------------------------------------------------------------
-    $routes->options('submit-activity-design', 'ActivityDesignController::submitDesign');
+    $routes->options('submit-activity-design', 'AuthController::handleOptions');
+    $routes->post('submit-activity-design', 'ActivityDesignController::submitDesign');
     $routes->options('activity-designs/submit', 'AuthController::handleOptions');
     $routes->post('activity-designs/submit', 'ActivityDesignController::submitDesign');
     $routes->options('activity-designs/trash/(:num)', 'AuthController::handleOptions');
@@ -77,7 +103,8 @@ $routes->group('api', function($routes) {
     // ----------------------------------------------------------------
     // ACCOMPLISHMENT REPORT ROUTES (new)
     // ----------------------------------------------------------------
-    $routes->options('submit-activity-report', 'AccomplishmentReportController::submitReport');
+    $routes->options('submit-activity-report', 'AuthController::handleOptions');
+    $routes->post('submit-activity-report', 'AccomplishmentReportController::submitReport');
     $routes->options('accomplishment-reports/submit', 'AuthController::handleOptions');
     $routes->post('accomplishment-reports/submit', 'AccomplishmentReportController::submitReport');
     $routes->options('accomplishment-reports/trash/(:num)', 'AuthController::handleOptions');
@@ -108,14 +135,23 @@ $routes->group('api', function($routes) {
     // ----------------------------------------------------------------
     $routes->options('archives', 'ArchiveController::index');
     $routes->get('archives', 'ArchiveController::index');
-    $routes->get('offices', 'OfficeController::index');
+    $routes->options('venues', 'AuthController::handleOptions');
     $routes->get('venues', 'VenueController::index');
     $routes->post('archive-design/(:num)', 'ArchiveController::archiveDesign/$1');
     $routes->post('archive-report/(:num)', 'ArchiveController::archiveReport/$1');
 
     // ----------------------------------------------------------------
+    // ANALYTICS ROUTES
+    // ----------------------------------------------------------------
+    $routes->options('analytics/participants/(:num)', 'AuthController::handleOptions');
+    $routes->get('analytics/participants/(:num)', 'AnalyticsController::getParticipants/$1');
+    $routes->options('analytics/participants/user/(:num)/(:num)', 'AuthController::handleOptions');
+    $routes->get('analytics/participants/user/(:num)/(:num)', 'AnalyticsController::getParticipantsByUser/$1/$2');
+
+    // ----------------------------------------------------------------
     // ADMIN TRACKING ROUTES (new)
     // ----------------------------------------------------------------
+    $routes->options('admin/twg-submissions', 'AuthController::handleOptions');
     $routes->get('admin/twg-submissions', 'ActivityDesignController::getTWGSubmissions');
 
     // ----------------------------------------------------------------
@@ -141,6 +177,8 @@ $routes->group('api', function($routes) {
     // ----------------------------------------------------------------
     $routes->options('messages/send', 'AuthController::handleOptions');
     $routes->post('messages/send', 'MessageController::send');
+    $routes->options('messages/announce', 'AuthController::handleOptions');
+    $routes->post('messages/announce', 'MessageController::announce');
     $routes->options('messages/inbox/(:num)', 'AuthController::handleOptions');
     $routes->get('messages/inbox/(:num)', 'MessageController::getInbox/$1');
     $routes->options('messages/sent/(:num)', 'AuthController::handleOptions');
@@ -151,6 +189,11 @@ $routes->group('api', function($routes) {
     $routes->options('messages/trashed/(:num)', 'AuthController::handleOptions');
     $routes->get('messages/trashed/(:num)', 'MessageController::getTrashed/$1');
 
+    $routes->options('messages/bulk-trash', 'AuthController::handleOptions');
+    $routes->post('messages/bulk-trash', 'MessageController::bulkTrash');
+    $routes->options('messages/bulk-restore', 'AuthController::handleOptions');
+    $routes->post('messages/bulk-restore', 'MessageController::bulkRestore');
+    
     $routes->options('messages/trash/(:num)', 'AuthController::handleOptions');
     $routes->post('messages/trash/(:num)', 'MessageController::trashMessage/$1');
 

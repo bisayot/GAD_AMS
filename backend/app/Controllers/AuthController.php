@@ -42,7 +42,7 @@ class AuthController extends ResourceController
         }
 
         if (!empty($user['deleted_at'])) {
-            return $this->failUnauthorized("Your account has been suspended. Please contact the director.");
+            return $this->failUnauthorized("Your account has been suspended. Please contact the GAD Office.");
         }
 
         if (!password_verify($password, $user['password'])) {
@@ -57,9 +57,13 @@ class AuthController extends ResourceController
 
         // In a real app, you'd generate a JWT here. 
         // For this demo, we'll just return user info.
+        $userModel->update($user['id'], ['last_login' => date('Y-m-d H:i:s')]);
+        
         $db = \Config\Database::connect();
         $userProfile = $db->table('user_profiles')->where('user_id', $user['id'])->get()->getRowArray();
         $userRole = $userProfile ? ($userProfile['user_role'] ?? 'Non-TWG') : 'Non-TWG';
+
+        \App\Models\ActivityLogModel::log($user['id'], 'Login', $user['full_name'] . " logged in");
 
         return $this->respond([
             'status' => 200,
@@ -69,7 +73,8 @@ class AuthController extends ResourceController
                 'username' => $user['username'],
                 'role' => $user['role'],
                 'user_role' => $userRole,
-                'full_name' => $user['full_name']
+                'full_name' => $user['full_name'],
+                'office_id' => $user['office_id']
             ]
         ]);
     }
@@ -88,7 +93,7 @@ class AuthController extends ResourceController
             'fullname' => 'required',
             'department' => 'required',
             'email' => 'required|valid_email',
-            'password' => 'required|min_length[6]',
+            'password' => ['label' => 'Password', 'rules' => 'required|min_length[8]|regex_match[/[A-Z]/]|regex_match[/[a-z]/]|regex_match[/[0-9]/]|regex_match[/[^A-Za-z0-9]/]'],
             'confirm_password' => 'required|matches[password]'
         ];
 
@@ -163,6 +168,9 @@ class AuthController extends ResourceController
                 'user_role' => $data['user_role'] ?? 'Non-TWG',
                 'office_unit_id' => $officeId
             ]);
+
+            $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $newUserId;
+            \App\Models\ActivityLogModel::log($actionUserId, 'Register User', 'registered a new user: ' . $data['fullname']);
 
             return $this->respondCreated(['message' => 'Account created successfully. Please log in.']);
         }
@@ -263,7 +271,7 @@ class AuthController extends ResourceController
         
         $rules = [
             'token' => 'required',
-            'password' => 'required|min_length[6]',
+            'password' => ['label' => 'Password', 'rules' => 'required|min_length[8]|regex_match[/[A-Z]/]|regex_match[/[a-z]/]|regex_match[/[0-9]/]|regex_match[/[^A-Za-z0-9]/]'],
         ];
 
         if (!$this->validateData($data, $rules)) {
@@ -339,7 +347,9 @@ class AuthController extends ResourceController
     public function getAllUsers() {
         $db = \Config\Database::connect();
         $users = $db->table('users')
-            ->select('users.id, users.email, users.full_name, users.role, users.office_id, users.deleted_at, user_profiles.user_role, office_units.office_name')
+            ->select('users.id, users.email, users.full_name, users.role, users.office_id, users.deleted_at, users.created_at, users.last_login, user_profiles.user_role, office_units.office_name')
+            ->select('(SELECT COUNT(*) FROM activity_design WHERE activity_design.user_id = users.id) as ad_count')
+            ->select('(SELECT COUNT(*) FROM accomplishment_report WHERE accomplishment_report.user_id = users.id) as ar_count')
             ->join('user_profiles', 'user_profiles.user_id = users.id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->get()

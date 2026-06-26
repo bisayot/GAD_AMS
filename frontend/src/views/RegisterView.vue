@@ -48,19 +48,13 @@
               <select v-model="form.user_role" class="bg-surface-container-low border-none rounded-lg px-4 py-3 text-on-surface" required>
                 <option value="Non-TWG">Non-TWG</option>
                 <option value="TWG">TWG</option>
-                <option value="Staff">Staff</option>
-                <option value="Director">Director</option>
               </select>
             </div>
 
             <div class="flex flex-col gap-2">
               <label class="text-xs uppercase tracking-widest font-label font-bold text-slate-500">Department / Office <span class="text-red-500">*</span></label>
               
-              <input v-if="form.user_role === 'Staff' || form.user_role === 'Director'" 
-                     value="Gender and Development Office" disabled 
-                     class="bg-surface-container-low border-none rounded-lg px-4 py-3 text-on-surface opacity-70 cursor-not-allowed" />
-              
-              <div v-else class="space-y-2 relative" ref="dropdownRef">
+              <div class="space-y-2 relative" ref="dropdownRef">
                 <!-- Searchable Combobox -->
                 <div class="relative">
                   <input 
@@ -118,6 +112,28 @@
                 <input v-model="form.password" :type="showPass ? 'text' : 'password'" placeholder="••••••••" class="w-full bg-surface-container-low border-none rounded-lg px-4 py-3 text-on-surface" required />
                 <button type="button" @click="showPass = !showPass" class="absolute right-3 top-3 text-slate-400"><span class="material-symbols-outlined">{{ showPass ? 'visibility_off' : 'visibility' }}</span></button>
               </div>
+              <ul class="text-xs mt-2 space-y-1 font-medium transition-colors">
+                <li class="flex items-center gap-1 transition-colors" :class="form.password.length >= 8 ? 'text-green-600' : 'text-slate-400'">
+                  <span class="material-symbols-outlined text-[14px]">{{ form.password.length >= 8 ? 'check_circle' : 'cancel' }}</span>
+                  At least 8 characters
+                </li>
+                <li class="flex items-center gap-1 transition-colors" :class="/[A-Z]/.test(form.password || '') ? 'text-green-600' : 'text-slate-400'">
+                  <span class="material-symbols-outlined text-[14px]">{{ /[A-Z]/.test(form.password || '') ? 'check_circle' : 'cancel' }}</span>
+                  One uppercase letter
+                </li>
+                <li class="flex items-center gap-1 transition-colors" :class="/[a-z]/.test(form.password || '') ? 'text-green-600' : 'text-slate-400'">
+                  <span class="material-symbols-outlined text-[14px]">{{ /[a-z]/.test(form.password || '') ? 'check_circle' : 'cancel' }}</span>
+                  One lowercase letter
+                </li>
+                <li class="flex items-center gap-1 transition-colors" :class="/[0-9]/.test(form.password || '') ? 'text-green-600' : 'text-slate-400'">
+                  <span class="material-symbols-outlined text-[14px]">{{ /[0-9]/.test(form.password || '') ? 'check_circle' : 'cancel' }}</span>
+                  One number
+                </li>
+                <li class="flex items-center gap-1 transition-colors" :class="/[^A-Za-z0-9]/.test(form.password || '') ? 'text-green-600' : 'text-slate-400'">
+                  <span class="material-symbols-outlined text-[14px]">{{ /[^A-Za-z0-9]/.test(form.password || '') ? 'check_circle' : 'cancel' }}</span>
+                  One special character
+                </li>
+              </ul>
             </div>
             <div class="flex flex-col gap-2">
               <label class="text-xs uppercase tracking-widest font-label font-bold text-slate-500">Confirm Password <span class="text-red-500">*</span></label>
@@ -287,6 +303,21 @@ const handleRegister = async () => {
   if (form.user_role !== 'Non-TWG' && !form.email.toLowerCase().endsWith('@bsu.edu.ph')) {
     return error.value = 'This role requires a valid institutional email (@bsu.edu.ph).';
   }
+  if (form.password.length < 8) {
+    return error.value = 'Password must be at least 8 characters long.';
+  }
+  if (!/[A-Z]/.test(form.password)) {
+    return error.value = 'Password must contain at least 1 uppercase letter.';
+  }
+  if (!/[a-z]/.test(form.password)) {
+    return error.value = 'Password must contain at least 1 lowercase letter.';
+  }
+  if (!/[0-9]/.test(form.password)) {
+    return error.value = 'Password must contain at least 1 number.';
+  }
+  if (!/[^A-Za-z0-9]/.test(form.password)) {
+    return error.value = 'Password must contain at least 1 special character.';
+  }
   if (form.password !== form.confirm_password) {
     return error.value = 'Passwords do not match.';
   }
@@ -303,15 +334,11 @@ const handleRegister = async () => {
   try {
     let departmentId = form.office_unit_id;
 
-    if (form.user_role === 'Staff' || form.user_role === 'Director') {
-      departmentId = 1; // 1 = Gender and Development Office in DB
-    } else {
-      if (isAddingNew.value && newOfficeName.value) {
-        const res = await api.post('add_office', { 
-          unit_name: newOfficeName.value 
-        });
-        departmentId = res.data.new_id;
-      }
+    if (isAddingNew.value && newOfficeName.value) {
+      const res = await api.post('add_office', { 
+        unit_name: newOfficeName.value 
+      });
+      departmentId = res.data.new_id;
     }
 
     const payload = {

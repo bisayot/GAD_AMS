@@ -72,6 +72,9 @@ const staffMenu = ref([
   { label: 'Mandates', icon: 'gavel', href: '/staff/mandates' },
   { label: 'Report Monitoring', icon: 'description', href: '/staff/reports' },
   { label: 'Budget Monitoring', icon: 'payments', href: '/staff/budget' },
+  { label: 'Office/Unit Management', icon: 'domain', href: '/staff/office-management' },
+  { label: 'User Management', icon: 'manage_accounts', href: '/staff/user-management' },
+  { label: 'Activity Logs', icon: 'history', href: '/staff/activity-logs' },
   { label: 'User Manual', icon: 'menu_book', href: '/staff/user-manual' },
   { label: 'Data Privacy Policy', icon: 'privacy_tip', href: '/staff/data-privacy-policy' }
 ]);

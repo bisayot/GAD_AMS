@@ -76,6 +76,7 @@ class Filters extends BaseFilters
             // 'csrf',
         ],
         'after' => [
+            'cors',
             'toolbar',
         ],
     ];

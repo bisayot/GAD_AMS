@@ -69,6 +69,70 @@
           </table>
         </div>
       </div>
+
+      <div class="table-card" style="margin-top: 1rem;">
+        <div class="table-header-section" style="margin-bottom: 1.5rem;">
+          <h3 class="table-title">Data Visualization & Analytics</h3>
+        </div>
+
+        <div class="analytics-chart-container" style="background: rgba(0, 0, 0, 0.25); padding: 1.5rem; border-radius: 1rem; border: 1px solid rgba(147, 51, 234, 0.15); box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.1);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h5 style="color: #f8fafc; font-weight: 600; font-size: 1.1rem; margin: 0;">Your Gender-Disaggregated Data</h5>
+            <select v-model="analyticsYear" @change="fetchAnalyticsData" style="background: rgba(15, 23, 42, 0.8); color: #f8fafc; border: 1px solid rgba(147, 51, 234, 0.3); border-radius: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.9rem; outline: none; cursor: pointer;">
+              <option v-for="year in availableYears" :key="year" :value="year" style="background: #1e293b; color: white;">{{ year }}</option>
+            </select>
+          </div>
+          
+          <div v-if="!analyticsLoading">
+            <!-- Yearly Summary -->
+            <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; justify-content: center; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 120px; background: rgba(147, 51, 234, 0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(147, 51, 234, 0.2); text-align: center;">
+                <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Total Participants</div>
+                <div style="font-size: 1.25rem; font-weight: 700; color: #f8fafc;">{{ yearlyTotal }}</div>
+              </div>
+              <div style="flex: 1; min-width: 120px; background: rgba(6, 182, 212, 0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(6, 182, 212, 0.2); text-align: center;">
+                <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Total Male</div>
+                <div style="font-size: 1.25rem; font-weight: 700; color: #22d3ee;">{{ yearlyMale }}</div>
+              </div>
+              <div style="flex: 1; min-width: 120px; background: rgba(192, 132, 252, 0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(192, 132, 252, 0.2); text-align: center;">
+                <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Total Female</div>
+                <div style="font-size: 1.25rem; font-weight: 700; color: #c084fc;">{{ yearlyFemale }}</div>
+              </div>
+            </div>
+
+            <!-- Chart -->
+            <div style="height: 250px; position: relative; margin-bottom: 1.5rem;">
+              <Bar :data="chartData" :options="chartOptions" />
+            </div>
+
+            <!-- Monthly Breakdown -->
+            <div style="max-height: 250px; overflow-y: auto; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 0.5rem;">
+              <table style="width: 100%; text-align: left; border-collapse: collapse; color: #e2e8f0; font-size: 0.85rem;">
+                <thead style="background: #1e293b; position: sticky; top: 0; z-index: 1; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                  <tr>
+                    <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600;">Month</th>
+                    <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600;">Total</th>
+                    <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600; color: #22d3ee;">Male</th>
+                    <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600; color: #c084fc;">Female</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(month, index) in monthlyData" :key="index" style="border-bottom: 1px solid rgba(255, 255, 255, 0.02);">
+                    <td style="padding: 0.75rem 1rem;">{{ monthNames[index] }}</td>
+                    <td style="padding: 0.75rem 1rem; font-weight: 600;">{{ month.male + month.female }}</td>
+                    <td style="padding: 0.75rem 1rem; color: rgba(34, 211, 238, 0.9);">{{ month.male }}</td>
+                    <td style="padding: 0.75rem 1rem; color: rgba(192, 132, 252, 0.9);">{{ month.female }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          <div v-else style="height: 300px; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
+            <span class="material-symbols-outlined" style="animation: spin 1s linear infinite; font-size: 2rem;">refresh</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="sidebar-area">
@@ -130,6 +194,10 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../../api';
+import { Bar } from 'vue-chartjs';
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js';
+
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
 
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
@@ -405,7 +473,95 @@ const fetchDeadlines = async () => {
 };
 
 const loadDashboardData = async () => {
-  await Promise.all([fetchSubmissions(), fetchDeadlines()]);
+  await Promise.all([fetchSubmissions(), fetchDeadlines(), fetchAnalyticsData()]);
+};
+
+const getPHYear = () => {
+  return new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" })).getFullYear();
+};
+
+const analyticsYear = ref(getPHYear());
+const analyticsLoading = ref(true);
+const monthlyData = ref([]);
+const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+const availableYears = computed(() => {
+  const startYear = 2026;
+  const currentYear = getPHYear();
+  const maxYear = Math.max(currentYear + 2, startYear + 2); // Show up to 2 years in advance
+  const years = [];
+  for (let y = startYear; y <= maxYear; y++) {
+    years.push(y);
+  }
+  return years;
+});
+
+const yearlyTotal = computed(() => monthlyData.value.reduce((acc, curr) => acc + curr.male + curr.female, 0));
+const yearlyMale = computed(() => monthlyData.value.reduce((acc, curr) => acc + curr.male, 0));
+const yearlyFemale = computed(() => monthlyData.value.reduce((acc, curr) => acc + curr.female, 0));
+
+const chartData = ref({
+  labels: monthNames,
+  datasets: [
+    {
+      label: 'Male',
+      backgroundColor: '#06b6d4',
+      data: []
+    },
+    {
+      label: 'Female',
+      backgroundColor: '#c084fc',
+      data: []
+    }
+  ]
+});
+
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  scales: {
+    x: {
+      grid: { color: 'rgba(255, 255, 255, 0.05)' },
+      ticks: { color: '#94a3b8' }
+    },
+    y: {
+      grid: { color: 'rgba(255, 255, 255, 0.05)' },
+      ticks: { color: '#94a3b8' }
+    }
+  },
+  plugins: {
+    legend: {
+      labels: { color: '#e2e8f0' }
+    }
+  }
+};
+
+const fetchAnalyticsData = async () => {
+  analyticsLoading.value = true;
+  try {
+    const res = await api.get(`analytics/participants/user/${analyticsYear.value}/${user.value.id}`);
+    if (res.data.success) {
+      const data = res.data.data;
+      monthlyData.value = data;
+      chartData.value = {
+        labels: chartData.value.labels,
+        datasets: [
+          {
+            ...chartData.value.datasets[0],
+            data: data.map(d => d.male)
+          },
+          {
+            ...chartData.value.datasets[1],
+            data: data.map(d => d.female)
+          }
+        ]
+      };
+    }
+  } catch (error) {
+    console.error('Failed to load personalized analytics', error);
+  } finally {
+    analyticsLoading.value = false;
+  }
 };
 
 const viewSubmission = (sub) => {

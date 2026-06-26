@@ -723,7 +723,7 @@ button { transition: all 0.2s ease-in-out; cursor: pointer; }
 }
 
 .report-title {
-  font-family: 'Times New Roman', serif;
+
   font-size: 26px;
   color: white;
   line-height: 1.25;

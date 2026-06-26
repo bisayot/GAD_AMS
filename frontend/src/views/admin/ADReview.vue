@@ -658,7 +658,7 @@ button { transition: all 0.2s ease-in-out; cursor: pointer; }
 .status-badge-view.revision { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
 
 .control-number { font-size: 11px; font-weight: 700; color: #b979cc; text-transform: uppercase; margin-left: 12px; font-family: monospace; }
-.report-title { font-family: 'Times New Roman', serif; font-size: 26px; color: white; line-height: 1.25; margin-bottom: 16px; margin-top: 16px; }
+.report-title { font-size: 26px; color: white; line-height: 1.25; margin-bottom: 16px; margin-top: 16px; }
 
 .info-grid { display: flex; flex-wrap: wrap; gap: 24px; padding-top: 16px; border-top: 1px solid rgba(185, 121, 204, 0.1); }
 .info-item { display: flex; flex-direction: column; }

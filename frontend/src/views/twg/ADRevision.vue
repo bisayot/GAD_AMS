@@ -419,7 +419,7 @@ onMounted(() => {
 
 .control-number { font-size: 11px; font-weight: 700; color: #b979cc; text-transform: uppercase; margin-left: 12px; font-family: monospace; }
 .form-group-top { margin-bottom: 1.5rem; }
-.title-input { font-size: 1.5rem !important; font-family: 'Times New Roman', serif; font-weight: 700; }
+.title-input { font-size: 1.5rem !important; font-weight: 700; }
 
 .info-grid { display: flex; flex-wrap: wrap; gap: 24px; padding-top: 16px; border-top: 1px solid rgba(185, 121, 204, 0.1); }
 .info-item { display: flex; flex-direction: column; }

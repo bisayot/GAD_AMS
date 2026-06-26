@@ -15,11 +15,11 @@ class MessageModel extends Model
     protected $allowedFields    = [
         'sender_id', 
         'recipient_id', 
-        'title', 
         'message_text', 
         'document_type', 
         'document_id', 
         'is_read', 
+        'is_announcement',
         'created_at',
         'parent_id',
         'deleted_by_sender_at',

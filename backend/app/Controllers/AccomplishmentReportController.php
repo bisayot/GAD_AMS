@@ -94,6 +94,8 @@ class AccomplishmentReportController extends BaseController
                     }
                 }
 
+                \App\Models\ActivityLogModel::log($data['user_id'], 'Submit Document', 'submitted Accomplishment Report: ' . $data['activity_title']);
+
                 return $this->response->setJSON([
                     "success" => true,
                     "message" => "Data saved successfully"
@@ -430,6 +432,9 @@ class AccomplishmentReportController extends BaseController
         // Move PDF from drafts → archived (outside transaction)
         FileStorage::moveToArchived($item['attachment']);
 
+        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
+        \App\Models\ActivityLogModel::log($actionUserId, 'Approve Document', 'verified Accomplishment Report: ' . $item['activity_title']);
+
         return $this->response->setJSON([
             'success' => true,
             'message' => 'Accomplishment Report verified and archived successfully.'
@@ -454,11 +459,18 @@ class AccomplishmentReportController extends BaseController
         
         try {
             $updateData['remarks'] = $remarks;
-            // Accomplishment reports might not have deadline, but add if it exists
+            if ($deadline) {
+                // If accomplishment_report had a deadline column, update it here
+            }
             $db->table('accomplishment_report')->where('id', $id)->update($updateData);
         } catch (\Exception $e) {
-            // Fallback: If column doesn't exist, just update status.
             $db->table('accomplishment_report')->where('id', $id)->update(['status' => 'Revision Required']);
+        }
+
+        $item = $db->table('accomplishment_report')->where('id', $id)->get()->getRowArray();
+        if ($item) {
+            $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
+            \App\Models\ActivityLogModel::log($actionUserId, 'Update Status', 'requested revision for Accomplishment Report: ' . $item['activity_title']);
         }
 
         return $this->response->setJSON([
@@ -482,6 +494,8 @@ class AccomplishmentReportController extends BaseController
         }
 
         if ($model->delete($id)) {
+            $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $report['user_id'];
+            \App\Models\ActivityLogModel::log($actionUserId, 'Trash Document', 'moved to trash Accomplishment Report: ' . $report['activity_title']);
             return $this->response->setJSON(['success' => true, 'message' => 'Accomplishment report moved to trash successfully']);
         }
 

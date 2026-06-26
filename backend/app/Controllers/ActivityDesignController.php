@@ -97,6 +97,8 @@ class ActivityDesignController extends BaseController
                     }
                 }
 
+                \App\Models\ActivityLogModel::log($data['user_id'], 'Submit Document', 'submitted Activity Design: ' . $data['activity_title']);
+
                 return $this->response->setJSON([
                     "success" => true,
                     "message" => "Data saved successfully"
@@ -503,6 +505,9 @@ class ActivityDesignController extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'Failed to approve and archive design'])->setStatusCode(500);
         }
 
+        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
+        \App\Models\ActivityLogModel::log($actionUserId, 'Approve Document', 'approved Activity Design: ' . $item['activity_title']);
+
         // 4. Move PDF from drafts → archived (outside transaction)
         FileStorage::moveToArchived($item['attachment']);
 
@@ -541,6 +546,12 @@ class ActivityDesignController extends BaseController
             $db->table('activity_design')->where('act_design_id', $id)->update(['status' => 'Revision Required']);
         }
 
+        $item = $db->table('activity_design')->where('act_design_id', $id)->get()->getRowArray();
+        if ($item) {
+            $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
+            \App\Models\ActivityLogModel::log($actionUserId, 'Update Status', 'requested revision for Activity Design: ' . $item['activity_title']);
+        }
+
         return $this->response->setJSON([
             'success' => true,
             'message' => 'Sent for revision successfully'
@@ -568,6 +579,11 @@ class ActivityDesignController extends BaseController
         try {
             $updated = $db->table($table)->where($idColumn, $id)->update(['accomplishment_deadline' => $deadline]);
             if ($updated) {
+                $item = $db->table($table)->where($idColumn, $id)->get()->getRowArray();
+                if ($item) {
+                    $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
+                    \App\Models\ActivityLogModel::log($actionUserId, 'Update Deadline', 'updated accomplishment deadline for Activity Design: ' . $item['activity_title']);
+                }
                 return $this->response->setJSON(['success' => true, 'message' => 'Deadline updated successfully']);
             }
             return $this->response->setJSON(['success' => false, 'message' => 'No changes made or record not found']);
@@ -591,6 +607,8 @@ class ActivityDesignController extends BaseController
         }
 
         if ($model->delete($id)) {
+            $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
+            \App\Models\ActivityLogModel::log($actionUserId, 'Trash Document', 'moved to trash Activity Design: ' . $design['activity_title']);
             return $this->response->setJSON(['success' => true, 'message' => 'Activity design moved to trash successfully']);
         }
 

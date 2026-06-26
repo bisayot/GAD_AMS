@@ -69,7 +69,8 @@ const collegeMenu = ref([
   { label: 'Archives', icon: 'archive', href: '/college/archive' },
   { label: 'Mandates', icon: 'gavel', href: '/college/mandates' },
   { label: 'User Manual', icon: 'menu_book', href: '/college/user-manual' },
-  { label: 'Data Privacy Policy', icon: 'privacy_tip', href: '/college/data-privacy-policy' }
+  { label: 'Data Privacy Policy', icon: 'privacy_tip', href: '/college/data-privacy-policy' },
+  { label: 'Activity Logs', icon: 'history', href: '/college/activity-logs' }
 ]);
 
 const fetchUnreadCount = async () => {

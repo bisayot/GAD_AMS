@@ -1305,7 +1305,7 @@ onMounted(() => {
 .flex-full { flex: 1; width: 100%; }
 
 .report-header { padding: 2rem; border-bottom: 1px solid rgba(185, 121, 204, 0.15); background: rgba(0, 0, 0, 0.2); border-radius: 1.5rem 1.5rem 0 0; }
-.report-title { font-family: 'Times New Roman', serif; font-size: 26px; color: white; line-height: 1.25; margin: 0; }
+.report-title { font-size: 26px; color: white; line-height: 1.25; margin: 0; }
 .text-sm-light { font-size: 1.1rem; color: #cbd5e1; font-weight: 500; }
 
 .report-body { padding: 2rem; }

@@ -36,8 +36,12 @@
       </router-link>
     </nav>
 
-    <div class="mt-auto pt-6 border-t border-white/10">
-      <button @click="$emit('logout')" class="flex items-center gap-3 p-3 text-slate-400 hover:text-red-400 transition-colors w-full text-left">
+    <div class="mt-auto pt-6 border-t border-white/10 flex flex-col gap-1">
+      <router-link :to="settingsPath" class="flex items-center gap-3 p-3 text-slate-400 hover:text-white transition-colors w-full text-left rounded-xl hover:bg-white/5" :class="$route.path.includes('/settings') ? 'bg-primary/20 text-white font-bold' : ''">
+        <span class="material-symbols-outlined text-xl">settings</span>
+        <span class="text-sm font-bold">Settings</span>
+      </router-link>
+      <button @click="$emit('logout')" class="flex items-center gap-3 p-3 text-slate-400 hover:text-red-400 transition-colors w-full text-left rounded-xl hover:bg-white/5">
         <span class="material-symbols-outlined text-xl">logout</span>
         <span class="text-sm font-bold">Sign Out</span>
       </button>
@@ -46,6 +50,9 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+
 defineProps({
   roleLabel: { type: String, default: 'User' },
   menuItems: { type: Array, required: true },
@@ -53,6 +60,12 @@ defineProps({
 });
 
 defineEmits(['logout', 'close']);
+
+const route = useRoute();
+const settingsPath = computed(() => {
+  const base = route.path.split('/')[1] || 'dashboard';
+  return `/${base}/settings`;
+});
 </script>
 
 <style scoped>

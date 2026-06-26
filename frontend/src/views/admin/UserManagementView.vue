@@ -1,8 +1,15 @@
 <template>
   <main class="main-viewport">
     <div class="page-container">
-      <div class="flex items-center justify-between mb-8">
-        <h1 class="text-3xl font-black text-[#16213e] tracking-tight drop-shadow-sm">User Management</h1>
+      <div class="header-section mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 class="page-title">User Management</h1>
+          <p class="page-subtitle">Manage system users, roles, and office assignments.</p>
+        </div>
+        <button @click="openModal()" class="btn-primary flex items-center gap-2">
+          <span class="material-symbols-outlined">person_add</span>
+          Add User
+        </button>
       </div>
 
       <div class="layout-stacked">
@@ -36,8 +43,14 @@
                   <div class="user-name">{{ user.full_name || 'N/A' }}</div>
                   <div class="user-meta">{{ user.email }}</div>
                   <div class="user-meta text-purple-300/80 mt-1">{{ user.office_name || 'No Office' }}</div>
+                      <div class="user-meta mt-2 flex flex-wrap items-center gap-2">
+                        <span class="text-blue-300 flex items-center gap-1"><span class="material-symbols-outlined text-xs" style="font-size: 14px;">login</span> Last login: {{ formatLastLogin(user.last_login) }}</span>
+                      </div>
                 </div>
                 <div class="user-actions mt-auto">
+                  <button @click="openModal(user)" class="btn-edit" title="Edit User">
+                    <span class="material-symbols-outlined text-sm">edit</span> Edit
+                  </button>
                   <button @click="suspendUser(user.id)" class="btn-suspend" title="Suspend User">
                     <span class="material-symbols-outlined text-sm">block</span> Suspend
                   </button>
@@ -68,22 +81,71 @@
               </div>
             </div>
           </div>
-          <div class="card-body custom-scrollbar">
+          <div class="card-body custom-scrollbar" style="display: flex; flex-direction: column; gap: 2rem;">
             <div v-if="nonTwgUsers.length === 0" class="empty-state">No Non-TWG users found.</div>
-            <div v-else class="user-grid">
-              <div v-for="user in nonTwgUsers" :key="user.id" class="user-item">
-                <div class="user-info">
-                  <div class="user-name">{{ user.full_name || 'N/A' }}</div>
-                  <div class="user-meta">{{ user.email }}</div>
-                  <div class="user-meta text-purple-300/80 mt-1">{{ user.office_name || 'No Office' }}</div>
-                </div>
-                <div class="user-actions mt-auto">
-                  <button @click="suspendUser(user.id)" class="btn-suspend" title="Suspend User">
-                    <span class="material-symbols-outlined text-sm">block</span> Suspend
-                  </button>
+            <template v-else>
+              <!-- Users With Submissions Section -->
+              <div class="sub-section">
+                <h3 class="text-lg font-semibold text-purple-300 mb-3 flex items-center gap-2">
+                  <span class="material-symbols-outlined text-sm">assignment_turned_in</span> 
+                  Users with submissions 
+                  <span class="badge bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs">{{ nonTwgWithSubmissions.length }}</span>
+                </h3>
+                <div v-if="nonTwgWithSubmissions.length === 0" class="text-sm text-slate-400 italic mb-4">No users with submissions.</div>
+                <div v-else class="user-grid">
+                  <div v-for="user in nonTwgWithSubmissions" :key="user.id" class="user-item">
+                    <div class="user-info">
+                      <div class="user-name">{{ user.full_name || 'N/A' }}</div>
+                      <div class="user-meta">{{ user.email }}</div>
+                      <div class="user-meta text-purple-300/80 mt-1">{{ user.office_name || 'No Office' }}</div>
+                      <div class="user-meta mt-2 flex flex-wrap items-center gap-3">
+                        <span class="text-emerald-400 flex items-center gap-1"><span class="material-symbols-outlined text-xs" style="font-size: 14px;">calendar_today</span> {{ daysOnSystem(user.created_at) }} days on system</span>
+                        <span class="text-blue-300 flex items-center gap-1"><span class="material-symbols-outlined text-xs" style="font-size: 14px;">login</span> Last login: {{ formatLastLogin(user.last_login) }}</span>
+                      </div>
+                    </div>
+                    <div class="user-actions mt-auto">
+                      <button @click="openModal(user)" class="btn-edit" title="Edit User">
+                        <span class="material-symbols-outlined text-sm">edit</span> Edit
+                      </button>
+                      <button @click="suspendUser(user.id)" class="btn-suspend" title="Suspend User">
+                        <span class="material-symbols-outlined text-sm">block</span> Suspend
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+
+              <!-- Users Without Submissions Section -->
+              <div class="sub-section">
+                <h3 class="text-lg font-semibold text-slate-300 mb-3 flex items-center gap-2">
+                  <span class="material-symbols-outlined text-sm">assignment_late</span> 
+                  Users without submissions
+                  <span class="badge bg-slate-500/20 text-slate-300 border border-slate-500/30 text-xs">{{ nonTwgWithoutSubmissions.length }}</span>
+                </h3>
+                <div v-if="nonTwgWithoutSubmissions.length === 0" class="text-sm text-slate-400 italic">No users without submissions.</div>
+                <div v-else class="user-grid">
+                  <div v-for="user in nonTwgWithoutSubmissions" :key="user.id" class="user-item">
+                    <div class="user-info">
+                      <div class="user-name">{{ user.full_name || 'N/A' }}</div>
+                      <div class="user-meta">{{ user.email }}</div>
+                      <div class="user-meta text-purple-300/80 mt-1">{{ user.office_name || 'No Office' }}</div>
+                      <div class="user-meta mt-2 flex flex-wrap items-center gap-3">
+                        <span class="text-emerald-400 flex items-center gap-1"><span class="material-symbols-outlined text-xs" style="font-size: 14px;">calendar_today</span> {{ daysOnSystem(user.created_at) }} days on system</span>
+                        <span class="text-blue-300 flex items-center gap-1"><span class="material-symbols-outlined text-xs" style="font-size: 14px;">login</span> Last login: {{ formatLastLogin(user.last_login) }}</span>
+                      </div>
+                    </div>
+                    <div class="user-actions mt-auto">
+                      <button @click="openModal(user)" class="btn-edit" title="Edit User">
+                        <span class="material-symbols-outlined text-sm">edit</span> Edit
+                      </button>
+                      <button @click="suspendUser(user.id)" class="btn-suspend" title="Suspend User">
+                        <span class="material-symbols-outlined text-sm">block</span> Suspend
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </template>
           </div>
         </section>
 
@@ -120,6 +182,9 @@
                   <div class="user-name text-red-200">{{ user.full_name || 'N/A' }}</div>
                   <div class="user-meta">{{ user.email }}</div>
                   <div class="user-meta text-red-300/80 mt-1">{{ user.office_name || 'No Office' }}</div>
+                      <div class="user-meta mt-2 flex flex-wrap items-center gap-2">
+                        <span class="text-blue-300 flex items-center gap-1"><span class="material-symbols-outlined text-xs" style="font-size: 14px;">login</span> Last login: {{ formatLastLogin(user.last_login) }}</span>
+                      </div>
                   <div class="user-meta mt-2 text-xs italic text-red-400">Suspended on: {{ formatDate(user.deleted_at) }}</div>
                 </div>
                 <div class="user-actions mt-auto">
@@ -135,6 +200,64 @@
           </div>
         </section>
 
+      </div>
+
+    </div>
+
+    <!-- User Modal -->
+    <div v-if="showModal" class="modal-overlay">
+      <div class="modal-container glass-card custom-scrollbar">
+        <div class="modal-header border-b border-purple-900/30 p-6 flex justify-between items-center">
+          <h2 class="text-xl font-bold text-white">{{ isEdit ? 'Edit User' : 'Add New User' }}</h2>
+          <button @click="closeModal" class="text-slate-400 hover:text-white transition-colors">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div class="modal-body p-6">
+          <form @submit.prevent="submitForm" class="flex flex-col gap-4">
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input type="text" v-model="form.full_name" required class="form-input" placeholder="Enter full name" />
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" v-model="form.email" required class="form-input" placeholder="Enter email address" />
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <input type="password" v-model="form.password" :required="!isEdit" class="form-input" :placeholder="isEdit ? 'Leave blank to keep current' : 'Enter password'" minlength="6" />
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Role</label>
+              <select v-model="form.user_role" required class="form-input">
+                <option value="Non-TWG">Non-TWG</option>
+                <option value="TWG">TWG</option>
+                <option value="Staff">Staff</option>
+                <option value="Director">Director (Admin)</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Office Unit</label>
+              <select v-model="form.office_id" required class="form-input">
+                <option value="" disabled>Select Office</option>
+                <option v-for="office in offices" :key="office.unit_id" :value="office.unit_id">
+                  {{ office.unit_name }}
+                </option>
+              </select>
+            </div>
+            
+            <div class="modal-actions mt-4 flex justify-end gap-3">
+              <button type="button" @click="closeModal" class="btn-secondary">Cancel</button>
+              <button type="submit" class="btn-primary" :disabled="isSubmitting">
+                {{ isSubmitting ? 'Saving...' : (isEdit ? 'Update User' : 'Create User') }}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </main>
@@ -159,6 +282,77 @@ const filterNonTwgOffice = ref('');
 
 const searchSuspended = ref('');
 const filterSuspendedOffice = ref('');
+
+const showModal = ref(false);
+const isEdit = ref(false);
+const isSubmitting = ref(false);
+const form = ref({
+  id: null,
+  full_name: '',
+  email: '',
+  password: '',
+  user_role: 'Non-TWG',
+  office_id: ''
+});
+
+const openModal = (user = null) => {
+  if (user) {
+    isEdit.value = true;
+    form.value = {
+      id: user.id,
+      full_name: user.full_name || '',
+      email: user.email || '',
+      password: '',
+      user_role: user.user_role || 'Non-TWG',
+      office_id: user.office_id || ''
+    };
+  } else {
+    isEdit.value = false;
+    form.value = {
+      id: null,
+      full_name: '',
+      email: '',
+      password: '',
+      user_role: 'Non-TWG',
+      office_id: ''
+    };
+  }
+  showModal.value = true;
+};
+
+const closeModal = () => {
+  showModal.value = false;
+};
+
+const submitForm = async () => {
+  isSubmitting.value = true;
+  try {
+    const url = isEdit.value ? `users/update/${form.value.id}` : `users/create`;
+    const res = await api.post(url, form.value);
+    
+    if (res.data.success) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: res.data.message,
+        timer: 1500,
+        showConfirmButton: false
+      });
+      closeModal();
+      fetchUsers();
+    } else {
+      throw new Error(res.data.message || 'Operation failed');
+    }
+  } catch (err) {
+    let msg = err.response?.data?.message || err.response?.data?.messages || err.message || 'An error occurred';
+    if (typeof msg === 'object') {
+      msg = Object.values(msg).join(', ');
+    }
+    Swal.fire({ icon: 'error', title: 'Error', text: msg });
+  } finally {
+    isSubmitting.value = false;
+  }
+};
 
 const fetchOffices = async () => {
   try {
@@ -202,6 +396,43 @@ const nonTwgUsers = computed(() => {
   const baseList = users.value.filter(u => !u.deleted_at && u.user_role === 'Non-TWG');
   return filterUserList(baseList, searchNonTwg.value, filterNonTwgOffice.value);
 });
+
+const nonTwgWithSubmissions = computed(() => {
+  return nonTwgUsers.value.filter(u => parseInt(u.ad_count || 0) > 0 || parseInt(u.ar_count || 0) > 0);
+});
+
+const nonTwgWithoutSubmissions = computed(() => {
+  return nonTwgUsers.value.filter(u => parseInt(u.ad_count || 0) === 0 && parseInt(u.ar_count || 0) === 0);
+});
+
+const daysOnSystem = (dateString) => {
+  if (!dateString) return 0;
+  const created = new Date(dateString.endsWith('Z') ? dateString : dateString + 'Z');
+  const now = new Date();
+  const diffTime = Math.abs(now - created);
+  return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+};
+
+const formatLastLogin = (dateString) => {
+  if (!dateString) return 'Never';
+  const login = new Date(dateString.endsWith('Z') ? dateString : dateString + 'Z');
+  const now = new Date();
+  const diffTime = Math.abs(now - login);
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) {
+    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+    if (diffHours === 0) {
+      const diffMins = Math.floor(diffTime / (1000 * 60));
+      return diffMins <= 1 ? 'Just now' : `${diffMins} mins ago`;
+    }
+    return `${diffHours} hours ago`;
+  }
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  
+  return login.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
 
 const suspendedUsers = computed(() => {
   const baseList = users.value.filter(u => !!u.deleted_at);
@@ -300,7 +531,7 @@ const formatDate = (dateString) => {
 
 onMounted(() => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  if (!user.id || user.role !== 'admin') {
+  if (!user.id || (user.role !== 'admin' && user.role !== 'gad_staff')) {
     router.push('/login');
     return;
   }
@@ -312,6 +543,17 @@ onMounted(() => {
 <style scoped>
 .main-viewport { flex: 1; overflow-y: auto; background: transparent; }
 .page-container { min-height: 100vh; padding: 1rem; max-width: 1200px; margin: 0 auto; }
+.page-title {
+  font-size: 2rem;
+  color: #16213e;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  margin-bottom: 0.5rem;
+}
+.page-subtitle {
+  color: #475569;
+  font-size: 0.95rem;
+}
 .glass-card { 
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); 
   backdrop-filter: blur(24px); 
@@ -522,6 +764,123 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #b979cc 0%, #9b59b6 100%);
+  color: white;
+  padding: 0.6rem 1.25rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  border: none;
+  transition: all 0.2s;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(185, 121, 204, 0.3);
+}
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(185, 121, 204, 0.4);
+}
+.btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+  padding: 0.6rem 1.25rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.btn-edit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+  background: rgba(168, 85, 247, 0.1);
+  color: #c084fc;
+  border-color: rgba(168, 85, 247, 0.2);
+}
+.btn-edit:hover {
+  background: rgba(168, 85, 247, 0.2);
+  border-color: rgba(168, 85, 247, 0.4);
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-container {
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label {
+  color: #cbd5e1;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.form-input {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(185, 121, 204, 0.3);
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s;
+}
+.form-input:focus {
+  border-color: #b979cc;
+  background: rgba(0, 0, 0, 0.5);
+}
+select.form-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23b979cc' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1.25rem 1.25rem;
+  padding-right: 2.5rem;
+}
+.form-input option {
+  background: #1e293b;
 }
 
 .custom-scrollbar::-webkit-scrollbar {

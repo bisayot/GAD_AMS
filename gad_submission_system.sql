@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 22, 2026 at 04:49 AM
+-- Generation Time: Jun 26, 2026 at 08:02 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -68,6 +68,7 @@ CREATE TABLE `accomplishment_evaluation_results` (
 --
 
 
+
 -- --------------------------------------------------------
 
 --
@@ -98,11 +99,7 @@ CREATE TABLE `accomplishment_report` (
   `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `accomplishment_report`
---
-
-
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `activity_budget_items`
@@ -125,6 +122,9 @@ CREATE TABLE `activity_budget_items` (
 -- Dumping data for table `activity_budget_items`
 --
 
+
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `activity_design`
@@ -155,6 +155,25 @@ CREATE TABLE `activity_design` (
 --
 -- Dumping data for table `activity_design`
 --
+
+
+
+--
+-- Table structure for table `activity_logs`
+--
+
+CREATE TABLE `activity_logs` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `action` varchar(255) NOT NULL,
+  `description` text DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `activity_logs`
+--
+
 
 --
 -- Table structure for table `archived_accomplishment_reports`
@@ -188,7 +207,6 @@ CREATE TABLE `archived_accomplishment_reports` (
 --
 -- Dumping data for table `archived_accomplishment_reports`
 --
-
 
 
 --
@@ -427,17 +445,20 @@ CREATE TABLE `messages` (
   `sender_id` int(11) UNSIGNED NOT NULL,
   `recipient_id` int(11) UNSIGNED NOT NULL,
   `parent_id` int(11) UNSIGNED DEFAULT NULL,
-  `title` varchar(255) NOT NULL,
   `message_text` text NOT NULL,
   `document_type` varchar(100) DEFAULT NULL,
   `document_id` text DEFAULT NULL,
   `is_read` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` datetime DEFAULT NULL,
   `deleted_by_sender_at` datetime DEFAULT NULL,
-  `deleted_by_recipient_at` datetime DEFAULT NULL
+  `deleted_by_recipient_at` datetime DEFAULT NULL,
+  `is_announcement` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
+--
+-- Dumping data for table `messages`
+--
+
 
 --
 -- Table structure for table `migrations`
@@ -461,7 +482,11 @@ INSERT INTO `migrations` (`id`, `version`, `class`, `group`, `namespace`, `time`
 (1, '2026-06-19-022849', 'App\\Database\\Migrations\\CreateMessagesTable', 'default', 'App', 1781836185, 1),
 (2, '2026-06-19-033911', 'App\\Database\\Migrations\\AlterMessagesDocumentId', 'default', 'App', 1781840369, 2),
 (3, '2026-06-19-063936', 'App\\Database\\Migrations\\AddThreadAndTrashToMessages', 'default', 'App', 1781851202, 3),
-(4, '2026-06-19-082034', 'App\\Database\\Migrations\\AddDeletedAtToDocuments', 'default', 'App', 1781857260, 4);
+(4, '2026-06-19-082034', 'App\\Database\\Migrations\\AddDeletedAtToDocuments', 'default', 'App', 1781857260, 4),
+(5, '2026-06-23-025857', 'App\\Database\\Migrations\\CreateActivityLogsTable', 'default', 'App', 1782183569, 5),
+(6, '2026-06-24-000000', 'App\\Database\\Migrations\\AddLastLoginToUsers', 'default', 'App', 1782263806, 6),
+(7, '2026-06-24-000001', 'App\\Database\\Migrations\\AddIsAnnouncementToMessages', 'default', 'App', 1782264591, 7),
+(8, '2026-06-26-014303', 'App\\Database\\Migrations\\DropTitleFromMessages', 'default', 'App', 1782438211, 8);
 
 -- --------------------------------------------------------
 
@@ -529,21 +554,6 @@ INSERT INTO `office_units` (`office_id`, `office_name`) VALUES
 -- --------------------------------------------------------
 
 --
--- Table structure for table `system_logs`
---
-
-CREATE TABLE `system_logs` (
-  `log_id` bigint(20) NOT NULL,
-  `user_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `action_type` varchar(100) DEFAULT NULL,
-  `target_table` varchar(50) DEFAULT NULL,
-  `target_id` int(11) DEFAULT NULL,
-  `log_timestamp` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `users`
 --
 
@@ -564,62 +574,64 @@ CREATE TABLE `users` (
   `remember_token` varchar(100) DEFAULT NULL,
   `deleted_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `last_login` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `username`, `email`, `email_verified_at`, `password`, `reset_token`, `reset_token_expires_at`, `role`, `full_name`, `student_id`, `office_id`, `year_level`, `user_acronym`, `remember_token`, `deleted_at`, `created_at`, `updated_at`) VALUES
-(1, 'Gender and Development Office', 'gad.office@bsu.edu.ph', NULL, '$2y$10$a9XVQgTdygySA0E7XCNf4euNdZmuXjqGxSvUbQEzd5X7qiFmPNae6', NULL, NULL, 'admin', NULL, NULL, 1, NULL, 'GAD', NULL, NULL, '2026-05-25 11:58:10', '2026-06-17 14:17:17'),
-(2, 'College of Agriculture', 'ca@bsu.edu.ph', NULL, '$2y$12$CNLb7UPOnZpF2yZRY0lwSeykT0VWruAa6R753JUJR3bGr2OCvUyei', NULL, NULL, 'college', NULL, NULL, 2, NULL, 'CA', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(3, 'Registrar\'s Office BSU Buguias Campus', 'buguias.registrar@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 3, NULL, 'Buguias-RO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(4, 'Human Resources and Management Office BSU Bokod Campus', 'bokod.hrmo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 4, NULL, NULL, 'Bokod-HRMO', NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(5, 'International Relations Office', 'iro@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 5, NULL, 'IRO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(6, 'Disaster Risk Reduction Management', 'drrm@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 6, NULL, 'DRRM', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(7, 'College of Social Science', 'css@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 7, NULL, 'CSS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-30 11:07:16'),
-(8, 'College of Applied Techonology BSU Bokod Campus', 'bokod.cat@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 8, NULL, 'Bokod-CAT', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(9, 'University Business Affairs Office', 'ubao@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 9, NULL, 'UBAO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(10, 'University Library and Information Service BSU Buguias Campus', 'ulis.buguias@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 10, NULL, 'Buguias-ULIS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(11, 'College of Veterinary Medicine', 'vm@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 11, NULL, 'CVM', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(12, 'Compensarion, Benefits and Other Obligations', 'cboo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 12, NULL, 'CBOO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(13, 'Records Office and Archives', 'roa@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 13, NULL, 'ROA', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(14, 'Budget Office', 'bo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 14, NULL, NULL, 'BO', NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(15, 'Office for Quality Assurance and Accreditation', 'oqaa@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 15, NULL, 'OQAA', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(16, 'University Health Services BSU Buguias Campus', 'buguias.uhs@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 16, NULL, 'Buguias-UHS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(17, 'College of Natural Sciences', 'cns@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 17, NULL, NULL, 'CNS', NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(18, 'College of Public Administration and Governance', 'cpag@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 18, NULL, 'CPAG', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(19, 'Information and Communications Technolgy', 'ict@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 19, NULL, 'ICT', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(20, 'General Services Office', 'gso@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 20, NULL, 'GSO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(21, 'College of Engineering', 'ce@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 21, NULL, 'CE', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(22, 'College of Nursing', 'cn@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 22, NULL, 'CN', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(23, 'BSU Office of Student Services', 'oss@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 23, NULL, 'OSS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(24, 'University Public Affairs Office', 'upao@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 24, NULL, 'UPAO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(25, 'Accounting Office', 'ao@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 25, NULL, 'AO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(26, 'College of Human Kenetics', 'chk@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 26, NULL, 'CHK', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(27, 'Horticulture', 'h@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 27, NULL, 'Horticulture', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(28, 'Bokod Focal Person, University Health Services', 'bokod.uhs@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 28, NULL, 'Bokod-FC,UHS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(29, 'Buguias Focal Person, College of Agriculture', 'buguias.ca@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 29, NULL, 'Buguias-FC,CA', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(30, 'Human Resources Development Office', 'hrdo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 30, NULL, 'HRDO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(31, 'Budget Office Buguias Campus', 'buguias.bo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 31, NULL, 'Buguias-BO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(32, 'College of Information Sciences', 'cis@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 32, NULL, 'CIS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(33, 'Procurement Management Office BSU Bokod Campus', 'bokod.pmo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 33, NULL, 'Bokod-PMO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(34, 'Procurement Management Office', 'pmo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 34, NULL, 'PMO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(35, 'Office of Student Services', 'oss.2@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 35, NULL, 'OSS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(36, 'College of Arts and Humanities', 'cah@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 36, NULL, 'CAH', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(37, 'College of Teacher Education', 'cte@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 37, NULL, 'CTE', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(38, 'Human Resource and Management Office', 'hrmo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 38, NULL, 'HRMO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(39, 'College of Home Economics and Technology', 'chet@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 39, NULL, 'CHET', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(40, 'Supply Property Management Office', 'spmo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 40, NULL, 'SPMO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(41, 'University Library and Information Services', 'ulis@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 41, NULL, 'ULIS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(42, 'College of Numeracy and Applied Sciences', 'cnas@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 42, NULL, 'CNAS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(43, 'Northern Philippines Root Crops Research  & Training Center', 'nprcrtc@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 43, NULL, 'NPRCRTC', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(44, 'Open University', 'ou@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 44, NULL, 'OU', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(45, 'College of Education BSU Bokod Campus', 'bokod.ce@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 45, NULL, 'Bokod-CE', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(46, 'College of Forestry', 'cf@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 46, NULL, 'CF', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10'),
-(47, 'gad.staff', 'gad.staff@bsu.edu.ph', NULL, '$2y$12$fbD/jvk.znEQnBmKq4.ebOojmijHJO/zU7.P7Tzo.zV3FgvP8PzNe', NULL, NULL, 'gad_staff', 'GAD Staff User', NULL, 1, NULL, 'GAD-STAFF', NULL, NULL, '2026-03-26 15:53:56', '2026-06-17 23:26:30'),
-(51, 'marksantos', 'marksantos@gmail.com', NULL, '$2y$10$XpBQvnSPe15XDdOdDySVf.5ri9Y2wCDwqZcdGLoOXmjClhEZTA6Aa', NULL, NULL, 'college', 'Mark Santos', NULL, 32, NULL, NULL, NULL, NULL, '2026-06-17 12:57:12', '2026-06-22 02:44:31');
+INSERT INTO `users` (`id`, `username`, `email`, `email_verified_at`, `password`, `reset_token`, `reset_token_expires_at`, `role`, `full_name`, `student_id`, `office_id`, `year_level`, `user_acronym`, `remember_token`, `deleted_at`, `created_at`, `updated_at`, `last_login`) VALUES
+(1, 'Gender and Development Office', 'gad.office@bsu.edu.ph', NULL, '$2y$10$a9XVQgTdygySA0E7XCNf4euNdZmuXjqGxSvUbQEzd5X7qiFmPNae6', NULL, NULL, 'admin', NULL, NULL, 1, NULL, 'GAD', NULL, NULL, '2026-05-25 11:58:10', '2026-06-26 05:53:28', '2026-06-26 05:53:28'),
+(2, 'College of Agriculture', 'ca@bsu.edu.ph', NULL, '$2y$12$CNLb7UPOnZpF2yZRY0lwSeykT0VWruAa6R753JUJR3bGr2OCvUyei', NULL, NULL, 'college', NULL, NULL, 2, NULL, 'CA', NULL, NULL, '2026-05-25 11:58:10', '2026-06-26 05:53:50', '2026-06-26 05:53:50'),
+(3, 'Registrar\'s Office BSU Buguias Campus', 'buguias.registrar@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 3, NULL, 'Buguias-RO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(4, 'Human Resources and Management Office BSU Bokod Campus', 'bokod.hrmo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 4, NULL, NULL, 'Bokod-HRMO', NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(5, 'International Relations Office', 'iro@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 5, NULL, 'IRO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(6, 'Disaster Risk Reduction Management', 'drrm@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 6, NULL, 'DRRM', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(7, 'College of Social Science', 'css@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 7, NULL, 'CSS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-30 11:07:16', NULL),
+(8, 'College of Applied Techonology BSU Bokod Campus', 'bokod.cat@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 8, NULL, 'Bokod-CAT', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(9, 'University Business Affairs Office', 'ubao@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 9, NULL, 'UBAO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(10, 'University Library and Information Service BSU Buguias Campus', 'ulis.buguias@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 10, NULL, 'Buguias-ULIS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(11, 'College of Veterinary Medicine', 'vm@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 11, NULL, 'CVM', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(12, 'Compensarion, Benefits and Other Obligations', 'cboo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 12, NULL, 'CBOO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(13, 'Records Office and Archives', 'roa@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 13, NULL, 'ROA', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(14, 'Budget Office', 'bo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 14, NULL, NULL, 'BO', NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(15, 'Office for Quality Assurance and Accreditation', 'oqaa@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 15, NULL, 'OQAA', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(16, 'University Health Services BSU Buguias Campus', 'buguias.uhs@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 16, NULL, 'Buguias-UHS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(17, 'College of Natural Sciences', 'cns@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 17, NULL, NULL, 'CNS', NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(18, 'College of Public Administration and Governance', 'cpag@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 18, NULL, 'CPAG', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(19, 'Information and Communications Technolgy', 'ict@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 19, NULL, 'ICT', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(20, 'General Services Office', 'gso@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 20, NULL, 'GSO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(21, 'College of Engineering', 'ce@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 21, NULL, 'CE', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(22, 'College of Nursing', 'cn@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 22, NULL, 'CN', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(23, 'BSU Office of Student Services', 'oss@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 23, NULL, 'OSS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(24, 'University Public Affairs Office', 'upao@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 24, NULL, 'UPAO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(25, 'Accounting Office', 'ao@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 25, NULL, 'AO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(26, 'College of Human Kenetics', 'chk@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 26, NULL, 'CHK', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(27, 'Horticulture', 'h@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 27, NULL, 'Horticulture', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(28, 'Bokod Focal Person, University Health Services', 'bokod.uhs@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 28, NULL, 'Bokod-FC,UHS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(29, 'Buguias Focal Person, College of Agriculture', 'buguias.ca@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 29, NULL, 'Buguias-FC,CA', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(30, 'Human Resources Development Office', 'hrdo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 30, NULL, 'HRDO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(31, 'Budget Office Buguias Campus', 'buguias.bo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 31, NULL, 'Buguias-BO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(32, 'College of Information Sciences', 'cis@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 32, NULL, 'CIS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(33, 'Procurement Management Office BSU Bokod Campus', 'bokod.pmo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 33, NULL, 'Bokod-PMO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(34, 'Procurement Management Office', 'pmo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 34, NULL, 'PMO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(35, 'Office of Student Services', 'oss.2@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 35, NULL, 'OSS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(36, 'College of Arts and Humanities', 'cah@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 36, NULL, 'CAH', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(37, 'College of Teacher Education', 'cte@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 37, NULL, 'CTE', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(38, 'Human Resource and Management Office', 'hrmo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 38, NULL, 'HRMO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(39, 'College of Home Economics and Technology', 'chet@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 39, NULL, 'CHET', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(40, 'Supply Property Management Office', 'spmo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 40, NULL, 'SPMO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(41, 'University Library and Information Services', 'ulis@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 41, NULL, 'ULIS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(42, 'College of Numeracy and Applied Sciences', 'cnas@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 42, NULL, 'CNAS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(43, 'Northern Philippines Root Crops Research  & Training Center', 'nprcrtc@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 43, NULL, 'NPRCRTC', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(44, 'Open University', 'ou@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 44, NULL, 'OU', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(45, 'College of Education BSU Bokod Campus', 'bokod.ce@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 45, NULL, 'Bokod-CE', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(46, 'College of Forestry', 'cf@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 46, NULL, 'CF', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(47, 'gad.staff', 'gad.staff@bsu.edu.ph', NULL, '$2y$12$fbD/jvk.znEQnBmKq4.ebOojmijHJO/zU7.P7Tzo.zV3FgvP8PzNe', NULL, NULL, 'gad_staff', 'GAD Staff User', NULL, 1, NULL, 'GAD-STAFF', NULL, NULL, '2026-03-26 15:53:56', '2026-06-26 05:53:38', '2026-06-26 05:53:38'),
+(51, 'marksantos', 'marksantos@gmail.com', NULL, '$2y$10$XpBQvnSPe15XDdOdDySVf.5ri9Y2wCDwqZcdGLoOXmjClhEZTA6Aa', NULL, NULL, 'college', 'Mark Santos', NULL, 32, NULL, NULL, NULL, NULL, '2026-06-17 12:57:12', '2026-06-23 13:47:33', NULL),
+(52, 'bisayotduligas', 'bisayotduligas@gmail.com', NULL, '$2y$10$EfHJmvx7.gMSH9fe2TEjkeAlty0Js39/MB0qukXQkfvLE2/JZaD3a', NULL, NULL, 'college', 'Joshua Duligas', NULL, 32, NULL, NULL, NULL, NULL, '2026-06-25 02:46:48', '2026-06-25 07:39:59', '2026-06-25 07:39:59');
 
 -- --------------------------------------------------------
 
@@ -688,7 +700,8 @@ INSERT INTO `user_profiles` (`user_id`, `first_name`, `middle_name`, `last_name`
 (45, '', NULL, '', 'TWG', 45),
 (46, '', NULL, '', 'TWG', 46),
 (47, 'GAD', 'Staff', 'User', 'Staff', 1),
-(51, 'Mark', '', 'Santos', 'Non-TWG', 32);
+(51, 'Mark', '', 'Santos', 'Non-TWG', 32),
+(52, '', NULL, '', 'Non-TWG', 32);
 
 -- --------------------------------------------------------
 
@@ -764,6 +777,13 @@ ALTER TABLE `activity_design`
   ADD KEY `fk_activity_gpb` (`gpb_id`);
 
 --
+-- Indexes for table `activity_logs`
+--
+ALTER TABLE `activity_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
 -- Indexes for table `archived_accomplishment_reports`
 --
 ALTER TABLE `archived_accomplishment_reports`
@@ -833,15 +853,6 @@ ALTER TABLE `office_units`
   ADD UNIQUE KEY `office_name` (`office_name`);
 
 --
--- Indexes for table `system_logs`
---
-ALTER TABLE `system_logs`
-  ADD PRIMARY KEY (`log_id`),
-  ADD KEY `idx_logs_user` (`user_id`),
-  ADD KEY `idx_logs_action` (`action_type`),
-  ADD KEY `idx_logs_time` (`log_timestamp`);
-
---
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -886,19 +897,25 @@ ALTER TABLE `accomplishment_report`
 -- AUTO_INCREMENT for table `activity_budget_items`
 --
 ALTER TABLE `activity_budget_items`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `activity_design`
 --
 ALTER TABLE `activity_design`
-  MODIFY `act_design_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+  MODIFY `act_design_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+
+--
+-- AUTO_INCREMENT for table `activity_logs`
+--
+ALTER TABLE `activity_logs`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
 
 --
 -- AUTO_INCREMENT for table `archived_accomplishment_reports`
 --
 ALTER TABLE `archived_accomplishment_reports`
-  MODIFY `archive_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `archive_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `archived_activity_designs`
@@ -934,31 +951,25 @@ ALTER TABLE `mandate`
 -- AUTO_INCREMENT for table `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=670;
 
 --
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `office_units`
 --
 ALTER TABLE `office_units`
-  MODIFY `office_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
-
---
--- AUTO_INCREMENT for table `system_logs`
---
-ALTER TABLE `system_logs`
-  MODIFY `log_id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `office_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
 -- AUTO_INCREMENT for table `venues`

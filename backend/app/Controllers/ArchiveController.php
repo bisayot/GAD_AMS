@@ -82,6 +82,8 @@ class ArchiveController extends Controller
         unset($archiveData['act_design_id']); // Let auto-increment handle new ID
 
         $db->table('archived_activity_designs')->insert($archiveData);
+        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
+        \App\Models\ActivityLogModel::log($actionUserId, 'Cancel Document', 'cancelled Activity Design: ' . $design['activity_title']);
         return $this->respond(['success' => true, 'message' => 'Design successfully archived.']);
     }
 
@@ -103,11 +105,15 @@ class ArchiveController extends Controller
             return $this->respond(['success' => true, 'message' => 'Report already archived']);
         }
 
+        // Build archive data
         $archiveData = $report;
-        $archiveData['original_report_id'] = $archiveData['report_id'];
+        $archiveData['original_report_id'] = $archiveData['report_id'] ?? $archiveData['id'];
         unset($archiveData['report_id']);
+        unset($archiveData['id']);
 
         $db->table('archived_accomplishment_reports')->insert($archiveData);
+        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $report['user_id'];
+        \App\Models\ActivityLogModel::log($actionUserId, 'Cancel Document', 'cancelled Accomplishment Report: ' . $report['activity_title']);
         return $this->respond(['success' => true, 'message' => 'Report successfully archived.']);
     }
 }
