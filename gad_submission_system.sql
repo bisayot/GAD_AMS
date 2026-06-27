@@ -23,20 +23,17 @@ DROP TABLE IF EXISTS `accomplishment_budget_items`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `accomplishment_budget_items` (
-  `item_id` int NOT NULL AUTO_INCREMENT,
+  `id` int NOT NULL AUTO_INCREMENT,
   `accomplishment_report_id` int NOT NULL,
-  `meals_and_snacks` decimal(15,2) DEFAULT '0.00',
-  `function_room_venue` decimal(15,2) DEFAULT '0.00',
-  `accommodation` decimal(15,2) DEFAULT '0.00',
-  `equipment_rental` decimal(15,2) DEFAULT '0.00',
-  `professional_fee_honoria` decimal(15,2) DEFAULT '0.00',
-  `tokens` decimal(15,2) DEFAULT '0.00',
-  `materials_and_supplies` decimal(15,2) DEFAULT '0.00',
-  `transportation` decimal(15,2) DEFAULT '0.00',
-  PRIMARY KEY (`item_id`),
-  KEY `fk_accomplishment_budget_report` (`accomplishment_report_id`),
-  CONSTRAINT `fk_accomplishment_budget_report` FOREIGN KEY (`accomplishment_report_id`) REFERENCES `accomplishment_report` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `category` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `item_name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `sub_item` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `pax` int DEFAULT NULL,
+  `amount` decimal(15,2) NOT NULL DEFAULT '0.00',
+  PRIMARY KEY (`id`),
+  KEY `accomplishment_report_id` (`accomplishment_report_id`),
+  CONSTRAINT `accomplishment_budget_items_ibfk_1` FOREIGN KEY (`accomplishment_report_id`) REFERENCES `accomplishment_report` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -65,9 +62,8 @@ CREATE TABLE `accomplishment_evaluation_results` (
   `restrooms` decimal(4,2) DEFAULT '0.00',
   `food_and_drinks` decimal(4,2) DEFAULT '0.00',
   PRIMARY KEY (`evaluation_id`),
-  KEY `fk_accomplishment_evaluation_report` (`accomplishment_report_id`),
-  CONSTRAINT `fk_accomplishment_evaluation_report` FOREIGN KEY (`accomplishment_report_id`) REFERENCES `accomplishment_report` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  KEY `fk_accomplishment_evaluation_report` (`accomplishment_report_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -111,7 +107,7 @@ CREATE TABLE `accomplishment_report` (
   KEY `idx_ar_control_number` (`control_number`),
   CONSTRAINT `fk_ar_control_number` FOREIGN KEY (`control_number`) REFERENCES `control_number` (`control_number`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_report_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -131,20 +127,17 @@ DROP TABLE IF EXISTS `activity_budget_items`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `activity_budget_items` (
-  `item_id` int NOT NULL AUTO_INCREMENT,
+  `id` int NOT NULL AUTO_INCREMENT,
   `act_design_id` int NOT NULL,
-  `meals_and_snacks` decimal(15,2) DEFAULT '0.00',
-  `function_room_venue` decimal(15,2) DEFAULT '0.00',
-  `accommodation` decimal(15,2) DEFAULT '0.00',
-  `equipment_rental` decimal(15,2) DEFAULT '0.00',
-  `professional_fee_honoria` decimal(15,2) DEFAULT '0.00',
-  `tokens` decimal(15,2) DEFAULT '0.00',
-  `materials_and_supplies` decimal(15,2) DEFAULT '0.00',
-  `transportation` decimal(15,2) DEFAULT '0.00',
-  PRIMARY KEY (`item_id`),
-  KEY `fk_budget_item_design` (`act_design_id`),
-  CONSTRAINT `fk_budget_item_design` FOREIGN KEY (`act_design_id`) REFERENCES `activity_design` (`act_design_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `category` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `item_name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `sub_item` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `pax` int DEFAULT NULL,
+  `amount` decimal(15,2) NOT NULL DEFAULT '0.00',
+  PRIMARY KEY (`id`),
+  KEY `act_design_id` (`act_design_id`),
+  CONSTRAINT `activity_budget_items_ibfk_1` FOREIGN KEY (`act_design_id`) REFERENCES `activity_design` (`act_design_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -153,7 +146,6 @@ CREATE TABLE `activity_budget_items` (
 
 LOCK TABLES `activity_budget_items` WRITE;
 /*!40000 ALTER TABLE `activity_budget_items` DISABLE KEYS */;
-INSERT INTO `activity_budget_items` VALUES (3,3,2.00,51.00,94.00,10.00,2.00,1.00,75.00,25.00);
 /*!40000 ALTER TABLE `activity_budget_items` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -190,7 +182,7 @@ CREATE TABLE `activity_design` (
   CONSTRAINT `fk_activity_gpb` FOREIGN KEY (`gpb_id`) REFERENCES `gad_plan_budget` (`gpb_id`) ON DELETE SET NULL,
   CONSTRAINT `fk_activity_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_design_venue` FOREIGN KEY (`venue_id`) REFERENCES `venues` (`venue_id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -199,8 +191,35 @@ CREATE TABLE `activity_design` (
 
 LOCK TABLES `activity_design` WRITE;
 /*!40000 ALTER TABLE `activity_design` DISABLE KEYS */;
-INSERT INTO `activity_design` VALUES (3,'In aliquam ut est fa','2026-06-24','2026-06-24','01:00:00','02:03:00','Pending','1781495038_6f67cd7beec61388b262.pdf',7,NULL,'Dimas Hall, IHFSA',NULL,2,260,'extension',NULL,NULL,NULL);
 /*!40000 ALTER TABLE `activity_design` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `archived_accomplishment_budget_items`
+--
+
+DROP TABLE IF EXISTS `archived_accomplishment_budget_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `archived_accomplishment_budget_items` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `accomplishment_report_id` int NOT NULL,
+  `category` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `item_name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `sub_item` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `pax` int DEFAULT NULL,
+  `amount` decimal(15,2) NOT NULL DEFAULT '0.00',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `archived_accomplishment_budget_items`
+--
+
+LOCK TABLES `archived_accomplishment_budget_items` WRITE;
+/*!40000 ALTER TABLE `archived_accomplishment_budget_items` DISABLE KEYS */;
+/*!40000 ALTER TABLE `archived_accomplishment_budget_items` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -235,7 +254,7 @@ CREATE TABLE `archived_accomplishment_reports` (
   PRIMARY KEY (`archive_id`),
   KEY `idx_aar_control_number` (`control_number`),
   CONSTRAINT `fk_aar_control_number` FOREIGN KEY (`control_number`) REFERENCES `control_number` (`control_number`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -244,8 +263,35 @@ CREATE TABLE `archived_accomplishment_reports` (
 
 LOCK TABLES `archived_accomplishment_reports` WRITE;
 /*!40000 ALTER TABLE `archived_accomplishment_reports` DISABLE KEYS */;
-INSERT INTO `archived_accomplishment_reports` VALUES (1,1,'2026-0602',NULL,'Dolorem aut similiqu','2026-06-17','2026-06-18','05:03:00','14:43:00','RSDC Executive Hall',16,13,3,2,'[\"1781494875_70a94f7bfcfbf7a78399.pdf\",\"1781494875_76c8a2ca01af27815c59.pdf\",\"1781494875_75971509360d1eefe96b.pdf\"]',47,'Completed','','2026-06-15','2026-06-15 03:42:15','2026-06-15 03:42:15'),(2,2,'2026-0601',NULL,'Principal Web Strategist','2026-06-16','2026-06-16','16:29:00','10:09:00','CTE DSG Hall',147,76,71,4,'[\"1781494976_43dcb1b2b754a41a3f70.pdf\",\"1781494976_b9fda38d06b540f39cbe.pdf\"]',7,'Completed','','2026-06-15','2026-06-15 03:43:15','2026-06-15 03:43:15');
 /*!40000 ALTER TABLE `archived_accomplishment_reports` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `archived_activity_budget_items`
+--
+
+DROP TABLE IF EXISTS `archived_activity_budget_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `archived_activity_budget_items` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `act_design_id` int NOT NULL,
+  `category` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `item_name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `sub_item` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `pax` int DEFAULT NULL,
+  `amount` decimal(15,2) NOT NULL DEFAULT '0.00',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `archived_activity_budget_items`
+--
+
+LOCK TABLES `archived_activity_budget_items` WRITE;
+/*!40000 ALTER TABLE `archived_activity_budget_items` DISABLE KEYS */;
+/*!40000 ALTER TABLE `archived_activity_budget_items` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -277,7 +323,7 @@ CREATE TABLE `archived_activity_designs` (
   `remarks` text COLLATE utf8mb4_general_ci,
   `archived_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`archive_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -286,8 +332,37 @@ CREATE TABLE `archived_activity_designs` (
 
 LOCK TABLES `archived_activity_designs` WRITE;
 /*!40000 ALTER TABLE `archived_activity_designs` DISABLE KEYS */;
-INSERT INTO `archived_activity_designs` VALUES (1,1,'Principal Web Strategist','2026-06-16','2026-06-16','16:29:00','10:09:00','Approved','1781447618_e9140e32fae93cec9d25.pdf',7,NULL,'CTE DSG Hall',NULL,406,2421,'employee','2026-06-14','2026-06-30','','2026-06-14 14:34:11'),(2,2,'Dolorem aut similiqu','2026-06-17','2026-06-18','05:03:00','14:43:00','Approved','1781493306_04237de9b5dd9b67176e.pdf',47,NULL,'RSDC Executive Hall',NULL,47,386,'inset','2026-06-15','2026-06-24','','2026-06-15 03:39:39');
 /*!40000 ALTER TABLE `archived_activity_designs` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `budget_realignment_logs`
+--
+
+DROP TABLE IF EXISTS `budget_realignment_logs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `budget_realignment_logs` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `reference_no` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `gpb_id` int NOT NULL,
+  `type` enum('augmentation','realignment') COLLATE utf8mb4_general_ci NOT NULL,
+  `amount` decimal(15,2) NOT NULL,
+  `justification` text COLLATE utf8mb4_general_ci NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `gpb_id` (`gpb_id`),
+  CONSTRAINT `fk_realignment_gpb` FOREIGN KEY (`gpb_id`) REFERENCES `gad_plan_budget` (`gpb_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `budget_realignment_logs`
+--
+
+LOCK TABLES `budget_realignment_logs` WRITE;
+/*!40000 ALTER TABLE `budget_realignment_logs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `budget_realignment_logs` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -308,7 +383,7 @@ CREATE TABLE `control_number` (
   KEY `fk_control_activity` (`act_design_id`),
   KEY `fk_control_user` (`user_id`),
   CONSTRAINT `fk_control_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -317,7 +392,6 @@ CREATE TABLE `control_number` (
 
 LOCK TABLES `control_number` WRITE;
 /*!40000 ALTER TABLE `control_number` DISABLE KEYS */;
-INSERT INTO `control_number` VALUES (1,'2026-0601',1,7),(2,'2026-0602',2,47);
 /*!40000 ALTER TABLE `control_number` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -708,4 +782,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-06-15 12:39:43
+-- Dump completed on 2026-06-27 12:48:59
