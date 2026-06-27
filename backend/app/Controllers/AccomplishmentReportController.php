@@ -50,6 +50,32 @@ class AccomplishmentReportController extends BaseController
                 'status'         => 'Pending'
             ];
 
+            // Validate that actual spending does not exceed proposed budget of the activity design
+            $actDesignId = $reportData['act_design_id'];
+            if (!empty($actDesignId)) {
+                $design = $db->table('archived_activity_designs')->where('original_act_design_id', $actDesignId)->get()->getRowArray();
+                if (!$design) {
+                    $design = $db->table('activity_design')->where('act_design_id', $actDesignId)->get()->getRowArray();
+                }
+
+                if ($design) {
+                    $proposedBudget = (float) $design['proposed_budget'];
+                    
+                    // Sum the actual budget items being submitted
+                    $budgetItems = json_decode($this->request->getPost('budget_items'), true);
+                    $actualTotal = 0;
+                    if (!empty($budgetItems)) {
+                        foreach ($budgetItems as $item) {
+                            $actualTotal += (float) ($item['amount'] ?? $item['total'] ?? 0);
+                        }
+                    }
+
+                    if ($actualTotal > $proposedBudget) {
+                        throw new \Exception("Actual spending (PHP " . number_format($actualTotal, 2) . ") exceeds the approved proposed budget limit (PHP " . number_format($proposedBudget, 2) . "). Please file an Activity Design Revision first to adjust the budget.");
+                    }
+                }
+            }
+
             $reportId = $reportModel->insert($reportData);
 
             if (!$reportId) {
@@ -59,24 +85,16 @@ class AccomplishmentReportController extends BaseController
             // 3. Handle Actual Budget Items
             $budgetItems = json_decode($this->request->getPost('budget_items'), true);
             if (!empty($budgetItems)) {
-                $budgetData = ['accomplishment_report_id' => $reportId];
-                $budgetMapping = [
-                    'Meals and Snacks (AM/PM)' => 'meals_and_snacks',
-                    'Function Room/Venue'      => 'function_room_venue',
-                    'Accommodation'            => 'accommodation',
-                    'Equipment Rental'         => 'equipment_rental',
-                    'Professional Fee/Honoria' => 'professional_fee_honoria',
-                    'Token/s'                  => 'tokens',
-                    'Materials and Supplies'   => 'materials_and_supplies',
-                    'Transportation'           => 'transportation'
-                ];
-
                 foreach ($budgetItems as $item) {
-                    if (isset($budgetMapping[$item['name']])) {
-                        $budgetData[$budgetMapping[$item['name']]] = $item['total'] ?: 0;
-                    }
+                    $db->table('accomplishment_budget_items')->insert([
+                        'accomplishment_report_id' => $reportId,
+                        'category'                 => $item['category'] ?? 'Miscellaneous',
+                        'item_name'                => $item['name'] ?? 'Other',
+                        'sub_item'                 => $item['sub_item'] ?? null,
+                        'pax'                      => isset($item['pax']) && $item['pax'] !== '' ? (int)$item['pax'] : null,
+                        'amount'                   => isset($item['amount']) && $item['amount'] !== '' ? (float)$item['amount'] : 0.00
+                    ]);
                 }
-                $db->table('accomplishment_budget_items')->insert($budgetData);
             }
 
             // 4. Handle Evaluation Results
@@ -184,35 +202,35 @@ class AccomplishmentReportController extends BaseController
     {
         $db = \Config\Database::connect();
         
-        // Perform JOINS to get data from related tables, including the user and the original design's form type
+        // Perform JOINS without budget items table
         $report = $db->table('accomplishment_report as ar')
-            ->select('ar.*, abi.*, aer.*, u.username, u.email, u.username as office, ad.form_type')
+            ->select('ar.*, aer.*, u.username, u.email, u.username as office, ad.form_type')
             ->join('users u', 'u.id = ar.user_id', 'left')
-            // Join the actual budget items table
-            ->join('accomplishment_budget_items abi', 'abi.accomplishment_report_id = ar.id', 'left')
-            // Join the evaluation results table
             ->join('accomplishment_evaluation_results aer', 'aer.accomplishment_report_id = ar.id', 'left')
-            // Join activity design to get form_type
             ->join('activity_design ad', 'ad.act_design_id = ar.act_design_id', 'left')
             ->where('ar.id', $id)
             ->get()
             ->getRowArray();
 
+        $isActive = true;
         if (!$report) {
-            // Try searching in archived records as fallback so ARView can still see it
             $report = $db->table('archived_accomplishment_reports as ar')
-                ->select('ar.*, abi.*, aer.*, u.username, u.email, u.username as office, ad.form_type')
+                ->select('ar.*, aer.*, u.username, u.email, u.username as office, ad.form_type')
                 ->join('users u', 'u.id = ar.user_id', 'left')
-                ->join('accomplishment_budget_items abi', 'abi.accomplishment_report_id = ar.original_report_id', 'left')
                 ->join('accomplishment_evaluation_results aer', 'aer.accomplishment_report_id = ar.original_report_id', 'left')
                 ->join('activity_design ad', 'ad.act_design_id = ar.act_design_id', 'left')
                 ->where('ar.original_report_id', $id)
                 ->get()
                 ->getRowArray();
+            $isActive = false;
+        }
+
+        if (!$report) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Accomplishment report not found'])->setStatusCode(404);
         }
 
         // Fallback: If form_type is empty (design might be archived), check archived_activity_designs
-        if ($report && empty($report['form_type'])) {
+        if (empty($report['form_type'])) {
             $archive = $db->table('archived_activity_designs')
                 ->select('form_type')
                 ->where('original_act_design_id', $report['act_design_id'])
@@ -224,9 +242,68 @@ class AccomplishmentReportController extends BaseController
             }
         }
 
-        if (!$report) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Report not found'])->setStatusCode(404);
+        // Fetch proposed_budget_limit
+        if (!empty($report['act_design_id'])) {
+            $design = $db->table('archived_activity_designs')
+                ->select('proposed_budget')
+                ->where('original_act_design_id', $report['act_design_id'])
+                ->get()
+                ->getRowArray();
+            
+            if (!$design) {
+                $design = $db->table('activity_design')
+                    ->select('proposed_budget')
+                    ->where('act_design_id', $report['act_design_id'])
+                    ->get()
+                    ->getRowArray();
+            }
+            
+            if ($design) {
+                $report['proposed_budget_limit'] = $design['proposed_budget'];
+            }
         }
+
+        // Fetch normalized budget items
+        $reportId = $isActive ? ($report['id'] ?? $id) : ($report['original_report_id'] ?? $id);
+        $table = $isActive ? 'accomplishment_budget_items' : 'archived_accomplishment_budget_items';
+        
+        $budgetItems = $db->table($table)->where('accomplishment_report_id', $reportId)->get()->getResultArray();
+
+        // Populate virtual columns for backward compatibility
+        $report['meals_and_snacks'] = 0;
+        $report['function_room_venue'] = 0;
+        $report['accommodation'] = 0;
+        $report['equipment_rental'] = 0;
+        $report['professional_fee_honoria'] = 0;
+        $report['tokens'] = 0;
+        $report['materials_and_supplies'] = 0;
+        $report['transportation'] = 0;
+        $report['others'] = 0;
+
+        foreach ($budgetItems as $bi) {
+            $amt = (float)$bi['amount'];
+            if ($bi['item_name'] === 'Meals' || $bi['item_name'] === 'Snacks' || $bi['item_name'] === 'Meals and Snacks (AM/PM)') {
+                $report['meals_and_snacks'] += $amt;
+            } elseif ($bi['item_name'] === 'Function Room/Venue') {
+                $report['function_room_venue'] += $amt;
+            } elseif ($bi['item_name'] === 'Accommodation') {
+                $report['accommodation'] += $amt;
+            } elseif ($bi['item_name'] === 'Equipment Rental') {
+                $report['equipment_rental'] += $amt;
+            } elseif ($bi['item_name'] === 'Professional Fee/Honoria' || $bi['item_name'] === 'Professional Fee/Honoria') {
+                $report['professional_fee_honoria'] += $amt;
+            } elseif ($bi['item_name'] === 'Token/s') {
+                $report['tokens'] += $amt;
+            } elseif ($bi['item_name'] === 'Materials and Supplies') {
+                $report['materials_and_supplies'] += $amt;
+            } elseif ($bi['item_name'] === 'Transportation') {
+                $report['transportation'] += $amt;
+            } elseif ($bi['item_name'] === 'Others') {
+                $report['others'] += $amt;
+            }
+        }
+
+        $report['budget_items'] = $budgetItems;
 
         return $this->response->setJSON(['success' => true, 'data' => $report]);
     }
@@ -270,6 +347,13 @@ class AccomplishmentReportController extends BaseController
             
             // Insert into archived_accomplishment_reports (plural as per SQL dump)
             $db->table('archived_accomplishment_reports')->insert($archiveData);
+
+            // Copy accomplishment budget items to archived table before deleting
+            $budgetItems = $db->table('accomplishment_budget_items')->where('accomplishment_report_id', $id)->get()->getResultArray();
+            foreach ($budgetItems as $bi) {
+                unset($bi['id']);
+                $db->table('archived_accomplishment_budget_items')->insert($bi);
+            }
 
             // 2. Delete the original record from the active table to perform a true MOVE operation.
             // This prevents duplication where the record appears in both active and archive lists.
@@ -346,6 +430,13 @@ class AccomplishmentReportController extends BaseController
             ];
             $db->table('archived_accomplishment_reports')->insert($archiveData);
 
+            // Copy accomplishment budget items to archived table before deleting
+            $budgetItems = $db->table('accomplishment_budget_items')->where('accomplishment_report_id', $id)->get()->getResultArray();
+            foreach ($budgetItems as $bi) {
+                unset($bi['id']);
+                $db->table('archived_accomplishment_budget_items')->insert($bi);
+            }
+
             // 2. Delete the original record from the active table to perform a true MOVE operation.
             $reportModel->delete($id);
 
@@ -400,31 +491,48 @@ class AccomplishmentReportController extends BaseController
                 'status'         => $this->request->getPost('status') ?: 'Pending'
             ];
 
+            // Validate that actual spending does not exceed proposed budget of the activity design
+            $actDesignId = $report['act_design_id'];
+            if (!empty($actDesignId)) {
+                $design = $db->table('archived_activity_designs')->where('original_act_design_id', $actDesignId)->get()->getRowArray();
+                if (!$design) {
+                    $design = $db->table('activity_design')->where('act_design_id', $actDesignId)->get()->getRowArray();
+                }
+
+                if ($design) {
+                    $proposedBudget = (float) $design['proposed_budget'];
+                    
+                    // Sum the actual budget items being submitted
+                    $budgetItems = json_decode($this->request->getPost('budget_items'), true);
+                    $actualTotal = 0;
+                    if (!empty($budgetItems)) {
+                        foreach ($budgetItems as $item) {
+                            $actualTotal += (float) ($item['amount'] ?? $item['total'] ?? 0);
+                        }
+                    }
+
+                    if ($actualTotal > $proposedBudget) {
+                        throw new \Exception("Actual spending (PHP " . number_format($actualTotal, 2) . ") exceeds the approved proposed budget limit (PHP " . number_format($proposedBudget, 2) . "). Please file an Activity Design Revision first to adjust the budget.");
+                    }
+                }
+            }
+
             $reportModel->update($id, $reportData);
 
             // 3. Update Budget Items (Delete and Re-insert)
             $budgetItems = json_decode($this->request->getPost('budget_items'), true);
             if (!empty($budgetItems)) {
                 $db->table('accomplishment_budget_items')->where('accomplishment_report_id', $id)->delete();
-                
-                $budgetData = ['accomplishment_report_id' => $id];
-                $budgetMapping = [
-                    'Meals and Snacks (AM/PM)' => 'meals_and_snacks',
-                    'Function Room/Venue'      => 'function_room_venue',
-                    'Accommodation'            => 'accommodation',
-                    'Equipment Rental'         => 'equipment_rental',
-                    'Professional Fee/Honoria' => 'professional_fee_honoria',
-                    'Token/s'                  => 'tokens',
-                    'Materials and Supplies'   => 'materials_and_supplies',
-                    'Transportation'           => 'transportation'
-                ];
-
                 foreach ($budgetItems as $item) {
-                    if (isset($budgetMapping[$item['name']])) {
-                        $budgetData[$budgetMapping[$item['name']]] = $item['total'] ?: 0;
-                    }
+                    $db->table('accomplishment_budget_items')->insert([
+                        'accomplishment_report_id' => $id,
+                        'category'                 => $item['category'] ?? 'Miscellaneous',
+                        'item_name'                => $item['name'] ?? 'Other',
+                        'sub_item'                 => $item['sub_item'] ?? null,
+                        'pax'                      => isset($item['pax']) && $item['pax'] !== '' ? (int)$item['pax'] : null,
+                        'amount'                   => isset($item['amount']) && $item['amount'] !== '' ? (float)$item['amount'] : 0.00
+                    ]);
                 }
-                $db->table('accomplishment_budget_items')->insert($budgetData);
             }
 
             // 4. Update Evaluation Results (Delete and Re-insert)

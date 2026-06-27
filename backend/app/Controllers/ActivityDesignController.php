@@ -115,24 +115,16 @@ class ActivityDesignController extends BaseController
             if ($insertId) {
                 $budgetItems = json_decode($this->request->getPost("budgetary-requirements"), true);
                 if (!empty($budgetItems)) {
-                    $budgetData = ['act_design_id' => $insertId];
-                    $mapping = [
-                        'Meals and Snacks (AM/PM)' => 'meals_and_snacks',
-                        'Function Room/Venue'      => 'function_room_venue',
-                        'Accommodation'            => 'accommodation',
-                        'Equipment Rental'         => 'equipment_rental',
-                        'Professional Fee/Honoria' => 'professional_fee_honoria',
-                        'Token/s'                  => 'tokens',
-                        'Materials and Supplies'   => 'materials_and_supplies',
-                        'Transportation'           => 'transportation'
-                    ];
-
                     foreach ($budgetItems as $item) {
-                        if (isset($mapping[$item['name']])) {
-                            $budgetData[$mapping[$item['name']]] = $item['total'] ?: 0;
-                        }
+                        $db->table('activity_budget_items')->insert([
+                            'act_design_id' => $insertId,
+                            'category'      => $item['category'] ?? 'Miscellaneous',
+                            'item_name'     => $item['name'] ?? 'Other',
+                            'sub_item'      => $item['sub_item'] ?? null,
+                            'pax'           => isset($item['pax']) && $item['pax'] !== '' ? (int)$item['pax'] : null,
+                            'amount'        => isset($item['amount']) && $item['amount'] !== '' ? (float)$item['amount'] : 0.00
+                        ]);
                     }
-                    $db->table('activity_budget_items')->insert($budgetData);
                 }
 
                 $db->transComplete();
@@ -160,10 +152,9 @@ class ActivityDesignController extends BaseController
         $activityDesignModel = new ActivityDesignModel();
 
         $designs = $activityDesignModel
-            ->select('activity_design.*, abi.*, control_number.control_number as control, users.username as office, users.username as username, activity_design.activity_title as title, activity_design.form_type as formLabel, activity_design.start_date as date, COALESCE(venues.venue_name, activity_design.venue) as venue')
+            ->select('activity_design.*, control_number.control_number as control, users.username as office, users.username as username, activity_design.activity_title as title, activity_design.form_type as formLabel, activity_design.start_date as date, COALESCE(venues.venue_name, activity_design.venue) as venue')
             ->join('users', 'users.id = activity_design.user_id', 'left')
             ->join('venues', 'venues.venue_id = activity_design.venue_id', 'left')
-            ->join('activity_budget_items abi', 'abi.act_design_id = activity_design.act_design_id', 'left')
             ->join('control_number', 'control_number.act_design_id = activity_design.act_design_id', 'left')
             ->whereNotIn('activity_design.status', ['Approved', 'Cancelled'])
             ->orderBy('activity_design.act_design_id', 'DESC')
@@ -206,32 +197,72 @@ class ActivityDesignController extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'Design ID required'])->setStatusCode(400);
         }
 
+        $db = \Config\Database::connect();
         $activityDesignModel = new ActivityDesignModel();
         $design = $activityDesignModel
-            ->select('activity_design.*, abi.*, control_number.control_number as control, users.username as office, users.username as username, activity_design.start_date as date, COALESCE(venues.venue_name, activity_design.venue) as venue')
+            ->select('activity_design.*, control_number.control_number as control, users.username as office, users.username as username, activity_design.start_date as date, COALESCE(venues.venue_name, activity_design.venue) as venue')
             ->join('users', 'users.id = activity_design.user_id', 'left')
             ->join('venues', 'venues.venue_id = activity_design.venue_id', 'left')
-            ->join('activity_budget_items abi', 'abi.act_design_id = activity_design.act_design_id', 'left')
             ->join('control_number', 'control_number.act_design_id = activity_design.act_design_id', 'left')
             ->where('activity_design.act_design_id', $id)
             ->first();
 
+        $isActive = true;
         if (!$design) {
-            $db = \Config\Database::connect();
             $design = $db->table('archived_activity_designs as aad')
-                ->select('aad.*, aad.original_act_design_id as act_design_id, aad.activity_title as title, aad.form_type as formLabel, users.username as office, users.username as username, aad.start_date as date, COALESCE(v.venue_name, aad.venue) as venue')
+                ->select('aad.*, aad.original_act_design_id as act_design_id, aad.activity_title as title, aad.form_type as formLabel, users.username as office, users.username as username, aad.start_date as date, COALESCE(v.venue_name, aad.venue) as venue, COALESCE(cn.control_number, "N/A") as control')
                 ->join('users', 'users.id = aad.user_id', 'left')
-                ->join('activity_budget_items abi', 'abi.act_design_id = aad.original_act_design_id', 'left')
                 ->join('control_number as cn', 'cn.act_design_id = aad.original_act_design_id', 'left')
                 ->join('venues as v', 'v.venue_id = aad.venue_id', 'left')
-                ->select('abi.*, COALESCE(cn.control_number, "N/A") as control')
                 ->where('aad.original_act_design_id', $id)
                 ->get()->getRowArray();
 
             if (!$design) {
                 return $this->response->setJSON(['success' => false, 'message' => 'Activity design not found'])->setStatusCode(404);
             }
+            $isActive = false;
         }
+
+        $actDesignId = $isActive ? ($design['act_design_id'] ?? $id) : ($design['original_act_design_id'] ?? $id);
+        $table = $isActive ? 'activity_budget_items' : 'archived_activity_budget_items';
+        
+        $budgetItems = $db->table($table)->where('act_design_id', $actDesignId)->get()->getResultArray();
+        
+        // Populate virtual columns for backward compatibility
+        $design['meals_and_snacks'] = 0;
+        $design['function_room_venue'] = 0;
+        $design['accommodation'] = 0;
+        $design['equipment_rental'] = 0;
+        $design['professional_fee_honoria'] = 0;
+        $design['tokens'] = 0;
+        $design['materials_and_supplies'] = 0;
+        $design['transportation'] = 0;
+        $design['others'] = 0;
+
+        foreach ($budgetItems as $bi) {
+            $amt = (float)$bi['amount'];
+            if ($bi['item_name'] === 'Meals' || $bi['item_name'] === 'Snacks' || $bi['item_name'] === 'Meals and Snacks (AM/PM)') {
+                $design['meals_and_snacks'] += $amt;
+            } elseif ($bi['item_name'] === 'Function Room/Venue') {
+                $design['function_room_venue'] += $amt;
+            } elseif ($bi['item_name'] === 'Accommodation') {
+                $design['accommodation'] += $amt;
+            } elseif ($bi['item_name'] === 'Equipment Rental') {
+                $design['equipment_rental'] += $amt;
+            } elseif ($bi['item_name'] === 'Professional Fee/Honoria' || $bi['item_name'] === 'Professional Fee/Honoria') {
+                $design['professional_fee_honoria'] += $amt;
+            } elseif ($bi['item_name'] === 'Token/s') {
+                $design['tokens'] += $amt;
+            } elseif ($bi['item_name'] === 'Materials and Supplies') {
+                $design['materials_and_supplies'] += $amt;
+            } elseif ($bi['item_name'] === 'Transportation') {
+                $design['transportation'] += $amt;
+            } elseif ($bi['item_name'] === 'Others') {
+                $design['others'] += $amt;
+            }
+        }
+
+        $design['budget_items'] = $budgetItems;
 
         return $this->response->setJSON(['success' => true, 'data' => $design]);
     }
@@ -356,25 +387,16 @@ class ActivityDesignController extends BaseController
                 $budgetItems = json_decode($this->request->getPost("budgetary-requirements"), true);
                 if (!empty($budgetItems)) {
                     $db->table('activity_budget_items')->where('act_design_id', $id)->delete();
-                    
-                    $budgetData = ['act_design_id' => $id];
-                    $mapping = [
-                        'Meals and Snacks (AM/PM)' => 'meals_and_snacks',
-                        'Function Room/Venue'      => 'function_room_venue',
-                        'Accommodation'            => 'accommodation',
-                        'Equipment Rental'         => 'equipment_rental',
-                        'Professional Fee/Honoria' => 'professional_fee_honoria',
-                        'Token/s'                  => 'tokens',
-                        'Materials and Supplies'   => 'materials_and_supplies',
-                        'Transportation'           => 'transportation'
-                    ];
-
                     foreach ($budgetItems as $item) {
-                        if (isset($mapping[$item['name']])) {
-                            $budgetData[$mapping[$item['name']]] = $item['total'] ?: 0;
-                        }
+                        $db->table('activity_budget_items')->insert([
+                            'act_design_id' => $id,
+                            'category'      => $item['category'] ?? 'Miscellaneous',
+                            'item_name'     => $item['name'] ?? 'Other',
+                            'sub_item'      => $item['sub_item'] ?? null,
+                            'pax'           => isset($item['pax']) && $item['pax'] !== '' ? (int)$item['pax'] : null,
+                            'amount'        => isset($item['amount']) && $item['amount'] !== '' ? (float)$item['amount'] : 0.00
+                        ]);
                     }
-                    $db->table('activity_budget_items')->insert($budgetData);
                 }
                 
                 $db->transComplete();
@@ -440,6 +462,7 @@ class ActivityDesignController extends BaseController
             'accomplishment_deadline' => $deadline,
             'attachment'             => $item['attachment'],
             'user_id'                => $item['user_id'],
+            'gpb_id'                 => $item['gpb_id'] ?? null,
             'venue'                  => $item['venue'],
             'venue_id'               => $item['venue_id'],
             'target_participants'    => $item['target_participants'],
@@ -447,6 +470,13 @@ class ActivityDesignController extends BaseController
             'form_type'              => $item['form_type']
         ];
         $db->table('archived_activity_designs')->insert($archiveData);
+
+        // Copy budget items to archived_activity_budget_items before deleting
+        $budgetItems = $db->table('activity_budget_items')->where('act_design_id', $id)->get()->getResultArray();
+        foreach ($budgetItems as $bi) {
+            unset($bi['id']);
+            $db->table('archived_activity_budget_items')->insert($bi);
+        }
 
         $db->table('control_number')->where('act_design_id', $id)->delete();
         $db->table('control_number')->insert([

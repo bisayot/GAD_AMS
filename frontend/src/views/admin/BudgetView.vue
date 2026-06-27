@@ -35,6 +35,18 @@
 
       <div class="stat-card">
         <div class="stat-card-inner">
+          <div class="stat-icon bg-amber">
+            <span class="material-symbols-outlined text-amber">hourglass_empty</span>
+          </div>
+          <div class="stat-info">
+            <h3 class="stat-value">{{ pendingApproved }}</h3>
+            <p class="stat-label">Pending Approved Budget</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-inner">
           <div class="stat-icon bg-pink">
             <span class="material-symbols-outlined text-pink">account_balance_wallet</span>
           </div>
@@ -138,6 +150,7 @@ import api from '../../api';
 // Metric Aggregates (Staged to bind directly to database totals later)
 const totalBudget = ref('₱0');
 const totalUtilized = ref('₱0');
+const pendingApproved = ref('₱0');
 const remainingBalance = ref('₱0');
 const utilizationRate = ref('0.00%');
 
@@ -161,6 +174,7 @@ const fetchBudgetData = async () => {
       const b = summaryRes.data.data;
       totalBudget.value = '₱' + Number(b.total_budget).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       totalUtilized.value = '₱' + Number(b.total_utilized).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      pendingApproved.value = '₱' + Number(b.total_pending_approved).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       remainingBalance.value = '₱' + Number(b.remaining_balance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       utilizationRate.value = Number(b.utilization_rate).toFixed(2) + '%';
     }
@@ -233,7 +247,7 @@ onMounted(() => {
 /* Master Stats Grid Setup */
 .stats-section {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 1.5rem;
 }
 
@@ -279,11 +293,13 @@ onMounted(() => {
 .text-blue { color: #60a5fa; }
 .text-emerald { color: #34d399; }
 .text-pink { color: #f472b6; }
+.text-amber { color: #fbbf24; }
 
 .bg-purple { background: rgba(168, 85, 247, 0.1); }
 .bg-blue { background: rgba(59, 130, 246, 0.1); }
 .bg-emerald { background: rgba(16, 185, 129, 0.1); }
 .bg-pink { background: rgba(244, 114, 182, 0.1); }
+.bg-amber { background: rgba(245, 158, 11, 0.1); }
 
 .stat-info {
   min-width: 0;

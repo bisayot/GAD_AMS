@@ -222,25 +222,38 @@ const submitRealignmentPipeline = async () => {
   }
   
   try {
-    // API endpoint database commit routing pipeline placeholder:
-    // await api.post('staff/budget/realign', realignmentForm.value);
-    alert("Financial reallocation command committed successfully inside registry buffers.");
-    resetFormStructure();
-    fetchInitialBudgetDataPipeline();
+    const postData = new FormData();
+    postData.append('mandate_id', realignmentForm.value.mandate_id);
+    postData.append('type', realignmentForm.value.type);
+    postData.append('amount', realignmentForm.value.amount);
+    postData.append('justification', realignmentForm.value.justification);
+
+    const res = await api.post('staff/budget/realign', postData);
+    if (res.data && res.data.success) {
+      alert("Financial reallocation command committed successfully inside registry buffers.");
+      resetFormStructure();
+      fetchInitialBudgetDataPipeline();
+    }
   } catch (err) {
     console.error(err);
+    alert("Failed to commit financial realignment. Please double check limits.");
   }
 };
 
 const fetchInitialBudgetDataPipeline = async () => {
   try {
-    // Pipeline connection route mappings placeholders layouts triggers:
-    // const mandatesRes = await api.get('staff/budget/available-mandates');
-    // mandateOptions.value = mandatesRes.data;
-    // const logsRes = await api.get('staff/budget/realignment-logs');
-    // historyLogs.value = logsRes.data;
-    // const metaRes = await api.get('staff/budget/financial-meta');
-    // financialMeta.value = metaRes.data;
+    const mandatesRes = await api.get('staff/budget/available-mandates');
+    if (mandatesRes.data) {
+      mandateOptions.value = mandatesRes.data;
+    }
+    const logsRes = await api.get('staff/budget/realignment-logs');
+    if (logsRes.data) {
+      historyLogs.value = logsRes.data;
+    }
+    const metaRes = await api.get('staff/budget/financial-meta');
+    if (metaRes.data) {
+      financialMeta.value = metaRes.data;
+    }
   } catch (err) {
     console.error(err);
   }

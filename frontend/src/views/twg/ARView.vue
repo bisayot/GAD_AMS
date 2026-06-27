@@ -299,8 +299,82 @@ const parsedBudget = computed(() => {
   const r = report.value;
   if (!r) return [];
 
-  // Mapping for individual columns if joined from a 'report_budget_items' style table
-  const items = [
+  const items = [];
+  if (r.budget_items && r.budget_items.length > 0) {
+    // 1. Meals
+    const meals = r.budget_items.filter(bi => bi.item_name === 'Meals');
+    if (meals.length > 0) {
+      let total = meals.reduce((sum, bi) => sum + Number(bi.amount), 0);
+      let subItems = meals.map(bi => bi.sub_item).filter(Boolean);
+      let name = 'Meals';
+      if (subItems.length > 0) {
+        name += ` (${subItems.join(', ')})`;
+      }
+      items.push({ name, total });
+    }
+
+    // 2. Snacks
+    const snacks = r.budget_items.filter(bi => bi.item_name === 'Snacks');
+    if (snacks.length > 0) {
+      let total = snacks.reduce((sum, bi) => sum + Number(bi.amount), 0);
+      let subItems = snacks.map(bi => bi.sub_item).filter(Boolean);
+      let name = 'Snacks';
+      if (subItems.length > 0) {
+        name += ` (${subItems.join(', ')})`;
+      }
+      items.push({ name, total });
+    }
+
+    // 3. Standard items: Function Room/Venue, Accommodation, Equipment Rental, Materials and Supplies, Transportation
+    const standardNames = [
+      'Function Room/Venue',
+      'Accommodation',
+      'Equipment Rental',
+      'Materials and Supplies',
+      'Transportation'
+    ];
+    standardNames.forEach(sName => {
+      const found = r.budget_items.find(bi => bi.item_name === sName);
+      if (found && Number(found.amount) > 0) {
+        items.push({ name: found.item_name, total: found.amount });
+      }
+    });
+
+    // 4. Professional Fee with Pax
+    const pf = r.budget_items.find(bi => bi.item_name === 'Professional Fee/Honoria');
+    if (pf && Number(pf.amount) > 0) {
+      let name = pf.item_name;
+      if (pf.pax) {
+        name += ` (Number of Speakers: ${pf.pax})`;
+      }
+      items.push({ name, total: pf.amount });
+    }
+
+    // 5. Token/s with Pax
+    const tokens = r.budget_items.find(bi => bi.item_name === 'Token/s');
+    if (tokens && Number(tokens.amount) > 0) {
+      let name = tokens.item_name;
+      if (tokens.pax) {
+        name += ` (Number of Recipients: ${tokens.pax})`;
+      }
+      items.push({ name, total: tokens.amount });
+    }
+
+    // 6. Others
+    const others = r.budget_items.filter(bi => bi.item_name === 'Others');
+    if (others.length > 0) {
+      others.forEach(o => {
+        if (Number(o.amount) > 0) {
+          items.push({ name: `Other: ${o.sub_item || 'Unspecified'}`, total: o.amount });
+        }
+      });
+    }
+
+    return items;
+  }
+
+  // Fallback to static columns if budget_items not present (backward compatibility)
+  const fallbackItems = [
     { name: 'Meals and Snacks (AM/PM)', total: r.meals_and_snacks },
     { name: 'Function Room/Venue', total: r.function_room_venue },
     { name: 'Accommodation', total: r.accommodation },
@@ -308,21 +382,11 @@ const parsedBudget = computed(() => {
     { name: 'Professional Fee/Honoria', total: r.professional_fee_honoria },
     { name: 'Token/s', total: r.tokens },
     { name: 'Materials and Supplies', total: r.materials_and_supplies },
-    { name: 'Transportation', total: r.transportation }
+    { name: 'Transportation', total: r.transportation },
+    { name: 'Others', total: r.others }
   ];
 
-  const filteredItems = items.filter(item => item.total !== undefined && item.total !== null && Number(item.total) > 0);
-  if (filteredItems.length > 0) return filteredItems;
-
-  // Fallback: If stored as a JSON string in the 'budget_items' column
-  if (r.budget_items) {
-    try {
-      const jsonItems = typeof r.budget_items === 'string' ? JSON.parse(r.budget_items) : r.budget_items;
-      return Array.isArray(jsonItems) ? jsonItems.filter(item => Number(item.total) > 0) : [];
-    } catch (e) { return []; }
-  }
-
-  return [];
+  return fallbackItems.filter(item => Number(item.total) > 0);
 });
 
 const parsedEvaluation = computed(() => {

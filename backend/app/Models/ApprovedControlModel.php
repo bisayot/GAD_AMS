@@ -26,6 +26,7 @@ class ApprovedControlModel extends Model
                                   archived_activity_designs.end_date,
                                   archived_activity_designs.start_time,
                                   archived_activity_designs.end_time,
+                                  archived_activity_designs.proposed_budget,
                                   COALESCE(venues.venue_name, archived_activity_designs.venue) as venue')
                         ->join('archived_activity_designs', 'archived_activity_designs.original_act_design_id = control_number.act_design_id', 'inner')
                         ->join('venues', 'venues.venue_id = archived_activity_designs.venue_id', 'left');

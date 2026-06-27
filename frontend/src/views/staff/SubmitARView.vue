@@ -132,38 +132,237 @@
                 <div class="form-column-right-ar">
                   <div class="budget-section">
                     <label class="form-label-ar">Actual Budgetary Requirements *</label>
-                    <div class="budget-table-wrapper">
-                      <table class="budget-table">
-                        <thead class="budget-table-header">
-                          <tr>
-                            <th class="table-header-cell">Budget Item</th>
-                            <th class="table-header-cell budget-col-total">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody class="budget-table-body">
-                      <tr v-for="(item, index) in form.budget_items" :key="index" class="budget-table-row">
-                        <td class="budget-item-name" v-html="formatBudgetName(item.name)"></td>
-                        <td class="budget-item-input-cell">
-                      <input 
-                            type="number" 
-                            v-model="item.total" 
-                            class="budget-input-field budget-total-field"
-                            placeholder="0.00"
-                            min="0"
-                            step="0.01"
-                          />
-                            </td>
-                          </tr>
-                        </tbody>
-                        <tfoot class="budget-table-footer">
-                          <tr>
-                            <td colspan="1" class="grand-total-label">Grand Total (PHP)</td>
-                            <td class="grand-total-value">
-                              {{ Number(form.proposed_budget || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
-                            </td>
-                          </tr>
-                        </tfoot>
-                      </table>
+                    <!-- Grouped Budget Divisions -->
+                    <div class="budget-groups-container">
+                      
+                      <!-- Group 1: Catering & Hospitality -->
+                      <div class="budget-group-card">
+                        <div class="budget-group-header">
+                          <span class="budget-group-icon">🍽️</span>
+                          <span class="budget-group-title">Catering & Hospitality</span>
+                        </div>
+                        <div class="budget-group-content">
+                          <!-- Meals Row -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Meals</div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[0].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+
+                          <!-- Snacks Row -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Snacks</div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[1].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Group 2: Venue & Logistics -->
+                      <div class="budget-group-card">
+                        <div class="budget-group-header">
+                          <span class="budget-group-icon">🏨</span>
+                          <span class="budget-group-title">Venue & Logistics</span>
+                        </div>
+                        <div class="budget-group-content">
+                          <!-- Function Room/Venue -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Function Room/Venue</div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[2].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+
+                          <!-- Accommodation -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Accommodation</div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[3].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+
+                          <!-- Equipment Rental -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Equipment Rental</div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[4].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+
+                          <!-- Transportation -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Transportation</div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[8].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Group 3: Program & Speakers -->
+                      <div class="budget-group-card">
+                        <div class="budget-group-header">
+                          <span class="budget-group-icon">🎓</span>
+                          <span class="budget-group-title">Program & Speakers</span>
+                        </div>
+                        <div class="budget-group-content">
+                          <!-- Professional Fee/Honoraria -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Professional Fee/Honoraria</div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[5].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+
+                          <!-- Token/s -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Token/s</div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[6].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Group 4: Materials & Miscellaneous -->
+                      <div class="budget-group-card">
+                        <div class="budget-group-header">
+                          <span class="budget-group-icon">📦</span>
+                          <span class="budget-group-title">Materials & Miscellaneous</span>
+                        </div>
+                        <div class="budget-group-content">
+                          <!-- Materials and Supplies -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Materials and Supplies</div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[7].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+
+                          <!-- Others -->
+                          <div class="others-section-wrapper">
+                            <div class="budget-row-item others-row-item-header" style="border-bottom: none; padding-bottom: 8px;">
+                              <div class="budget-item-info">
+                                <div class="budget-item-title">Others</div>
+                              </div>
+                              <div class="budget-item-value">
+                                <span class="others-total-badge">₱{{ Number(form.budget_items[9].total || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                              </div>
+                            </div>
+                            <div class="others-breakdown-container">
+                              <div v-for="(o, oIdx) in othersList" :key="oIdx" class="others-breakdown-row">
+                                <input type="text" v-model="o.name" placeholder="Item name" class="others-input-name" />
+                                <input type="number" v-model.number="o.amount" min="0" placeholder="₱0.00" class="others-input-amount" />
+                                <button type="button" @click="removeOtherItem(oIdx)" class="btn-remove-other" title="Remove">×</button>
+                              </div>
+                              <button type="button" @click="addOtherItem" class="btn-add-other" style="width: 100%; justify-content: center;">
+                                <span>+</span> Add Item
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    <!-- Grand Total Banner Card -->
+                    <div class="grand-total-banner-card">
+                      <div class="grand-total-label-banner">Actual Total Expenditures</div>
+                      <div class="grand-total-value-banner">
+                        ₱{{ Number(form.proposed_budget || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                      </div>
                     </div>
                   </div>
 
@@ -251,10 +450,26 @@
                 </div>
               </div>
 
+              <!-- Budget Exceeded Warning Card -->
+              <div v-if="isExceedingLimit" class="ar-limit-warning-card">
+                <span class="warning-icon">⚠️</span>
+                <div class="warning-content">
+                  <h4 class="warning-title">Budget Limit Exceeded</h4>
+                  <p class="warning-desc">
+                    The actual spending grand total of <strong>₱{{ Number(form.proposed_budget || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</strong> exceeds the approved proposed budget of <strong>₱{{ Number(selectedProposedBudget || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</strong>.
+                  </p>
+                  <p class="warning-instruction">
+                    Please file an Activity Design Revision to increase the budget before submitting this report, or adjust the actual spending inputs.
+                  </p>
+                </div>
+              </div>
+
               <div class="form-actions-ar">
                 <button 
                   type="submit" 
                   class="submit-action-btn"
+                  :disabled="isExceedingLimit"
+                  :class="{ 'btn-disabled': isExceedingLimit }"
                 >
                   Submit Report →
                 </button>
@@ -294,14 +509,16 @@ const form = ref({
   female: '', 
   proposed_budget: 0,
   budget_items: [
-    { name: 'Meals and Snacks (AM/PM)', total: '' },
+    { name: 'Meals', total: '' },
+    { name: 'Snacks', total: '' },
     { name: 'Function Room/Venue', total: '' },
     { name: 'Accommodation', total: '' },
     { name: 'Equipment Rental', total: '' },
-    { name: 'Professional Fee/Honoria', total: '' },
+    { name: 'Professional Fee/Honoraria', total: '' },
     { name: 'Token/s', total: '' },
     { name: 'Materials and Supplies', total: '' },
-    { name: 'Transportation', total: '' }
+    { name: 'Transportation', total: '' },
+    { name: 'Others', total: '' }
   ],
   evaluation_items: [
     { area: 'Time Management', rating: '' },
@@ -332,6 +549,33 @@ const fetchApprovedControls = async () => {
   }
 };
 
+// Reactive Others State
+const othersList = ref([]);
+const addOtherItem = () => {
+  othersList.value.push({ name: '', amount: '' });
+};
+const removeOtherItem = (index) => {
+  othersList.value.splice(index, 1);
+};
+
+watch(
+  othersList,
+  (newList) => {
+    const item = form.value.budget_items.find(i => i.name === 'Others');
+    if (item) {
+      const sum = newList.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
+      item.total = sum || '';
+    }
+  },
+  { deep: true }
+);
+
+const selectedProposedBudget = ref(0);
+
+const isExceedingLimit = computed(() => {
+  return selectedProposedBudget.value > 0 && form.value.proposed_budget > selectedProposedBudget.value;
+});
+
 watch(() => form.value.control_number, (newVal) => {
   const selected = approvedControls.value.find(c => c.control_number === newVal);
   if (selected) {
@@ -342,6 +586,9 @@ watch(() => form.value.control_number, (newVal) => {
     form.value.start_time = selected.start_time;
     form.value.end_time = selected.end_time;
     form.value.venue = selected.venue;
+    selectedProposedBudget.value = Number(selected.proposed_budget) || 0;
+  } else {
+    selectedProposedBudget.value = 0;
   }
 });
 
@@ -417,11 +664,59 @@ const submitReport = async () => {
     
     Object.keys(form.value).forEach(key => {
       if (key === 'budget_items') {
-        formData.append(key, JSON.stringify(form.value[key]));
+        const finalBudgetItems = [];
+        const categoryMapping = {
+          'Meals': 'Catering & Hospitality',
+          'Snacks': 'Catering & Hospitality',
+          'Function Room/Venue': 'Venue & Logistics',
+          'Accommodation': 'Venue & Logistics',
+          'Equipment Rental': 'Venue & Logistics',
+          'Professional Fee/Honoria': 'Program & Speakers',
+          'Token/s': 'Program & Speakers',
+          'Materials and Supplies': 'Materials & Miscellaneous',
+          'Transportation': 'Venue & Logistics',
+          'Others': 'Materials & Miscellaneous'
+        };
+
+        form.value.budget_items.forEach(item => {
+          const totalAmt = Number(item.total) || 0;
+          const category = categoryMapping[item.name] || 'Miscellaneous';
+
+          if (item.name === 'Others') {
+            if (othersList.value && othersList.value.length > 0) {
+              othersList.value.forEach(other => {
+                if (Number(other.amount) > 0) {
+                  finalBudgetItems.push({
+                    category,
+                    name: 'Others',
+                    sub_item: other.name || 'Other Item',
+                    amount: Number(other.amount)
+                  });
+                }
+              });
+            } else if (totalAmt > 0) {
+              finalBudgetItems.push({
+                category,
+                name: 'Others',
+                sub_item: 'Other Item',
+                amount: totalAmt
+              });
+            }
+          } else {
+            finalBudgetItems.push({
+              category,
+              name: item.name,
+              sub_item: null,
+              amount: totalAmt
+            });
+          }
+        });
+
+        formData.append(key, JSON.stringify(finalBudgetItems));
       } else if (key === 'evaluation_items') {
         formData.append(key, JSON.stringify(form.value[key]));
       } else {
-      formData.append(key, form.value[key]);
+        formData.append(key, form.value[key]);
       }
     });
     
@@ -460,14 +755,16 @@ const submitReport = async () => {
         female: '', 
         proposed_budget: 0,
         budget_items: [
-          { name: 'Meals and Snacks (AM/PM)', total: '' },
+          { name: 'Meals', total: '' },
+          { name: 'Snacks', total: '' },
           { name: 'Function Room/Venue', total: '' },
           { name: 'Accommodation', total: '' },
           { name: 'Equipment Rental', total: '' },
           { name: 'Professional Fee/Honoria', total: '' },
           { name: 'Token/s', total: '' },
           { name: 'Materials and Supplies', total: '' },
-          { name: 'Transportation', total: '' }
+          { name: 'Transportation', total: '' },
+          { name: 'Others', total: '' }
         ],
         evaluation_items: [
           { area: 'Time Management', rating: '' },
@@ -944,4 +1241,306 @@ onMounted(() => {
   padding-top: 24px;
 }
 
+/* Budget Limit Warning Card */
+.ar-limit-warning-card {
+  display: flex;
+  gap: 16px;
+  background: rgba(244, 63, 94, 0.1);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.15);
+  animation: fadeIn 0.3s ease;
+}
+
+.warning-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.warning-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.warning-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #f43f5e;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.warning-desc {
+  font-size: 13px;
+  color: #cbd5e1;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.warning-instruction {
+  font-size: 12px;
+  color: #fb7185;
+  margin: 0;
+  font-weight: 600;
+}
+
+.btn-disabled {
+  background: #475569 !important;
+  color: #94a3b8 !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  opacity: 0.6;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* Others Breakdown Styles */
+.others-breakdown-container {
+  margin-top: 10px;
+  padding: 12px;
+  background-color: rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+  border: 1px dashed rgba(185, 121, 204, 0.2);
+}
+
+.others-breakdown-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.others-input-name {
+  flex: 1;
+  background-color: rgba(26, 26, 46, 0.6);
+  border: 1px solid rgba(185, 121, 204, 0.2);
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: #ffffff;
+  font-size: 12px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.others-input-amount {
+  width: 110px;
+  background-color: rgba(26, 26, 46, 0.6);
+  border: 1px solid rgba(185, 121, 204, 0.2);
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: #ffffff;
+  font-size: 12px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.others-input-name:focus,
+.others-input-amount:focus {
+  border-color: #b979cc;
+  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.15);
+}
+
+.btn-remove-other {
+  background: transparent;
+  border: none;
+  color: #f43f5e;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  transition: color 0.2s;
+}
+
+.btn-remove-other:hover {
+  color: #fda4af;
+}
+
+.btn-add-other {
+  background-color: rgba(185, 121, 204, 0.1);
+  border: 1px solid rgba(185, 121, 204, 0.25);
+  color: #b979cc;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.btn-add-other:hover {
+  background-color: rgba(185, 121, 204, 0.2);
+  transform: translateY(-0.5px);
+}
+
+.others-total-badge {
+  background-color: rgba(185, 121, 204, 0.15);
+  border: 1px solid rgba(185, 121, 204, 0.3);
+  color: #b979cc;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  display: inline-block;
+}
+
+.budget-groups-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.budget-group-card {
+  background: rgba(30, 41, 59, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 20px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.budget-group-card:hover {
+  border-color: rgba(185, 121, 204, 0.3);
+  background: rgba(30, 41, 59, 0.6);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.budget-group-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.budget-group-icon {
+  font-size: 18px;
+}
+
+.budget-group-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #b979cc;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.budget-group-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.budget-row-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.budget-row-item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.budget-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-grow: 1;
+}
+
+.budget-item-title {
+  font-weight: 600;
+  color: #f1f5f9;
+  font-size: 14px;
+}
+
+.budget-item-subtext {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.budget-item-value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 240px;
+  flex-shrink: 0;
+  justify-content: flex-end;
+}
+
+.budget-currency-symbol {
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.budget-card-input {
+  background-color: rgba(15, 23, 42, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 14px;
+  padding: 8px 12px;
+  width: 100%;
+  text-align: right;
+  transition: all 0.2s ease;
+  font-weight: 600;
+}
+
+.budget-card-input:focus {
+  border-color: #b979cc;
+  background-color: rgba(15, 23, 42, 0.5);
+  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.2);
+  outline: none;
+}
+
+.grand-total-banner-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, rgba(185, 121, 204, 0.1) 0%, rgba(153, 13, 209, 0.1) 100%);
+  border: 1px solid rgba(185, 121, 204, 0.3);
+  border-radius: 14px;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 4px 15px -3px rgba(185, 121, 204, 0.1);
+}
+
+.grand-total-label-banner {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.grand-total-value-banner {
+  font-size: 20px;
+  font-weight: 800;
+  color: #b979cc;
+  text-shadow: 0 0 10px rgba(185, 121, 204, 0.2);
+}
 </style>
