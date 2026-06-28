@@ -39,19 +39,45 @@
 
                   <div class="form-sub-grid-ar">
                     <div class="input-group-ar">
-                      <label class="form-label-ar">Start Date of Implementation *</label>
+                      <div class="label-container">
+                        <label class="form-label-ar">Start Date of Implementation *</label>
+                        <div class="info-btn-wrapper">
+                          <button type="button" class="info-btn" @click.stop="toggleHelp('startDate')">
+                            i
+                          </button>
+                          <transition name="fade-pop">
+                            <div v-if="helpState.startDate" class="simple-popup">
+                              Must be scheduled on working days from Monday to Thursday.
+                            </div>
+                          </transition>
+                        </div>
+                      </div>
                       <input 
                         type="date" 
                         v-model="form.start_date" 
+                        :min="todayDate"
                         required 
                         class="custom-input-field code-icon-calendar"
                       >
                     </div>
                     <div class="input-group-ar">
-                      <label class="form-label-ar">End Date of Implementation *</label>
+                      <div class="label-container">
+                        <label class="form-label-ar">End Date of Implementation *</label>
+                        <div class="info-btn-wrapper">
+                          <button type="button" class="info-btn" @click.stop="toggleHelp('endDate')">
+                            i
+                          </button>
+                          <transition name="fade-pop">
+                            <div v-if="helpState.endDate" class="simple-popup">
+                              End date must not exceed a week after the start date.
+                            </div>
+                          </transition>
+                        </div>
+                      </div>
                       <input 
                         type="date" 
                         v-model="form.end_date" 
+                        :min="todayDate"
                         required 
                         class="custom-input-field code-icon-calendar"
                       >
@@ -60,19 +86,47 @@
 
                   <div class="form-sub-grid-ar">
                     <div class="input-group-ar">
-                      <label class="form-label-ar">Start Time *</label>
+                      <div class="label-container">
+                        <label class="form-label-ar">Start Time *</label>
+                        <div class="info-btn-wrapper">
+                          <button type="button" class="info-btn" @click.stop="toggleHelp('startTime')">
+                            i
+                          </button>
+                          <transition name="fade-pop">
+                            <div v-if="helpState.startTime" class="simple-popup">
+                              Must be set between 04:00 AM and 08:00 PM.
+                            </div>
+                          </transition>
+                        </div>
+                      </div>
                       <input 
                         type="time" 
                         v-model="form.start_time" 
+                        min="04:00"
+                        max="20:00"
                         required 
                         class="custom-input-field code-icon-clock"
                       >
                     </div>
                     <div class="input-group-ar">
-                      <label class="form-label-ar">End Time *</label>
+                      <div class="label-container">
+                        <label class="form-label-ar">End Time *</label>
+                        <div class="info-btn-wrapper">
+                          <button type="button" class="info-btn" @click.stop="toggleHelp('endTime')">
+                            i
+                          </button>
+                          <transition name="fade-pop">
+                            <div v-if="helpState.endTime" class="simple-popup">
+                              Must be after the start time and set between 04:00 AM and 08:00 PM.
+                            </div>
+                          </transition>
+                        </div>
+                      </div>
                       <input 
                         type="time" 
                         v-model="form.end_time" 
+                        min="04:00"
+                        max="20:00"
                         required 
                         class="custom-input-field code-icon-clock"
                       >
@@ -91,12 +145,14 @@
                   </div>
 
                   <div class="input-group-ar">
-                    <label class="form-label-ar">Number of Attendees *</label>
+                    <div class="label-container">
+                      <label class="form-label-ar">Number of Attendees *</label>
+                    </div>
                     <input 
                       type="number" 
                       v-model="form.attendees" 
                       required 
-                      min="0"
+                      min="50"
                       class="custom-input-field input-disabled-ar"
                       placeholder="0"
                       readonly
@@ -481,7 +537,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import Swal from 'sweetalert2';
 import api from '../../api';
@@ -494,6 +550,101 @@ const menuItems = computed(() => {
   if (route.path.includes('/staff')) return staffMenu;
   return [];
 });
+
+const getTodayDate = () => {
+  const d = new Date();
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().split('T')[0];
+};
+const todayDate = ref(getTodayDate());
+
+const helpState = ref({
+  startDate: false,
+  endDate: false,
+  startTime: false,
+  endTime: false,
+  targetParticipants: false
+});
+
+const toggleHelp = (field) => {
+  const currentVal = helpState.value[field];
+  Object.keys(helpState.value).forEach(key => {
+    helpState.value[key] = false;
+  });
+  helpState.value[field] = !currentVal;
+};
+
+const closeAllHelp = () => {
+  Object.keys(helpState.value).forEach(key => {
+    helpState.value[key] = false;
+  });
+};
+
+const philippineHolidays = ref([]);
+
+const fetchHolidays = async () => {
+  try {
+    const year = new Date().getFullYear();
+    const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/PH`);
+    const data = await response.json();
+    philippineHolidays.value = data.map(h => h.date)
+  } catch (error) {
+    console.error('Failed to fetch holidays:', error);
+  }
+};
+
+const holidays = philippineHolidays;
+
+const isWeekend = (dateString) => {
+  const date = new Date(dateString + 'T00:00:00');
+  const dayOfWeek = date.getDay();
+  return dayOfWeek === 0 || dayOfWeek === 5 || dayOfWeek === 6;
+};
+
+const isHoliday = (dateString) => {
+  return holidays.value.includes(dateString);
+};
+
+const isCurrentYear = (dateString) => {
+  const date = new Date(dateString + 'T00:00:00');
+  const currentYear = new Date().getFullYear();
+  return date.getFullYear() === currentYear;
+};
+
+const isValidActivityDate = (dateString) => {
+  if (!isCurrentYear(dateString)) {
+    const currentYear = new Date().getFullYear();
+    return { valid: false, reason: `Activities can only be scheduled in ${currentYear}. Please select a date within the current year.` };
+  }
+  if (isWeekend(dateString)) {
+    return { valid: false, reason: 'Activities cannot be scheduled on Friday, Saturday, or Sunday.' };
+  }
+  if (isHoliday(dateString)) {
+    return { valid: false, reason: 'This date is a holiday. Please select another date.' };
+  }
+  return { valid: true, reason: '' };
+};
+
+const isValidActivityDuration = (startDateString, endDateString) => {
+  if (!startDateString || !endDateString) {
+    return { valid: true, reason: '' };
+  }
+  const startDate = new Date(startDateString + 'T00:00:00');
+  const endDate = new Date(endDateString + 'T00:00:00');
+  
+  if (endDate < startDate) {
+    return { valid: false, reason: 'End date cannot be before start date.' };
+  }
+  
+  const diffTime = endDate - startDate;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays > 7) {
+    return { valid: false, reason: 'The duration of the activity must not exceed a week (maximum of 7 calendar days).' };
+  }
+  
+  return { valid: true, reason: '' };
+};
 
 const form = ref({
   activity_title: '',
@@ -602,6 +753,62 @@ watch(() => form.value.budget_items, (newItems) => {
   form.value.proposed_budget = total;
 }, { deep: true });
 
+watch(() => form.value.start_date, (newDate) => {
+  if (newDate) {
+    const validation = isValidActivityDate(newDate);
+    if (!validation.valid) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Date',
+        text: validation.reason,
+        confirmButtonColor: '#b979cc'
+      });
+      form.value.start_date = '';
+      return;
+    }
+    if (form.value.end_date) {
+      const durationValidation = isValidActivityDuration(newDate, form.value.end_date);
+      if (!durationValidation.valid) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Invalid Duration',
+          text: durationValidation.reason,
+          confirmButtonColor: '#b979cc'
+        });
+        form.value.start_date = '';
+      }
+    }
+  }
+});
+
+watch(() => form.value.end_date, (newDate) => {
+  if (newDate) {
+    const validation = isValidActivityDate(newDate);
+    if (!validation.valid) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Date',
+        text: validation.reason,
+        confirmButtonColor: '#b979cc'
+      });
+      form.value.end_date = '';
+      return;
+    }
+    if (form.value.start_date) {
+      const durationValidation = isValidActivityDuration(form.value.start_date, newDate);
+      if (!durationValidation.valid) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Invalid Duration',
+          text: durationValidation.reason,
+          confirmButtonColor: '#b979cc'
+        });
+        form.value.end_date = '';
+      }
+    }
+  }
+});
+
 watch([() => form.value.male, () => form.value.female], ([newMale, newFemale]) => {
   const m = parseInt(newMale) || 0;
   const f = parseInt(newFemale) || 0;
@@ -659,6 +866,53 @@ const removeFile = (index) => {
 };
 
 const submitReport = async () => {
+  // Validate start date
+  const startValidation = isValidActivityDate(form.value.start_date);
+  if (!startValidation.valid) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Start Date',
+      text: startValidation.reason,
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+
+  // Validate end date
+  const endValidation = isValidActivityDate(form.value.end_date);
+  if (!endValidation.valid) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid End Date',
+      text: endValidation.reason,
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+
+  // Validate activity duration (max 7 days)
+  const durationValidation = isValidActivityDuration(form.value.start_date, form.value.end_date);
+  if (!durationValidation.valid) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Duration',
+      text: durationValidation.reason,
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+
+  // Validate number of attendees (min 50)
+  if (form.value.attendees < 50) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Participants',
+      text: 'Participants must be 50 and above.',
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+
   try {
     const formData = new FormData();
     
@@ -801,7 +1055,13 @@ onMounted(() => {
     router.push('/login');
   } else {
     fetchApprovedControls();
+    fetchHolidays();
   }
+  document.addEventListener('click', closeAllHelp);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeAllHelp);
 });
 </script>
 
@@ -1542,5 +1802,103 @@ onMounted(() => {
   font-weight: 800;
   color: #b979cc;
   text-shadow: 0 0 10px rgba(185, 121, 204, 0.2);
+}
+
+.label-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.info-btn {
+  background: rgba(185, 121, 204, 0.08);
+  border: 1px solid rgba(185, 121, 204, 0.35);
+  color: #b979cc;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: bold;
+  font-family: serif;
+  line-height: 1;
+  transition: all 0.25s ease;
+}
+
+.info-btn:hover {
+  background: #b979cc;
+  color: #16213e;
+  border-color: #b979cc;
+  transform: scale(1.15);
+  box-shadow: 0 0 8px rgba(185, 121, 204, 0.4);
+}
+
+.info-btn-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.simple-popup {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  background: #1a1a2e;
+  border: 1px solid #b979cc;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #ffffff;
+  font-size: 12px;
+  width: 240px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  line-height: 1.45;
+  pointer-events: auto;
+  text-transform: none;
+  white-space: normal;
+}
+
+.simple-popup::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: #1a1a2e transparent transparent transparent;
+}
+
+.simple-popup::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 7px;
+  border-style: solid;
+  border-color: #b979cc transparent transparent transparent;
+  z-index: -1;
+}
+
+.fade-pop-enter-active,
+.fade-pop-leave-active {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fade-pop-enter-from,
+.fade-pop-leave-to {
+  opacity: 0;
+  transform: translate(-50%, 8px) scale(0.95);
+}
+
+.fade-pop-enter-to,
+.fade-pop-leave-from {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
 }
 </style>
