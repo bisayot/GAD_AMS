@@ -39,7 +39,6 @@
 const navItems = [
   { href: '/', label: 'Home' },
   // { href: '/about', label: 'About Us' },
-  { href: '/resources', label: 'Resources' },
   { href: '/gad-corner', label: 'GAD Corner' },
   { href: '/contact', label: 'Contact' }
 ];

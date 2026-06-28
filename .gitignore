@@ -21,7 +21,11 @@ Thumbs.db
 # Writable directories (CodeIgniter)
 backend/writable/
 !backend/writable/.htaccess
-!backend/writable/index.html
+!backend/writable/.gitkeep
 
 # Production builds
 frontend/dist/
+# Specific Environment Files
+backend/.env
+frontend/.env
+frontend/.env.local

@@ -119,7 +119,6 @@ class BudgetController extends Controller
         foreach ($offices as $office) {
             $officeId = $office['office_id'];
 
-            // 1. Calculate Allocated Budget (from GPB activities mapped to this office)
             $gpbIdsQuery = $db->table('gpb_offices_map')
                 ->where('office_id', $officeId)
                 ->get()
@@ -241,7 +240,7 @@ class BudgetController extends Controller
             return $this->fail('Office not found');
         }
 
-        if ($field === 'allocated') {
+            if ($field === 'allocated') {
             $gpbIdsQuery = $db->table('gpb_offices_map')
                 ->where('office_id', $officeId)
                 ->get()

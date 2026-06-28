@@ -1,0 +1,20 @@
+ERROR - 2026-06-18 01:11:06 --> LOGIN ATTEMPT: Identity=[gad.office@bsu.edu.ph]
+ERROR - 2026-06-18 01:11:07 --> LOGIN SUCCESS: User [Gender and Development Office] authenticated.
+ERROR - 2026-06-18 01:11:14 --> LOGIN ATTEMPT: Identity=[gad.staff@bsu.edu.ph]
+ERROR - 2026-06-18 01:11:15 --> LOGIN SUCCESS: User [gad.staff] authenticated.
+ERROR - 2026-06-18 01:11:31 --> LOGIN ATTEMPT: Identity=[ca@bsu.edu.ph]
+ERROR - 2026-06-18 01:11:31 --> LOGIN SUCCESS: User [College of Agriculture] authenticated.
+ERROR - 2026-06-18 04:57:38 --> LOGIN ATTEMPT: Identity=[gad.office@bsu.edu.ph]
+ERROR - 2026-06-18 04:57:38 --> LOGIN SUCCESS: User [Gender and Development Office] authenticated.
+ERROR - 2026-06-18 04:58:12 --> LOGIN ATTEMPT: Identity=[gad.staff@bsu.edu.ph]
+ERROR - 2026-06-18 04:58:12 --> LOGIN SUCCESS: User [gad.staff] authenticated.
+ERROR - 2026-06-18 04:58:40 --> LOGIN ATTEMPT: Identity=[ca@bsu.edu.ph]
+ERROR - 2026-06-18 04:58:40 --> LOGIN SUCCESS: User [College of Agriculture] authenticated.
+ERROR - 2026-06-18 06:41:36 --> LOGIN ATTEMPT: Identity=[gad.office@bsu.edu.ph]
+ERROR - 2026-06-18 06:41:36 --> LOGIN SUCCESS: User [Gender and Development Office] authenticated.
+ERROR - 2026-06-18 06:41:46 --> LOGIN ATTEMPT: Identity=[gad.staff@bsu.edu.ph]
+ERROR - 2026-06-18 06:41:47 --> LOGIN SUCCESS: User [gad.staff] authenticated.
+ERROR - 2026-06-18 06:42:01 --> LOGIN ATTEMPT: Identity=[ca@bsu.edu.ph]
+ERROR - 2026-06-18 06:42:02 --> LOGIN SUCCESS: User [College of Agriculture] authenticated.
+ERROR - 2026-06-18 07:02:47 --> LOGIN ATTEMPT: Identity=[marksantos@gmail.com]
+ERROR - 2026-06-18 07:02:47 --> LOGIN SUCCESS: User [marksantos] authenticated.

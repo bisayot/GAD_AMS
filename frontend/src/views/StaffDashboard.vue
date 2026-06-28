@@ -28,16 +28,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../api';
 import DashboardSidebar from '../components/DashboardSidebar.vue';
 
 const router = useRouter();
+const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 
-const staffMenu = [
+const staffMenu = ref([
   { label: 'New Submission', icon: 'add', href: '/staff/submit' },
   { label: 'Dashboard', icon: 'dashboard', href: '/staff/dashboard' },
+  { label: 'Messages', icon: 'mail', href: '/staff/messages', badge: 0 },
   { label: 'Submitted List', icon: 'list', href: '/staff/submitted-list' },
   { label: 'Activity Design List', icon: 'list', href: '/staff/ad-list' },
   { label: 'Accomplishment Report List', icon: 'list', href: '/staff/ar-list' },
@@ -45,9 +47,28 @@ const staffMenu = [
   { label: 'Mandates', icon: 'gavel', href: '/staff/mandates' },
   { label: 'Report Monitoring', icon: 'description', href: '/staff/reports' },
   { label: 'Budget Monitoring', icon: 'payments', href: '/staff/budget' },
+  { label: 'Office/Unit Management', icon: 'domain', href: '/staff/office-management' },
+  { label: 'User Management', icon: 'manage_accounts', href: '/staff/user-management' },
+  { label: 'Activity Logs', icon: 'history', href: '/staff/activity-logs' },
   { label: 'User Manual', icon: 'menu_book', href: '/staff/user-manual' },
   { label: 'Data Privacy Policy', icon: 'privacy_tip', href: '/staff/data-privacy-policy' }
-];
+]);
+
+const fetchUnreadCount = async () => {
+  if (user.value?.id) {
+    try {
+      const res = await api.get(`/messages/unread-count/${user.value.id}`);
+      if (res.data.success) {
+        const msgItem = staffMenu.value.find(m => m.label === 'Messages');
+        if (msgItem) msgItem.badge = res.data.count;
+      }
+    } catch (err) {
+      console.error('Failed to fetch unread count:', err);
+    }
+  }
+};
+
+let unreadInterval;
 
 const handleLogout = async () => {
   try {
@@ -61,10 +82,16 @@ const handleLogout = async () => {
 };
 
 onMounted(() => {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  if (!user.id || user.role !== 'gad_staff') {
+  if (!user.value.id || user.value.role !== 'gad_staff') {
     router.push('/login');
+  } else {
+    fetchUnreadCount();
+    unreadInterval = setInterval(fetchUnreadCount, 30000); // Check every 30 seconds
   }
+});
+
+onUnmounted(() => {
+  if (unreadInterval) clearInterval(unreadInterval);
 });
 </script>
 

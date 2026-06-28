@@ -5,16 +5,16 @@
       isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
     ]"
   >
-    <div class="sidebar-header">
+    <div class="sidebar-header relative w-full">
       <div class="sidebar-logo">
-        <img src="/images/bsulogo.png" alt="BSU Logo" />
+        <img src="/images/logo.png" alt="Custom Logo" />
         <div class="logo-text">
           <div class="logo-subtitle">Benguet State University</div>
           <div class="logo-title">GAD-AMS</div>
           <div class="logo-dept">Gender and Development Office</div>
         </div>
       </div>
-      <button @click="$emit('close')" class="lg:hidden text-slate-400 hover:text-white p-1 flex-shrink-0 flex items-center justify-center ml-2">
+      <button @click="$emit('close')" class="lg:hidden absolute top-0 -right-2 text-slate-400 hover:text-white p-1 flex items-center justify-center">
         <span class="material-symbols-outlined text-lg">close</span>
       </button>
     </div>
@@ -25,16 +25,23 @@
         :key="item.label"
         :to="item.href"
         @click="$emit('close')"
-        class="flex items-center gap-3 p-3 rounded-xl transition-all duration-200"
+        class="flex items-center justify-between p-3 rounded-xl transition-all duration-200"
         :class="$route.path === item.href ? 'bg-primary/20 text-white font-bold' : 'text-slate-400 hover:bg-white/5 hover:text-white'"
       >
-        <span class="material-symbols-outlined text-xl">{{ item.icon }}</span>
-        <span class="text-sm">{{ item.label }}</span>
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-xl">{{ item.icon }}</span>
+          <span class="text-sm">{{ item.label }}</span>
+        </div>
+        <span v-if="item.badge && item.badge > 0" class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{{ item.badge }}</span>
       </router-link>
     </nav>
 
-    <div class="mt-auto pt-6 border-t border-white/10">
-      <button @click="$emit('logout')" class="flex items-center gap-3 p-3 text-slate-400 hover:text-red-400 transition-colors w-full text-left">
+    <div class="mt-auto pt-6 border-t border-white/10 flex flex-col gap-1">
+      <router-link :to="settingsPath" class="flex items-center gap-3 p-3 text-slate-400 hover:text-white transition-colors w-full text-left rounded-xl hover:bg-white/5" :class="$route.path.includes('/settings') ? 'bg-primary/20 text-white font-bold' : ''">
+        <span class="material-symbols-outlined text-xl">settings</span>
+        <span class="text-sm font-bold">Settings</span>
+      </router-link>
+      <button @click="$emit('logout')" class="flex items-center gap-3 p-3 text-slate-400 hover:text-red-400 transition-colors w-full text-left rounded-xl hover:bg-white/5">
         <span class="material-symbols-outlined text-xl">logout</span>
         <span class="text-sm font-bold">Sign Out</span>
       </button>
@@ -43,6 +50,9 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+
 defineProps({
   roleLabel: { type: String, default: 'User' },
   menuItems: { type: Array, required: true },
@@ -50,14 +60,20 @@ defineProps({
 });
 
 defineEmits(['logout', 'close']);
+
+const route = useRoute();
+const settingsPath = computed(() => {
+  const base = route.path.split('/')[1] || 'dashboard';
+  return `/${base}/settings`;
+});
 </script>
 
 <style scoped>
   /* Logo section */
   .sidebar-header {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: center;
     margin-bottom: 20px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
     padding-bottom: 16px;
@@ -66,18 +82,19 @@ defineEmits(['logout', 'close']);
 
   .sidebar-logo {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
   }
 
   .sidebar-logo img {
-    height: 48px;
+    height: 72px;
     width: auto;
     object-fit: contain;
   }
 
   .logo-text {
-    text-align: left;
+    text-align: center;
   }
 
   .logo-subtitle {

@@ -28,24 +28,47 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
+import api from '../api';
 import DashboardSidebar from '../components/DashboardSidebar.vue';
 
 const router = useRouter();
+const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 
-const adminMenu = [
+const adminMenu = ref([
   { label: 'Dashboard', icon: 'dashboard', href: '/admin/dashboard' },
+  { label: 'Messages', icon: 'mail', href: '/admin/messages', badge: 0 },
   { label: 'Submitted List', icon: 'folder', href: '/admin/submitted-list' },
   { label: 'Activity Design List', icon: 'description', href: '/admin/ad-list' },
   { label: 'Accomplishment Report List', icon: 'description', href: '/admin/ar-list' },
-  { label: 'Archive', icon: 'archive', href: '/admin/archive' },
+  { label: 'Archives', icon: 'archive', href: '/admin/archive' },
+  { label: 'Trash Bin', icon: 'delete', href: '/admin/trash-bin' },
   { label: 'Mandates Management', icon: 'account_balance', href: '/admin/mandates' },
   { label: 'Report Monitoring', icon: 'bar_chart', href: '/admin/reports' },
   { label: 'Budget Monitoring', icon: 'account_balance_wallet', href: '/admin/budget' },
+  { label: 'Office/Unit Management', icon: 'domain', href: '/admin/office-management' },
+  { label: 'User Management', icon: 'manage_accounts', href: '/admin/user-management' },
+  { label: 'Activity Logs', icon: 'history', href: '/admin/activity-logs' },
   { label: 'User Manual', icon: 'help', href: '/admin/user-manual' },
   { label: 'Data Privacy Policy', icon: 'privacy_tip', href: '/admin/data-privacy-policy' }
-];
+]);
+
+const fetchUnreadCount = async () => {
+  if (user.value?.id) {
+    try {
+      const res = await api.get(`/messages/unread-count/${user.value.id}`);
+      if (res.data.success) {
+        const msgItem = adminMenu.value.find(m => m.label === 'Messages');
+        if (msgItem) msgItem.badge = res.data.count;
+      }
+    } catch (err) {
+      console.error('Failed to fetch unread count:', err);
+    }
+  }
+};
+
+let unreadInterval;
 
 const handleLogout = () => {
   localStorage.removeItem("user");
@@ -53,6 +76,16 @@ const handleLogout = () => {
 };
 
 onMounted(() => {
+  if (!user.value.id || user.value.role !== 'admin') {
+    router.push('/login');
+  } else {
+    fetchUnreadCount();
+    unreadInterval = setInterval(fetchUnreadCount, 30000); // Check every 30 seconds
+  }
+});
+
+onUnmounted(() => {
+  if (unreadInterval) clearInterval(unreadInterval);
 });
 </script>
 

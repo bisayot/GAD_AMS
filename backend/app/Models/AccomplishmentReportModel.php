@@ -8,6 +8,7 @@ class AccomplishmentReportModel extends Model
 {
     protected $table      = 'accomplishment_report';
     protected $primaryKey = 'id';
+    protected $useSoftDeletes = true;
 
     protected $allowedFields = [
         'control_number',
@@ -18,6 +19,7 @@ class AccomplishmentReportModel extends Model
         'start_time',
         'end_time',
         'venue',
+        'venue_id',
         'attendees',
         'male',
         'female',
@@ -26,6 +28,7 @@ class AccomplishmentReportModel extends Model
         'user_id',
         'status',
         'remarks',
-        'assessment_date'
+        'assessment_date',
+        'deleted_at'
     ];
 }

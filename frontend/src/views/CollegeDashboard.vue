@@ -28,7 +28,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../api';
 import DashboardSidebar from '../components/DashboardSidebar.vue';
@@ -36,15 +36,33 @@ import DashboardSidebar from '../components/DashboardSidebar.vue';
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 
-const collegeMenu = [
+const collegeMenu = ref([
   { label: 'New Submission', icon: 'add', href: '/college/submit' },
   { label: 'Dashboard', icon: 'dashboard', href: '/college/dashboard' },
+  { label: 'Messages', icon: 'mail', href: '/college/messages', badge: 0 },
   { label: 'Submitted List', icon: 'list', href: '/college/submitted-list' },
   { label: 'Archives', icon: 'archive', href: '/college/archive' },
   { label: 'Mandates', icon: 'gavel', href: '/college/mandates' },
   { label: 'User Manual', icon: 'menu_book', href: '/college/user-manual' },
-  { label: 'Data Privacy Policy', icon: 'privacy_tip', href: '/college/data-privacy-policy' }
-];
+  { label: 'Data Privacy Policy', icon: 'privacy_tip', href: '/college/data-privacy-policy' },
+  { label: 'Activity Logs', icon: 'history', href: '/college/activity-logs' }
+]);
+
+const fetchUnreadCount = async () => {
+  if (user.value?.id) {
+    try {
+      const res = await api.get(`/messages/unread-count/${user.value.id}`);
+      if (res.data.success) {
+        const msgItem = collegeMenu.value.find(m => m.label === 'Messages');
+        if (msgItem) msgItem.badge = res.data.count;
+      }
+    } catch (err) {
+      console.error('Failed to fetch unread count:', err);
+    }
+  }
+};
+
+let unreadInterval;
 
 const handleLogout = async () => {
   try {
@@ -60,7 +78,14 @@ const handleLogout = async () => {
 onMounted(() => {
   if (!user.value.id || user.value.role !== 'college') {
     router.push('/login');
+  } else {
+    fetchUnreadCount();
+    unreadInterval = setInterval(fetchUnreadCount, 30000); // Check every 30 seconds
   }
+});
+
+onUnmounted(() => {
+  if (unreadInterval) clearInterval(unreadInterval);
 });
 </script>
 

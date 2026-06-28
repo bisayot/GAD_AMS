@@ -1,0 +1,311 @@
+ERROR - 2026-06-16 05:19:43 --> LOGIN ATTEMPT: Identity=[gad.office@bsu.edu.ph]
+ERROR - 2026-06-16 05:19:44 --> LOGIN SUCCESS: User [Gender And Development] authenticated.
+ERROR - 2026-06-16 05:20:28 --> LOGIN ATTEMPT: Identity=[gad.office@bsu.edu.ph]
+ERROR - 2026-06-16 05:20:28 --> LOGIN SUCCESS: User [Gender And Development] authenticated.
+ERROR - 2026-06-16 05:21:10 --> LOGIN ATTEMPT: Identity=[gad.staff@bsu.edu.ph]
+ERROR - 2026-06-16 05:21:11 --> LOGIN SUCCESS: User [gad.staff] authenticated.
+ERROR - 2026-06-16 05:21:28 --> LOGIN ATTEMPT: Identity=[ca@bsu.edu.ph]
+ERROR - 2026-06-16 05:21:28 --> LOGIN SUCCESS: User [College of Agriculture] authenticated.
+ERROR - 2026-06-16 05:44:05 --> Brevo API Error: {"message":"Key not found","code":"unauthorized"}
+ cURL Error: 
+ERROR - 2026-06-16 05:48:11 --> LOGIN ATTEMPT: Identity=[gad.office@bsu.edu.ph]
+ERROR - 2026-06-16 05:48:11 --> LOGIN SUCCESS: User [Gender And Development] authenticated.
+ERROR - 2026-06-16 05:49:01 --> LOGIN ATTEMPT: Identity=[gad.staff@bsu.edu.ph]
+ERROR - 2026-06-16 05:49:02 --> LOGIN SUCCESS: User [gad.staff] authenticated.
+ERROR - 2026-06-16 05:49:14 --> LOGIN ATTEMPT: Identity=[ca@bsu.edu.ph]
+ERROR - 2026-06-16 05:49:15 --> LOGIN SUCCESS: User [College of Agriculture] authenticated.
+ERROR - 2026-06-16 08:52:52 --> LOGIN ATTEMPT: Identity=[ca@bsu.edu.ph]
+ERROR - 2026-06-16 08:52:53 --> LOGIN SUCCESS: User [College of Agriculture] authenticated.
+ERROR - 2026-06-16 09:06:07 --> LOGIN ATTEMPT: Identity=[ca@bsu.edu.ph]
+ERROR - 2026-06-16 09:06:07 --> LOGIN SUCCESS: User [College of Agriculture] authenticated.
+CRITICAL - 2026-06-16 14:04:25 --> Error: Class "App\Models\EvaluationResultsModel" not found
+[Method: POST, Route: api/submit-activity-report]
+in APPPATH\Controllers\AccomplishmentReportController.php on line 16.
+ 1 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\AccomplishmentReportController->submitReport()
+ 2 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AccomplishmentReportController))
+ 3 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+ 7 SYSTEMPATH\rewrite.php(44): require_once('C:\\xampp\\htdocs\\GAD_AMS_2\\backend\\public\\index.php')
+CRITICAL - 2026-06-16 14:11:19 --> Error: Call to undefined method App\Libraries\FileStorage::uploadFile()
+[Method: POST, Route: api/submit-activity-report]
+in APPPATH\Controllers\AccomplishmentReportController.php on line 44.
+ 1 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\AccomplishmentReportController->submitReport()
+ 2 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AccomplishmentReportController))
+ 3 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+ 7 SYSTEMPATH\rewrite.php(44): require_once('C:\\xampp\\htdocs\\GAD_AMS_2\\backend\\public\\index.php')
+CRITICAL - 2026-06-16 14:11:29 --> Error: Call to undefined method App\Libraries\FileStorage::uploadFile()
+[Method: POST, Route: api/submit-activity-report]
+in APPPATH\Controllers\AccomplishmentReportController.php on line 44.
+ 1 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\AccomplishmentReportController->submitReport()
+ 2 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AccomplishmentReportController))
+ 3 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+ 7 SYSTEMPATH\rewrite.php(44): require_once('C:\\xampp\\htdocs\\GAD_AMS_2\\backend\\public\\index.php')
+ERROR - 2026-06-16 14:19:39 --> Unknown column 'report_id' in 'where clause'
+in SYSTEMPATH\Database\MySQLi\Connection.php on line 300.
+ 1 SYSTEMPATH\Database\MySQLi\Connection.php(300): mysqli->query('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = \'13\'', 0)
+ 2 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\MySQLi\Connection->execute('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = \'13\'')
+ 3 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = \'13\'')
+ 4 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = :report_id:', [...], false)
+ 5 SYSTEMPATH\Model.php(253): CodeIgniter\Database\BaseBuilder->get()
+ 6 SYSTEMPATH\BaseModel.php(676): CodeIgniter\Model->doFindAll(0, 0)
+ 7 APPPATH\Controllers\AccomplishmentReportController.php(181): CodeIgniter\BaseModel->findAll()
+ 8 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\AccomplishmentReportController->show('13')
+ 9 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AccomplishmentReportController))
+10 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+11 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+12 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+13 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+14 SYSTEMPATH\rewrite.php(44): require_once('C:\\xampp\\htdocs\\GAD_AMS_2\\backend\\public\\index.php')
+CRITICAL - 2026-06-16 14:19:39 --> CodeIgniter\Database\Exceptions\DatabaseException: Unknown column 'report_id' in 'where clause'
+[Method: GET, Route: api/activity-report/13]
+in SYSTEMPATH\Database\BaseConnection.php on line 865.
+ 1 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = :report_id:', [...], false)
+ 2 SYSTEMPATH\Model.php(253): CodeIgniter\Database\BaseBuilder->get()
+ 3 SYSTEMPATH\BaseModel.php(676): CodeIgniter\Model->doFindAll(0, 0)
+ 4 APPPATH\Controllers\AccomplishmentReportController.php(181): CodeIgniter\BaseModel->findAll()
+ 5 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\AccomplishmentReportController->show('13')
+ 6 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AccomplishmentReportController))
+ 7 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 8 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+ 9 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+10 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+11 SYSTEMPATH\rewrite.php(44): require_once('C:\\xampp\\htdocs\\GAD_AMS_2\\backend\\public\\index.php')
+CRITICAL - 2026-06-16 14:19:39 --> [Caused by] CodeIgniter\Database\Exceptions\DatabaseException: Unknown column 'report_id' in 'where clause'
+in SYSTEMPATH\Database\MySQLi\Connection.php on line 310.
+ 1 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\MySQLi\Connection->execute('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = \'13\'')
+ 2 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = \'13\'')
+ 3 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = :report_id:', [...], false)
+ 4 SYSTEMPATH\Model.php(253): CodeIgniter\Database\BaseBuilder->get()
+ 5 SYSTEMPATH\BaseModel.php(676): CodeIgniter\Model->doFindAll(0, 0)
+ 6 APPPATH\Controllers\AccomplishmentReportController.php(181): CodeIgniter\BaseModel->findAll()
+ 7 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\AccomplishmentReportController->show('13')
+ 8 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AccomplishmentReportController))
+ 9 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+10 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+11 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+12 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+13 SYSTEMPATH\rewrite.php(44): require_once('C:\\xampp\\htdocs\\GAD_AMS_2\\backend\\public\\index.php')
+CRITICAL - 2026-06-16 14:19:39 --> [Caused by] mysqli_sql_exception: Unknown column 'report_id' in 'where clause'
+in SYSTEMPATH\Database\MySQLi\Connection.php on line 300.
+ 1 SYSTEMPATH\Database\MySQLi\Connection.php(300): mysqli->query('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = \'13\'', 0)
+ 2 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\MySQLi\Connection->execute('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = \'13\'')
+ 3 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = \'13\'')
+ 4 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = :report_id:', [...], false)
+ 5 SYSTEMPATH\Model.php(253): CodeIgniter\Database\BaseBuilder->get()
+ 6 SYSTEMPATH\BaseModel.php(676): CodeIgniter\Model->doFindAll(0, 0)
+ 7 APPPATH\Controllers\AccomplishmentReportController.php(181): CodeIgniter\BaseModel->findAll()
+ 8 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\AccomplishmentReportController->show('13')
+ 9 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AccomplishmentReportController))
+10 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+11 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+12 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+13 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+14 SYSTEMPATH\rewrite.php(44): require_once('C:\\xampp\\htdocs\\GAD_AMS_2\\backend\\public\\index.php')
+ERROR - 2026-06-16 14:20:21 --> Unknown column 'report_id' in 'where clause'
+in SYSTEMPATH\Database\MySQLi\Connection.php on line 300.
+ 1 SYSTEMPATH\Database\MySQLi\Connection.php(300): mysqli->query('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = \'13\'', 0)
+ 2 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\MySQLi\Connection->execute('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = \'13\'')
+ 3 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = \'13\'')
+ 4 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = :report_id:', [...], false)
+ 5 SYSTEMPATH\Model.php(253): CodeIgniter\Database\BaseBuilder->get()
+ 6 SYSTEMPATH\BaseModel.php(676): CodeIgniter\Model->doFindAll(0, 0)
+ 7 APPPATH\Controllers\AccomplishmentReportController.php(181): CodeIgniter\BaseModel->findAll()
+ 8 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\AccomplishmentReportController->show('13')
+ 9 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AccomplishmentReportController))
+10 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+11 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+12 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+13 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+14 SYSTEMPATH\rewrite.php(44): require_once('C:\\xampp\\htdocs\\GAD_AMS_2\\backend\\public\\index.php')
+CRITICAL - 2026-06-16 14:20:21 --> CodeIgniter\Database\Exceptions\DatabaseException: Unknown column 'report_id' in 'where clause'
+[Method: GET, Route: api/activity-report/13]
+in SYSTEMPATH\Database\BaseConnection.php on line 865.
+ 1 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = :report_id:', [...], false)
+ 2 SYSTEMPATH\Model.php(253): CodeIgniter\Database\BaseBuilder->get()
+ 3 SYSTEMPATH\BaseModel.php(676): CodeIgniter\Model->doFindAll(0, 0)
+ 4 APPPATH\Controllers\AccomplishmentReportController.php(181): CodeIgniter\BaseModel->findAll()
+ 5 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\AccomplishmentReportController->show('13')
+ 6 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AccomplishmentReportController))
+ 7 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 8 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+ 9 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+10 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+11 SYSTEMPATH\rewrite.php(44): require_once('C:\\xampp\\htdocs\\GAD_AMS_2\\backend\\public\\index.php')
+CRITICAL - 2026-06-16 14:20:21 --> [Caused by] CodeIgniter\Database\Exceptions\DatabaseException: Unknown column 'report_id' in 'where clause'
+in SYSTEMPATH\Database\MySQLi\Connection.php on line 310.
+ 1 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\MySQLi\Connection->execute('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = \'13\'')
+ 2 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = \'13\'')
+ 3 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = :report_id:', [...], false)
+ 4 SYSTEMPATH\Model.php(253): CodeIgniter\Database\BaseBuilder->get()
+ 5 SYSTEMPATH\BaseModel.php(676): CodeIgniter\Model->doFindAll(0, 0)
+ 6 APPPATH\Controllers\AccomplishmentReportController.php(181): CodeIgniter\BaseModel->findAll()
+ 7 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\AccomplishmentReportController->show('13')
+ 8 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AccomplishmentReportController))
+ 9 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+10 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+11 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+12 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+13 SYSTEMPATH\rewrite.php(44): require_once('C:\\xampp\\htdocs\\GAD_AMS_2\\backend\\public\\index.php')
+CRITICAL - 2026-06-16 14:20:21 --> [Caused by] mysqli_sql_exception: Unknown column 'report_id' in 'where clause'
+in SYSTEMPATH\Database\MySQLi\Connection.php on line 300.
+ 1 SYSTEMPATH\Database\MySQLi\Connection.php(300): mysqli->query('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = \'13\'', 0)
+ 2 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\MySQLi\Connection->execute('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = \'13\'')
+ 3 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = \'13\'')
+ 4 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = :report_id:', [...], false)
+ 5 SYSTEMPATH\Model.php(253): CodeIgniter\Database\BaseBuilder->get()
+ 6 SYSTEMPATH\BaseModel.php(676): CodeIgniter\Model->doFindAll(0, 0)
+ 7 APPPATH\Controllers\AccomplishmentReportController.php(181): CodeIgniter\BaseModel->findAll()
+ 8 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\AccomplishmentReportController->show('13')
+ 9 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AccomplishmentReportController))
+10 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+11 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+12 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+13 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+14 SYSTEMPATH\rewrite.php(44): require_once('C:\\xampp\\htdocs\\GAD_AMS_2\\backend\\public\\index.php')
+ERROR - 2026-06-16 14:20:34 --> Unknown column 'report_id' in 'where clause'
+in SYSTEMPATH\Database\MySQLi\Connection.php on line 300.
+ 1 SYSTEMPATH\Database\MySQLi\Connection.php(300): mysqli->query('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = \'13\'', 0)
+ 2 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\MySQLi\Connection->execute('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = \'13\'')
+ 3 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = \'13\'')
+ 4 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = :report_id:', [...], false)
+ 5 SYSTEMPATH\Model.php(253): CodeIgniter\Database\BaseBuilder->get()
+ 6 SYSTEMPATH\BaseModel.php(676): CodeIgniter\Model->doFindAll(0, 0)
+ 7 APPPATH\Controllers\AccomplishmentReportController.php(181): CodeIgniter\BaseModel->findAll()
+ 8 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\AccomplishmentReportController->show('13')
+ 9 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AccomplishmentReportController))
+10 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+11 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+12 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+13 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+14 SYSTEMPATH\rewrite.php(44): require_once('C:\\xampp\\htdocs\\GAD_AMS_2\\backend\\public\\index.php')
+CRITICAL - 2026-06-16 14:20:34 --> CodeIgniter\Database\Exceptions\DatabaseException: Unknown column 'report_id' in 'where clause'
+[Method: GET, Route: api/activity-report/13]
+in SYSTEMPATH\Database\BaseConnection.php on line 865.
+ 1 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = :report_id:', [...], false)
+ 2 SYSTEMPATH\Model.php(253): CodeIgniter\Database\BaseBuilder->get()
+ 3 SYSTEMPATH\BaseModel.php(676): CodeIgniter\Model->doFindAll(0, 0)
+ 4 APPPATH\Controllers\AccomplishmentReportController.php(181): CodeIgniter\BaseModel->findAll()
+ 5 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\AccomplishmentReportController->show('13')
+ 6 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AccomplishmentReportController))
+ 7 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 8 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+ 9 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+10 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+11 SYSTEMPATH\rewrite.php(44): require_once('C:\\xampp\\htdocs\\GAD_AMS_2\\backend\\public\\index.php')
+CRITICAL - 2026-06-16 14:20:34 --> [Caused by] CodeIgniter\Database\Exceptions\DatabaseException: Unknown column 'report_id' in 'where clause'
+in SYSTEMPATH\Database\MySQLi\Connection.php on line 310.
+ 1 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\MySQLi\Connection->execute('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = \'13\'')
+ 2 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = \'13\'')
+ 3 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = :report_id:', [...], false)
+ 4 SYSTEMPATH\Model.php(253): CodeIgniter\Database\BaseBuilder->get()
+ 5 SYSTEMPATH\BaseModel.php(676): CodeIgniter\Model->doFindAll(0, 0)
+ 6 APPPATH\Controllers\AccomplishmentReportController.php(181): CodeIgniter\BaseModel->findAll()
+ 7 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\AccomplishmentReportController->show('13')
+ 8 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AccomplishmentReportController))
+ 9 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+10 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+11 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+12 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+13 SYSTEMPATH\rewrite.php(44): require_once('C:\\xampp\\htdocs\\GAD_AMS_2\\backend\\public\\index.php')
+CRITICAL - 2026-06-16 14:20:34 --> [Caused by] mysqli_sql_exception: Unknown column 'report_id' in 'where clause'
+in SYSTEMPATH\Database\MySQLi\Connection.php on line 300.
+ 1 SYSTEMPATH\Database\MySQLi\Connection.php(300): mysqli->query('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = \'13\'', 0)
+ 2 SYSTEMPATH\Database\BaseConnection.php(910): CodeIgniter\Database\MySQLi\Connection->execute('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = \'13\'')
+ 3 SYSTEMPATH\Database\BaseConnection.php(827): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = \'13\'')
+ 4 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *
+FROM `accomplishment_budget_items`
+WHERE `report_id` = :report_id:', [...], false)
+ 5 SYSTEMPATH\Model.php(253): CodeIgniter\Database\BaseBuilder->get()
+ 6 SYSTEMPATH\BaseModel.php(676): CodeIgniter\Model->doFindAll(0, 0)
+ 7 APPPATH\Controllers\AccomplishmentReportController.php(181): CodeIgniter\BaseModel->findAll()
+ 8 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\AccomplishmentReportController->show('13')
+ 9 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AccomplishmentReportController))
+10 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+11 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+12 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+13 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+14 SYSTEMPATH\rewrite.php(44): require_once('C:\\xampp\\htdocs\\GAD_AMS_2\\backend\\public\\index.php')
+ERROR - 2026-06-16 23:34:54 --> LOGIN ATTEMPT: Identity=[gad.office@bsu.edu.ph]
+ERROR - 2026-06-16 23:34:55 --> LOGIN SUCCESS: User [Gender And Development] authenticated.
+ERROR - 2026-06-16 23:35:13 --> LOGIN ATTEMPT: Identity=[gad.staff@bsu.edu.ph]
+ERROR - 2026-06-16 23:35:14 --> LOGIN SUCCESS: User [gad.staff] authenticated.
+ERROR - 2026-06-16 23:35:42 --> LOGIN ATTEMPT: Identity=[ca@bsu.edu.ph]
+ERROR - 2026-06-16 23:35:43 --> LOGIN SUCCESS: User [College of Agriculture] authenticated.

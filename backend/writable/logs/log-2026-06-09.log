@@ -1,0 +1,28 @@
+ERROR - 2026-06-09 00:05:32 --> LOGIN ATTEMPT: Identity=[gad.office@bsu.edu.ph]
+ERROR - 2026-06-09 00:05:32 --> LOGIN SUCCESS: User [Gender And Development] authenticated.
+ERROR - 2026-06-09 00:05:44 --> LOGIN ATTEMPT: Identity=[gad.staff@bsu.edu.ph]
+ERROR - 2026-06-09 00:05:45 --> LOGIN SUCCESS: User [gad.staff] authenticated.
+ERROR - 2026-06-09 00:06:11 --> LOGIN ATTEMPT: Identity=[ca@bsu.edu.ph]
+ERROR - 2026-06-09 00:06:11 --> LOGIN SUCCESS: User [College of Agriculture] authenticated.
+ERROR - 2026-06-09 00:14:54 --> LOGIN ATTEMPT: Identity=[name@bsu.edu.ph]
+ERROR - 2026-06-09 00:14:54 --> LOGIN SUCCESS: User [name] authenticated.
+ERROR - 2026-06-09 00:17:03 --> LOGIN ATTEMPT: Identity=[gad.o]
+ERROR - 2026-06-09 00:17:12 --> LOGIN ATTEMPT: Identity=[gad.office@bsu.edu.ph]
+ERROR - 2026-06-09 00:17:12 --> LOGIN SUCCESS: User [Gender And Development] authenticated.
+ERROR - 2026-06-09 00:19:33 --> LOGIN ATTEMPT: Identity=[name@bsu.edu.ph]
+ERROR - 2026-06-09 00:19:34 --> LOGIN SUCCESS: User [name] authenticated.
+ERROR - 2026-06-09 00:26:01 --> LOGIN ATTEMPT: Identity=[gad.staff@bsu.edu.ph]
+ERROR - 2026-06-09 00:26:01 --> LOGIN SUCCESS: User [gad.staff] authenticated.
+ERROR - 2026-06-09 00:26:24 --> LOGIN ATTEMPT: Identity=[gad.office@bsu.edu.ph]
+ERROR - 2026-06-09 00:26:25 --> LOGIN SUCCESS: User [Gender And Development] authenticated.
+ERROR - 2026-06-09 00:38:47 --> LOGIN ATTEMPT: Identity=[for@bsu.edu.ph]
+ERROR - 2026-06-09 00:38:47 --> LOGIN SUCCESS: User [for] authenticated.
+ERROR - 2026-06-09 00:39:33 --> LOGIN ATTEMPT: Identity=[name@bsu.edu.ph]
+ERROR - 2026-06-09 00:39:34 --> LOGIN SUCCESS: User [name] authenticated.
+ERROR - 2026-06-09 00:39:46 --> LOGIN ATTEMPT: Identity=[gad.office@bsu.edu.ph]
+ERROR - 2026-06-09 00:39:47 --> LOGIN SUCCESS: User [Gender And Development] authenticated.
+ERROR - 2026-06-09 00:40:04 --> LOGIN ATTEMPT: Identity=[ca@bsu.edu.ph]
+ERROR - 2026-06-09 00:40:10 --> LOGIN ATTEMPT: Identity=[ca@bsu.edu.ph]
+ERROR - 2026-06-09 00:40:11 --> LOGIN SUCCESS: User [College of Agriculture] authenticated.
+ERROR - 2026-06-09 02:11:40 --> LOGIN ATTEMPT: Identity=[ca@bsu.edu.ph]
+ERROR - 2026-06-09 02:11:40 --> LOGIN SUCCESS: User [College of Agriculture] authenticated.

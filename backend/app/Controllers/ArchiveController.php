@@ -79,6 +79,9 @@ class ArchiveController extends ResourceController
             return $this->failServerError('Failed to move design to archive');
         }
 
+        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
+        \App\Models\ActivityLogModel::log($actionUserId, 'Cancel Document', 'cancelled Activity Design: ' . $design['activity_title']);
+
         return $this->respond(['success' => true, 'message' => 'Activity Design archived and cleared from active list']);
     }
 
@@ -118,6 +121,10 @@ class ArchiveController extends ResourceController
         if ($db->transStatus() === false) {
             return $this->failServerError('Failed to move report to archive');
         }
+
+        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
+        \App\Models\ActivityLogModel::log($actionUserId, 'Cancel Document', 'cancelled Accomplishment Report: ' . $item['activity_title']);
+
         return $this->respond(['success' => true, 'message' => 'Accomplishment Report archived and cleared']);
     }
 }

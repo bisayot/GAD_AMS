@@ -3,51 +3,68 @@
 namespace App\Controllers;
 
 use App\Models\AccomplishmentReportModel;
-use CodeIgniter\API\ResponseTrait;
+use App\Models\ApprovedControlModel;
+use App\Libraries\FileStorage;
 
 class AccomplishmentReportController extends BaseController
 {
-    use ResponseTrait;
-
     public function submitReport()
     {
-        $db = \Config\Database::connect();
         $reportModel = new AccomplishmentReportModel();
 
-        try {
-            $db->transStart();
+        $rules = [
+            'control_number'  => 'required',
+            'act_design_id'   => 'required|numeric',
+            'activity_title'  => 'required',
+            'start_date'      => 'required',
+            'end_date'        => 'required',
+            'start_time'      => 'required',
+            'end_time'        => 'required',
+            'venue'           => 'required',
+            'attendees'       => 'required|numeric',
+            'male'            => 'required|numeric',
+            'female'          => 'required|numeric',
+            'rating'          => 'required',
+            'user_id'         => 'required|numeric',
+            'budget_items'    => 'required',
+            'evaluation_items'=> 'required'
+        ];
 
-            // 1. Handle Multiple File Uploads
-            $attachments = $this->request->getFileMultiple('attachment');
+        if (!$this->validate($rules)) {
+            return $this->fail($this->validator->getErrors());
+        }
+
+        $db = \Config\Database::connect();
+        $db->transStart();
+
+        try {
+            $files = $this->request->getFiles();
             $fileNames = [];
-            
-            if ($attachments) {
-                foreach ($attachments as $file) {
+            if (!empty($files['attachment'])) {
+                foreach ($files['attachment'] as $file) {
                     if ($file->isValid() && !$file->hasMoved()) {
-                        $newName = $file->getRandomName();
-                        $file->move(FCPATH . 'uploads', $newName);
-                        $fileNames[] = $newName;
+                        $fileName = FileStorage::saveToDrafts($file);
+                        $fileNames[] = $fileName;
                     }
                 }
             }
 
-            // 2. Prepare Main Report Data
             $reportData = [
-                'control_number' => $this->request->getPost('control_number'),
-                'act_design_id'  => $this->request->getPost('act_design_id'),
-                'activity_title' => $this->request->getPost('activity_title'),
-                'start_date'     => $this->request->getPost('start_date'),
-                'end_date'       => $this->request->getPost('end_date'),
-                'start_time'     => $this->request->getPost('start_time'),
-                'end_time'       => $this->request->getPost('end_time'),
-                'venue'          => $this->request->getPost('venue'),
-                'attendees'      => $this->request->getPost('attendees'),
-                'male'           => $this->request->getPost('male'),
-                'female'         => $this->request->getPost('female'),
-                'rating'         => $this->request->getPost('rating'),
-                'user_id'        => $this->request->getPost('user_id'),
-                'attachment'     => json_encode($fileNames), // Store list of files as JSON
-                'status'         => 'Pending'
+                'control_number'  => $this->request->getPost('control_number'),
+                'act_design_id'   => $this->request->getPost('act_design_id'),
+                'activity_title'  => $this->request->getPost('activity_title'),
+                'start_date'      => $this->request->getPost('start_date'),
+                'end_date'        => $this->request->getPost('end_date'),
+                'start_time'      => $this->request->getPost('start_time'),
+                'end_time'        => $this->request->getPost('end_time'),
+                'venue'           => $this->request->getPost('venue'),
+                'attendees'       => $this->request->getPost('attendees'),
+                'male'            => $this->request->getPost('male'),
+                'female'          => $this->request->getPost('female'),
+                'rating'          => $this->request->getPost('rating'),
+                'attachment'      => json_encode($fileNames),
+                'user_id'         => $this->request->getPost('user_id'),
+                'status'          => $this->request->getPost('status') ?: 'Pending'
             ];
 
             // Validate that actual spending does not exceed proposed budget of the activity design
@@ -124,6 +141,8 @@ class AccomplishmentReportController extends BaseController
                 return $this->fail('Transaction failed.');
             }
 
+            \App\Models\ActivityLogModel::log($reportData['user_id'], 'Submit Document', 'submitted Accomplishment Report: ' . $reportData['activity_title']);
+
             return $this->respondCreated([
                 'success' => true,
                 'message' => 'Accomplishment report submitted successfully.'
@@ -144,339 +163,261 @@ class AccomplishmentReportController extends BaseController
             ->join('users u', 'u.id = ar.user_id', 'left')
             ->join('activity_design ad', 'ad.act_design_id = ar.act_design_id', 'left')
             ->whereNotIn('ar.status', ['Completed', 'Verified'])
+            ->where('ar.deleted_at', null)
             ->orderBy('ar.created_at', 'DESC')
             ->get()->getResultArray();
 
         // Fallback for form_type if activity_design is archived
-        // This ensures that even if the original activity design is moved to archive,
-        // the form_type can still be retrieved for the accomplishment report.
-        foreach ($reports as &$report) {
-            if (empty($report['formLabel']) && !empty($report['act_design_id'])) {
-                $archive = $db->table('archived_activity_designs')
-                    ->select('form_type')
-                    ->where('original_act_design_id', $report['act_design_id'])
-                    ->get()
-                    ->getRowArray();
-                
-                if ($archive) {
-                    $report['formLabel'] = $archive['form_type'];
+        foreach ($reports as &$r) {
+            if (empty($r['formLabel']) && !empty($r['act_design_id'])) {
+                $archivedDesign = $db->table('archived_activity_designs')
+                    ->where('original_act_design_id', $r['act_design_id'])
+                    ->get()->getRowArray();
+                if ($archivedDesign) {
+                    $r['formLabel'] = $archivedDesign['form_type'];
                 }
             }
         }
 
-        return $this->response->setJSON(['success' => true, 'data' => $reports]);
+        return $this->response->setJSON([
+            'success' => true,
+            'data'    => $reports
+        ]);
     }
 
     public function getUserReports($userId = null)
     {
+        if (!$userId) {
+            return $this->response->setJSON(['success' => false, 'message' => 'User ID required'])->setStatusCode(400);
+        }
+
         $db = \Config\Database::connect();
 
-        // 1. Fetch from main table
-        $active = $db->table('accomplishment_report as ar')
-            ->select('ar.*, ar.activity_title as title, ar.control_number as control, ar.start_date as date, ad.form_type')
+        $reports = $db->table('accomplishment_report as ar')
+            ->select('ar.id, ar.user_id, ar.act_design_id, ar.control_number as control, ar.activity_title as title, ar.start_date as date, ar.status, u.username as office, u.username as username, ad.form_type as formLabel')
+            ->join('users u', 'u.id = ar.user_id', 'left')
             ->join('activity_design ad', 'ad.act_design_id = ar.act_design_id', 'left')
             ->whereNotIn('ar.status', ['Completed', 'Verified'])
             ->where('ar.user_id', $userId)
-            ->orderBy('ar.created_at', 'DESC')
+            ->where('ar.deleted_at', null)
+            ->orderBy('ar.id', 'DESC')
             ->get()->getResultArray();
 
         // Fallback for form_type if activity_design is archived
-        foreach ($active as &$report) {
-            if (empty($report['form_type']) && !empty($report['act_design_id'])) {
-                $archive = $db->table('archived_activity_designs')
-                    ->select('form_type')
-                    ->where('original_act_design_id', $report['act_design_id'])
-                    ->get()
-                    ->getRowArray();
-                
-                if ($archive) {
-                    $report['form_type'] = $archive['form_type'];
+        foreach ($reports as &$r) {
+            if (empty($r['formLabel']) && !empty($r['act_design_id'])) {
+                $archivedDesign = $db->table('archived_activity_designs')
+                    ->where('original_act_design_id', $r['act_design_id'])
+                    ->get()->getRowArray();
+                if ($archivedDesign) {
+                    $r['formLabel'] = $archivedDesign['form_type'];
                 }
             }
         }
 
-        return $this->respond(['success' => true, 'data' => $active]);
+        return $this->response->setJSON([
+            'success' => true,
+            'data'    => $reports
+        ]);
     }
 
     public function show($id = null)
     {
+        if (!$id) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Report ID required'])->setStatusCode(400);
+        }
+
         $db = \Config\Database::connect();
+        $reportModel = new AccomplishmentReportModel();
         
-        // Perform JOINS without budget items table
-        $report = $db->table('accomplishment_report as ar')
-            ->select('ar.*, aer.*, u.username, u.email, u.username as office, ad.form_type')
-            ->join('users u', 'u.id = ar.user_id', 'left')
-            ->join('accomplishment_evaluation_results aer', 'aer.accomplishment_report_id = ar.id', 'left')
-            ->join('activity_design ad', 'ad.act_design_id = ar.act_design_id', 'left')
-            ->where('ar.id', $id)
-            ->get()
-            ->getRowArray();
+        $report = $reportModel
+            ->select('accomplishment_report.*, office_units.office_name as office, users.full_name as submitter_name, accomplishment_report.start_date as date')
+            ->join('users', 'users.id = accomplishment_report.user_id', 'left')
+            ->join('office_units', 'office_units.office_id = users.office_id', 'left')
+            ->where('accomplishment_report.id', $id)
+            ->first();
 
         $isActive = true;
         if (!$report) {
-            $report = $db->table('archived_accomplishment_reports as ar')
-                ->select('ar.*, aer.*, u.username, u.email, u.username as office, ad.form_type')
-                ->join('users u', 'u.id = ar.user_id', 'left')
-                ->join('accomplishment_evaluation_results aer', 'aer.accomplishment_report_id = ar.original_report_id', 'left')
-                ->join('activity_design ad', 'ad.act_design_id = ar.act_design_id', 'left')
-                ->where('ar.original_report_id', $id)
-                ->get()
-                ->getRowArray();
+            $report = $db->table('archived_accomplishment_reports as aar')
+                ->select('aar.*, aar.original_report_id as id, aar.activity_title as title, office_units.office_name as office, users.full_name as submitter_name, aar.start_date as date')
+                ->join('users', 'users.id = aar.user_id', 'left')
+                ->join('office_units', 'office_units.office_id = users.office_id', 'left')
+                ->where('aar.original_report_id', $id)
+                ->get()->getRowArray();
+
+            if (!$report) {
+                return $this->response->setJSON(['success' => false, 'message' => 'Accomplishment report not found'])->setStatusCode(404);
+            }
             $isActive = false;
         }
 
-        if (!$report) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Accomplishment report not found'])->setStatusCode(404);
-        }
-
-        // Fallback: If form_type is empty (design might be archived), check archived_activity_designs
-        if (empty($report['form_type'])) {
-            $archive = $db->table('archived_activity_designs')
-                ->select('form_type')
-                ->where('original_act_design_id', $report['act_design_id'])
-                ->get()
-                ->getRowArray();
-            
-            if ($archive) {
-                $report['form_type'] = $archive['form_type'];
-            }
-        }
-
-        // Fetch proposed_budget_limit
-        if (!empty($report['act_design_id'])) {
-            $design = $db->table('archived_activity_designs')
-                ->select('proposed_budget')
-                ->where('original_act_design_id', $report['act_design_id'])
-                ->get()
-                ->getRowArray();
-            
-            if (!$design) {
-                $design = $db->table('activity_design')
-                    ->select('proposed_budget')
-                    ->where('act_design_id', $report['act_design_id'])
-                    ->get()
-                    ->getRowArray();
-            }
-            
-            if ($design) {
-                $report['proposed_budget_limit'] = $design['proposed_budget'];
-            }
-        }
-
-        // Fetch normalized budget items
         $reportId = $isActive ? ($report['id'] ?? $id) : ($report['original_report_id'] ?? $id);
         $table = $isActive ? 'accomplishment_budget_items' : 'archived_accomplishment_budget_items';
-        
+        $evalTable = $isActive ? 'accomplishment_evaluation_results' : 'archived_accomplishment_evaluation_results';
+
         $budgetItems = $db->table($table)->where('accomplishment_report_id', $reportId)->get()->getResultArray();
-
-        // Populate virtual columns for backward compatibility
-        $report['meals_and_snacks'] = 0;
-        $report['function_room_venue'] = 0;
-        $report['accommodation'] = 0;
-        $report['equipment_rental'] = 0;
-        $report['professional_fee_honoria'] = 0;
-        $report['tokens'] = 0;
-        $report['materials_and_supplies'] = 0;
-        $report['transportation'] = 0;
-        $report['others'] = 0;
-
-        foreach ($budgetItems as $bi) {
-            $amt = (float)$bi['amount'];
-            if ($bi['item_name'] === 'Meals' || $bi['item_name'] === 'Snacks' || $bi['item_name'] === 'Meals and Snacks (AM/PM)') {
-                $report['meals_and_snacks'] += $amt;
-            } elseif ($bi['item_name'] === 'Function Room/Venue') {
-                $report['function_room_venue'] += $amt;
-            } elseif ($bi['item_name'] === 'Accommodation') {
-                $report['accommodation'] += $amt;
-            } elseif ($bi['item_name'] === 'Equipment Rental') {
-                $report['equipment_rental'] += $amt;
-            } elseif ($bi['item_name'] === 'Professional Fee/Honoria' || $bi['item_name'] === 'Professional Fee/Honoria') {
-                $report['professional_fee_honoria'] += $amt;
-            } elseif ($bi['item_name'] === 'Token/s') {
-                $report['tokens'] += $amt;
-            } elseif ($bi['item_name'] === 'Materials and Supplies') {
-                $report['materials_and_supplies'] += $amt;
-            } elseif ($bi['item_name'] === 'Transportation') {
-                $report['transportation'] += $amt;
-            } elseif ($bi['item_name'] === 'Others') {
-                $report['others'] += $amt;
-            }
-        }
+        $evalResults = $db->table($evalTable)->where('accomplishment_report_id', $reportId)->get()->getRowArray();
 
         $report['budget_items'] = $budgetItems;
+        $report['evaluation_results'] = $evalResults ?: null;
 
-        return $this->response->setJSON(['success' => true, 'data' => $report]);
+        return $this->response->setJSON([
+            'success' => true,
+            'data'    => $report
+        ]);
     }
 
     public function approveReport($id = null)
     {
+        if (!$id) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Report ID required'])->setStatusCode(400);
+        }
+
         $db = \Config\Database::connect();
-        $reportModel = new AccomplishmentReportModel();
-        
-        $report = $reportModel->find($id);
+        $db->transStart();
+
+        $report = $db->table('accomplishment_report')->where('id', $id)->get()->getRowArray();
         if (!$report) {
             return $this->response->setJSON(['success' => false, 'message' => 'Report not found'])->setStatusCode(404);
         }
 
-        try {
-            $db->transStart();
+        $remarks = $this->request->getPost('remarks');
+        $aDate = $this->request->getPost('assessment-date');
 
-            $remarks = $this->request->getPost('remarks') ?: '';
-            $aDate = $this->request->getPost('assessment_date') ?: date('Y-m-d');
+        $archiveData = [
+            'original_report_id' => $report['id'],
+            'control_number'     => $report['control_number'],
+            'activity_title'     => $report['activity_title'],
+            'start_date'         => $report['start_date'],
+            'end_date'           => $report['end_date'],
+            'start_time'         => $report['start_time'],
+            'end_time'           => $report['end_time'],
+            'venue'              => $report['venue'],
+            'attendees'          => $report['attendees'],
+            'male'               => $report['male'],
+            'female'             => $report['female'],
+            'rating'             => $report['rating'],
+            'attachment'         => $report['attachment'],
+            'user_id'            => $report['user_id'],
+            'status'             => 'Completed',
+            'remarks'            => $remarks,
+            'assessment_date'    => $aDate
+        ];
+        
+        // Insert into archived_accomplishment_reports
+        $db->table('archived_accomplishment_reports')->insert($archiveData);
 
-            // 1. Prepare data for archive (Explicitly mapping to avoid column mismatch errors)
-            $archiveData = [
-                'original_report_id' => $report['id'],
-                'control_number'     => $report['control_number'],
-                'activity_title'     => $report['activity_title'],
-                'start_date'         => $report['start_date'],
-                'end_date'           => $report['end_date'],
-                'start_time'         => $report['start_time'],
-                'end_time'           => $report['end_time'],
-                'venue'              => $report['venue'],
-                'attendees'          => $report['attendees'],
-                'male'               => $report['male'],
-                'female'             => $report['female'],
-                'rating'             => $report['rating'],
-                'attachment'         => $report['attachment'],
-                'user_id'            => $report['user_id'],
-                'status'             => 'Completed',
-                'remarks'            => $remarks,
-                'assessment_date'    => $aDate
-            ];
-            
-            // Insert into archived_accomplishment_reports (plural as per SQL dump)
-            $db->table('archived_accomplishment_reports')->insert($archiveData);
-
-            // Copy accomplishment budget items to archived table before deleting
-            $budgetItems = $db->table('accomplishment_budget_items')->where('accomplishment_report_id', $id)->get()->getResultArray();
-            foreach ($budgetItems as $bi) {
-                unset($bi['id']);
-                $db->table('archived_accomplishment_budget_items')->insert($bi);
-            }
-
-            // 2. Delete the original record from the active table to perform a true MOVE operation.
-            // This prevents duplication where the record appears in both active and archive lists.
-            $reportModel->delete($id);
-
-            $db->transComplete();
-
-            if ($db->transStatus() === false) {
-                return $this->response->setJSON(['success' => false, 'message' => 'Archival transaction failed.'])->setStatusCode(500);
-            }
-
-            return $this->response->setJSON([
-                'success' => true, 
-                'message' => 'Accomplishment report verified, set to Completed, and moved to archive.'
-            ]);
-
-        } catch (\Exception $e) {
-            $db->transRollback();
-            return $this->response->setJSON(['success' => false, 'message' => $e->getMessage()])->setStatusCode(500);
+        // Copy accomplishment budget items to archived table before deleting
+        $budgetItems = $db->table('accomplishment_budget_items')->where('accomplishment_report_id', $id)->get()->getResultArray();
+        foreach ($budgetItems as $bi) {
+            unset($bi['id']);
+            $db->table('archived_accomplishment_budget_items')->insert($bi);
         }
+
+        // Delete the original record from the active table to perform a true MOVE operation.
+        $db->table('accomplishment_report')->where('id', $id)->delete();
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Archival transaction failed.'])->setStatusCode(500);
+        }
+
+        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $report['user_id'];
+        \App\Models\ActivityLogModel::log($actionUserId, 'Approve Document', 'verified Accomplishment Report: ' . $report['activity_title']);
+
+        return $this->response->setJSON([
+            'success' => true, 
+            'message' => 'Accomplishment report verified, set to Completed, and moved to archive.'
+        ]);
     }
 
     public function revisionReport($id = null)
     {
-        $reportModel = new AccomplishmentReportModel();
-        
-        $data = [
-            'status'          => 'Revision',
-            'assessment_date' => $this->request->getVar('assessment_date'),
-            'remarks'         => $this->request->getVar('remarks'),
+        if (!$id) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Report ID required'])->setStatusCode(400);
+        }
+
+        $db = \Config\Database::connect();
+        $remarks = $this->request->getPost('remarks');
+
+        $updateData = [
+            'status' => 'Revision Required',
+            'remarks' => $remarks
         ];
 
-        if ($reportModel->update($id, $data)) {
-            return $this->respond(['success' => true, 'message' => 'Revision requested successfully.']);
-        }
-
-        return $this->fail('Failed to request revision.');
-    }
-
-    public function verifyReport($id = null)
-    {
-        $db = \Config\Database::connect();
-        $reportModel = new AccomplishmentReportModel();
-        $report = $reportModel->find($id);
-
-        if (!$report) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Report not found'])->setStatusCode(404);
-        }
-
         try {
-            $db->transStart();
-            $remarks = $this->request->getVar('remarks') ?: '';
-            $aDate = $this->request->getVar('assessment_date') ?: date('Y-m-d');
+            $db->table('accomplishment_report')->where('id', $id)->update($updateData);
 
-            // Archive before marking as terminal in main table
-            $archiveData = [
-                'original_report_id' => $report['id'],
-                'control_number'     => $report['control_number'],
-                'activity_title'     => $report['activity_title'],
-                'start_date'         => $report['start_date'],
-                'end_date'           => $report['end_date'],
-                'start_time'         => $report['start_time'],
-                'end_time'           => $report['end_time'],
-                'venue'              => $report['venue'],
-                'attendees'          => $report['attendees'],
-                'male'               => $report['male'],
-                'female'             => $report['female'],
-                'rating'             => $report['rating'],
-                'attachment'         => $report['attachment'],
-                'user_id'            => $report['user_id'],
-                'status'             => 'Verified',
-                'remarks'            => $remarks,
-                'assessment_date'    => $aDate
-            ];
-            $db->table('archived_accomplishment_reports')->insert($archiveData);
-
-            // Copy accomplishment budget items to archived table before deleting
-            $budgetItems = $db->table('accomplishment_budget_items')->where('accomplishment_report_id', $id)->get()->getResultArray();
-            foreach ($budgetItems as $bi) {
-                unset($bi['id']);
-                $db->table('archived_accomplishment_budget_items')->insert($bi);
+            $item = $db->table('accomplishment_report')->where('id', $id)->get()->getRowArray();
+            if ($item) {
+                $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
+                \App\Models\ActivityLogModel::log($actionUserId, 'Update Status', 'requested revision for Accomplishment Report: ' . $item['activity_title']);
             }
 
-            // 2. Delete the original record from the active table to perform a true MOVE operation.
-            $reportModel->delete($id);
-
-            $db->transComplete();
-            return $this->respond(['success' => true, 'message' => 'Report verified and moved to archive.']);
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Sent for revision successfully'
+            ]);
         } catch (\Exception $e) {
-            return $this->fail($e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Server Error: ' . $e->getMessage()
+            ])->setStatusCode(500);
         }
     }
 
     public function updateReport($id = null)
     {
         $reportModel = new AccomplishmentReportModel();
-        $db = \Config\Database::connect();
-
         $report = $reportModel->find($id);
+
         if (!$report) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Report not found'])->setStatusCode(404);
+            return $this->failNotFound('Report not found');
         }
 
-        try {
-            $db->transStart();
+        $rules = [
+            'control_number'  => 'required',
+            'act_design_id'   => 'required|numeric',
+            'activity_title'  => 'required',
+            'start_date'      => 'required',
+            'end_date'        => 'required',
+            'start_time'      => 'required',
+            'end_time'        => 'required',
+            'venue'           => 'required',
+            'attendees'       => 'required|numeric',
+            'male'            => 'required|numeric',
+            'female'          => 'required|numeric',
+            'rating'          => 'required',
+            'user_id'         => 'required|numeric',
+            'budget_items'    => 'required',
+            'evaluation_items'=> 'required'
+        ];
 
-            // 1. Handle File Uploads (Existing + New)
-            $existing = json_decode($this->request->getPost('existing_attachments'), true) ?: [];
-            $attachments = $this->request->getFileMultiple('attachment');
-            $fileNames = $existing;
+        if (!$this->validate($rules)) {
+            return $this->fail($this->validator->getErrors());
+        }
+
+        $db = \Config\Database::connect();
+        $db->transStart();
+
+        try {
+            $files = $this->request->getFiles();
+            $fileNames = json_decode($report['attachment'], true) ?: [];
             
-            if ($attachments) {
-                foreach ($attachments as $file) {
+            if (!empty($files['attachment'])) {
+                foreach ($files['attachment'] as $file) {
                     if ($file->isValid() && !$file->hasMoved()) {
-                        $newName = $file->getRandomName();
-                        $file->move(FCPATH . 'uploads', $newName);
-                        $fileNames[] = $newName;
+                        $fileName = FileStorage::saveToDrafts($file);
+                        $fileNames[] = $fileName;
                     }
                 }
             }
 
-            // 2. Prepare Update Data
             $reportData = [
+                'control_number' => $this->request->getPost('control_number'),
+                'act_design_id'  => $this->request->getPost('act_design_id'),
                 'activity_title' => $this->request->getPost('activity_title'),
                 'start_date'     => $this->request->getPost('start_date'),
                 'end_date'       => $this->request->getPost('end_date'),
@@ -559,10 +500,38 @@ class AccomplishmentReportController extends BaseController
             }
 
             $db->transComplete();
+
+            if ($db->transStatus() === false) {
+                throw new \Exception("Transaction failed.");
+            }
+
             return $this->respond(['success' => true, 'message' => 'Report updated and resubmitted successfully.']);
         } catch (\Exception $e) {
             $db->transRollback();
             return $this->fail($e->getMessage());
         }
+    }
+
+    public function trash($id = null)
+    {
+        if (!$id) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Report ID required'])->setStatusCode(400);
+        }
+
+        $model = new AccomplishmentReportModel();
+        
+        // Find if it exists first
+        $report = $model->find($id);
+        if (!$report) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Accomplishment report not found'])->setStatusCode(404);
+        }
+
+        if ($model->delete($id)) {
+            $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $report['user_id'];
+            \App\Models\ActivityLogModel::log($actionUserId, 'Trash Document', 'moved to trash Accomplishment Report: ' . $report['activity_title']);
+            return $this->response->setJSON(['success' => true, 'message' => 'Accomplishment report moved to trash successfully']);
+        }
+
+        return $this->response->setJSON(['success' => false, 'message' => 'Failed to move accomplishment report to trash'])->setStatusCode(500);
     }
 }

@@ -1,8 +1,8 @@
 <template>
   <div class="staff-dashboard-content">
   <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
-      <h1 class="text-3xl font-bold text-slate-900">Welcome, {{ user.username || 'Staff' }} to your Dashboard!</h1>
-      <p class="text-slate-500 mt-2">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+      <h1 class="text-3xl font-bold text-slate-900">Welcome, {{ displayName }} to your Dashboard!</h1>
+      <p class="text-slate-500 mt-2">Manage your GAD programs, monitor activity designs, and oversee budget utilization from here.</p>
     </div>
     <section class="stats-section">
       <div v-for="stat in metricsStats" :key="stat.label" class="stat-card">
@@ -33,10 +33,10 @@
               <table class="data-table">
                 <thead>
                   <tr class="table-header-row">
-                    <th class="table-header-cell">Type</th>
                     <th class="table-header-cell">Activity Title</th>
+                    <th class="table-header-cell">Office / Unit</th>
+                    <th class="table-header-cell">Type</th>
                     <th class="table-header-cell">Date Submitted</th>
-                    <th class="table-header-cell">Status</th>
                   </tr>
                 </thead>
                 <tbody class="table-body">
@@ -45,19 +45,15 @@
                       No pending activities found matching evaluation workflows
                     </td>
                   </tr>
-                  <tr v-else v-for="activity in pendingActivities" :key="activity.id" @click="navigateToView(activity)" class="table-row">
+                  <tr v-else v-for="activity in pendingActivities" :key="activity.id" @click="navigateToView(activity.type, activity.id)" class="table-row">
+                    <td class="activity-title-cell">{{ activity.title }}</td>
+                    <td class="office-cell">{{ activity.office }}</td>
                     <td class="type-cell">
                       <span class="type-badge" :class="activity.type === 'design' ? 'type-badge-design' : 'type-badge-report'">
                         {{ activity.typeName }}
                       </span>
                     </td>
-                    <td class="activity-title-cell">{{ activity.title }}</td>
                     <td class="date-cell">{{ activity.date }}</td>
-                    <td class="status-cell">
-                      <span class="status-badge" :class="statusBadgeClass(activity.status)">
-                        {{ activity.status }}
-                      </span>
-                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -78,12 +74,109 @@
             <h4 class="section-title">Data Visualization & Analytics</h4>
           </div>
           
-          <div class="analytics-placeholder">
-            <div class="placeholder-icon">📊</div>
-            <h5 class="placeholder-title">Analytics Workspace Staged</h5>
-            <p class="placeholder-text">
-              Database connections ready. Visualization dashboards and metric trends will load here automatically once live transaction reporting engines are instantiated.
-            </p>
+          <div class="analytics-chart-container" style="background: rgba(0, 0, 0, 0.25); padding: 1.5rem; border-radius: 1rem; border: 1px solid rgba(147, 51, 234, 0.15); margin-top: 1.5rem; box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+              <h5 style="color: #f8fafc; font-weight: 600; font-size: 1.1rem; margin: 0;">Gender-Disaggregated Data</h5>
+              <select v-model="analyticsYear" @change="fetchAnalyticsData" style="background: rgba(15, 23, 42, 0.8); color: #f8fafc; border: 1px solid rgba(147, 51, 234, 0.3); border-radius: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.9rem; outline: none; cursor: pointer;">
+                <option v-for="year in availableYears" :key="year" :value="year" style="background: #1e293b; color: white;">{{ year }}</option>
+              </select>
+            </div>
+            
+            <div v-if="!analyticsLoading">
+              <!-- Yearly Summary -->
+              <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; justify-content: center; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 120px; background: rgba(147, 51, 234, 0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(147, 51, 234, 0.2); text-align: center;">
+                  <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Total Participants</div>
+                  <div style="font-size: 1.25rem; font-weight: 700; color: #f8fafc;">{{ yearlyTotal }}</div>
+                </div>
+                <div style="flex: 1; min-width: 120px; background: rgba(6, 182, 212, 0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(6, 182, 212, 0.2); text-align: center;">
+                  <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Total Male</div>
+                  <div style="font-size: 1.25rem; font-weight: 700; color: #22d3ee;">{{ yearlyMale }}</div>
+                </div>
+                <div style="flex: 1; min-width: 120px; background: rgba(192, 132, 252, 0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(192, 132, 252, 0.2); text-align: center;">
+                  <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Total Female</div>
+                  <div style="font-size: 1.25rem; font-weight: 700; color: #c084fc;">{{ yearlyFemale }}</div>
+                </div>
+              </div>
+
+              <!-- Chart -->
+              <div style="height: 250px; position: relative; margin-bottom: 1.5rem;">
+                <Bar :data="chartData" :options="chartOptions" />
+              </div>
+
+              <!-- Monthly Breakdown -->
+              <div style="max-height: 250px; overflow-y: auto; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 0.5rem;">
+                <table style="width: 100%; text-align: left; border-collapse: collapse; color: #e2e8f0; font-size: 0.85rem;">
+                  <thead style="background: #1e293b; position: sticky; top: 0; z-index: 1; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                    <tr>
+                      <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600;">Month</th>
+                      <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600;">Total</th>
+                      <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600; color: #22d3ee;">Male</th>
+                      <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600; color: #c084fc;">Female</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(month, index) in monthlyData" :key="index" style="border-bottom: 1px solid rgba(255, 255, 255, 0.02);">
+                      <td style="padding: 0.75rem 1rem;">{{ monthNames[index] }}</td>
+                      <td style="padding: 0.75rem 1rem; font-weight: 600;">{{ month.male + month.female }}</td>
+                      <td style="padding: 0.75rem 1rem; color: rgba(34, 211, 238, 0.9);">{{ month.male }}</td>
+                      <td style="padding: 0.75rem 1rem; color: rgba(192, 132, 252, 0.9);">{{ month.female }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Office Breakdown -->
+              <h6 style="color: #f8fafc; font-weight: 600; font-size: 1rem; margin: 1.5rem 0 1rem 0;">Office / Unit Breakdown</h6>
+              
+              <!-- Office Highlights -->
+              <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; justify-content: center; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 120px; background: rgba(147, 51, 234, 0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(147, 51, 234, 0.2); text-align: center;">
+                  <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Highest Total</div>
+                  <div style="font-size: 0.9rem; font-weight: 700; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="highestTotalOffice ? highestTotalOffice.office : 'N/A'">{{ highestTotalOffice ? highestTotalOffice.office : 'N/A' }}</div>
+                  <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 0.2rem;">{{ highestTotalOffice ? (highestTotalOffice.male + highestTotalOffice.female) : 0 }}</div>
+                </div>
+                <div style="flex: 1; min-width: 120px; background: rgba(6, 182, 212, 0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(6, 182, 212, 0.2); text-align: center;">
+                  <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Highest Male</div>
+                  <div style="font-size: 0.9rem; font-weight: 700; color: #22d3ee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="highestMaleOffice ? highestMaleOffice.office : 'N/A'">{{ highestMaleOffice ? highestMaleOffice.office : 'N/A' }}</div>
+                  <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 0.2rem;">{{ highestMaleOffice ? highestMaleOffice.male : 0 }}</div>
+                </div>
+                <div style="flex: 1; min-width: 120px; background: rgba(192, 132, 252, 0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(192, 132, 252, 0.2); text-align: center;">
+                  <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Highest Female</div>
+                  <div style="font-size: 0.9rem; font-weight: 700; color: #c084fc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="highestFemaleOffice ? highestFemaleOffice.office : 'N/A'">{{ highestFemaleOffice ? highestFemaleOffice.office : 'N/A' }}</div>
+                  <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 0.2rem;">{{ highestFemaleOffice ? highestFemaleOffice.female : 0 }}</div>
+                </div>
+              </div>
+
+              <!-- Office Table -->
+              <div style="max-height: 250px; overflow-y: auto; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 0.5rem;">
+                <table style="width: 100%; text-align: left; border-collapse: collapse; color: #e2e8f0; font-size: 0.85rem;">
+                  <thead style="background: #1e293b; position: sticky; top: 0; z-index: 1; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                    <tr>
+                      <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600;">Office / Unit</th>
+                      <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600;">Total</th>
+                      <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600; color: #22d3ee;">Male</th>
+                      <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600; color: #c084fc;">Female</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-if="officeData.length === 0">
+                      <td colspan="4" style="padding: 1rem; text-align: center; color: #94a3b8;">No data available</td>
+                    </tr>
+                    <tr v-else v-for="(office, index) in officeData" :key="index" style="border-bottom: 1px solid rgba(255, 255, 255, 0.02);">
+                      <td style="padding: 0.75rem 1rem;">{{ office.office }}</td>
+                      <td style="padding: 0.75rem 1rem; font-weight: 600;">{{ office.male + office.female }}</td>
+                      <td style="padding: 0.75rem 1rem; color: rgba(34, 211, 238, 0.9);">{{ office.male }}</td>
+                      <td style="padding: 0.75rem 1rem; color: rgba(192, 132, 252, 0.9);">{{ office.female }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
+            <div v-else style="height: 300px; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
+              <span class="material-symbols-outlined" style="animation: spin 1s linear infinite; font-size: 2rem;">refresh</span>
+            </div>
           </div>
         </div>
       </div>
@@ -91,28 +184,30 @@
       <div class="grid-sidebar">
         
         <div class="schedule-card">
-          <div class="calendar-header-nav">
-            <h4 class="schedule-title">{{ currentMonthName }} {{ currentYear }}</h4>
-            <div class="calendar-controls">
-              <button @click="changeMonth(-1)" class="nav-btn">◀</button>
-              <button @click="changeMonth(1)" class="nav-btn">▶</button>
+          <div class="schedule-header">
+            <h4 class="schedule-title">Schedule & Deadlines</h4>
+            <div class="calendar-nav">
+              <span class="calendar-nav-btn" @click="prevMonth">◀</span>
+              <span class="calendar-label">{{ currentMonthYear }}</span>
+              <span class="calendar-nav-btn" @click="nextMonth">▶</span>
             </div>
           </div>
           
-          <div class="calendar-container">
-            <div class="calendar-weekdays">
-              <span v-for="day in ['S', 'M', 'T', 'W', 'T', 'F', 'S']" :key="day">{{ day }}</span>
-            </div>
-            <div class="calendar-dates">
-              <div 
-                v-for="(day, index) in calendarDays" 
-                :key="index" 
-                class="date-cell"
-                :class="{ 'date-active': day.current }"
-              >
-                <span class="date-number">{{ day.n }}</span>
-              </div>
-            </div>
+          <div class="calendar-weekdays">
+            <span v-for="day in ['S', 'M', 'T', 'W', 'T', 'F', 'S']" :key="day">{{ day }}</span>
+          </div>
+          <div class="calendar-dates">
+            <span v-for="(day, idx) in calendarDays" :key="idx" 
+                  class="date-cell" 
+                  :class="{ 
+                    'date-cell-past': day.isPast, 
+                    'date-cell-future': day.isFuture,
+                    'date-cell-today': day.isToday && !day.isRevision && !day.isARDue,
+                    'date-cell-revision': day.isRevision,
+                    'date-cell-ardue': day.isARDue
+                  }">
+              <span v-if="!day.blank" class="date-number">{{ day.date }}</span>
+            </span>
           </div>
 
           <div class="deadlines-section">
@@ -126,24 +221,30 @@
                   <div class="deadline-dot"></div>
                   <p class="deadline-title">{{ deadline.title }}</p>
                 </div>
-                <span class="deadline-badge">{{ deadline.badgeText }}</span>
+                <span class="deadline-badge" :class="deadline.badgeClass || 'badge-default'">{{ deadline.badgeText }}</span>
               </div>
             </div>
           </div>
         </div>
 
         <div class="activity-logs-card">
-          <h5 class="logs-title">System Activity Logs</h5>
-          <div class="logs-list">
-            <div v-if="activityLogs.length === 0" class="logs-empty">
-              No recent transaction events
+          <div class="schedule-header" style="margin-bottom: 0;">
+            <h4 class="schedule-title flex items-center gap-2">
+              <span class="material-symbols-outlined text-pink-400">bolt</span>
+              Recent Activity
+            </h4>
+          </div>
+          <p class="text-xs text-slate-400 mt-1 mb-4">Latest system actions across all users.</p>
+          
+          <div class="relative border-l border-slate-700 ml-3 space-y-6">
+            <div v-for="log in activityLogs.slice(0, 10)" :key="'recent-'+log.id" class="relative pl-6">
+              <div class="absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full bg-slate-800 border-2 border-pink-500"></div>
+              <div class="text-xs text-slate-400 mb-0.5">{{ formatTimeAgo(log.created_at) }}</div>
+              <div class="text-sm font-medium text-white mb-1">{{ log.email || 'Unknown User' }}</div>
+              <div class="text-xs text-slate-300">{{ log.action }}</div>
             </div>
-            <div v-else v-for="log in activityLogs" :key="log.id" class="log-item">
-              <div class="log-icon">{{ log.icon }}</div>
-              <div class="log-content">
-                <p class="log-action">{{ log.action }}</p>
-                <p class="log-time">{{ log.time }}</p>
-              </div>
+            <div v-if="activityLogs.length === 0" class="text-slate-400 text-sm pl-6 py-4">
+              No recent activity.
             </div>
           </div>
         </div>
@@ -154,75 +255,220 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
-
 import api from '../../api';
+import { Bar } from 'vue-chartjs';
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js';
+
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
+
+const getPHYear = () => {
+  return new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" })).getFullYear();
+};
+
+const analyticsYear = ref(getPHYear());
+const analyticsLoading = ref(true);
+const monthlyData = ref([]);
+const officeData = ref([]);
+const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+const availableYears = computed(() => {
+  const startYear = 2026;
+  const currentYear = getPHYear();
+  const maxYear = Math.max(currentYear + 2, startYear + 2);
+  const years = [];
+  for (let y = startYear; y <= maxYear; y++) {
+    years.push(y);
+  }
+  return years;
+});
+
+const yearlyTotal = computed(() => monthlyData.value.reduce((acc, curr) => acc + curr.male + curr.female, 0));
+const yearlyMale = computed(() => monthlyData.value.reduce((acc, curr) => acc + curr.male, 0));
+const yearlyFemale = computed(() => monthlyData.value.reduce((acc, curr) => acc + curr.female, 0));
+
+const highestMaleOffice = computed(() => {
+  if (!officeData.value.length) return null;
+  return officeData.value.reduce((prev, current) => (prev.male > current.male) ? prev : current);
+});
+const highestFemaleOffice = computed(() => {
+  if (!officeData.value.length) return null;
+  return officeData.value.reduce((prev, current) => (prev.female > current.female) ? prev : current);
+});
+const highestTotalOffice = computed(() => {
+  if (!officeData.value.length) return null;
+  return officeData.value.reduce((prev, current) => ((prev.male + prev.female) > (current.male + current.female)) ? prev : current);
+});
+
+const chartData = ref({
+  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+  datasets: [
+    {
+      label: 'Male',
+      backgroundColor: '#06b6d4',
+      data: []
+    },
+    {
+      label: 'Female',
+      backgroundColor: '#c084fc',
+      data: []
+    }
+  ]
+});
+
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  scales: {
+    x: {
+      grid: { color: 'rgba(255, 255, 255, 0.05)' },
+      ticks: { color: '#94a3b8' }
+    },
+    y: {
+      grid: { color: 'rgba(255, 255, 255, 0.05)' },
+      ticks: { color: '#94a3b8' }
+    }
+  },
+  plugins: {
+    legend: {
+      labels: { color: '#e2e8f0' }
+    }
+  }
+};
+
+const fetchAnalyticsData = async () => {
+  analyticsLoading.value = true;
+  try {
+    const res = await api.get('analytics/participants/' + analyticsYear.value);
+    if (res.data.success) {
+      const data = res.data.data;
+      monthlyData.value = data;
+      if (res.data.officeData) {
+        officeData.value = res.data.officeData;
+      } else {
+        officeData.value = [];
+      }
+      chartData.value = {
+        labels: chartData.value.labels,
+        datasets: [
+          {
+            ...chartData.value.datasets[0],
+            data: data.map(d => d.male)
+          },
+          {
+            ...chartData.value.datasets[1],
+            data: data.map(d => d.female)
+          }
+        ]
+      };
+    }
+  } catch (error) {
+    console.error('Failed to load analytics', error);
+  } finally {
+    analyticsLoading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchAnalyticsData();
+});
+
+
 
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
-const showNotifications = ref(false);
 
-const toggleNotifications = () => {
-  showNotifications.value = !showNotifications.value;
-};
-
-const statusBadgeClass = (status) => {
-  const s = status?.toLowerCase() || '';
-  return s.includes('revision') ? 'status-badge-revision' : 'status-badge-pending';
-};
-
-const navigateToView = (item) => {
-  const type = item.type;
-  const id = item.id;
-  const currentUserId = user.value.id || user.value.user_id;
-  const status = item.status?.toLowerCase() || '';
-  const isOwner = Number(item.user_id) === Number(currentUserId);
-
-  if (type === 'design') {
-    if (status.includes('revision') && isOwner) {
-      router.push(`/staff/ad-revision/${id}`);
-    } else {
-      router.push(`/staff/ad-view/${id}`);
-    }
-  } else {
-    if (status.includes('revision') && isOwner) {
-      router.push(`/staff/ar-revision/${id}`);
-    } else {
-      router.push(`/staff/ar-view/${id}`);
-    }
+const displayName = computed(() => {
+  if (user.value.full_name && user.value.full_name.trim() !== '') {
+    return user.value.full_name;
   }
+  return '(Staff)';
+});
+
+const calendarBaseDate = ref(new Date());
+
+const prevMonth = () => {
+  const d = new Date(calendarBaseDate.value);
+  d.setMonth(d.getMonth() - 1);
+  calendarBaseDate.value = d;
 };
 
-// Calendar Logic (Synced with CollegeDashboard)
-const currentMonthDate = ref(new Date());
-const currentMonthName = computed(() => currentMonthDate.value.toLocaleString('default', { month: 'long' }));
-const currentYear = computed(() => currentMonthDate.value.getFullYear());
+const nextMonth = () => {
+  const d = new Date(calendarBaseDate.value);
+  d.setMonth(d.getMonth() + 1);
+  calendarBaseDate.value = d;
+};
+
+const currentMonthYear = computed(() => {
+  return calendarBaseDate.value.toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase();
+});
+
+onMounted(() => {
+  fetchAnalyticsData();
+});
 
 const calendarDays = computed(() => {
-  const year = currentMonthDate.value.getFullYear();
-  const month = currentMonthDate.value.getMonth();
-  const firstDayOfMonth = new Date(year, month, 1).getDay();
-  const lastDateOfMonth = new Date(year, month + 1, 0).getDate();
+  const currentDate = calendarBaseDate.value;
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  
   const days = [];
-
-  for (let i = 0; i < firstDayOfMonth; i++) {
-    days.push({ n: '', current: false });
+  
+  const prevMonthDays = new Date(year, month, 0).getDate();
+  for (let i = 0; i < firstDay; i++) {
+    days.push({ date: prevMonthDays - firstDay + i + 1, blank: true, isPast: true });
   }
-
+  
   const today = new Date();
-  for (let i = 1; i <= lastDateOfMonth; i++) {
-    const isToday = i === today.getDate() && 
-                    month === today.getMonth() && 
-                    year === today.getFullYear();
-    days.push({ n: i, current: isToday });
+  for (let i = 1; i <= daysInMonth; i++) {
+    const d = new Date(year, month, i);
+    d.setHours(0,0,0,0);
+    
+    let isRevision = false;
+    let isARDue = false;
+    
+    upcomingDeadlines.value.forEach(dl => {
+       if (dl.badgeText.includes('Revision')) {
+          if (d.getTime() === new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()) {
+             isRevision = true;
+          }
+       } else if (dl.badgeText.includes('AR Due')) {
+          const dlDate = new Date(dl.sortDate);
+          dlDate.setHours(0,0,0,0);
+          if (d.getTime() === dlDate.getTime()) {
+             isARDue = true;
+          }
+       }
+    });
+    
+    days.push({
+      date: i,
+      blank: false,
+      isToday: d.getTime() === new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime(),
+      isRevision,
+      isARDue
+    });
   }
+  
+  const remaining = 42 - days.length; 
+  for(let i=1; i<=remaining; i++) {
+     if (days.length % 7 === 0 && remaining < 7) break;
+     days.push({ date: i, blank: true, isFuture: true });
+  }
+  
   return days;
 });
 
-const changeMonth = (offset) => {
-  currentMonthDate.value = new Date(currentMonthDate.value.getFullYear(), currentMonthDate.value.getMonth() + offset, 1);
+const navigateToView = (type, id) => {
+  if (type === 'design') {
+    router.push(`/staff/ad-view/${id}`);
+  } else {
+    router.push(`/staff/ar-view/${id}`);
+  }
 };
 
 /* ==============================================================
@@ -242,73 +488,157 @@ const upcomingDeadlines = ref([]);
 const activityLogs = ref([]);
 const notificationItems = ref([]);
 
-const fetchDashboardData = async () => {
+const formatTimeAgo = (dateStr) => {
+  if (!dateStr) return '';
+  const utcDateStr = dateStr.endsWith('Z') ? dateStr : dateStr.replace(' ', 'T') + 'Z';
+  const date = new Date(utcDateStr);
+  const now = new Date();
+  const seconds = Math.floor((now - date) / 1000);
+  
+  if (seconds < 60) return 'Just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return date.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+
+onMounted(async () => {
+  if (!user.value.id || user.value.role !== 'gad_staff') {
+    router.push('/login');
+    return;
+  }
   try {
-    const currentUserId = Number(user.value.id || user.value.user_id);
-    
-    // Fetch both types of submissions and budget summary from the API
-    const [designsRes, reportsRes, budgetRes] = await Promise.all([
+    const [designsRes, reportsRes, archiveRes, logsRes, budgetRes] = await Promise.all([
       api.get('activity-designs'),
       api.get('activity-reports'),
+      api.get('archives'),
+      api.get('activity-logs', { params: { exclude_admin: 'true' } }),
       api.get('budget/summary')
     ]);
 
-    const allDesigns = designsRes.data.success ? designsRes.data.data : [];
-    const allReports = reportsRes.data.success ? reportsRes.data.data : [];
+    if (logsRes && logsRes.data && logsRes.data.success) {
+      activityLogs.value = logsRes.data.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
 
-    // Map Activity Designs to unified table format
-    const formattedDesigns = allDesigns.map(d => ({
-      id: d.act_design_id,
-      title: d.activity_title || d.title,
-      office: d.office,
-      type: 'design',
-      typeName: 'Activity Design',
-      date: d.date || d.start_date,
-      status: d.status,
-      user_id: d.user_id
-    }));
-
-    // Map Accomplishment Reports to unified table format
-    const formattedReports = allReports.map(r => ({
-      id: r.id || r.act_report_id,
-      title: r.activity_title || r.title,
-      office: r.office,
-      type: 'report',
-      typeName: 'Accomplishment Report',
-      date: r.date || r.start_date,
-      status: r.status,
-      user_id: r.user_id
-    }));
-
-    // Filter for current user's PENDING or REVISION items and sort by ID (recent first)
-    const userPending = [...formattedDesigns, ...formattedReports]
-      .filter(item => {
-        const isOwner = Number(item.user_id) === currentUserId;
-        const s = item.status?.toLowerCase() || '';
-        // Include both 'pending' and 'revision' as they both require user attention
-        return isOwner && (s === 'pending' || s.includes('revision'));
-      })
-      .sort((a, b) => b.id - a.id);
-
-    pendingActivities.value = userPending.slice(0, 5);
-
-    // Update Metric Stats cards with dynamic values
-    metricsStats.value[0].value = userPending.length.toString();
-    metricsStats.value[1].value = formattedDesigns.filter(d => Number(d.user_id) === currentUserId).length.toString();
-    metricsStats.value[2].value = formattedReports.filter(r => Number(r.user_id) === currentUserId).length.toString();
+    const designs = designsRes.data.success ? designsRes.data.data : [];
+    const reports = reportsRes.data.success ? reportsRes.data.data : [];
     
+    let adCount = designs.length;
+    let arCount = reports.length;
+
+    if (archiveRes.data && archiveRes.data.success) {
+      const archives = archiveRes.data.data || [];
+      archives.forEach(item => {
+        if (item.type === 'design') {
+          adCount++;
+          if ((item.status || '').toLowerCase() === 'approved') {
+            designs.push({
+               act_design_id: item.original_id,
+               status: item.status,
+               control: item.control,
+               title: item.title,
+               end_date: item.end_date
+            });
+          }
+        }
+        else if (item.type === 'report') arCount++;
+      });
+    }
+
+    // Helper function to check if status is pending or needs revision
+    const isPendingOrRevision = (status) => {
+      const s = (status || '').toLowerCase();
+      return s === 'pending' || s === 'revision required' || s === 'for revision';
+    };
+
+    // Populate pending activities table
+    const pendingDesigns = designs
+      .filter(d => isPendingOrRevision(d.status))
+      .map(d => ({ id: d.act_design_id, type: 'design', typeName: 'Activity Design', title: d.title || d.activity_title, office: d.office, date: d.date || d.start_date }));
+    const pendingReports = reports
+      .filter(r => isPendingOrRevision(r.status))
+      .map(r => ({ id: r.id, type: 'report', typeName: 'Acc. Report', title: r.title || r.activity_title, office: r.office, date: r.date || r.start_date }));
+    pendingActivities.value = [...pendingDesigns, ...pendingReports];
+
+    // Update stat cards
+    const totalPending = pendingActivities.value.length;
+    metricsStats.value[0].value = String(totalPending);
+    metricsStats.value[1].value = String(adCount);
+    metricsStats.value[2].value = String(arCount);
+
+    // Calculate Upcoming Deadlines
+    const dl = [];
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    const formatDays = (targetDateStr) => {
+      if (!targetDateStr) return 'ASAP';
+      const target = new Date(targetDateStr);
+      target.setHours(0,0,0,0);
+      const diffTime = target - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (diffDays < 0) return 'Overdue';
+      if (diffDays === 0) return 'Today';
+      if (diffDays === 1) return 'Tomorrow';
+      return `In ${diffDays} days`;
+    };
+
+    designs.forEach(d => {
+      const status = (d.status || '').toLowerCase();
+      if (status === 'revision required' || status === 'for revision') {
+         dl.push({
+           id: 'ad_rev_' + d.act_design_id,
+           title: d.title || d.activity_title,
+           badgeText: 'AD Revision',
+           badgeClass: 'badge-revision',
+           sortDate: new Date(0)
+         });
+      }
+      
+      if (status === 'approved') {
+         const hasReport = reports.some(r => r.act_design_id === d.act_design_id || (r.control_number && r.control_number === d.control) || (r.control && r.control === d.control));
+         if (!hasReport && d.end_date) {
+            const arDeadline = new Date(d.end_date);
+            arDeadline.setDate(arDeadline.getDate() + 3);
+            dl.push({
+               id: 'ar_due_' + d.act_design_id,
+               title: d.title || d.activity_title,
+               badgeText: 'AR Due ' + formatDays(arDeadline),
+               badgeClass: 'badge-submission',
+               sortDate: arDeadline
+            });
+         }
+      }
+    });
+
+    reports.forEach(r => {
+      const status = (r.status || '').toLowerCase();
+      if (status === 'revision required' || status === 'for revision') {
+         dl.push({
+           id: 'ar_rev_' + r.id,
+           title: r.title || r.activity_title,
+           badgeText: 'AR Revision',
+           badgeClass: 'badge-revision',
+           sortDate: new Date(0)
+         });
+      }
+    });
+
+    dl.sort((a, b) => a.sortDate - b.sortDate);
+    upcomingDeadlines.value = dl.slice(0, 5);
+
     if (budgetRes && budgetRes.data && budgetRes.data.success) {
-      const b = budgetRes.data.data;
-      metricsStats.value[3].value = '₱' + (b.total_budget / 1000000).toFixed(1) + 'M';
-      metricsStats.value[4].value = Number(b.utilization_rate).toFixed(2) + '%';
+      const budgetFormat = new Intl.NumberFormat('en-PH', { maximumFractionDigits: 0 });
+      metricsStats.value[3].value = '₱' + budgetFormat.format(budgetRes.data.data.total_budget || 0);
+      metricsStats.value[4].value = Number(budgetRes.data.data.utilization_rate || 0).toFixed(2) + '%';
     }
   } catch (err) {
-    console.error('Error fetching dashboard data:', err);
+    console.error('Dashboard load error:', err);
   }
-};
-
-onMounted(() => {
-  fetchDashboardData();
 });
 </script>
 
@@ -387,7 +717,7 @@ onMounted(() => {
 }
 
 .stat-label {
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -410,6 +740,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  min-width: 0;
 }
 
 .grid-sidebar {
@@ -423,6 +754,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .title-indicator {
@@ -434,17 +766,17 @@ onMounted(() => {
 
 .section-title {
   font-weight: 700;
-  color: #16213e;
-  font-size: 1.25rem;
+  color: #ffffff;
+  font-size: 1.125rem;
+  margin: 0;
 }
 
 /* Table Container */
 .table-container {
-  border: 1px solid rgba(147, 51, 234, 0.15);
+  border: 1px solid rgba(147, 51, 234, 0.1);
   border-radius: 0.75rem;
   overflow: hidden;
-  background: linear-gradient(135deg, #0f172a, #020617);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  background: transparent;
 }
 
 .table-wrapper {
@@ -455,6 +787,7 @@ onMounted(() => {
   width: 100%;
   text-align: left;
   border-collapse: collapse;
+  min-width: 800px;
 }
 
 .table-header-row {
@@ -464,7 +797,7 @@ onMounted(() => {
 
 .table-header-cell {
   padding: 1rem;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: #c084fc;
   text-transform: uppercase;
@@ -478,8 +811,8 @@ onMounted(() => {
 .empty-state-cell {
   padding: 2.5rem;
   text-align: center;
-  font-size: 0.75rem;
-  color: #64748b;
+  font-size: 1rem;
+  color: #94a3b8;
   font-weight: 500;
 }
 
@@ -495,7 +828,7 @@ onMounted(() => {
 
 .activity-title-cell {
   padding: 1rem;
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #e2e8f0;
   transition: color 0.2s ease;
@@ -505,30 +838,10 @@ onMounted(() => {
   color: #c084fc;
 }
 
-.status-cell {
+.office-cell {
   padding: 1rem;
-}
-
-.status-badge {
-  display: inline-block;
-  padding: 0.25rem 0.625rem;
-  border-radius: 0.5rem;
-  font-size: 0.5625rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.status-badge-pending {
-  background: rgba(245, 158, 11, 0.2);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
-}
-
-.status-badge-revision {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  font-size: 1.1rem;
+  color: #94a3b8;
 }
 
 .type-cell {
@@ -536,7 +849,7 @@ onMounted(() => {
 }
 
 .type-badge {
-  font-size: 0.5625rem;
+  font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -559,9 +872,9 @@ onMounted(() => {
 
 .date-cell {
   padding: 1rem;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-family: monospace;
-  color: #64748b;
+  color: #94a3b8;
 }
 
 .table-footer {
@@ -571,11 +884,11 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.75rem;
+  font-size: 1rem;
 }
 
 .footer-text {
-  color: #64748b;
+  color: #94a3b8;
   font-weight: 500;
 }
 
@@ -585,7 +898,7 @@ onMounted(() => {
   color: white;
   padding: 0.375rem 0.75rem;
   border-radius: 0.5rem;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -601,15 +914,22 @@ onMounted(() => {
 }
 
 /* Analytics Placeholder */
+.pending-activities-section,
 .analytics-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(147, 51, 234, 0.15);
+  background: linear-gradient(135deg, #0f172a, #020617);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 1.5rem;
+}
+
+.analytics-section .section-title {
+  color: #e2e8f0;
 }
 
 .analytics-placeholder {
   border: 1px solid rgba(147, 51, 234, 0.15);
-  background: rgba(15, 23, 42, 0.6);
+  background: transparent;
   padding: 2rem;
   border-radius: 0.75rem;
   min-height: 260px;
@@ -618,7 +938,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   text-align: center;
-  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+  margin-top: 0.5rem;
 }
 
 .placeholder-icon {
@@ -632,18 +952,17 @@ onMounted(() => {
   justify-content: center;
   font-size: 1.125rem;
   margin-bottom: 0.75rem;
-  opacity: 0.6;
 }
 
 .placeholder-title {
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  color: #e2e8f0;
+  color: #c084fc;
 }
 
 .placeholder-text {
-  font-size: 0.75rem;
-  color: #64748b;
+  font-size: 1rem;
+  color: #94a3b8;
   max-width: 448px;
   margin-top: 0.25rem;
   line-height: 1.5;
@@ -658,28 +977,6 @@ onMounted(() => {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
-.calendar-header-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.calendar-controls {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.nav-btn {
-  background: rgba(147, 51, 234, 0.1);
-  border: none;
-  color: #c084fc;
-  padding: 4px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.75rem;
-}
-
 .schedule-header {
   display: flex;
   align-items: center;
@@ -688,7 +985,7 @@ onMounted(() => {
 }
 
 .schedule-title {
-  font-size: 0.875rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #c084fc;
   letter-spacing: 0.025em;
@@ -699,7 +996,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   font-family: monospace;
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #cbd5e1;
 }
 
@@ -724,7 +1021,7 @@ onMounted(() => {
   grid-template-columns: repeat(7, 1fr);
   gap: 0.25rem;
   text-align: center;
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: #c084fc;
   letter-spacing: 0.05em;
@@ -737,17 +1034,54 @@ onMounted(() => {
   gap: 0.25rem;
   text-align: center;
   font-family: monospace;
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #cbd5e1;
 }
 
-.date-active {
-  background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%);
-  color: #ffffff;
-  font-weight: 800;
-  box-shadow: 0 4px 12px rgba(153, 13, 209, 0.4);
+.date-cell {
+  padding: 0.5rem;
   border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
+
+.date-cell:hover {
+  background: rgba(147, 51, 234, 0.3);
+}
+
+.date-cell:hover .date-number {
+  color: white;
+}
+
+.date-cell-past {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.date-cell-future {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.date-cell-revision {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  color: #fff;
+}
+
+.date-cell-ardue {
+  background: rgba(234, 179, 8, 0.2);
+  border: 1px solid rgba(234, 179, 8, 0.5);
+  color: #fff;
+}
+
+.date-cell-today {
+  border: 1px solid rgba(147, 51, 234, 0.5);
+  color: #c084fc;
+}
+
+.date-number {
+  transition: color 0.2s ease;
+}
+
 /* Deadlines Section */
 .deadlines-section {
   border-top: 1px solid rgba(147, 51, 234, 0.1);
@@ -756,7 +1090,7 @@ onMounted(() => {
 }
 
 .deadlines-title {
-  font-size: 0.5625rem;
+  font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -773,8 +1107,8 @@ onMounted(() => {
 .deadlines-empty {
   text-align: center;
   padding: 0.75rem;
-  font-size: 0.75rem;
-  color: #64748b;
+  font-size: 1rem;
+  color: #94a3b8;
   font-weight: 500;
 }
 
@@ -809,7 +1143,7 @@ onMounted(() => {
 }
 
 .deadline-title {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #e2e8f0;
   white-space: nowrap;
   overflow: hidden;
@@ -818,15 +1152,28 @@ onMounted(() => {
 }
 
 .deadline-badge {
-  font-size: 0.5625rem;
+  font-size: 0.8rem;
   font-weight: 700;
   padding: 0.125rem 0.375rem;
   border-radius: 0.25rem;
-  background: rgba(245, 158, 11, 0.1);
-  color: #fbbf24;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   flex-shrink: 0;
+}
+
+.badge-revision {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.badge-submission {
+  background: rgba(234, 179, 8, 0.15);
+  color: #facc15;
+}
+
+.badge-default {
+  background: rgba(245, 158, 11, 0.1);
+  color: #fbbf24;
 }
 
 /* Activity Logs Card */
@@ -839,7 +1186,7 @@ onMounted(() => {
 }
 
 .logs-title {
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -856,8 +1203,8 @@ onMounted(() => {
 .logs-empty {
   text-align: center;
   padding: 0.75rem;
-  font-size: 0.75rem;
-  color: #64748b;
+  font-size: 1rem;
+  color: #94a3b8;
   font-weight: 500;
 }
 
@@ -876,7 +1223,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 1rem;
   flex-shrink: 0;
 }
 
@@ -885,21 +1232,20 @@ onMounted(() => {
 }
 
 .log-action {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #e2e8f0;
   line-height: 1.4;
   font-weight: 500;
   display: -webkit-box;
   -webkit-line-clamp: 2;
-  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
 .log-time {
-  font-size: 0.625rem;
+  font-size: 0.85rem;
   font-family: monospace;
-  color: #64748b;
+  color: #94a3b8;
   margin-top: 0.125rem;
 }
 

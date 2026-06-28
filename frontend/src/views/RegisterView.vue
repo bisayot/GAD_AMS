@@ -48,40 +48,63 @@
               <select v-model="form.user_role" class="bg-surface-container-low border-none rounded-lg px-4 py-3 text-on-surface" required>
                 <option value="Non-TWG">Non-TWG</option>
                 <option value="TWG">TWG</option>
-                <option value="Staff">Staff</option>
-                <option value="Director">Director</option>
               </select>
             </div>
 
             <div class="flex flex-col gap-2">
               <label class="text-xs uppercase tracking-widest font-label font-bold text-slate-500">Department / Office <span class="text-red-500">*</span></label>
               
-              <input v-if="form.user_role === 'Staff' || form.user_role === 'Director'" 
-                     value="Gender and Development Office" disabled 
-                     class="bg-surface-container-low border-none rounded-lg px-4 py-3 text-on-surface opacity-70 cursor-not-allowed" />
-              
-              <div v-else class="space-y-2">
-                <select 
-                  v-model="form.office_unit_id" 
-                  @change="checkNewOffice" 
-                  class="w-full bg-surface-container-low border-none rounded-lg px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary outline-none transition-all" 
-                  required
-                >
-                  <option value="" disabled>Select your unit</option>
-                  <option v-for="unit in officeUnits" :key="unit.unit_id" :value="unit.unit_id">
-                    {{ unit.unit_name }}
-                  </option>
-                  <option value="add_new" class="font-bold text-primary">+ Add New Office</option>
-                </select>
+              <div class="space-y-2 relative" ref="dropdownRef">
+                <!-- Searchable Combobox -->
+                <div class="relative">
+                  <input 
+                    v-model="officeSearchQuery" 
+                    @focus="isDropdownOpen = true"
+                    @input="isDropdownOpen = true; handleSearchInput()"
+                    placeholder="Search or Select your unit"
+                    class="w-full bg-surface-container-low border-none rounded-lg px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary outline-none transition-all"
+                    :required="!form.office_unit_id && !isAddingNew"
+                  />
+                  <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+                </div>
                 
-                <input v-if="isAddingNew" v-model="newOfficeName" placeholder="Enter new office name" 
-                       class="w-full bg-surface-container-low border border-primary rounded-lg px-4 py-3 text-on-surface" required />
+                <!-- Dropdown List -->
+                <div v-if="isDropdownOpen" class="absolute z-50 w-full mt-1 bg-surface-container-lowest border border-outline-variant/20 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                  <div 
+                    v-for="unit in filteredOffices" 
+                    :key="unit.unit_id" 
+                    @click="selectOffice(unit)"
+                    class="px-4 py-3 hover:bg-surface-container-low cursor-pointer text-on-surface transition-colors"
+                  >
+                    {{ unit.unit_name }}
+                  </div>
+                  
+                  <div v-if="filteredOffices.length === 0" class="px-4 py-3 text-slate-500 italic text-sm">
+                    No matching offices found.
+                  </div>
+
+                  <div 
+                    @click="selectAddNew"
+                    class="px-4 py-3 font-bold text-primary hover:bg-primary/10 cursor-pointer border-t border-outline-variant/20 transition-colors flex items-center gap-2"
+                  >
+                    <span class="material-symbols-outlined text-sm">add_circle</span>
+                    Add "{{ officeSearchQuery || 'New Office' }}"
+                  </div>
+                </div>
+                
+                <div v-if="isAddingNew" class="mt-2 animate-fade-in">
+                  <label class="text-[10px] uppercase tracking-widest font-label font-bold text-primary mb-1 block">New Office Name</label>
+                  <input v-model="newOfficeName" placeholder="Enter full new office name" 
+                         class="w-full bg-surface-container-low border border-primary/50 focus:border-primary rounded-lg px-4 py-3 text-on-surface outline-none focus:ring-1 focus:ring-primary transition-all" required />
+                </div>
               </div>
             </div>
 
             <div class="flex flex-col gap-2 md:col-span-2">
-              <label class="text-xs uppercase tracking-widest font-label font-bold text-slate-500">Institutional Email <span class="text-red-500">*</span></label>
-              <input v-model="form.email" type="email" placeholder="name@bsu.edu.ph" class="bg-surface-container-low border-none rounded-lg px-4 py-3 text-on-surface" required />
+              <label class="text-xs uppercase tracking-widest font-label font-bold text-slate-500">
+                {{ form.user_role !== 'Non-TWG' ? 'Institutional Email' : 'Email Address' }} <span class="text-red-500">*</span>
+              </label>
+              <input v-model="form.email" type="email" :placeholder="form.user_role !== 'Non-TWG' ? 'name@bsu.edu.ph' : 'name@example.com'" class="bg-surface-container-low border-none rounded-lg px-4 py-3 text-on-surface" required />
             </div>
             <div class="flex flex-col gap-2">
               <label class="text-xs uppercase tracking-widest font-label font-bold text-slate-500">Password <span class="text-red-500">*</span></label>
@@ -89,6 +112,28 @@
                 <input v-model="form.password" :type="showPass ? 'text' : 'password'" placeholder="••••••••" class="w-full bg-surface-container-low border-none rounded-lg px-4 py-3 text-on-surface" required />
                 <button type="button" @click="showPass = !showPass" class="absolute right-3 top-3 text-slate-400"><span class="material-symbols-outlined">{{ showPass ? 'visibility_off' : 'visibility' }}</span></button>
               </div>
+              <ul class="text-xs mt-2 space-y-1 font-medium transition-colors">
+                <li class="flex items-center gap-1 transition-colors" :class="form.password.length >= 8 ? 'text-green-600' : 'text-slate-400'">
+                  <span class="material-symbols-outlined text-[14px]">{{ form.password.length >= 8 ? 'check_circle' : 'cancel' }}</span>
+                  At least 8 characters
+                </li>
+                <li class="flex items-center gap-1 transition-colors" :class="/[A-Z]/.test(form.password || '') ? 'text-green-600' : 'text-slate-400'">
+                  <span class="material-symbols-outlined text-[14px]">{{ /[A-Z]/.test(form.password || '') ? 'check_circle' : 'cancel' }}</span>
+                  One uppercase letter
+                </li>
+                <li class="flex items-center gap-1 transition-colors" :class="/[a-z]/.test(form.password || '') ? 'text-green-600' : 'text-slate-400'">
+                  <span class="material-symbols-outlined text-[14px]">{{ /[a-z]/.test(form.password || '') ? 'check_circle' : 'cancel' }}</span>
+                  One lowercase letter
+                </li>
+                <li class="flex items-center gap-1 transition-colors" :class="/[0-9]/.test(form.password || '') ? 'text-green-600' : 'text-slate-400'">
+                  <span class="material-symbols-outlined text-[14px]">{{ /[0-9]/.test(form.password || '') ? 'check_circle' : 'cancel' }}</span>
+                  One number
+                </li>
+                <li class="flex items-center gap-1 transition-colors" :class="/[^A-Za-z0-9]/.test(form.password || '') ? 'text-green-600' : 'text-slate-400'">
+                  <span class="material-symbols-outlined text-[14px]">{{ /[^A-Za-z0-9]/.test(form.password || '') ? 'check_circle' : 'cancel' }}</span>
+                  One special character
+                </li>
+              </ul>
             </div>
             <div class="flex flex-col gap-2">
               <label class="text-xs uppercase tracking-widest font-label font-bold text-slate-500">Confirm Password <span class="text-red-500">*</span></label>
@@ -96,6 +141,22 @@
                 <input v-model="form.confirm_password" :type="showConfirmPass ? 'text' : 'password'" placeholder="••••••••" class="w-full bg-surface-container-low border-none rounded-lg px-4 py-3 text-on-surface" required />
                 <button type="button" @click="showConfirmPass = !showConfirmPass" class="absolute right-3 top-3 text-slate-400"><span class="material-symbols-outlined">{{ showConfirmPass ? 'visibility_off' : 'visibility' }}</span></button>
               </div>
+            </div>
+          </div>
+
+          <!-- Turnstile Widget -->
+          <TurnstileWidget ref="turnstileRef" @verify="onTurnstileVerify" />
+
+          <!-- Privacy Policy Checkbox -->
+          <div class="flex items-start gap-3 pt-2">
+            <div class="flex items-center h-5">
+              <input id="privacy" v-model="form.privacyAccepted" type="checkbox" class="w-4 h-4 bg-surface-container-low border-none rounded text-primary focus:ring-primary" required />
+            </div>
+            <div class="text-sm">
+              <label for="privacy" class="text-on-surface-variant font-medium">
+                I agree to the 
+                <button type="button" @click="showPrivacyModal = true" class="text-primary hover:underline font-bold">Privacy Policy</button>
+              </label>
             </div>
           </div>
 
@@ -110,28 +171,112 @@
         </form>
       </div>
     </div>
+
+    <!-- Privacy Policy Modal -->
+    <div v-if="showPrivacyModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
+      <div class="bg-surface-container-lowest rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh]">
+        <div class="p-6 border-b border-outline-variant/20 flex justify-between items-center">
+          <h2 class="text-2xl font-headline font-bold text-primary">Privacy Policy</h2>
+          <button type="button" @click="showPrivacyModal = false" class="text-on-surface-variant hover:text-primary transition-colors">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        
+        <div class="p-6 overflow-y-auto font-body text-on-surface-variant space-y-4 text-left">
+          <p class="font-bold text-on-surface">Data Privacy Act of 2012 (RA 10173) Consent</p>
+          <p>
+            By registering for an account on the Benguet State University Gender and Development (BSU GAD) Portal, you acknowledge and agree to the following terms regarding the collection, use, and processing of your personal data:
+          </p>
+          <ul class="list-disc pl-5 space-y-2">
+            <li><strong>Purpose of Data Collection:</strong> Your personal information (e.g., name, institutional email, office/department, and role) will be collected and processed solely for the purpose of managing user access, facilitating system functionalities, and maintaining official records within the GAD Portal.</li>
+            <li><strong>Data Protection:</strong> We are committed to safeguarding your personal information. Appropriate security measures are in place to prevent unauthorized access, disclosure, modification, or destruction of your data.</li>
+            <li><strong>Data Sharing:</strong> Your personal data will only be accessible to authorized personnel of the BSU GAD Office and system administrators. It will not be shared with third parties without your explicit consent, except as required by law.</li>
+            <li><strong>User Rights:</strong> You have the right to access, correct, or request the deletion of your personal data stored in the portal. You may also withdraw your consent at any time, which may result in the deactivation of your account.</li>
+          </ul>
+          <p>
+            By clicking "I agree," you signify your understanding of this privacy policy and give your explicit consent to the BSU GAD Office to process your personal data in accordance with the aforementioned terms and the provisions of the Data Privacy Act of 2012.
+          </p>
+        </div>
+
+        <div class="p-6 border-t border-outline-variant/20 bg-surface-container-low rounded-b-2xl flex justify-end">
+          <button type="button" @click="acceptPrivacy" class="bg-primary text-white px-6 py-2 rounded-full font-bold uppercase transition-all shadow-md hover:shadow-lg">
+            I Understand & Agree
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { reactive, ref, onMounted } from 'vue';
+import { reactive, ref, onMounted, computed, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../api';
+import TurnstileWidget from '../components/TurnstileWidget.vue';
 
 const router = useRouter();
 const loading = ref(false);
 const error = ref('');
 const showPass = ref(false);
 const showConfirmPass = ref(false);
+const turnstileToken = ref('');
+const showPrivacyModal = ref(false);
+const turnstileRef = ref(null);
+
+const acceptPrivacy = () => {
+  form.privacyAccepted = true;
+  showPrivacyModal.value = false;
+};
+
+const onTurnstileVerify = (token) => {
+  turnstileToken.value = token;
+};
 
 const officeUnits = ref([]);
 const isAddingNew = ref(false);
 const newOfficeName = ref('');
 
+// Combobox logic
+const dropdownRef = ref(null);
+const isDropdownOpen = ref(false);
+const officeSearchQuery = ref('');
+
+const filteredOffices = computed(() => {
+  if (!officeSearchQuery.value) return officeUnits.value;
+  const q = officeSearchQuery.value.toLowerCase();
+  return officeUnits.value.filter(u => u.unit_name.toLowerCase().includes(q));
+});
+
+const handleSearchInput = () => {
+  isAddingNew.value = false;
+  form.office_unit_id = ''; 
+};
+
+const selectOffice = (unit) => {
+  form.office_unit_id = unit.unit_id;
+  officeSearchQuery.value = unit.unit_name;
+  isAddingNew.value = false;
+  isDropdownOpen.value = false;
+};
+
+const selectAddNew = () => {
+  form.office_unit_id = 'add_new';
+  isAddingNew.value = true;
+  newOfficeName.value = officeSearchQuery.value;
+  isDropdownOpen.value = false;
+};
+
+const handleClickOutside = (e) => {
+  if (dropdownRef.value && !dropdownRef.value.contains(e.target)) {
+    isDropdownOpen.value = false;
+  }
+};
+
 const form = reactive({
   first_name: '', middle_name: '', last_name: '',
   user_role: 'Non-TWG', office_unit_id: '',
-  email: '', password: '', confirm_password: ''
+  email: '', password: '', confirm_password: '',
+  privacyAccepted: false
 });
 
 const fetchOffices = async () => {
@@ -143,16 +288,44 @@ const fetchOffices = async () => {
   }
 };
 
-const checkNewOffice = (e) => {
-  isAddingNew.value = e.target.value === 'add_new';
-  if (!isAddingNew.value) newOfficeName.value = '';
-};
 
-onMounted(fetchOffices);
+
+onMounted(() => {
+  fetchOffices();
+  document.addEventListener('mousedown', handleClickOutside);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('mousedown', handleClickOutside);
+});
 
 const handleRegister = async () => {
+  if (form.user_role !== 'Non-TWG' && !form.email.toLowerCase().endsWith('@bsu.edu.ph')) {
+    return error.value = 'This role requires a valid institutional email (@bsu.edu.ph).';
+  }
+  if (form.password.length < 8) {
+    return error.value = 'Password must be at least 8 characters long.';
+  }
+  if (!/[A-Z]/.test(form.password)) {
+    return error.value = 'Password must contain at least 1 uppercase letter.';
+  }
+  if (!/[a-z]/.test(form.password)) {
+    return error.value = 'Password must contain at least 1 lowercase letter.';
+  }
+  if (!/[0-9]/.test(form.password)) {
+    return error.value = 'Password must contain at least 1 number.';
+  }
+  if (!/[^A-Za-z0-9]/.test(form.password)) {
+    return error.value = 'Password must contain at least 1 special character.';
+  }
   if (form.password !== form.confirm_password) {
     return error.value = 'Passwords do not match.';
+  }
+  if (!turnstileToken.value) {
+    return error.value = 'Please complete the security check.';
+  }
+  if (!form.privacyAccepted) {
+    return error.value = 'You must agree to the Privacy Policy.';
   }
   
   loading.value = true;
@@ -161,24 +334,24 @@ const handleRegister = async () => {
   try {
     let departmentId = form.office_unit_id;
 
-    if (form.user_role === 'Staff' || form.user_role === 'Director') {
-      departmentId = 1; // 1 = Gender And Development office in DB
-    } else {
-      if (isAddingNew.value && newOfficeName.value) {
-        const res = await api.post('add_office', { 
-          unit_name: newOfficeName.value 
-        });
-        departmentId = res.data.new_id;
-      }
+    if (isAddingNew.value && newOfficeName.value) {
+      const res = await api.post('add_office', { 
+        unit_name: newOfficeName.value 
+      });
+      departmentId = res.data.new_id;
     }
 
     const payload = {
       fullname: `${form.first_name} ${form.middle_name} ${form.last_name}`.replace(/\s+/g, ' ').trim(),
+      first_name: form.first_name,
+      middle_name: form.middle_name,
+      last_name: form.last_name,
       department: departmentId, 
       email: form.email,
       password: form.password,
       confirm_password: form.confirm_password,
-      user_role: form.user_role
+      user_role: form.user_role,
+      turnstile_token: turnstileToken.value
     };
 
     await api.post('register', payload);
@@ -187,6 +360,8 @@ const handleRegister = async () => {
 
   } catch (err) {
     console.error("Registration Error", err);
+    if (turnstileRef.value) turnstileRef.value.reset();
+    turnstileToken.value = '';
     
     if (err && err.messages) {
       const messages = err.messages;

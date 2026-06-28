@@ -1,0 +1,488 @@
+ERROR - 2026-05-26 02:38:18 --> LOGIN ATTEMPT: Identity=[bisayotduligas@gmail.com]
+ERROR - 2026-05-26 02:38:18 --> Error connecting to the database: mysqli_sql_exception: MySQL server has gone away in C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:201
+Stack trace:
+#0 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(201): mysqli->real_connect('localhost', 'root', Object(SensitiveParameterValue), 'gad_submission_...', 3308, '', 2048)
+#1 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(555): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#2 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#3 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *\nFROM `...', Array, false)
+#4 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Model.php(295): CodeIgniter\Database\BaseBuilder->get()
+#5 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\BaseModel.php(714): CodeIgniter\Model->doFirst()
+#6 C:\xampp\htdocs\GAD_AMS_2\backend\app\Models\UserModel.php(29): CodeIgniter\BaseModel->first()
+#7 C:\xampp\htdocs\GAD_AMS_2\backend\app\Controllers\AuthController.php(32): App\Models\UserModel->findByIdentity('bisayotduligas@...')
+#8 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(951): App\Controllers\AuthController->login()
+#9 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AuthController))
+#10 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#11 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#12 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#13 C:\xampp\htdocs\GAD_AMS_2\backend\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#14 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\xampp\\htdocs...')
+#15 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: MySQL server has gone away in C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:231
+Stack trace:
+#0 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(555): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#1 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#2 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *\nFROM `...', Array, false)
+#3 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Model.php(295): CodeIgniter\Database\BaseBuilder->get()
+#4 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\BaseModel.php(714): CodeIgniter\Model->doFirst()
+#5 C:\xampp\htdocs\GAD_AMS_2\backend\app\Models\UserModel.php(29): CodeIgniter\BaseModel->first()
+#6 C:\xampp\htdocs\GAD_AMS_2\backend\app\Controllers\AuthController.php(32): App\Models\UserModel->findByIdentity('bisayotduligas@...')
+#7 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(951): App\Controllers\AuthController->login()
+#8 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AuthController))
+#9 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#11 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 C:\xampp\htdocs\GAD_AMS_2\backend\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\xampp\\htdocs...')
+#14 {main}
+CRITICAL - 2026-05-26 02:38:18 --> CodeIgniter\Database\Exceptions\DatabaseException: Unable to connect to the database.
+Main connection [MySQLi]: MySQL server has gone away
+[Method: POST, Route: api/login]
+in SYSTEMPATH\Database\BaseConnection.php on line 606.
+ 1 SYSTEMPATH\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+ 2 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *
+FROM `users`
+WHERE `username` = :username:
+OR `email` = :email:
+OR `user_acronym` = :user_acronym:
+OR `student_id` = :student_id:
+ LIMIT 1', [...], false)
+ 3 SYSTEMPATH\Model.php(295): CodeIgniter\Database\BaseBuilder->get()
+ 4 SYSTEMPATH\BaseModel.php(714): CodeIgniter\Model->doFirst()
+ 5 APPPATH\Models\UserModel.php(29): CodeIgniter\BaseModel->first()
+ 6 APPPATH\Controllers\AuthController.php(32): App\Models\UserModel->findByIdentity('bisayotduligas@gmail.com')
+ 7 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\AuthController->login()
+ 8 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AuthController))
+ 9 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+10 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+11 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+12 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+13 SYSTEMPATH\rewrite.php(44): require_once('C:\\xampp\\htdocs\\GAD_AMS_2\\backend\\public\\index.php')
+ERROR - 2026-05-26 02:43:59 --> LOGIN ATTEMPT: Identity=[bisayotduligas@gmail.com]
+ERROR - 2026-05-26 02:43:59 --> Error connecting to the database: mysqli_sql_exception: MySQL server has gone away in C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:201
+Stack trace:
+#0 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(201): mysqli->real_connect('localhost', 'root', Object(SensitiveParameterValue), 'gad_submission_...', 3308, '', 2048)
+#1 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(555): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#2 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#3 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *\nFROM `...', Array, false)
+#4 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Model.php(295): CodeIgniter\Database\BaseBuilder->get()
+#5 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\BaseModel.php(714): CodeIgniter\Model->doFirst()
+#6 C:\xampp\htdocs\GAD_AMS_2\backend\app\Models\UserModel.php(29): CodeIgniter\BaseModel->first()
+#7 C:\xampp\htdocs\GAD_AMS_2\backend\app\Controllers\AuthController.php(32): App\Models\UserModel->findByIdentity('bisayotduligas@...')
+#8 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(951): App\Controllers\AuthController->login()
+#9 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AuthController))
+#10 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#11 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#12 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#13 C:\xampp\htdocs\GAD_AMS_2\backend\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#14 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\xampp\\htdocs...')
+#15 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: MySQL server has gone away in C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:231
+Stack trace:
+#0 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(555): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#1 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#2 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *\nFROM `...', Array, false)
+#3 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Model.php(295): CodeIgniter\Database\BaseBuilder->get()
+#4 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\BaseModel.php(714): CodeIgniter\Model->doFirst()
+#5 C:\xampp\htdocs\GAD_AMS_2\backend\app\Models\UserModel.php(29): CodeIgniter\BaseModel->first()
+#6 C:\xampp\htdocs\GAD_AMS_2\backend\app\Controllers\AuthController.php(32): App\Models\UserModel->findByIdentity('bisayotduligas@...')
+#7 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(951): App\Controllers\AuthController->login()
+#8 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AuthController))
+#9 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#11 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 C:\xampp\htdocs\GAD_AMS_2\backend\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\xampp\\htdocs...')
+#14 {main}
+CRITICAL - 2026-05-26 02:43:59 --> CodeIgniter\Database\Exceptions\DatabaseException: Unable to connect to the database.
+Main connection [MySQLi]: MySQL server has gone away
+[Method: POST, Route: api/login]
+in SYSTEMPATH\Database\BaseConnection.php on line 606.
+ 1 SYSTEMPATH\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+ 2 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *
+FROM `users`
+WHERE `username` = :username:
+OR `email` = :email:
+OR `user_acronym` = :user_acronym:
+OR `student_id` = :student_id:
+ LIMIT 1', [...], false)
+ 3 SYSTEMPATH\Model.php(295): CodeIgniter\Database\BaseBuilder->get()
+ 4 SYSTEMPATH\BaseModel.php(714): CodeIgniter\Model->doFirst()
+ 5 APPPATH\Models\UserModel.php(29): CodeIgniter\BaseModel->first()
+ 6 APPPATH\Controllers\AuthController.php(32): App\Models\UserModel->findByIdentity('bisayotduligas@gmail.com')
+ 7 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\AuthController->login()
+ 8 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AuthController))
+ 9 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+10 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+11 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+12 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+13 SYSTEMPATH\rewrite.php(44): require_once('C:\\xampp\\htdocs\\GAD_AMS_2\\backend\\public\\index.php')
+ERROR - 2026-05-26 02:46:20 --> LOGIN ATTEMPT: Identity=[bisayotduligas@gmail.com]
+ERROR - 2026-05-26 02:46:20 --> Error connecting to the database: mysqli_sql_exception: MySQL server has gone away in C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:201
+Stack trace:
+#0 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(201): mysqli->real_connect('localhost', 'root', Object(SensitiveParameterValue), 'gad_submission_...', 3308, '', 2048)
+#1 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(555): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#2 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#3 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *\nFROM `...', Array, false)
+#4 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Model.php(295): CodeIgniter\Database\BaseBuilder->get()
+#5 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\BaseModel.php(714): CodeIgniter\Model->doFirst()
+#6 C:\xampp\htdocs\GAD_AMS_2\backend\app\Models\UserModel.php(29): CodeIgniter\BaseModel->first()
+#7 C:\xampp\htdocs\GAD_AMS_2\backend\app\Controllers\AuthController.php(32): App\Models\UserModel->findByIdentity('bisayotduligas@...')
+#8 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(951): App\Controllers\AuthController->login()
+#9 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AuthController))
+#10 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#11 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#12 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#13 C:\xampp\htdocs\GAD_AMS_2\backend\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#14 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\xampp\\htdocs...')
+#15 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: MySQL server has gone away in C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:231
+Stack trace:
+#0 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(555): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#1 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#2 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *\nFROM `...', Array, false)
+#3 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Model.php(295): CodeIgniter\Database\BaseBuilder->get()
+#4 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\BaseModel.php(714): CodeIgniter\Model->doFirst()
+#5 C:\xampp\htdocs\GAD_AMS_2\backend\app\Models\UserModel.php(29): CodeIgniter\BaseModel->first()
+#6 C:\xampp\htdocs\GAD_AMS_2\backend\app\Controllers\AuthController.php(32): App\Models\UserModel->findByIdentity('bisayotduligas@...')
+#7 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(951): App\Controllers\AuthController->login()
+#8 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AuthController))
+#9 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#11 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 C:\xampp\htdocs\GAD_AMS_2\backend\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\xampp\\htdocs...')
+#14 {main}
+CRITICAL - 2026-05-26 02:46:20 --> CodeIgniter\Database\Exceptions\DatabaseException: Unable to connect to the database.
+Main connection [MySQLi]: MySQL server has gone away
+[Method: POST, Route: api/login]
+in SYSTEMPATH\Database\BaseConnection.php on line 606.
+ 1 SYSTEMPATH\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+ 2 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *
+FROM `users`
+WHERE `username` = :username:
+OR `email` = :email:
+OR `user_acronym` = :user_acronym:
+OR `student_id` = :student_id:
+ LIMIT 1', [...], false)
+ 3 SYSTEMPATH\Model.php(295): CodeIgniter\Database\BaseBuilder->get()
+ 4 SYSTEMPATH\BaseModel.php(714): CodeIgniter\Model->doFirst()
+ 5 APPPATH\Models\UserModel.php(29): CodeIgniter\BaseModel->first()
+ 6 APPPATH\Controllers\AuthController.php(32): App\Models\UserModel->findByIdentity('bisayotduligas@gmail.com')
+ 7 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\AuthController->login()
+ 8 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AuthController))
+ 9 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+10 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+11 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+12 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+13 SYSTEMPATH\rewrite.php(44): require_once('C:\\xampp\\htdocs\\GAD_AMS_2\\backend\\public\\index.php')
+ERROR - 2026-05-26 02:49:15 --> LOGIN ATTEMPT: Identity=[bisayotduligas@gmail.com]
+ERROR - 2026-05-26 02:49:15 --> Error connecting to the database: mysqli_sql_exception: MySQL server has gone away in C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:201
+Stack trace:
+#0 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(201): mysqli->real_connect('localhost', 'root', Object(SensitiveParameterValue), 'gad_submission_...', 3308, '', 2048)
+#1 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(555): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#2 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#3 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *\nFROM `...', Array, false)
+#4 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Model.php(295): CodeIgniter\Database\BaseBuilder->get()
+#5 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\BaseModel.php(714): CodeIgniter\Model->doFirst()
+#6 C:\xampp\htdocs\GAD_AMS_2\backend\app\Models\UserModel.php(29): CodeIgniter\BaseModel->first()
+#7 C:\xampp\htdocs\GAD_AMS_2\backend\app\Controllers\AuthController.php(32): App\Models\UserModel->findByIdentity('bisayotduligas@...')
+#8 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(951): App\Controllers\AuthController->login()
+#9 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AuthController))
+#10 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#11 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#12 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#13 C:\xampp\htdocs\GAD_AMS_2\backend\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#14 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\xampp\\htdocs...')
+#15 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: MySQL server has gone away in C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:231
+Stack trace:
+#0 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(555): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#1 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#2 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *\nFROM `...', Array, false)
+#3 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Model.php(295): CodeIgniter\Database\BaseBuilder->get()
+#4 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\BaseModel.php(714): CodeIgniter\Model->doFirst()
+#5 C:\xampp\htdocs\GAD_AMS_2\backend\app\Models\UserModel.php(29): CodeIgniter\BaseModel->first()
+#6 C:\xampp\htdocs\GAD_AMS_2\backend\app\Controllers\AuthController.php(32): App\Models\UserModel->findByIdentity('bisayotduligas@...')
+#7 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(951): App\Controllers\AuthController->login()
+#8 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AuthController))
+#9 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#11 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 C:\xampp\htdocs\GAD_AMS_2\backend\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\xampp\\htdocs...')
+#14 {main}
+CRITICAL - 2026-05-26 02:49:15 --> CodeIgniter\Database\Exceptions\DatabaseException: Unable to connect to the database.
+Main connection [MySQLi]: MySQL server has gone away
+[Method: POST, Route: api/login]
+in SYSTEMPATH\Database\BaseConnection.php on line 606.
+ 1 SYSTEMPATH\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+ 2 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *
+FROM `users`
+WHERE `username` = :username:
+OR `email` = :email:
+OR `user_acronym` = :user_acronym:
+OR `student_id` = :student_id:
+ LIMIT 1', [...], false)
+ 3 SYSTEMPATH\Model.php(295): CodeIgniter\Database\BaseBuilder->get()
+ 4 SYSTEMPATH\BaseModel.php(714): CodeIgniter\Model->doFirst()
+ 5 APPPATH\Models\UserModel.php(29): CodeIgniter\BaseModel->first()
+ 6 APPPATH\Controllers\AuthController.php(32): App\Models\UserModel->findByIdentity('bisayotduligas@gmail.com')
+ 7 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\AuthController->login()
+ 8 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AuthController))
+ 9 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+10 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+11 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+12 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+13 SYSTEMPATH\rewrite.php(44): require_once('C:\\xampp\\htdocs\\GAD_AMS_2\\backend\\public\\index.php')
+ERROR - 2026-05-26 02:52:10 --> LOGIN ATTEMPT: Identity=[bisayotduligas@gmail.com]
+ERROR - 2026-05-26 02:52:11 --> Error connecting to the database: mysqli_sql_exception: MySQL server has gone away in C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:201
+Stack trace:
+#0 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(201): mysqli->real_connect('127.0.0.1', 'root', Object(SensitiveParameterValue), 'gad_submission_...', 3308, '', 2048)
+#1 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(555): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#2 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#3 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *\nFROM `...', Array, false)
+#4 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Model.php(295): CodeIgniter\Database\BaseBuilder->get()
+#5 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\BaseModel.php(714): CodeIgniter\Model->doFirst()
+#6 C:\xampp\htdocs\GAD_AMS_2\backend\app\Models\UserModel.php(29): CodeIgniter\BaseModel->first()
+#7 C:\xampp\htdocs\GAD_AMS_2\backend\app\Controllers\AuthController.php(32): App\Models\UserModel->findByIdentity('bisayotduligas@...')
+#8 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(951): App\Controllers\AuthController->login()
+#9 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AuthController))
+#10 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#11 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#12 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#13 C:\xampp\htdocs\GAD_AMS_2\backend\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#14 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\xampp\\htdocs...')
+#15 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: MySQL server has gone away in C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:231
+Stack trace:
+#0 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(555): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#1 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#2 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *\nFROM `...', Array, false)
+#3 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Model.php(295): CodeIgniter\Database\BaseBuilder->get()
+#4 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\BaseModel.php(714): CodeIgniter\Model->doFirst()
+#5 C:\xampp\htdocs\GAD_AMS_2\backend\app\Models\UserModel.php(29): CodeIgniter\BaseModel->first()
+#6 C:\xampp\htdocs\GAD_AMS_2\backend\app\Controllers\AuthController.php(32): App\Models\UserModel->findByIdentity('bisayotduligas@...')
+#7 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(951): App\Controllers\AuthController->login()
+#8 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AuthController))
+#9 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#11 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 C:\xampp\htdocs\GAD_AMS_2\backend\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\xampp\\htdocs...')
+#14 {main}
+CRITICAL - 2026-05-26 02:52:11 --> CodeIgniter\Database\Exceptions\DatabaseException: Unable to connect to the database.
+Main connection [MySQLi]: MySQL server has gone away
+[Method: POST, Route: api/login]
+in SYSTEMPATH\Database\BaseConnection.php on line 606.
+ 1 SYSTEMPATH\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+ 2 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *
+FROM `users`
+WHERE `username` = :username:
+OR `email` = :email:
+OR `user_acronym` = :user_acronym:
+OR `student_id` = :student_id:
+ LIMIT 1', [...], false)
+ 3 SYSTEMPATH\Model.php(295): CodeIgniter\Database\BaseBuilder->get()
+ 4 SYSTEMPATH\BaseModel.php(714): CodeIgniter\Model->doFirst()
+ 5 APPPATH\Models\UserModel.php(29): CodeIgniter\BaseModel->first()
+ 6 APPPATH\Controllers\AuthController.php(32): App\Models\UserModel->findByIdentity('bisayotduligas@gmail.com')
+ 7 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\AuthController->login()
+ 8 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AuthController))
+ 9 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+10 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+11 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+12 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+13 SYSTEMPATH\rewrite.php(44): require_once('C:\\xampp\\htdocs\\GAD_AMS_2\\backend\\public\\index.php')
+ERROR - 2026-05-26 02:52:38 --> LOGIN ATTEMPT: Identity=[bisayotduligas@gmail.com]
+ERROR - 2026-05-26 02:52:38 --> Error connecting to the database: mysqli_sql_exception: MySQL server has gone away in C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:201
+Stack trace:
+#0 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(201): mysqli->real_connect('127.0.0.1', 'root', Object(SensitiveParameterValue), 'gad_submission_...', 3308, '', 2048)
+#1 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(555): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#2 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#3 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *\nFROM `...', Array, false)
+#4 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Model.php(295): CodeIgniter\Database\BaseBuilder->get()
+#5 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\BaseModel.php(714): CodeIgniter\Model->doFirst()
+#6 C:\xampp\htdocs\GAD_AMS_2\backend\app\Models\UserModel.php(29): CodeIgniter\BaseModel->first()
+#7 C:\xampp\htdocs\GAD_AMS_2\backend\app\Controllers\AuthController.php(32): App\Models\UserModel->findByIdentity('bisayotduligas@...')
+#8 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(951): App\Controllers\AuthController->login()
+#9 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AuthController))
+#10 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#11 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#12 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#13 C:\xampp\htdocs\GAD_AMS_2\backend\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#14 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\xampp\\htdocs...')
+#15 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: MySQL server has gone away in C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:231
+Stack trace:
+#0 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(555): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#1 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#2 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *\nFROM `...', Array, false)
+#3 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Model.php(295): CodeIgniter\Database\BaseBuilder->get()
+#4 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\BaseModel.php(714): CodeIgniter\Model->doFirst()
+#5 C:\xampp\htdocs\GAD_AMS_2\backend\app\Models\UserModel.php(29): CodeIgniter\BaseModel->first()
+#6 C:\xampp\htdocs\GAD_AMS_2\backend\app\Controllers\AuthController.php(32): App\Models\UserModel->findByIdentity('bisayotduligas@...')
+#7 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(951): App\Controllers\AuthController->login()
+#8 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AuthController))
+#9 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#11 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 C:\xampp\htdocs\GAD_AMS_2\backend\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\xampp\\htdocs...')
+#14 {main}
+CRITICAL - 2026-05-26 02:52:38 --> CodeIgniter\Database\Exceptions\DatabaseException: Unable to connect to the database.
+Main connection [MySQLi]: MySQL server has gone away
+[Method: POST, Route: api/login]
+in SYSTEMPATH\Database\BaseConnection.php on line 606.
+ 1 SYSTEMPATH\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+ 2 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *
+FROM `users`
+WHERE `username` = :username:
+OR `email` = :email:
+OR `user_acronym` = :user_acronym:
+OR `student_id` = :student_id:
+ LIMIT 1', [...], false)
+ 3 SYSTEMPATH\Model.php(295): CodeIgniter\Database\BaseBuilder->get()
+ 4 SYSTEMPATH\BaseModel.php(714): CodeIgniter\Model->doFirst()
+ 5 APPPATH\Models\UserModel.php(29): CodeIgniter\BaseModel->first()
+ 6 APPPATH\Controllers\AuthController.php(32): App\Models\UserModel->findByIdentity('bisayotduligas@gmail.com')
+ 7 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\AuthController->login()
+ 8 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AuthController))
+ 9 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+10 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+11 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+12 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+13 SYSTEMPATH\rewrite.php(44): require_once('C:\\xampp\\htdocs\\GAD_AMS_2\\backend\\public\\index.php')
+ERROR - 2026-05-26 02:56:39 --> LOGIN ATTEMPT: Identity=[bisayotduligas@gmail.com]
+ERROR - 2026-05-26 02:56:41 --> Error connecting to the database: mysqli_sql_exception: No connection could be made because the target machine actively refused it in C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:201
+Stack trace:
+#0 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(201): mysqli->real_connect('127.0.0.1', 'root', Object(SensitiveParameterValue), 'gad_submission_...', 3306, '', 2048)
+#1 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(555): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#2 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#3 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *\nFROM `...', Array, false)
+#4 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Model.php(295): CodeIgniter\Database\BaseBuilder->get()
+#5 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\BaseModel.php(714): CodeIgniter\Model->doFirst()
+#6 C:\xampp\htdocs\GAD_AMS_2\backend\app\Models\UserModel.php(29): CodeIgniter\BaseModel->first()
+#7 C:\xampp\htdocs\GAD_AMS_2\backend\app\Controllers\AuthController.php(32): App\Models\UserModel->findByIdentity('bisayotduligas@...')
+#8 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(951): App\Controllers\AuthController->login()
+#9 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AuthController))
+#10 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#11 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#12 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#13 C:\xampp\htdocs\GAD_AMS_2\backend\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#14 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\xampp\\htdocs...')
+#15 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: No connection could be made because the target machine actively refused it in C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:231
+Stack trace:
+#0 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(555): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#1 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#2 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *\nFROM `...', Array, false)
+#3 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Model.php(295): CodeIgniter\Database\BaseBuilder->get()
+#4 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\BaseModel.php(714): CodeIgniter\Model->doFirst()
+#5 C:\xampp\htdocs\GAD_AMS_2\backend\app\Models\UserModel.php(29): CodeIgniter\BaseModel->first()
+#6 C:\xampp\htdocs\GAD_AMS_2\backend\app\Controllers\AuthController.php(32): App\Models\UserModel->findByIdentity('bisayotduligas@...')
+#7 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(951): App\Controllers\AuthController->login()
+#8 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AuthController))
+#9 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#11 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 C:\xampp\htdocs\GAD_AMS_2\backend\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\xampp\\htdocs...')
+#14 {main}
+CRITICAL - 2026-05-26 02:56:41 --> CodeIgniter\Database\Exceptions\DatabaseException: Unable to connect to the database.
+Main connection [MySQLi]: No connection could be made because the target machine actively refused it
+[Method: POST, Route: api/login]
+in SYSTEMPATH\Database\BaseConnection.php on line 606.
+ 1 SYSTEMPATH\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+ 2 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *
+FROM `users`
+WHERE `username` = :username:
+OR `email` = :email:
+OR `user_acronym` = :user_acronym:
+OR `student_id` = :student_id:
+ LIMIT 1', [...], false)
+ 3 SYSTEMPATH\Model.php(295): CodeIgniter\Database\BaseBuilder->get()
+ 4 SYSTEMPATH\BaseModel.php(714): CodeIgniter\Model->doFirst()
+ 5 APPPATH\Models\UserModel.php(29): CodeIgniter\BaseModel->first()
+ 6 APPPATH\Controllers\AuthController.php(32): App\Models\UserModel->findByIdentity('bisayotduligas@gmail.com')
+ 7 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\AuthController->login()
+ 8 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AuthController))
+ 9 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+10 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+11 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+12 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+13 SYSTEMPATH\rewrite.php(44): require_once('C:\\xampp\\htdocs\\GAD_AMS_2\\backend\\public\\index.php')
+ERROR - 2026-05-26 02:59:05 --> LOGIN ATTEMPT: Identity=[bisayotduligas@gmail.com]
+ERROR - 2026-05-26 02:59:05 --> Error connecting to the database: mysqli_sql_exception: MySQL server has gone away in C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:201
+Stack trace:
+#0 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php(201): mysqli->real_connect('127.0.0.1', 'root', Object(SensitiveParameterValue), 'gad_submission_...', 3308, '', 2048)
+#1 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(555): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#2 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#3 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *\nFROM `...', Array, false)
+#4 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Model.php(295): CodeIgniter\Database\BaseBuilder->get()
+#5 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\BaseModel.php(714): CodeIgniter\Model->doFirst()
+#6 C:\xampp\htdocs\GAD_AMS_2\backend\app\Models\UserModel.php(29): CodeIgniter\BaseModel->first()
+#7 C:\xampp\htdocs\GAD_AMS_2\backend\app\Controllers\AuthController.php(32): App\Models\UserModel->findByIdentity('bisayotduligas@...')
+#8 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(951): App\Controllers\AuthController->login()
+#9 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AuthController))
+#10 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#11 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#12 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#13 C:\xampp\htdocs\GAD_AMS_2\backend\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#14 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\xampp\\htdocs...')
+#15 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: MySQL server has gone away in C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\MySQLi\Connection.php:231
+Stack trace:
+#0 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(555): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#1 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+#2 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *\nFROM `...', Array, false)
+#3 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Model.php(295): CodeIgniter\Database\BaseBuilder->get()
+#4 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\BaseModel.php(714): CodeIgniter\Model->doFirst()
+#5 C:\xampp\htdocs\GAD_AMS_2\backend\app\Models\UserModel.php(29): CodeIgniter\BaseModel->first()
+#6 C:\xampp\htdocs\GAD_AMS_2\backend\app\Controllers\AuthController.php(32): App\Models\UserModel->findByIdentity('bisayotduligas@...')
+#7 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(951): App\Controllers\AuthController->login()
+#8 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AuthController))
+#9 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(417): CodeIgniter\CodeIgniter->run()
+#11 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#12 C:\xampp\htdocs\GAD_AMS_2\backend\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#13 C:\xampp\htdocs\GAD_AMS_2\backend\vendor\codeigniter4\framework\system\rewrite.php(44): require_once('C:\\xampp\\htdocs...')
+#14 {main}
+CRITICAL - 2026-05-26 02:59:05 --> CodeIgniter\Database\Exceptions\DatabaseException: Unable to connect to the database.
+Main connection [MySQLi]: MySQL server has gone away
+[Method: POST, Route: api/login]
+in SYSTEMPATH\Database\BaseConnection.php on line 606.
+ 1 SYSTEMPATH\Database\BaseConnection.php(795): CodeIgniter\Database\BaseConnection->initialize()
+ 2 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT *
+FROM `users`
+WHERE `username` = :username:
+OR `email` = :email:
+OR `user_acronym` = :user_acronym:
+OR `student_id` = :student_id:
+ LIMIT 1', [...], false)
+ 3 SYSTEMPATH\Model.php(295): CodeIgniter\Database\BaseBuilder->get()
+ 4 SYSTEMPATH\BaseModel.php(714): CodeIgniter\Model->doFirst()
+ 5 APPPATH\Models\UserModel.php(29): CodeIgniter\BaseModel->first()
+ 6 APPPATH\Controllers\AuthController.php(32): App\Models\UserModel->findByIdentity('bisayotduligas@gmail.com')
+ 7 SYSTEMPATH\CodeIgniter.php(951): App\Controllers\AuthController->login()
+ 8 SYSTEMPATH\CodeIgniter.php(497): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\AuthController))
+ 9 SYSTEMPATH\CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+10 SYSTEMPATH\Boot.php(417): CodeIgniter\CodeIgniter->run()
+11 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+12 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+13 SYSTEMPATH\rewrite.php(44): require_once('C:\\xampp\\htdocs\\GAD_AMS_2\\backend\\public\\index.php')
+ERROR - 2026-05-26 03:07:07 --> LOGIN ATTEMPT: Identity=[bisayotduligas@gmail.com]
+ERROR - 2026-05-26 03:07:30 --> LOGIN ATTEMPT: Identity=[gad.office@bsu.edu.ph]
+ERROR - 2026-05-26 03:07:30 --> LOGIN SUCCESS: User [Gender And Development] authenticated.
+ERROR - 2026-05-26 05:01:22 --> LOGIN ATTEMPT: Identity=[bisayotduligas@gmail.com]
+ERROR - 2026-05-26 05:02:50 --> LOGIN ATTEMPT: Identity=[gad.staff@bsu.edu.ph]
+ERROR - 2026-05-26 05:02:51 --> LOGIN SUCCESS: User [gad.staff] authenticated.
+ERROR - 2026-05-26 05:21:07 --> LOGIN ATTEMPT: Identity=[gad.staff@bsu.edu.ph]
+ERROR - 2026-05-26 05:21:07 --> LOGIN SUCCESS: User [gad.staff] authenticated.
