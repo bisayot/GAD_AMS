@@ -13,6 +13,33 @@
           <h2 class="card-title">Profile Information</h2>
         </div>
         
+        <form @submit.prevent="updateName" class="form-group mb-8 pb-8 border-b border-slate-700/50">
+          <div class="input-wrapper mb-2">
+            <label class="input-label">Current Name</label>
+            <div class="text-white font-medium bg-slate-800/50 p-3 rounded-lg border border-slate-700/50">{{ user.full_name || 'N/A' }}</div>
+          </div>
+          
+          <div class="input-wrapper">
+            <label class="input-label">Display Name</label>
+            <input 
+              type="text" 
+              v-model="nameForm.full_name" 
+              class="custom-input" 
+              required
+              placeholder="Enter your new name"
+            />
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" :disabled="isUpdatingName">
+              <span v-if="isUpdatingName" class="material-symbols-outlined animate-spin text-sm mr-2">refresh</span>
+              {{ isUpdatingName ? 'Updating...' : 'Update Name' }}
+            </button>
+          </div>
+          <p v-if="nameSuccess" class="success-msg">{{ nameSuccess }}</p>
+          <p v-if="nameError" class="error-msg">{{ nameError }}</p>
+        </form>
+
         <form @submit.prevent="updateEmail" class="form-group">
           <div class="input-wrapper mb-2">
             <label class="input-label">Current Email</label>
@@ -101,6 +128,11 @@ import Swal from 'sweetalert2';
 
 const user = ref({});
 
+const nameForm = ref({ full_name: '' });
+const isUpdatingName = ref(false);
+const nameSuccess = ref('');
+const nameError = ref('');
+
 const emailForm = ref({ email: '' });
 const isUpdatingEmail = ref(false);
 const emailSuccess = ref('');
@@ -122,6 +154,8 @@ onMounted(async () => {
   try {
     const res = await api.get('/users/profile');
     if (res.data.success) {
+      user.value.full_name = res.data.user.full_name;
+      nameForm.value.full_name = res.data.user.full_name;
       user.value.email = res.data.user.email;
       emailForm.value.email = res.data.user.email;
       
@@ -172,6 +206,46 @@ const updateEmail = async () => {
     emailError.value = err.response?.data?.message || 'An error occurred while updating email.';
   } finally {
     isUpdatingEmail.value = false;
+  }
+};
+
+const updateName = async () => {
+  if (nameForm.value.full_name === user.value.full_name) {
+    nameError.value = 'New name is the same as the current name.';
+    return;
+  }
+
+  const result = await Swal.fire({
+    title: 'Are you sure?',
+    text: "Do you want to update your display name?",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#9333ea',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: 'Yes, update it!'
+  });
+
+  if (!result.isConfirmed) return;
+
+  isUpdatingName.value = true;
+  nameSuccess.value = '';
+  nameError.value = '';
+  
+  try {
+    const res = await api.post('/users/profile/update', { full_name: nameForm.value.full_name });
+    if (res.data.success) {
+      nameSuccess.value = 'Name updated successfully.';
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      storedUser.full_name = nameForm.value.full_name;
+      localStorage.setItem('user', JSON.stringify(storedUser));
+      user.value.full_name = nameForm.value.full_name;
+    } else {
+      nameError.value = res.data.message || 'Failed to update name.';
+    }
+  } catch (err) {
+    nameError.value = err.response?.data?.message || 'An error occurred while updating name.';
+  } finally {
+    isUpdatingName.value = false;
   }
 };
 

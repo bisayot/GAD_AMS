@@ -338,20 +338,15 @@ const cancelModalAction = () => {
 
 const fetchBudgetData = async () => {
   try {
-    // TODO: Connect to actual API endpoint
-    // const response = await api.get('staff/budget-monitoring');
-    // budgetRows.value = response.data;
-    // 
-    // Ensure calculations are correct for each row
-    // budgetRows.value.forEach(row => {
-    //   updateRowCalculations(row);
-    // });
-    
-    // Keep empty for now - will be populated when database is connected
-    budgetRows.value = [];
-    
-  } catch (err) { 
-    console.error('Error fetching budget data:', err); 
+    const response = await api.get('staff/budget-monitoring');
+    if (response.data && response.data.success) {
+      budgetRows.value = response.data.data;
+      budgetRows.value.forEach(row => {
+        updateRowCalculations(row);
+      });
+    }
+  } catch (err) {
+    console.error('Error fetching budget data:', err);
   }
 };
 

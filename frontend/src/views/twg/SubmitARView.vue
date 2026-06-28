@@ -3,135 +3,55 @@
         <div class="main-content-container-ar">
           <div class="form-header-ar">
             <h1 class="form-main-title">Submit Accomplishment Report</h1>
-            <p class="form-description-ar">See the remarks below and apply the said changes.</p>
+            <p class="form-description-ar">Fill out the accomplishment report form below. All fields marked with * are required.</p>
           </div>
 
           <div class="form-container-box">
             <form @submit.prevent="submitReport" class="form-main-layout-ar">
-              
-              <div class="ad-selection-wrapper">
-                <div class="input-group-ar control-select-group">
-                  <label class="form-label-ar">Activity Design Control Number *</label>
-                  <select 
-                    v-model="form.control_number" 
-                    required 
-                    class="custom-input-field select-arrow-fix control-select-large"
-                  >
-                    <option value="" class="dark-option">Select approved activity design...</option>
-                    <option v-if="loadingControls" value="" disabled class="dark-option">Loading...</option>
-                    <option v-for="control in approvedControls" :key="control.control_number" :value="control.control_number" class="dark-option">
-                      {{ control.control_number }} - {{ control.activity_title }}
-                    </option>
-                    <option v-if="!loadingControls && approvedControls.length === 0" value="" disabled class="dark-option">No approved control numbers found</option>
-                  </select>
-                </div>
-
-                <transition name="fade">
-                  <div v-if="selectedAD" class="ad-details-card horizontal">
-                    <h3 class="ad-details-title">Approved Activity Design Details</h3>
-                    <div class="ad-details-grid horizontal-grid">
-                      <div class="ad-detail-item span-full">
-                        <span class="ad-detail-label">Title</span>
-                        <span class="ad-detail-value">{{ selectedAD.activity_title }}</span>
-                      </div>
-                      <div class="ad-detail-item">
-                        <span class="ad-detail-label">Form Type</span>
-                        <span class="ad-detail-value">{{ selectedAD.form_type }}</span>
-                      </div>
-                      <div class="ad-detail-item">
-                        <span class="ad-detail-label">GPB/GAD ID</span>
-                        <span class="ad-detail-value">{{ selectedAD.gpb_id || 'N/A' }}</span>
-                      </div>
-                      <div class="ad-detail-item">
-                        <span class="ad-detail-label">Venue</span>
-                        <span class="ad-detail-value">{{ selectedAD.venue_name || selectedAD.venue }}</span>
-                      </div>
-                      <div class="ad-detail-item">
-                        <span class="ad-detail-label">Target Participants</span>
-                        <span class="ad-detail-value">{{ selectedAD.target_participants }}</span>
-                      </div>
-                      <div class="ad-detail-item">
-                        <span class="ad-detail-label">Date</span>
-                        <span class="ad-detail-value">{{ selectedAD.start_date }} to {{ selectedAD.end_date }}</span>
-                      </div>
-                      <div class="ad-detail-item">
-                        <span class="ad-detail-label">Time</span>
-                        <span class="ad-detail-value">{{ selectedAD.start_time }} to {{ selectedAD.end_time }}</span>
-                      </div>
-                      <div class="ad-detail-item">
-                        <span class="ad-detail-label">Proposed Budget</span>
-                        <span class="ad-detail-value">PHP {{ Number(selectedAD.proposed_budget || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span>
-                      </div>
-                      <div class="ad-detail-item">
-                        <span class="ad-detail-label">Assessment Date</span>
-                        <span class="ad-detail-value">{{ selectedAD.assessment_date || 'N/A' }}</span>
-                      </div>
-                      <div class="ad-detail-item span-full" v-if="selectedAD.remarks">
-                        <span class="ad-detail-label">Reviewer Remarks</span>
-                        <div class="ad-remarks-box">{{ selectedAD.remarks }}</div>
-                      </div>
-                      <div class="ad-detail-item span-full" v-if="selectedAD.attachment">
-                        <span class="ad-detail-label">Uploaded File</span>
-                        <a :href="getFileUrl(selectedAD.attachment)" target="_blank" class="ad-attachment-link">
-                          📄 {{ selectedAD.attachment }}
-                        </a>
-                      </div>
-
-                      <div class="ad-detail-item span-full" v-if="parsedBudget.length > 0">
-                        <span class="ad-detail-label" style="margin-bottom: 0.5rem; display: block;">Approved Budget Breakdown</span>
-                        <div class="budget-table-wrapper" style="margin: 0;">
-                          <table class="budget-table">
-                            <thead class="budget-table-header">
-                              <tr>
-                                <th class="table-header-cell">Budget Item</th>
-                                <th class="table-header-cell budget-col-total">Amount (PHP)</th>
-                              </tr>
-                            </thead>
-                            <tbody class="budget-table-body">
-                              <tr v-for="(item, index) in parsedBudget" :key="index" class="budget-table-row">
-                                <td class="budget-item-name" style="color: #e2e8f0; font-weight: 500;" v-html="formatBudgetName(item.name)"></td>
-                                <td class="budget-item-input-cell" style="text-align: right; padding-right: 1.5rem; color: #e2e8f0; font-weight: 500;">
-                                  {{ Number(item.total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
-                                </td>
-                              </tr>
-                            </tbody>
-                            <tfoot class="budget-table-footer">
-                              <tr>
-                                <td class="grand-total-label">Grand Total (PHP)</td>
-                                <td class="grand-total-value">
-                                  {{ Number(selectedAD.proposed_budget || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
-                                </td>
-                              </tr>
-                            </tfoot>
-                          </table>
-                        </div>
-                      </div>
-
-                    </div>
-                  </div>
-                </transition>
-              </div>
-
-              <hr class="section-divider-ar" v-if="selectedAD" />
-
-              <div class="ar-submission-body" v-show="selectedAD">
-                <div class="form-grid-main-ar">
+              <div class="form-grid-main-ar">
                 <div class="form-column-left-ar">
-                  <h3 class="ar-section-title">Actual Accomplishment Details</h3>
                   <div class="input-group-ar">
-                    <label class="form-label-ar">Actual Activity Title *</label>
+                    <label class="form-label-ar">Activity Title *</label>
                     <textarea 
                       v-model="form.activity_title" 
                       required 
                       rows="2" 
                       class="custom-input-field textarea-no-resize"
-                      placeholder="Enter the complete actual title of the activity"
+                      placeholder="Enter the complete title of the activity"
                     ></textarea>
+                  </div>
+
+                  <div class="input-group-ar">
+                    <label class="form-label-ar">Activity Design Control Number *</label>
+                    <select 
+                      v-model="form.control_number" 
+                      required 
+                      class="custom-input-field select-arrow-fix"
+                    >
+                      <option value="" class="dark-option">Select approved activity design...</option>
+                      <option v-if="loadingControls" value="" disabled class="dark-option">Loading...</option>
+                      <option v-for="control in approvedControls" :key="control.control_number" :value="control.control_number" class="dark-option">
+                        {{ control.control_number }} - {{ control.activity_title }}
+                      </option>
+                      <option v-if="!loadingControls && approvedControls.length === 0" value="" disabled class="dark-option">No approved control numbers found</option>
+                    </select>
                   </div>
 
                   <div class="form-sub-grid-ar">
                     <div class="input-group-ar">
-                      <label class="form-label-ar">Start Date of Implementation *</label>
+                      <div class="label-container">
+                        <label class="form-label-ar">Start Date of Implementation *</label>
+                        <div class="info-btn-wrapper">
+                          <button type="button" class="info-btn" @click.stop="toggleHelp('startDate')">
+                            i
+                          </button>
+                          <transition name="fade-pop">
+                            <div v-if="helpState.startDate" class="simple-popup">
+                              Must be scheduled on working days from Monday to Thursday.
+                            </div>
+                          </transition>
+                        </div>
+                      </div>
                       <input 
                         type="date" 
                         v-model="form.start_date" 
@@ -141,7 +61,19 @@
                       >
                     </div>
                     <div class="input-group-ar">
-                      <label class="form-label-ar">End Date of Implementation *</label>
+                      <div class="label-container">
+                        <label class="form-label-ar">End Date of Implementation *</label>
+                        <div class="info-btn-wrapper">
+                          <button type="button" class="info-btn" @click.stop="toggleHelp('endDate')">
+                            i
+                          </button>
+                          <transition name="fade-pop">
+                            <div v-if="helpState.endDate" class="simple-popup">
+                              End date must not exceed a week after the start date.
+                            </div>
+                          </transition>
+                        </div>
+                      </div>
                       <input 
                         type="date" 
                         v-model="form.end_date" 
@@ -154,19 +86,47 @@
 
                   <div class="form-sub-grid-ar">
                     <div class="input-group-ar">
-                      <label class="form-label-ar">Start Time *</label>
+                      <div class="label-container">
+                        <label class="form-label-ar">Start Time *</label>
+                        <div class="info-btn-wrapper">
+                          <button type="button" class="info-btn" @click.stop="toggleHelp('startTime')">
+                            i
+                          </button>
+                          <transition name="fade-pop">
+                            <div v-if="helpState.startTime" class="simple-popup">
+                              Must be set between 04:00 AM and 08:00 PM.
+                            </div>
+                          </transition>
+                        </div>
+                      </div>
                       <input 
                         type="time" 
                         v-model="form.start_time" 
+                        min="04:00"
+                        max="20:00"
                         required 
                         class="custom-input-field code-icon-clock"
                       >
                     </div>
                     <div class="input-group-ar">
-                      <label class="form-label-ar">End Time *</label>
+                      <div class="label-container">
+                        <label class="form-label-ar">End Time *</label>
+                        <div class="info-btn-wrapper">
+                          <button type="button" class="info-btn" @click.stop="toggleHelp('endTime')">
+                            i
+                          </button>
+                          <transition name="fade-pop">
+                            <div v-if="helpState.endTime" class="simple-popup">
+                              Must be after the start time and set between 04:00 AM and 08:00 PM.
+                            </div>
+                          </transition>
+                        </div>
+                      </div>
                       <input 
                         type="time" 
                         v-model="form.end_time" 
+                        min="04:00"
+                        max="20:00"
                         required 
                         class="custom-input-field code-icon-clock"
                       >
@@ -185,12 +145,14 @@
                   </div>
 
                   <div class="input-group-ar">
-                    <label class="form-label-ar">Number of Attendees *</label>
+                    <div class="label-container">
+                      <label class="form-label-ar">Number of Attendees *</label>
+                    </div>
                     <input 
                       type="number" 
                       v-model="form.attendees" 
                       required 
-                      min="0"
+                      min="50"
                       class="custom-input-field input-disabled-ar"
                       placeholder="0"
                       readonly
@@ -225,39 +187,238 @@
 
                 <div class="form-column-right-ar">
                   <div class="budget-section">
-                    <label class="form-label-ar">Actual Budget Expenditure *</label>
-                    <div class="budget-table-wrapper">
-                      <table class="budget-table">
-                        <thead class="budget-table-header">
-                          <tr>
-                            <th class="table-header-cell">Budget Item</th>
-                            <th class="table-header-cell budget-col-total">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody class="budget-table-body">
-                      <tr v-for="(item, index) in form.budget_items" :key="index" class="budget-table-row">
-                        <td class="budget-item-name" v-html="formatBudgetName(item.name)"></td>
-                        <td class="budget-item-input-cell">
-                      <input 
-                            type="number" 
-                            v-model="item.total" 
-                            class="budget-input-field budget-total-field"
-                            placeholder="0.00"
-                            min="0"
-                            step="0.01"
-                          />
-                            </td>
-                          </tr>
-                        </tbody>
-                        <tfoot class="budget-table-footer">
-                          <tr>
-                            <td colspan="1" class="grand-total-label">Grand Total (PHP)</td>
-                            <td class="grand-total-value">
-                              {{ Number(form.proposed_budget || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
-                            </td>
-                          </tr>
-                        </tfoot>
-                      </table>
+                    <label class="form-label-ar">Actual Budgetary Requirements *</label>
+                    <!-- Grouped Budget Divisions -->
+                    <div class="budget-groups-container">
+                      
+                      <!-- Group 1: Catering & Hospitality -->
+                      <div class="budget-group-card">
+                        <div class="budget-group-header">
+                          <span class="budget-group-icon">🍽️</span>
+                          <span class="budget-group-title">Catering & Hospitality</span>
+                        </div>
+                        <div class="budget-group-content">
+                          <!-- Meals Row -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Meals</div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[0].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+
+                          <!-- Snacks Row -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Snacks</div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[1].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Group 2: Venue & Logistics -->
+                      <div class="budget-group-card">
+                        <div class="budget-group-header">
+                          <span class="budget-group-icon">🏨</span>
+                          <span class="budget-group-title">Venue & Logistics</span>
+                        </div>
+                        <div class="budget-group-content">
+                          <!-- Function Room/Venue -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Function Room/Venue</div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[2].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+
+                          <!-- Accommodation -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Accommodation</div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[3].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+
+                          <!-- Equipment Rental -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Equipment Rental</div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[4].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+
+                          <!-- Transportation -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Transportation</div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[8].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Group 3: Program & Speakers -->
+                      <div class="budget-group-card">
+                        <div class="budget-group-header">
+                          <span class="budget-group-icon">🎓</span>
+                          <span class="budget-group-title">Program & Speakers</span>
+                        </div>
+                        <div class="budget-group-content">
+                          <!-- Professional Fee/Honoraria -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Professional Fee/Honoraria</div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[5].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+
+                          <!-- Token/s -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Token/s</div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[6].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Group 4: Materials & Miscellaneous -->
+                      <div class="budget-group-card">
+                        <div class="budget-group-header">
+                          <span class="budget-group-icon">📦</span>
+                          <span class="budget-group-title">Materials & Miscellaneous</span>
+                        </div>
+                        <div class="budget-group-content">
+                          <!-- Materials and Supplies -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Materials and Supplies</div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[7].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+
+                          <!-- Others -->
+                          <div class="others-section-wrapper">
+                            <div class="budget-row-item others-row-item-header" style="border-bottom: none; padding-bottom: 8px;">
+                              <div class="budget-item-info">
+                                <div class="budget-item-title">Others</div>
+                              </div>
+                              <div class="budget-item-value">
+                                <span class="others-total-badge">₱{{ Number(form.budget_items[9].total || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                              </div>
+                            </div>
+                            <div class="others-breakdown-container">
+                              <div v-for="(o, oIdx) in othersList" :key="oIdx" class="others-breakdown-row">
+                                <input type="text" v-model="o.name" placeholder="Item name" class="others-input-name" />
+                                <input type="number" v-model.number="o.amount" min="0" placeholder="₱0.00" class="others-input-amount" />
+                                <button type="button" @click="removeOtherItem(oIdx)" class="btn-remove-other" title="Remove">×</button>
+                              </div>
+                              <button type="button" @click="addOtherItem" class="btn-add-other" style="width: 100%; justify-content: center;">
+                                <span>+</span> Add Item
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    <!-- Grand Total Banner Card -->
+                    <div class="grand-total-banner-card">
+                      <div class="grand-total-label-banner">Actual Total Expenditures</div>
+                      <div class="grand-total-value-banner">
+                        ₱{{ Number(form.proposed_budget || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                      </div>
                     </div>
                   </div>
 
@@ -345,21 +506,28 @@
                 </div>
               </div>
 
-              </div><!-- End ar-submission-body -->
+              <!-- Budget Exceeded Warning Card -->
+              <div v-if="isExceedingLimit" class="ar-limit-warning-card">
+                <span class="warning-icon">⚠️</span>
+                <div class="warning-content">
+                  <h4 class="warning-title">Budget Limit Exceeded</h4>
+                  <p class="warning-desc">
+                    The actual spending grand total of <strong>₱{{ Number(form.proposed_budget || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</strong> exceeds the approved proposed budget of <strong>₱{{ Number(selectedProposedBudget || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</strong>.
+                  </p>
+                  <p class="warning-instruction">
+                    Please file an Activity Design Revision to increase the budget before submitting this report, or adjust the actual spending inputs.
+                  </p>
+                </div>
+              </div>
 
-              <div class="form-actions" v-show="selectedAD">
-                <button 
-                  type="button"
-                  @click="goBack" 
-                  class="back-button"
-                >
-                  &larr; Back
-                </button>
+              <div class="form-actions-ar">
                 <button 
                   type="submit" 
                   class="submit-action-btn"
+                  :disabled="isExceedingLimit"
+                  :class="{ 'btn-disabled': isExceedingLimit }"
                 >
-                  Submit Report &rarr;
+                  Submit Report →
                 </button>
               </div>
             </form>
@@ -369,21 +537,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import Swal from 'sweetalert2';
 import api from '../../api';
-
-const goBack = () => {
-  router.push('/college/submitted-list');
-};
 
 const router = useRouter();
 const route = useRoute();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 
 const menuItems = computed(() => {
-  if (route.path.includes('/college')) return collegeMenu;
+  if (route.path.includes('/twg')) return twgMenu;
   return [];
 });
 
@@ -394,8 +558,93 @@ const getTodayDate = () => {
 };
 const todayDate = ref(getTodayDate());
 
-const venues = ref([]);
-const customVenue = ref('');
+const helpState = ref({
+  startDate: false,
+  endDate: false,
+  startTime: false,
+  endTime: false,
+  targetParticipants: false
+});
+
+const toggleHelp = (field) => {
+  const currentVal = helpState.value[field];
+  Object.keys(helpState.value).forEach(key => {
+    helpState.value[key] = false;
+  });
+  helpState.value[field] = !currentVal;
+};
+
+const closeAllHelp = () => {
+  Object.keys(helpState.value).forEach(key => {
+    helpState.value[key] = false;
+  });
+};
+
+const philippineHolidays = ref([]);
+
+const fetchHolidays = async () => {
+  try {
+    const year = new Date().getFullYear();
+    const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/PH`);
+    const data = await response.json();
+    philippineHolidays.value = data.map(h => h.date)
+  } catch (error) {
+    console.error('Failed to fetch holidays:', error);
+  }
+};
+
+const holidays = philippineHolidays;
+
+const isWeekend = (dateString) => {
+  const date = new Date(dateString + 'T00:00:00');
+  const dayOfWeek = date.getDay();
+  return dayOfWeek === 0 || dayOfWeek === 5 || dayOfWeek === 6;
+};
+
+const isHoliday = (dateString) => {
+  return holidays.value.includes(dateString);
+};
+
+const isCurrentYear = (dateString) => {
+  const date = new Date(dateString + 'T00:00:00');
+  const currentYear = new Date().getFullYear();
+  return date.getFullYear() === currentYear;
+};
+
+const isValidActivityDate = (dateString) => {
+  if (!isCurrentYear(dateString)) {
+    const currentYear = new Date().getFullYear();
+    return { valid: false, reason: `Activities can only be scheduled in ${currentYear}. Please select a date within the current year.` };
+  }
+  if (isWeekend(dateString)) {
+    return { valid: false, reason: 'Activities cannot be scheduled on Friday, Saturday, or Sunday.' };
+  }
+  if (isHoliday(dateString)) {
+    return { valid: false, reason: 'This date is a holiday. Please select another date.' };
+  }
+  return { valid: true, reason: '' };
+};
+
+const isValidActivityDuration = (startDateString, endDateString) => {
+  if (!startDateString || !endDateString) {
+    return { valid: true, reason: '' };
+  }
+  const startDate = new Date(startDateString + 'T00:00:00');
+  const endDate = new Date(endDateString + 'T00:00:00');
+  
+  if (endDate < startDate) {
+    return { valid: false, reason: 'End date cannot be before start date.' };
+  }
+  
+  const diffTime = endDate - startDate;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays > 7) {
+    return { valid: false, reason: 'The duration of the activity must not exceed a week (maximum of 7 calendar days).' };
+  }
+  
+  return { valid: true, reason: '' };
+};
 
 const form = ref({
   activity_title: '',
@@ -411,14 +660,16 @@ const form = ref({
   female: '', 
   proposed_budget: 0,
   budget_items: [
-    { name: 'Meals and Snacks (AM/PM)', total: '' },
+    { name: 'Meals', total: '' },
+    { name: 'Snacks', total: '' },
     { name: 'Function Room/Venue', total: '' },
     { name: 'Accommodation', total: '' },
     { name: 'Equipment Rental', total: '' },
-    { name: 'Professional Fee/Honoria', total: '' },
+    { name: 'Professional Fee/Honoraria', total: '' },
     { name: 'Token/s', total: '' },
     { name: 'Materials and Supplies', total: '' },
-    { name: 'Transportation', total: '' }
+    { name: 'Transportation', total: '' },
+    { name: 'Others', total: '' }
   ],
   evaluation_items: [
     { area: 'Time Management', rating: '' },
@@ -433,29 +684,6 @@ const form = ref({
 
 const approvedControls = ref([]);
 const loadingControls = ref(false);
-const selectedAD = ref(null);
-
-const parsedBudget = computed(() => {
-  if (!selectedAD.value || !selectedAD.value.budget_items || selectedAD.value.budget_items.length === 0) return [];
-  const b = selectedAD.value.budget_items[0];
-  const items = [
-    { name: 'Meals and Snacks (AM/PM)', total: b.meals_and_snacks },
-    { name: 'Function Room/Venue', total: b.function_room_venue },
-    { name: 'Accommodation', total: b.accommodation },
-    { name: 'Equipment Rental', total: b.equipment_rental },
-    { name: 'Professional Fee/Honoraria', total: b.professional_fee_honoria },
-    { name: 'Tokens', total: b.tokens },
-    { name: 'Materials and Supplies', total: b.materials_and_supplies },
-    { name: 'Transportation', total: b.transportation }
-  ];
-  return items.filter(i => parseFloat(i.total) > 0);
-});
-
-const getFileUrl = (filename) => {
-  if (!filename) return '#';
-  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '') : 'http://localhost:8080/api');
-  return `${base}/files/archived/${filename}`;
-};
 
 const fetchApprovedControls = async () => {
   loadingControls.value = true;
@@ -472,9 +700,35 @@ const fetchApprovedControls = async () => {
   }
 };
 
+// Reactive Others State
+const othersList = ref([]);
+const addOtherItem = () => {
+  othersList.value.push({ name: '', amount: '' });
+};
+const removeOtherItem = (index) => {
+  othersList.value.splice(index, 1);
+};
+
+watch(
+  othersList,
+  (newList) => {
+    const item = form.value.budget_items.find(i => i.name === 'Others');
+    if (item) {
+      const sum = newList.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
+      item.total = sum || '';
+    }
+  },
+  { deep: true }
+);
+
+const selectedProposedBudget = ref(0);
+
+const isExceedingLimit = computed(() => {
+  return selectedProposedBudget.value > 0 && form.value.proposed_budget > selectedProposedBudget.value;
+});
+
 watch(() => form.value.control_number, (newVal) => {
   const selected = approvedControls.value.find(c => c.control_number === newVal);
-  selectedAD.value = selected || null;
   if (selected) {
     form.value.act_design_id = selected.act_design_id;
     form.value.activity_title = selected.activity_title;
@@ -482,41 +736,10 @@ watch(() => form.value.control_number, (newVal) => {
     form.value.end_date = selected.end_date;
     form.value.start_time = selected.start_time;
     form.value.end_time = selected.end_time;
-    form.value.venue = selected.venue_name || selected.venue || '';
-    
-    // Auto-fill budget items from the approved design
-    if (selected.budget_items && selected.budget_items.length > 0) {
-      const b = selected.budget_items[0];
-      form.value.budget_items = [
-        { name: 'Meals and Snacks (AM/PM)', total: b.meals_and_snacks || '' },
-        { name: 'Function Room/Venue', total: b.function_room_venue || '' },
-        { name: 'Accommodation', total: b.accommodation || '' },
-        { name: 'Equipment Rental', total: b.equipment_rental || '' },
-        { name: 'Professional Fee/Honoraria', total: b.professional_fee_honoria || '' },
-        { name: 'Tokens', total: b.tokens || '' },
-        { name: 'Materials and Supplies', total: b.materials_and_supplies || '' },
-        { name: 'Transportation', total: b.transportation || '' }
-      ];
-    }
+    form.value.venue = selected.venue;
+    selectedProposedBudget.value = Number(selected.proposed_budget) || 0;
   } else {
-    form.value.act_design_id = null;
-    form.value.activity_title = '';
-    form.value.start_date = '';
-    form.value.end_date = '';
-    form.value.start_time = '';
-    form.value.end_time = '';
-    form.value.venue = '';
-    // Reset budget items
-    form.value.budget_items = [
-      { name: 'Meals and Snacks (AM/PM)', total: '' },
-      { name: 'Function Room/Venue', total: '' },
-      { name: 'Accommodation', total: '' },
-      { name: 'Equipment Rental', total: '' },
-      { name: 'Professional Fee/Honoraria', total: '' },
-      { name: 'Tokens', total: '' },
-      { name: 'Materials and Supplies', total: '' },
-      { name: 'Transportation', total: '' }
-    ];
+    selectedProposedBudget.value = 0;
   }
 });
 
@@ -530,18 +753,61 @@ watch(() => form.value.budget_items, (newItems) => {
   form.value.proposed_budget = total;
 }, { deep: true });
 
-const fetchVenues = async () => {
-  try {
-    const response = await api.get('venues');
-    if (response.data && response.data.status === 'success') {
-      venues.value = response.data.data || [];
+watch(() => form.value.start_date, (newDate) => {
+  if (newDate) {
+    const validation = isValidActivityDate(newDate);
+    if (!validation.valid) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Date',
+        text: validation.reason,
+        confirmButtonColor: '#b979cc'
+      });
+      form.value.start_date = '';
+      return;
     }
-  } catch (error) {
-    console.error('Error fetching venues:', error);
+    if (form.value.end_date) {
+      const durationValidation = isValidActivityDuration(newDate, form.value.end_date);
+      if (!durationValidation.valid) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Invalid Duration',
+          text: durationValidation.reason,
+          confirmButtonColor: '#b979cc'
+        });
+        form.value.start_date = '';
+      }
+    }
   }
-};
+});
 
-fetchVenues();
+watch(() => form.value.end_date, (newDate) => {
+  if (newDate) {
+    const validation = isValidActivityDate(newDate);
+    if (!validation.valid) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Date',
+        text: validation.reason,
+        confirmButtonColor: '#b979cc'
+      });
+      form.value.end_date = '';
+      return;
+    }
+    if (form.value.start_date) {
+      const durationValidation = isValidActivityDuration(form.value.start_date, newDate);
+      if (!durationValidation.valid) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Invalid Duration',
+          text: durationValidation.reason,
+          confirmButtonColor: '#b979cc'
+        });
+        form.value.end_date = '';
+      }
+    }
+  }
+});
 
 watch([() => form.value.male, () => form.value.female], ([newMale, newFemale]) => {
   const m = parseInt(newMale) || 0;
@@ -600,46 +866,99 @@ const removeFile = (index) => {
 };
 
 const submitReport = async () => {
+  // Validate start date
+  const startValidation = isValidActivityDate(form.value.start_date);
+  if (!startValidation.valid) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Start Date',
+      text: startValidation.reason,
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+
+  // Validate end date
+  const endValidation = isValidActivityDate(form.value.end_date);
+  if (!endValidation.valid) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid End Date',
+      text: endValidation.reason,
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+
+  // Validate activity duration (max 7 days)
+  const durationValidation = isValidActivityDuration(form.value.start_date, form.value.end_date);
+  if (!durationValidation.valid) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Duration',
+      text: durationValidation.reason,
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+
+  // Validate number of attendees (min 50)
+  if (form.value.attendees < 50) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Participants',
+      text: 'Participants must be 50 and above.',
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+
   try {
     const formData = new FormData();
     
-    
+    const budgetObj = {
+      meals_and_snacks: (Number(form.value.budget_items.find(i => i.name === 'Meals')?.total || 0) + Number(form.value.budget_items.find(i => i.name === 'Snacks')?.total || 0)),
+      function_room_venue: Number(form.value.budget_items.find(i => i.name === 'Function Room/Venue')?.total || 0),
+      accommodation: Number(form.value.budget_items.find(i => i.name === 'Accommodation')?.total || 0),
+      equipment_rental: Number(form.value.budget_items.find(i => i.name === 'Equipment Rental')?.total || 0),
+      professional_fee_honoria: Number(form.value.budget_items.find(i => i.name === 'Professional Fee/Honoria')?.total || 0),
+      tokens: Number(form.value.budget_items.find(i => i.name === 'Token/s')?.total || 0),
+      materials_and_supplies: Number(form.value.budget_items.find(i => i.name === 'Materials and Supplies')?.total || 0) + Number(form.value.budget_items.find(i => i.name === 'Others')?.total || 0),
+      transportation: Number(form.value.budget_items.find(i => i.name === 'Transportation')?.total || 0)
+    };
+    formData.append('budget_items', JSON.stringify(budgetObj));
+
+    const evalMap = {
+      "Time Management": "time_management",
+      "Orderliness and Program Flow": "orderliness_and_program_flow",
+      "Appropriateness of the Venue": "appropriateness_of_venue",
+      "Sound System and Hall Preparation": "sound_system_and_hall_preparation",
+      "Restroom/s": "restrooms",
+      "Food and Drinks": "food_and_drinks"
+    };
+    const evalObj = {};
+    form.value.evaluation_items.forEach(item => {
+      evalObj[evalMap[item.area]] = item.rating || 0;
+    });
+    formData.append('evaluation_results', JSON.stringify(evalObj));
+
+    Object.keys(form.value).forEach(key => {
+      if (key !== 'budget_items' && key !== 'evaluation_items' && key !== 'venue') {
+        formData.append(key, form.value[key]);
+      }
+    });
+
+    if (form.value.venue) {
       formData.append('venue', form.value.venue);
-
-      const budgetMap = {"Meals and Snacks (AM/PM)":"meals_and_snacks","Function Room/Venue":"function_room_venue","Accommodation":"accommodation","Equipment Rental":"equipment_rental","Professional Fee/Honoria":"professional_fee_honoria","Token/s":"tokens","Materials and Supplies":"materials_and_supplies","Transportation":"transportation"};
-      const budgetObj = {};
-      form.value.budget_items.forEach(item => {
-        budgetObj[budgetMap[item.name]] = item.total || 0;
-      });
-      formData.append('budget_items', JSON.stringify(budgetObj));
-
-      const evalMap = {
-        "Time Management": "time_management",
-        "Orderliness and Program Flow": "orderliness_and_program_flow",
-        "Appropriateness of the Venue": "appropriateness_of_venue",
-        "Sound System and Hall Preparation": "sound_system_and_hall_preparation",
-        "Restroom/s": "restrooms",
-        "Food and Drinks": "food_and_drinks"
-      };
-      const evalObj = {};
-      form.value.evaluation_items.forEach(item => {
-        evalObj[evalMap[item.area]] = item.rating || 0;
-      });
-      formData.append('evaluation_results', JSON.stringify(evalObj));
-
-      Object.keys(form.value).forEach(key => {
-        if (key !== 'budget_items' && key !== 'evaluation_items' && key !== 'venue') {
-          formData.append(key, form.value[key]);
-        }
-      });
-    
+    }
     
     uploadedFiles.value.forEach(file => {
-      formData.append('attachment', file);
+      formData.append('attachment[]', file);
     });
     
     formData.append('user_id', user.value.id);
-    const response = await api.post('accomplishment-reports/submit', formData, {
+    
+    const response = await api.post('submit-activity-report', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -668,14 +987,16 @@ const submitReport = async () => {
         female: '', 
         proposed_budget: 0,
         budget_items: [
-          { name: 'Meals and Snacks (AM/PM)', total: '' },
+          { name: 'Meals', total: '' },
+          { name: 'Snacks', total: '' },
           { name: 'Function Room/Venue', total: '' },
           { name: 'Accommodation', total: '' },
           { name: 'Equipment Rental', total: '' },
           { name: 'Professional Fee/Honoria', total: '' },
           { name: 'Token/s', total: '' },
           { name: 'Materials and Supplies', total: '' },
-          { name: 'Transportation', total: '' }
+          { name: 'Transportation', total: '' },
+          { name: 'Others', total: '' }
         ],
         evaluation_items: [
           { area: 'Time Management', rating: '' },
@@ -691,14 +1012,8 @@ const submitReport = async () => {
       if (fileInput.value) fileInput.value.value = '';
     }
   } catch (error) {
-    console.error('Error submitting report:', error);
-    let errorMsg = 'Failed to submit report. Please try again.';
-    if (error.response?.data?.errors) {
-      errorMsg = Object.values(error.response.data.errors).join('\n');
-    } else if (error.response?.data?.message) {
-      errorMsg = error.response.data.message;
-    }
-    alert(errorMsg);
+    console.error('Submission error:', error);
+    alert('Failed to submit report. Please try again.');
   }
 };
 
@@ -718,7 +1033,13 @@ onMounted(() => {
     router.push('/login');
   } else {
     fetchApprovedControls();
+    fetchHolidays();
   }
+  document.addEventListener('click', closeAllHelp);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeAllHelp);
 });
 </script>
 
@@ -913,125 +1234,9 @@ onMounted(() => {
   outline: none;
   width: 80px;
   color: #ffffff;
-  border-radius: 6px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  font-size: 14px;
+  padding: 4px 8px;
   text-align: center;
-}
-
-.ad-details-card {
-  background: rgba(153, 13, 209, 0.05);
-  border: 1px solid rgba(185, 121, 204, 0.2);
-  border-radius: 12px;
-  padding: 1.25rem;
-  margin-top: 0.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.ad-details-title {
-  color: #b979cc;
-  font-size: 0.95rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(185, 121, 204, 0.1);
-}
-
-.ad-selection-wrapper {
-  margin-bottom: 0.5rem;
-}
-
-.control-select-large {
-  font-size: 1.1rem;
-  padding: 14px 16px;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(185, 121, 204, 0.4);
-}
-
-.section-divider-ar {
-  border: 0;
-  height: 1px;
-  background: linear-gradient(90deg, rgba(185, 121, 204, 0), rgba(185, 121, 204, 0.5), rgba(185, 121, 204, 0));
-  margin: 1.5rem 0;
-}
-
-.ar-section-title {
-  color: #ffffff;
-  font-size: 1.2rem;
-  font-weight: 800;
-  letter-spacing: -0.025em;
-  margin-bottom: 0.5rem;
-  display: flex;
-  align-items: center;
-}
-
-.ar-section-title::before {
-  content: '';
-  display: inline-block;
-  width: 4px;
-  height: 18px;
-  background: #990dd1;
-  margin-right: 10px;
-  border-radius: 2px;
-}
-
-.ad-details-card.horizontal {
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(153, 13, 209, 0.3);
-}
-
-.ad-details-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.75rem;
-}
-
-.horizontal-grid {
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
-}
-
-.span-full {
-  grid-column: 1 / -1;
-}
-
-@media (max-width: 1024px) {
-  .horizontal-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-@media (max-width: 640px) {
-  .horizontal-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.ad-detail-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.ad-detail-label {
-  font-size: 0.75rem;
-  color: #94a3b8;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.ad-detail-value {
-  font-size: 0.9rem;
-  color: #e2e8f0;
-  font-weight: 500;
-}
-
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-.fade-enter-from, .fade-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
 }
 
 .evaluation-input-field-ar:focus {
@@ -1268,59 +1473,410 @@ onMounted(() => {
   background: linear-gradient(135deg, #b979cc 0%, #990dd1 100%);
 }
 
-.form-actions {
+.form-actions-ar {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  justify-content: flex-end;
   padding-top: 24px;
 }
 
-.back-button {
-  padding: 12px 24px;
+/* Budget Limit Warning Card */
+.ar-limit-warning-card {
+  display: flex;
+  gap: 16px;
+  background: rgba(244, 63, 94, 0.1);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.15);
+  animation: fadeIn 0.3s ease;
+}
+
+.warning-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.warning-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.warning-title {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 800;
+  color: #f43f5e;
+  margin: 0;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+.warning-desc {
+  font-size: 13px;
+  color: #cbd5e1;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.warning-instruction {
+  font-size: 12px;
+  color: #fb7185;
+  margin: 0;
+  font-weight: 600;
+}
+
+.btn-disabled {
+  background: #475569 !important;
+  color: #94a3b8 !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  opacity: 0.6;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* Others Breakdown Styles */
+.others-breakdown-container {
+  margin-top: 10px;
+  padding: 12px;
+  background-color: rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+  border: 1px dashed rgba(185, 121, 204, 0.2);
+}
+
+.others-breakdown-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.others-input-name {
+  flex: 1;
+  background-color: rgba(26, 26, 46, 0.6);
+  border: 1px solid rgba(185, 121, 204, 0.2);
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: #ffffff;
+  font-size: 12px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.others-input-amount {
+  width: 110px;
+  background-color: rgba(26, 26, 46, 0.6);
+  border: 1px solid rgba(185, 121, 204, 0.2);
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: #ffffff;
+  font-size: 12px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.others-input-name:focus,
+.others-input-amount:focus {
+  border-color: #b979cc;
+  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.15);
+}
+
+.btn-remove-other {
+  background: transparent;
+  border: none;
+  color: #f43f5e;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  transition: color 0.2s;
+}
+
+.btn-remove-other:hover {
+  color: #fda4af;
+}
+
+.btn-add-other {
+  background-color: rgba(185, 121, 204, 0.1);
+  border: 1px solid rgba(185, 121, 204, 0.25);
   color: #b979cc;
-  border-radius: 12px;
-  transition: all 0.2s ease;
-}
-.back-button:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-
-.ad-remarks-box {
-  background: rgba(255, 255, 255, 0.05);
-  border-left: 3px solid #b979cc;
-  padding: 0.75rem 1rem;
-  margin-top: 0.25rem;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  color: #e2e8f0;
-  line-height: 1.5;
-}
-
-.ad-attachment-link {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 4px;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: rgba(153, 13, 209, 0.15);
-  border: 1px solid rgba(185, 121, 204, 0.3);
-  border-radius: 8px;
-  color: #b979cc;
-  font-weight: 600;
-  text-decoration: none;
-  margin-top: 0.25rem;
+  gap: 4px;
   transition: all 0.2s ease;
-  width: fit-content;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
-.ad-attachment-link:hover {
-  background: rgba(153, 13, 209, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(153, 13, 209, 0.2);
+.btn-add-other:hover {
+  background-color: rgba(185, 121, 204, 0.2);
+  transform: translateY(-0.5px);
 }
 
+.others-total-badge {
+  background-color: rgba(185, 121, 204, 0.15);
+  border: 1px solid rgba(185, 121, 204, 0.3);
+  color: #b979cc;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  display: inline-block;
+}
+
+.budget-groups-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.budget-group-card {
+  background: rgba(30, 41, 59, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 20px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.budget-group-card:hover {
+  border-color: rgba(185, 121, 204, 0.3);
+  background: rgba(30, 41, 59, 0.6);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.budget-group-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.budget-group-icon {
+  font-size: 18px;
+}
+
+.budget-group-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #b979cc;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.budget-group-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.budget-row-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.budget-row-item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.budget-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-grow: 1;
+}
+
+.budget-item-title {
+  font-weight: 600;
+  color: #f1f5f9;
+  font-size: 14px;
+}
+
+.budget-item-subtext {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.budget-item-value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 240px;
+  flex-shrink: 0;
+  justify-content: flex-end;
+}
+
+.budget-currency-symbol {
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.budget-card-input {
+  background-color: rgba(15, 23, 42, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 14px;
+  padding: 8px 12px;
+  width: 100%;
+  text-align: right;
+  transition: all 0.2s ease;
+  font-weight: 600;
+}
+
+.budget-card-input:focus {
+  border-color: #b979cc;
+  background-color: rgba(15, 23, 42, 0.5);
+  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.2);
+  outline: none;
+}
+
+.grand-total-banner-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, rgba(185, 121, 204, 0.1) 0%, rgba(153, 13, 209, 0.1) 100%);
+  border: 1px solid rgba(185, 121, 204, 0.3);
+  border-radius: 14px;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 4px 15px -3px rgba(185, 121, 204, 0.1);
+}
+
+.grand-total-label-banner {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.grand-total-value-banner {
+  font-size: 20px;
+  font-weight: 800;
+  color: #b979cc;
+  text-shadow: 0 0 10px rgba(185, 121, 204, 0.2);
+}
+
+.label-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.info-btn {
+  background: rgba(185, 121, 204, 0.08);
+  border: 1px solid rgba(185, 121, 204, 0.35);
+  color: #b979cc;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: bold;
+  font-family: serif;
+  line-height: 1;
+  transition: all 0.25s ease;
+}
+
+.info-btn:hover {
+  background: #b979cc;
+  color: #16213e;
+  border-color: #b979cc;
+  transform: scale(1.15);
+  box-shadow: 0 0 8px rgba(185, 121, 204, 0.4);
+}
+
+.info-btn-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.simple-popup {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  background: #1a1a2e;
+  border: 1px solid #b979cc;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #ffffff;
+  font-size: 12px;
+  width: 240px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  line-height: 1.45;
+  pointer-events: auto;
+  text-transform: none;
+  white-space: normal;
+}
+
+.simple-popup::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: #1a1a2e transparent transparent transparent;
+}
+
+.simple-popup::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 7px;
+  border-style: solid;
+  border-color: #b979cc transparent transparent transparent;
+  z-index: -1;
+}
+
+.fade-pop-enter-active,
+.fade-pop-leave-active {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fade-pop-enter-from,
+.fade-pop-leave-to {
+  opacity: 0;
+  transform: translate(-50%, 8px) scale(0.95);
+}
+
+.fade-pop-enter-to,
+.fade-pop-leave-from {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
 </style>

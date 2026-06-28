@@ -388,11 +388,12 @@ const formatTimeAgo = (dateStr) => {
 
 const fetchStats = async () => {
   try {
-    const [designsRes, reportsRes, archiveRes, logsRes] = await Promise.all([
+    const [designsRes, reportsRes, archiveRes, logsRes, budgetRes] = await Promise.all([
       api.get('activity-designs'),
       api.get('activity-reports'),
       api.get('archives'),
-      api.get('activity-logs')
+      api.get('activity-logs'),
+      api.get('budget/summary')
     ]);
     
     if (logsRes && logsRes.data && logsRes.data.success) {
@@ -515,6 +516,12 @@ const fetchStats = async () => {
 
     dl.sort((a, b) => a.sortDate - b.sortDate);
     upcomingDeadlines.value = dl.slice(0, 5);
+
+    if (budgetRes && budgetRes.data && budgetRes.data.success) {
+      const budgetFormat = new Intl.NumberFormat('en-PH', { maximumFractionDigits: 0 });
+      metricsStats.value[2].value = '₱' + budgetFormat.format(budgetRes.data.data.total_budget || 0);
+      metricsStats.value[3].value = '₱' + budgetFormat.format(budgetRes.data.data.remaining_balance || 0);
+    }
 
   } catch (err) {
     console.error('Error fetching dashboard stats:', err);

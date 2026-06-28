@@ -457,6 +457,7 @@ const filteredUsers = computed(() => {
 
 const selectRole = (roleValue) => {
   selectedRole.value = roleValue === selectedRole.value ? '' : roleValue;
+  selectedOffice.value = ''; // Auto-deselect office when role changes
 };
 
 const selectOffice = (officeValue) => {
@@ -1182,7 +1183,7 @@ onMounted(() => {
 
 .form-input, .form-textarea, select.form-control { width: 100%; padding: 0.75rem; border-radius: 0.5rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(185, 121, 204, 0.2); color: white; font-family: inherit; }
 select.form-control option { background: #1e293b; color: #f8fafc; }
-.form-textarea { resize: vertical; }
+.form-textarea { resize: vertical; font-size: 1.15rem; line-height: 1.5; }
 
 .panel-footer { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(185, 121, 204, 0.15); }
 .btn-primary { background: linear-gradient(135deg, #9333ea 0%, #c084fc 100%); color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 0.5rem; cursor: pointer; font-weight: 600; box-shadow: 0 4px 6px rgba(147, 51, 234, 0.2); transition: transform 0.2s; font-size: 1rem; }

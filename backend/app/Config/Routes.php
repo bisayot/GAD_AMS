@@ -210,6 +210,33 @@ $routes->group('api', function($routes) {
     $routes->get('messages/unread-count/(:num)', 'MessageController::getUnreadCount/$1');
 
     // ----------------------------------------------------------------
+    // BUDGET ROUTES
+    // ----------------------------------------------------------------
+    $routes->options('budget/summary', 'BudgetController::optionsHandler');
+    $routes->get('budget/summary', 'BudgetController::getSummary');
+    $routes->options('budget/gad-plan', 'BudgetController::optionsHandler');
+    $routes->get('budget/gad-plan', 'BudgetController::getGadPlan');
+    
+    // Office Budget Utilization and Realignment Monitoring
+    $routes->options('staff/budget-monitoring', 'BudgetController::optionsHandler');
+    $routes->get('staff/budget-monitoring', 'BudgetController::getOfficeUtilization');
+    
+    $routes->options('staff/budget-monitoring/update', 'BudgetController::optionsHandler');
+    $routes->post('staff/budget-monitoring/update', 'BudgetController::updateOfficeBudget');
+    
+    $routes->options('staff/budget/available-mandates', 'BudgetController::optionsHandler');
+    $routes->get('staff/budget/available-mandates', 'BudgetController::getAvailableMandates');
+    
+    $routes->options('staff/budget/realignment-logs', 'BudgetController::optionsHandler');
+    $routes->get('staff/budget/realignment-logs', 'BudgetController::getRealignmentLogs');
+    
+    $routes->options('staff/budget/financial-meta', 'BudgetController::optionsHandler');
+    $routes->get('staff/budget/financial-meta', 'BudgetController::getFinancialMeta');
+    
+    $routes->options('staff/budget/realign', 'BudgetController::optionsHandler');
+    $routes->post('staff/budget/realign', 'BudgetController::executeRealignment');
+
+    // ----------------------------------------------------------------
     // FILE SERVING ROUTES (serve PDFs from writable/uploads)
     // ----------------------------------------------------------------
     $routes->get('files/drafts/(:segment)', 'FileController::serveDraft/$1');

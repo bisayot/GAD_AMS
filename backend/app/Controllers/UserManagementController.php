@@ -250,6 +250,16 @@ class UserManagementController extends ResourceController
             return $this->respond(['success' => true, 'message' => 'Email updated successfully']);
         }
 
+        if (isset($data['full_name'])) {
+            $rules = ['full_name' => 'required|min_length[2]'];
+            if (!$this->validateData($data, $rules)) {
+                return $this->respond(['success' => false, 'message' => 'Invalid name format']);
+            }
+            $userModel->update($userId, ['full_name' => $data['full_name']]);
+            \App\Models\ActivityLogModel::log($userId, 'Update Profile', 'updated their display name');
+            return $this->respond(['success' => true, 'message' => 'Name updated successfully']);
+        }
+
         if (isset($data['current_password']) && isset($data['new_password'])) {
             if (!password_verify($data['current_password'], $user['password'])) {
                 return $this->respond(['success' => false, 'message' => 'Incorrect current password']);

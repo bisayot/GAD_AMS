@@ -234,15 +234,16 @@ const submitRealignmentPipeline = async () => {
 
 const fetchInitialBudgetDataPipeline = async () => {
   try {
-    // Pipeline connection route mappings placeholders layouts triggers:
-    // const mandatesRes = await api.get('staff/budget/available-mandates');
-    // mandateOptions.value = mandatesRes.data;
-    // const logsRes = await api.get('staff/budget/realignment-logs');
-    // historyLogs.value = logsRes.data;
-    // const metaRes = await api.get('staff/budget/financial-meta');
-    // financialMeta.value = metaRes.data;
+    const metaRes = await api.get('budget/summary');
+    if (metaRes.data && metaRes.data.success) {
+      financialMeta.value = {
+        totalBudget: metaRes.data.data.total_budget || 0,
+        totalUtilized: metaRes.data.data.total_utilized || 0,
+        utilizationRate: Number(metaRes.data.data.utilization_rate || 0).toFixed(2)
+      };
+    }
   } catch (err) {
-    console.error(err);
+    console.error('Error fetching budget metadata:', err);
   }
 };
 

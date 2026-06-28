@@ -19,7 +19,7 @@ class ActivityDesignController extends BaseController
             "end_date"            => "required",
             "start_time"          => "required",
             "end_time"            => "required",
-            "venue_id"            => "required|numeric",
+            "venue_id"            => "required",
             "target_participants" => "required|numeric",
             "proposed_budget"     => "required|numeric",
             "budget_items"        => "required",
@@ -34,7 +34,7 @@ class ActivityDesignController extends BaseController
             "end_date"            => ["required" => "End date is required"],
             "start_time"          => ["required" => "Start time is required"],
             "end_time"            => ["required" => "End time is required"],
-            "venue_id"            => ["required" => "Venue is required", "numeric" => "Invalid venue format"],
+            "venue_id"            => ["required" => "Venue is required"],
             "target_participants" => [
                 "required" => "Target participants is required",
                 "numeric"  => "Target participants must be a number",
@@ -60,6 +60,22 @@ class ActivityDesignController extends BaseController
         }
 
         try {
+            $venueId = $this->request->getPost("venue_id");
+            if ($venueId === 'Other') {
+                $customVenueName = $this->request->getPost("custom_venue");
+                if (empty($customVenueName)) {
+                    return $this->response->setJSON([
+                        "success" => false,
+                        "errors"  => ["custom_venue" => "Custom venue name is required"]
+                    ])->setStatusCode(422);
+                }
+                
+                // Insert new venue
+                $venueModel = new \App\Models\VenueModel();
+                $venueModel->insert(['venue_name' => $customVenueName]);
+                $venueId = $venueModel->getInsertID();
+            }
+
             // Save uploaded PDF to writable/uploads/drafts/
             $file = $this->request->getFile('design_file');
             $fileName = FileStorage::saveToDrafts($file);
@@ -71,7 +87,7 @@ class ActivityDesignController extends BaseController
                 "end_date"            => $this->request->getPost("end_date"),
                 "start_time"          => $this->request->getPost("start_time"),
                 "end_time"            => $this->request->getPost("end_time"),
-                "venue_id"            => $this->request->getPost("venue_id"),
+                "venue_id"            => $venueId,
                 "target_participants" => $this->request->getPost("target_participants"),
                 "proposed_budget"     => $this->request->getPost("proposed_budget"),
                 "user_id"             => $this->request->getPost("user_id"),

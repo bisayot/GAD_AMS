@@ -13,6 +13,7 @@ class VenueController extends ResourceController
         $venues = $venueModel->findAll();
 
         return $this->respond([
+            'success' => true,
             'status' => 'success',
             'data'   => $venues,
         ]);

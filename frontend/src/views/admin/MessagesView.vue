@@ -157,12 +157,18 @@
 
                 <div v-if="selectedUsers.length > 0" class="form-group">
                   <label class="form-label">Attach Documents (Optional):</label>
-                  <div class="checkbox-list" style="max-height: 150px; overflow-y: auto; padding: 0.5rem; border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; background: rgba(0,0,0,0.2); margin-top: 0.5rem;">
-                    <label v-for="doc in allUserDocuments" :key="doc.id" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0; cursor: pointer; color: #f8fafc; font-size: 0.9rem;">
-                      <input type="checkbox" :value="doc.id" v-model="selectedDocuments" style="accent-color: #9333ea;">
-                      {{ doc.title }} <span style="color:#94a3b8; font-size: 0.8rem;">({{ doc.type }})</span>
+                  <div class="filter-group">
+                     <input v-model="documentSearchQuery" type="text" class="form-input" placeholder="Search documents by title, name, or email..." style="margin-bottom: 0.5rem;">
+                  </div>
+                  <div class="checkbox-list" style="max-height: 250px; overflow-y: auto; padding: 0.5rem; border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; background: rgba(0,0,0,0.2); margin-top: 0.5rem;">
+                    <label v-for="doc in filteredDocuments" :key="doc.id" style="display: flex; align-items: flex-start; gap: 0.5rem; padding: 0.5rem 0; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                      <input type="checkbox" :value="doc.id" v-model="selectedDocuments" style="accent-color: #9333ea; margin-top: 0.25rem;">
+                      <div style="display: flex; flex-direction: column;">
+                        <span style="color: #f8fafc; font-size: 0.9rem; font-weight: 500;">{{ doc.title }} <span style="color:#94a3b8; font-size: 0.8rem; font-weight: normal;">({{ doc.type }})</span></span>
+                        <span style="color:#cbd5e1; font-size: 0.75rem; margin-top: 0.1rem;">Submitted by: {{ doc.submitter }} <span v-if="doc.email" style="color: #94a3b8;">({{ doc.email }})</span></span>
+                      </div>
                     </label>
-                    <div v-if="allUserDocuments.length === 0" style="color: #94a3b8; font-size: 0.9rem; padding: 0.5rem; text-align: center;">No documents available.</div>
+                    <div v-if="filteredDocuments.length === 0" style="color: #94a3b8; font-size: 0.9rem; padding: 0.5rem; text-align: center;">No documents found.</div>
                   </div>
                 </div>
 
@@ -396,6 +402,7 @@ const userSearchQuery = ref('');
 const selectedUsers = ref([]);
 const selectedDocuments = ref([]);
 const allUserDocuments = ref([]);
+const documentSearchQuery = ref('');
 const messageTitle = ref('');
 const messageText = ref('');
 const allUsers = ref([]);
@@ -468,6 +475,7 @@ const filteredUsers = computed(() => {
 
 const selectRole = (roleValue) => {
   selectedRole.value = roleValue === selectedRole.value ? '' : roleValue;
+  selectedOffice.value = ''; // Auto-deselect office when role changes
 };
 
 const selectOffice = (officeValue) => {
@@ -492,21 +500,46 @@ const fetchMyDocuments = async () => {
       api.get(`archives?user_id=${user.value.id}&role=${role}`)
     ]);
     const activeDesigns = (designsRes.data?.data || []).map(d => ({
-      id: `design_${d.act_design_id}`, title: `${d.title} (${d.status})`, type: 'Activity Design'
+      id: `design_${d.act_design_id}`, title: `${d.title} (${d.status})`, type: 'Activity Design', submitter: d.submitter_name || 'Unknown', user_id: d.user_id
     }));
     const activeReports = (reportsRes.data?.data || []).map(r => ({
-      id: `report_${r.id}`, title: `${r.title} (${r.status})`, type: 'Accomplishment Report'
+      id: `report_${r.id}`, title: `${r.title} (${r.status})`, type: 'Accomplishment Report', submitter: r.submitter_name || 'Unknown', user_id: r.user_id
     }));
     const archivesList = archivesRes.data?.data || [];
     const archivedDesigns = archivesList.filter(a => a.type === 'design').map(d => ({
-      id: `design_${d.original_id}`, title: `${d.title} (Archived)`, type: 'Activity Design'
+      id: `design_${d.original_id}`, title: `${d.title} (Archived)`, type: 'Activity Design', submitter: d.submitter_name || 'Unknown', user_id: d.user_id
     }));
     const archivedReports = archivesList.filter(a => a.type === 'report').map(r => ({
-      id: `report_${r.original_id}`, title: `${r.title} (Archived)`, type: 'Accomplishment Report'
+      id: `report_${r.original_id}`, title: `${r.title} (Archived)`, type: 'Accomplishment Report', submitter: r.submitter_name || 'Unknown', user_id: r.user_id
     }));
     allUserDocuments.value = [...activeDesigns, ...activeReports, ...archivedDesigns, ...archivedReports];
   } catch(e) { console.error('Error fetching my docs:', e); }
 };
+
+const filteredDocuments = computed(() => {
+   let docs = allUserDocuments.value.map(doc => {
+      let email = '';
+      if (doc.user_id) {
+         const u = allUsers.value.find(x => String(x.id) === String(doc.user_id));
+         if (u) email = u.email;
+      }
+      if (!email && doc.submitter && doc.submitter !== 'Unknown') {
+         const u = allUsers.value.find(x => x.full_name === doc.submitter);
+         if (u) email = u.email;
+      }
+      return { ...doc, email };
+   });
+
+   if (documentSearchQuery.value.trim()) {
+      const q = documentSearchQuery.value.toLowerCase();
+      docs = docs.filter(d => 
+         (d.title && d.title.toLowerCase().includes(q)) || 
+         (d.submitter && d.submitter.toLowerCase().includes(q)) ||
+         (d.email && d.email.toLowerCase().includes(q))
+      );
+   }
+   return docs;
+});
 
 const fetchUsers = async () => {
     try {
@@ -1193,7 +1226,7 @@ onMounted(() => {
 
 .form-input, .form-textarea, select.form-control { width: 100%; padding: 0.75rem; border-radius: 0.5rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(185, 121, 204, 0.2); color: white; font-family: inherit; }
 select.form-control option { background: #1e293b; color: #f8fafc; }
-.form-textarea { resize: vertical; }
+.form-textarea { resize: vertical; font-size: 1.15rem; line-height: 1.5; }
 
 .panel-footer { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(185, 121, 204, 0.15); }
 .btn-primary { background: linear-gradient(135deg, #9333ea 0%, #c084fc 100%); color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 0.5rem; cursor: pointer; font-weight: 600; box-shadow: 0 4px 6px rgba(147, 51, 234, 0.2); transition: transform 0.2s; font-size: 1rem; }
