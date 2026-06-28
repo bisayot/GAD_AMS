@@ -2,6 +2,10 @@
 node_modules/
 vendor/
 
+# Uploads
+backend/public/uploads/*
+!backend/public/uploads/.gitkeep
+
 # Configuration files
 .env
 config/config.php
