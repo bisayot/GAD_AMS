@@ -20,11 +20,21 @@ class ApprovedControlModel extends Model
      */
     public function getApprovedControlsWithActivityDetails(int $userId): array
     {
-        return $this->select('control_number.control_number, archived_activity_designs.*, venues.venue_name')
+        return $this->select('
+                        control_number.control_number, 
+                        archived_activity_designs.*, 
+                        venues.venue_name,
+                        activity_classifications.classification_name as activity_classification,
+                        gad_mandates.title as gad_mandate,
+                        gender_issues.title as gender_issue
+                    ')
                     ->join('archived_activity_designs', 'archived_activity_designs.original_act_design_id = control_number.act_design_id')
                     ->join('accomplishment_report', 'accomplishment_report.control_number = control_number.control_number', 'left')
                     ->join('archived_accomplishment_reports', 'archived_accomplishment_reports.control_number = control_number.control_number', 'left')
                     ->join('venues', 'venues.venue_id = archived_activity_designs.venue_id', 'left')
+                    ->join('activity_classifications', 'activity_classifications.id = archived_activity_designs.classification_id', 'left')
+                    ->join('gad_mandates', 'gad_mandates.id = archived_activity_designs.gad_mandate_id', 'left')
+                    ->join('gender_issues', 'gender_issues.id = archived_activity_designs.gender_issue_id', 'left')
                     ->where('archived_activity_designs.user_id', $userId)
                     ->where('archived_activity_designs.status', 'Approved')
                     ->where('accomplishment_report.id IS NULL')

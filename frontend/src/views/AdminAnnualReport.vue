@@ -20,7 +20,7 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
           <div class="bg-gradient-to-br from-primary to-primary-container p-6 rounded-2xl shadow-lg text-white">
             <p class="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-2">Total GAD Budget</p>
-            <h3 class="text-2xl font-headline font-extrabold">₱243,541,951</h3>
+            <h3 class="text-2xl font-headline font-extrabold">₱243,541,950.62</h3>
           </div>
           <div class="bg-white p-6 rounded-2xl shadow-sm border border-outline-variant/15">
             <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Total Beneficiaries</p>

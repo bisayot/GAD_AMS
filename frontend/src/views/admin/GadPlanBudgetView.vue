@@ -112,7 +112,7 @@
             <tfoot>
               <tr class="total-row">
                 <td colspan="7" class="total-label-cell">Total GAD Budget:</td>
-                <td class="total-amount-cell">₱243,541,951</td>
+                <td class="total-amount-cell">₱243,541,950.62</td>
                 <td class="total-empty-cell"></td>
                </tr>
             </tfoot>

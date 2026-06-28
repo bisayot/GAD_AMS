@@ -1,6 +1,6 @@
 <template>
 
-      <main class="flex-1 overflow-y-auto">
+  <main class="main-viewport flex-1 overflow-y-auto" style="background: linear-gradient(135deg, #0f172a 0%, #1e1e2f 100%); min-height: 100vh; padding: 2rem;">
         <div class="max-w-7xl mx-auto">
 
           <div class="hero-section">
@@ -33,28 +33,30 @@
             </div>
           </div>
  
-          <div class="filter-bar">
-            <div class="filter-group">
-              <span class="filter-label">Filter:</span>
-              <select v-model="filters.status" class="filter-select" @change="applyFilters">
-                <option value="all">All Mandates</option>
-                <option value="active">In Progress</option>
-                <option value="completed">Completed</option>
-                <option value="upcoming">Upcoming</option>
-              </select>
-            </div>
-            <div class="filter-group">
-              <div class="search-box">
-                <span>🔍</span>
-                <input 
-                  type="text" 
-                  v-model="filters.search" 
-                  placeholder="Search mandates..." 
-                  @keyup.enter="applyFilters"
-                >
+          <div class="filter-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div style="display: flex; gap: 15px;">
+              <div class="filter-group">
+                <span class="filter-label">Filter:</span>
+                <select v-model="filters.status" class="filter-select" @change="applyFilters">
+                  <option value="all">All Mandates</option>
+                  <option value="active">In Progress</option>
+                  <option value="completed">Completed</option>
+                  <option value="upcoming">Upcoming</option>
+                </select>
               </div>
-              <button class="btn-reset btn-primary-custom" @click="applyFilters">Apply</button>
-              <button class="btn-reset" @click="resetFilters">Reset</button>
+              <div class="filter-group">
+                <div class="search-box">
+                  <span>🔍</span>
+                  <input 
+                    type="text" 
+                    v-model="filters.search" 
+                    placeholder="Search mandates..." 
+                    @keyup.enter="applyFilters"
+                  >
+                </div>
+                <button class="btn-reset btn-primary-custom" @click="applyFilters">Apply</button>
+                <button class="btn-reset" @click="resetFilters">Reset</button>
+              </div>
             </div>
           </div>
 
@@ -64,10 +66,10 @@
           </div>
 
           <div v-else class="table-wrapper">
-            <div class="table-header">
+            <div class="table-header" style="display: grid; grid-template-columns: 50px 1fr 150px; gap: 20px; color: #cbd5e1; font-size: 13px; font-weight: 600; padding: 12px 16px; background: rgba(255,255,255,0.05); border-radius: 8px;">
               <div>#</div>
               <div>Gender Issue / GAD Mandate</div>
-              <div>Responsible Unit</div>
+              <div style="text-align: center;">Responsible Unit</div>
             </div>
 
             <div v-if="paginatedMandates.length === 0" class="empty-state">
@@ -76,22 +78,44 @@
               <button @click="resetFilters" class="btn-reset">Clear all filters</button>
             </div>
 
-            <router-link 
+            <div 
               v-for="(item, idx) in paginatedMandates" 
               :key="item.id"
-              :to="`/college/mandate-details/${item.id}`"
-              class="mandate-row"
+              class="mandate-row-container"
+              style="border-bottom: 1px solid rgba(255,255,255,0.05); padding: 15px 0;"
             >
-              <div class="mandate-number">{{ String(startIndex + idx + 1).padStart(2, '01') }}</div>
-              <div class="mandate-title">
-                {{ item.title }}
-                <div class="mandate-meta">
-                  <span class="status-badge" :class="getStatusClass(item.status)">{{ getStatusText(item.status) }}</span>
-                  <span class="budget-text">Budget: {{ item.budget }}</span>
+              <div class="mandate-row" style="display: grid; grid-template-columns: 50px 1fr 150px; gap: 20px; align-items: center; text-decoration: none; cursor: pointer; padding: 0 16px;" @click="toggleExpand(item.id)">
+                <div class="mandate-number" style="color: #64748b; font-weight: 500;">{{ String(startIndex + idx + 1).padStart(2, '01') }}</div>
+                <div class="mandate-title" style="color: #fff; font-weight: 600;">
+                  {{ item.code }} - {{ item.title }}
+                  <div class="mandate-meta" style="margin-top: 6px; display: flex; align-items: center; gap: 10px;">
+                    <span class="status-badge" :class="getStatusClass(item.status)">{{ getStatusText(item.status) }}</span>
+                    <span class="budget-text" style="color: #64748b; font-size: 12px;">Budget: {{ item.budget }}</span>
+                    <span style="font-size: 11px; color: #b979cc;">{{ item.gender_issues?.length || 0 }} Gender Issues {{ expandedMandates.includes(item.id) ? '▲' : '▼' }}</span>
+                  </div>
                 </div>
+                <div class="mandate-office" style="color: #cbd5e1; font-size: 14px; text-align: center;">{{ item.responsible_unit }}</div>
               </div>
-              <div class="mandate-office">{{ item.responsible }}</div>
-            </router-link>
+              
+              <!-- Expanded Gender Issues -->
+              <div v-if="expandedMandates.includes(item.id)" class="gender-issues-container" style="padding: 15px 15px 15px 70px; background: rgba(0,0,0,0.2); margin-top: 15px; border-radius: 8px; margin-left: 16px; margin-right: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                  <h4 style="margin: 0; color: #fff; font-size: 14px;">Associated Gender Issues</h4>
+                </div>
+                <div v-if="!item.gender_issues || item.gender_issues.length === 0" style="color: #64748b; font-size: 13px;">No gender issues found.</div>
+                <ul v-else style="list-style: none; padding: 0; margin: 0; font-size: 13px;">
+                  <li v-for="issue in item.gender_issues" :key="issue.id" style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed rgba(255,255,255,0.1);">
+                    <div style="flex: 1; padding-right: 20px;">
+                      <strong style="color: #cbd5e1; display: block; margin-bottom: 4px;">{{ issue.title }}</strong>
+                      <p style="margin: 0; color: #64748b; line-height: 1.4;">{{ issue.gad_objective }}</p>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: flex-start;">
+                      <span class="status-badge" :class="getStatusClass(issue.status)" style="font-size: 11px; padding: 3px 8px;">{{ getStatusText(issue.status) }}</span>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
 
           <div class="pagination" v-if="!loading && totalPages > 1">
@@ -134,6 +158,7 @@ const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 
 const mandates = ref([]);
 const loading = ref(false);
+const expandedMandates = ref([]);
 
 const filters = ref({
   status: 'all',
@@ -186,17 +211,22 @@ const visiblePages = computed(() => {
 const fetchMandates = async () => {
   loading.value = true;
   try {
-    // TODO: Replace with your actual API endpoint
-    // const response = await api.get('mandates');
-    // mandates.value = response.data;
-    
-    // Temporary empty array - remove this once database is connected
-    mandates.value = [];
-    
+    const response = await api.get('mandates');
+    if (response.data && response.data.success) {
+      mandates.value = response.data.data;
+    }
   } catch (error) {
     console.error('Error fetching mandates:', error);
   } finally {
     loading.value = false;
+  }
+};
+
+const toggleExpand = (id) => {
+  if (expandedMandates.value.includes(id)) {
+    expandedMandates.value = expandedMandates.value.filter(mId => mId !== id);
+  } else {
+    expandedMandates.value.push(id);
   }
 };
 
@@ -681,7 +711,7 @@ onMounted(() => {
 
 .pagination-info {
   font-size: 0.8rem;
-  color: #16213e;
+  color: #cbd5e1;
 }
 
 .pagination-buttons {
@@ -702,7 +732,7 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.2s;
   text-decoration: none;
-  color: #16213e;
+  color: #cbd5e1;
 }
 
 .page-btn:hover {
@@ -728,7 +758,7 @@ onMounted(() => {
   text-align: center;
   margin-top: 1.5rem;
   font-size: 1rem;
-  color: #16213e;
+  color: #cbd5e1;
 }
 
 /* Responsive */
