@@ -11,17 +11,6 @@
               <div class="form-grid-main-ar">
                 <div class="form-column-left-ar">
                   <div class="input-group-ar">
-                    <label class="form-label-ar">Activity Title *</label>
-                    <textarea 
-                      v-model="form.activity_title" 
-                      required 
-                      rows="2" 
-                      class="custom-input-field textarea-no-resize"
-                      placeholder="Enter the complete title of the activity"
-                    ></textarea>
-                  </div>
-
-                  <div class="input-group-ar">
                     <label class="form-label-ar">Activity Design Control Number *</label>
                     <select 
                       v-model="form.control_number" 
@@ -35,6 +24,50 @@
                       </option>
                       <option v-if="!loadingControls && approvedControls.length === 0" value="" disabled class="dark-option">No approved control numbers found</option>
                     </select>
+                  </div>
+
+                  <div class="input-group-ar">
+                    <label class="form-label-ar">Activity Title *</label>
+                    <textarea 
+                      v-model="form.activity_title" 
+                      required 
+                      rows="2" 
+                      class="custom-input-field textarea-no-resize"
+                      placeholder="Enter the complete title of the activity"
+                    ></textarea>
+                  </div>
+
+                  <div class="input-group-ar">
+                    <label class="form-label-ar">Activity Classification *</label>
+                    <input
+                      type="text"
+                      v-model="form.activity_classification"
+                      class="custom-input-field input-disabled-ar"
+                      placeholder="Activity Classification"
+                      readonly
+                    >
+                  </div>
+
+                  <div class="input-group-ar">
+                    <label class="form-label-ar">GAD Mandate *</label>
+                    <input
+                      type="text"
+                      v-model="form.gad_mandate"
+                      class="custom-input-field input-disabled-ar"
+                      placeholder="GAD Mandate"
+                      readonly
+                    >
+                  </div>
+
+                  <div class="input-group-ar">
+                    <label class="form-label-ar">Gender Issue *</label>
+                    <input
+                      type="text"
+                      v-model="form.gender_issue"
+                      class="custom-input-field input-disabled-ar"
+                      placeholder="Gender Issue"
+                      readonly
+                    >
                   </div>
 
                   <div class="form-sub-grid-ar">
@@ -649,6 +682,9 @@ const isValidActivityDuration = (startDateString, endDateString) => {
 const form = ref({
   activity_title: '',
   control_number: '',
+  activity_classification: '',
+  gad_mandate: '',
+  gender_issue: '',
   act_design_id: null,
   start_date: '',
   end_date: '',
@@ -736,10 +772,16 @@ watch(() => form.value.control_number, (newVal) => {
     form.value.end_date = selected.end_date;
     form.value.start_time = selected.start_time;
     form.value.end_time = selected.end_time;
-    form.value.venue = selected.venue;
+    form.value.venue = selected.venue_name || selected.venue; // Fallback to venue if venue_name is not available
+    form.value.activity_classification = selected.activity_classification || 'N/A';
+    form.value.gad_mandate = selected.gad_mandate || 'N/A';
+    form.value.gender_issue = selected.gender_issue || 'N/A';
     selectedProposedBudget.value = Number(selected.proposed_budget) || 0;
   } else {
     selectedProposedBudget.value = 0;
+    form.value.activity_classification = '';
+    form.value.gad_mandate = '';
+    form.value.gender_issue = '';
   }
 });
 
@@ -866,6 +908,16 @@ const removeFile = (index) => {
 };
 
 const submitReport = async () => {
+  if (!form.value.control_number) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Missing Field',
+      text: 'Please select an Activity Design Control Number before proceeding.',
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+
   // Validate start date
   const startValidation = isValidActivityDate(form.value.start_date);
   if (!startValidation.valid) {

@@ -78,6 +78,21 @@ $routes->group('api', function($routes) {
     $routes->options('activity-designs/trash/(:num)', 'AuthController::handleOptions');
     $routes->delete('activity-designs/trash/(:num)', 'ActivityDesignController::trash/$1');
 
+    $routes->options('get-form-types', 'AuthController::handleOptions');
+    $routes->get('get-form-types', 'ActivityDesignController::getFormTypes');
+    
+    $routes->options('get-gad-mandates', 'AuthController::handleOptions');
+    $routes->get('get-gad-mandates', 'ActivityDesignController::getGADMandates');
+    
+    $routes->options('get-gender-issues', 'AuthController::handleOptions');
+    $routes->get('get-gender-issues', 'ActivityDesignController::getGenderIssues');
+    
+    $routes->options('get-gender-issues/(:num)', 'AuthController::handleOptions');
+    $routes->get('get-gender-issues/(:num)', 'ActivityDesignController::getGenderIssues/$1');
+    
+    $routes->options('get-activity-classifications', 'AuthController::handleOptions');
+    $routes->get('get-activity-classifications', 'ActivityDesignController::getActivityClassifications');
+
     $routes->options('activity-designs', 'ActivityDesignController::index');
     $routes->get('activity-designs', 'ActivityDesignController::index');
 
@@ -98,6 +113,22 @@ $routes->group('api', function($routes) {
     // Update deadline
     $routes->options('update-deadline/(:num)', 'AuthController::handleOptions');
     $routes->post('update-deadline/(:num)', 'ActivityDesignController::updateDeadline/$1');
+
+    // ----------------------------------------------------------------
+    // MANDATES & GENDER ISSUES ROUTES
+    // ----------------------------------------------------------------
+    $routes->options('mandates', 'AuthController::handleOptions');
+    $routes->get('mandates', 'MandateController::index');
+    $routes->post('mandates', 'MandateController::storeMandate');
+    $routes->options('mandates/(:num)', 'AuthController::handleOptions');
+    $routes->put('mandates/(:num)', 'MandateController::updateMandate/$1');
+    $routes->delete('mandates/(:num)', 'MandateController::deleteMandate/$1');
+
+    $routes->options('gender-issues', 'AuthController::handleOptions');
+    $routes->post('gender-issues', 'MandateController::storeIssue');
+    $routes->options('gender-issues/(:num)', 'AuthController::handleOptions');
+    $routes->put('gender-issues/(:num)', 'MandateController::updateIssue/$1');
+    $routes->delete('gender-issues/(:num)', 'MandateController::deleteIssue/$1');
 
     // ----------------------------------------------------------------
     // ACCOMPLISHMENT REPORT ROUTES (new)

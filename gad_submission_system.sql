@@ -1,572 +1,555 @@
--- MySQL dump 10.13  Distrib 8.0.46, for Linux (x86_64)
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1    Database: gad_submission_system
--- ------------------------------------------------------
--- Server version	8.0.46-0ubuntu0.24.04.2
+-- Host: 127.0.0.1
+-- Generation Time: Jun 28, 2026 at 03:36 PM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8mb4 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `gad_submission_system`
+--
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `accomplishment_budget_items`
 --
 
-DROP TABLE IF EXISTS `accomplishment_budget_items`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `accomplishment_budget_items` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `accomplishment_report_id` int NOT NULL,
-  `category` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `item_name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `sub_item` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `pax` int DEFAULT NULL,
-  `amount` decimal(15,2) NOT NULL DEFAULT '0.00',
-  PRIMARY KEY (`id`),
-  KEY `accomplishment_report_id` (`accomplishment_report_id`),
-  CONSTRAINT `accomplishment_budget_items_ibfk_1` FOREIGN KEY (`accomplishment_report_id`) REFERENCES `accomplishment_report` (`id`) ON DELETE CASCADE
+  `item_id` int(11) NOT NULL,
+  `accomplishment_report_id` int(11) NOT NULL,
+  `meals_and_snacks` decimal(15,2) DEFAULT 0.00,
+  `function_room_venue` decimal(15,2) DEFAULT 0.00,
+  `accommodation` decimal(15,2) DEFAULT 0.00,
+  `equipment_rental` decimal(15,2) DEFAULT 0.00,
+  `professional_fee_honoria` decimal(15,2) DEFAULT 0.00,
+  `tokens` decimal(15,2) DEFAULT 0.00,
+  `materials_and_supplies` decimal(15,2) DEFAULT 0.00,
+  `transportation` decimal(15,2) DEFAULT 0.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `accomplishment_budget_items`
---
-
-LOCK TABLES `accomplishment_budget_items` WRITE;
-/*!40000 ALTER TABLE `accomplishment_budget_items` DISABLE KEYS */;
-/*!40000 ALTER TABLE `accomplishment_budget_items` ENABLE KEYS */;
-UNLOCK TABLES;
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `accomplishment_evaluation_results`
 --
 
-DROP TABLE IF EXISTS `accomplishment_evaluation_results`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `accomplishment_evaluation_results` (
-  `evaluation_id` int NOT NULL AUTO_INCREMENT,
-  `accomplishment_report_id` int NOT NULL,
-  `time_management` decimal(4,2) DEFAULT '0.00',
-  `orderliness_and_program_flow` decimal(4,2) DEFAULT '0.00',
-  `appropriateness_of_venue` decimal(4,2) DEFAULT '0.00',
-  `sound_system_and_hall_preparation` decimal(4,2) DEFAULT '0.00',
-  `restrooms` decimal(4,2) DEFAULT '0.00',
-  `food_and_drinks` decimal(4,2) DEFAULT '0.00',
-  PRIMARY KEY (`evaluation_id`),
-  KEY `fk_accomplishment_evaluation_report` (`accomplishment_report_id`)
+  `evaluation_id` int(11) NOT NULL,
+  `accomplishment_report_id` int(11) NOT NULL,
+  `time_management` decimal(4,2) DEFAULT 0.00,
+  `orderliness_and_program_flow` decimal(4,2) DEFAULT 0.00,
+  `appropriateness_of_venue` decimal(4,2) DEFAULT 0.00,
+  `sound_system_and_hall_preparation` decimal(4,2) DEFAULT 0.00,
+  `restrooms` decimal(4,2) DEFAULT 0.00,
+  `food_and_drinks` decimal(4,2) DEFAULT 0.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `accomplishment_evaluation_results`
---
-
-LOCK TABLES `accomplishment_evaluation_results` WRITE;
-/*!40000 ALTER TABLE `accomplishment_evaluation_results` DISABLE KEYS */;
-/*!40000 ALTER TABLE `accomplishment_evaluation_results` ENABLE KEYS */;
-UNLOCK TABLES;
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `accomplishment_report`
 --
 
-DROP TABLE IF EXISTS `accomplishment_report`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `accomplishment_report` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `control_number` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `act_design_id` int DEFAULT NULL,
-  `activity_title` text COLLATE utf8mb4_general_ci NOT NULL,
+  `id` int(11) NOT NULL,
+  `control_number` varchar(50) NOT NULL,
+  `act_design_id` int(11) DEFAULT NULL,
+  `activity_title` text NOT NULL,
   `start_date` date NOT NULL,
   `end_date` date NOT NULL,
   `start_time` time NOT NULL,
   `end_time` time NOT NULL,
-  `venue` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `attendees` int NOT NULL,
-  `male` int NOT NULL,
-  `female` int NOT NULL,
-  `rating` int NOT NULL,
-  `attachment` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `user_id` bigint unsigned NOT NULL,
-  `status` varchar(20) COLLATE utf8mb4_general_ci DEFAULT 'Pending',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `remarks` text COLLATE utf8mb4_general_ci,
+  `venue` varchar(255) NOT NULL,
+  `attendees` int(11) NOT NULL,
+  `male` int(11) NOT NULL,
+  `female` int(11) NOT NULL,
+  `rating` int(11) NOT NULL,
+  `attachment` varchar(255) NOT NULL,
+  `user_id` bigint(20) UNSIGNED NOT NULL,
+  `status` varchar(20) DEFAULT 'Pending',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `remarks` text DEFAULT NULL,
+  `venue_id` int(11) DEFAULT NULL,
   `assessment_date` date DEFAULT NULL,
-  `deleted_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `fk_report_user` (`user_id`),
-  KEY `idx_ar_control_number` (`control_number`),
-  CONSTRAINT `fk_ar_control_number` FOREIGN KEY (`control_number`) REFERENCES `control_number` (`control_number`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_report_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `accomplishment_report`
---
-
-LOCK TABLES `accomplishment_report` WRITE;
-/*!40000 ALTER TABLE `accomplishment_report` DISABLE KEYS */;
-/*!40000 ALTER TABLE `accomplishment_report` ENABLE KEYS */;
-UNLOCK TABLES;
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `activity_budget_items`
 --
 
-DROP TABLE IF EXISTS `activity_budget_items`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `activity_budget_items` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `act_design_id` int NOT NULL,
-  `category` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `item_name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `sub_item` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `pax` int DEFAULT NULL,
-  `amount` decimal(15,2) NOT NULL DEFAULT '0.00',
-  PRIMARY KEY (`id`),
-  KEY `act_design_id` (`act_design_id`),
-  CONSTRAINT `activity_budget_items_ibfk_1` FOREIGN KEY (`act_design_id`) REFERENCES `activity_design` (`act_design_id`) ON DELETE CASCADE
+  `item_id` int(11) NOT NULL,
+  `act_design_id` int(11) NOT NULL,
+  `meals_and_snacks` decimal(15,2) DEFAULT 0.00,
+  `function_room_venue` decimal(15,2) DEFAULT 0.00,
+  `accommodation` decimal(15,2) DEFAULT 0.00,
+  `equipment_rental` decimal(15,2) DEFAULT 0.00,
+  `professional_fee_honoria` decimal(15,2) DEFAULT 0.00,
+  `tokens` decimal(15,2) DEFAULT 0.00,
+  `materials_and_supplies` decimal(15,2) DEFAULT 0.00,
+  `transportation` decimal(15,2) DEFAULT 0.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+
+-- --------------------------------------------------------
 
 --
--- Dumping data for table `activity_budget_items`
+-- Table structure for table `activity_classifications`
 --
 
-LOCK TABLES `activity_budget_items` WRITE;
-/*!40000 ALTER TABLE `activity_budget_items` DISABLE KEYS */;
-/*!40000 ALTER TABLE `activity_budget_items` ENABLE KEYS */;
-UNLOCK TABLES;
+CREATE TABLE `activity_classifications` (
+  `id` int(11) NOT NULL,
+  `classification_name` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `activity_classifications`
+--
+
+INSERT INTO `activity_classifications` (`id`, `classification_name`) VALUES
+(1, 'Client-focused activity'),
+(2, 'Organization-focused activity'),
+(3, 'Attributed program');
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `activity_design`
 --
 
-DROP TABLE IF EXISTS `activity_design`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `activity_design` (
-  `act_design_id` int NOT NULL AUTO_INCREMENT,
-  `activity_title` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `act_design_id` int(11) NOT NULL,
+  `activity_title` varchar(255) DEFAULT NULL,
   `start_date` date DEFAULT NULL,
   `end_date` date DEFAULT NULL,
   `start_time` time DEFAULT NULL,
   `end_time` time DEFAULT NULL,
-  `status` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `attachment` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `user_id` bigint unsigned DEFAULT NULL,
-  `gpb_id` int DEFAULT NULL,
-  `venue` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `venue_id` int DEFAULT NULL,
-  `target_participants` int DEFAULT NULL,
-  `proposed_budget` int DEFAULT NULL,
-  `form_type` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `remarks` text COLLATE utf8mb4_general_ci,
-  `assessment_date` date DEFAULT NULL,
+  `status` varchar(50) DEFAULT NULL,
+  `attachment` varchar(500) DEFAULT NULL,
+  `user_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `gpb_id` int(11) DEFAULT NULL,
+  `venue` varchar(255) DEFAULT NULL,
+  `target_participants` int(11) DEFAULT NULL,
+  `proposed_budget` int(8) DEFAULT NULL,
+  `form_type` varchar(255) NOT NULL,
+  `remarks` text DEFAULT NULL,
   `accomplishment_deadline` date DEFAULT NULL,
-  `deleted_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`act_design_id`),
-  KEY `fk_activity_user` (`user_id`),
-  KEY `fk_activity_gpb` (`gpb_id`),
-  KEY `fk_design_venue` (`venue_id`),
-  CONSTRAINT `fk_activity_gpb` FOREIGN KEY (`gpb_id`) REFERENCES `gad_plan_budget` (`gpb_id`) ON DELETE SET NULL,
-  CONSTRAINT `fk_activity_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_design_venue` FOREIGN KEY (`venue_id`) REFERENCES `venues` (`venue_id`) ON DELETE SET NULL
+  `venue_id` int(11) DEFAULT NULL,
+  `assessment_date` date DEFAULT NULL,
+  `deleted_at` datetime DEFAULT NULL,
+  `gad_mandate_id` int(11) DEFAULT NULL,
+  `gender_issue_id` int(11) DEFAULT NULL,
+  `classification_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `activity_design`
---
-
-LOCK TABLES `activity_design` WRITE;
-/*!40000 ALTER TABLE `activity_design` DISABLE KEYS */;
-/*!40000 ALTER TABLE `activity_design` ENABLE KEYS */;
-UNLOCK TABLES;
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `activity_logs`
 --
 
-DROP TABLE IF EXISTS `activity_logs`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `activity_logs` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `user_id` int DEFAULT NULL,
-  `action` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `description` text COLLATE utf8mb4_general_ci,
-  `created_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `user_id` (`user_id`)
+  `id` int(11) UNSIGNED NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `action` varchar(255) NOT NULL,
+  `description` text DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `activity_logs`
 --
 
-LOCK TABLES `activity_logs` WRITE;
-/*!40000 ALTER TABLE `activity_logs` DISABLE KEYS */;
-/*!40000 ALTER TABLE `activity_logs` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `activity_logs` (`id`, `user_id`, `action`, `description`, `created_at`) VALUES
+(71, 1, 'Login', 'Jude Tayaben logged in', '2026-06-28 12:38:28'),
+(72, 47, 'Login', 'GAD Staff logged in', '2026-06-28 12:38:34'),
+(73, 2, 'Login', 'CA TWG logged in', '2026-06-28 12:38:43'),
+(74, 1, 'Login', 'Jude Tayaben logged in', '2026-06-28 12:53:46');
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `archived_accomplishment_budget_items`
 --
 
-DROP TABLE IF EXISTS `archived_accomplishment_budget_items`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `archived_accomplishment_budget_items` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `accomplishment_report_id` int NOT NULL,
-  `category` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `item_name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `sub_item` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `pax` int DEFAULT NULL,
-  `amount` decimal(15,2) NOT NULL DEFAULT '0.00',
-  PRIMARY KEY (`id`)
+  `id` int(11) NOT NULL,
+  `accomplishment_report_id` int(11) NOT NULL,
+  `category` varchar(100) NOT NULL,
+  `item_name` varchar(100) NOT NULL,
+  `sub_item` varchar(100) DEFAULT NULL,
+  `pax` int(11) DEFAULT NULL,
+  `amount` decimal(15,2) NOT NULL DEFAULT 0.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `archived_accomplishment_budget_items`
---
-
-LOCK TABLES `archived_accomplishment_budget_items` WRITE;
-/*!40000 ALTER TABLE `archived_accomplishment_budget_items` DISABLE KEYS */;
-/*!40000 ALTER TABLE `archived_accomplishment_budget_items` ENABLE KEYS */;
-UNLOCK TABLES;
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `archived_accomplishment_reports`
 --
 
-DROP TABLE IF EXISTS `archived_accomplishment_reports`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `archived_accomplishment_reports` (
-  `archive_id` int NOT NULL AUTO_INCREMENT,
-  `original_report_id` int NOT NULL,
-  `control_number` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `act_design_id` int DEFAULT NULL,
-  `activity_title` text COLLATE utf8mb4_general_ci NOT NULL,
+  `archive_id` int(11) NOT NULL,
+  `original_report_id` int(11) NOT NULL,
+  `control_number` varchar(50) NOT NULL,
+  `act_design_id` int(11) DEFAULT NULL,
+  `activity_title` text NOT NULL,
   `start_date` date NOT NULL,
   `end_date` date NOT NULL,
   `start_time` time NOT NULL,
   `end_time` time NOT NULL,
-  `venue` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `attendees` int NOT NULL,
-  `male` int NOT NULL,
-  `female` int NOT NULL,
-  `rating` int NOT NULL,
-  `attachment` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `user_id` bigint unsigned NOT NULL,
-  `status` varchar(20) COLLATE utf8mb4_general_ci DEFAULT 'Completed',
-  `remarks` text COLLATE utf8mb4_general_ci,
-  `assessment_date` date DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `archived_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`archive_id`),
-  KEY `idx_aar_control_number` (`control_number`),
-  CONSTRAINT `fk_aar_control_number` FOREIGN KEY (`control_number`) REFERENCES `control_number` (`control_number`) ON DELETE CASCADE ON UPDATE CASCADE
+  `venue` varchar(255) NOT NULL,
+  `attendees` int(11) NOT NULL,
+  `male` int(11) NOT NULL,
+  `female` int(11) NOT NULL,
+  `rating` int(11) NOT NULL,
+  `attachment` varchar(255) NOT NULL,
+  `user_id` bigint(20) UNSIGNED NOT NULL,
+  `status` varchar(20) DEFAULT 'Completed',
+  `remarks` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `archived_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `venue_id` int(11) DEFAULT NULL,
+  `assessment_date` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `archived_accomplishment_reports`
---
-
-LOCK TABLES `archived_accomplishment_reports` WRITE;
-/*!40000 ALTER TABLE `archived_accomplishment_reports` DISABLE KEYS */;
-/*!40000 ALTER TABLE `archived_accomplishment_reports` ENABLE KEYS */;
-UNLOCK TABLES;
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `archived_activity_budget_items`
 --
 
-DROP TABLE IF EXISTS `archived_activity_budget_items`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `archived_activity_budget_items` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `act_design_id` int NOT NULL,
-  `category` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `item_name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `sub_item` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `pax` int DEFAULT NULL,
-  `amount` decimal(15,2) NOT NULL DEFAULT '0.00',
-  PRIMARY KEY (`id`)
+  `id` int(11) NOT NULL,
+  `act_design_id` int(11) NOT NULL,
+  `category` varchar(100) NOT NULL,
+  `item_name` varchar(100) NOT NULL,
+  `sub_item` varchar(100) DEFAULT NULL,
+  `pax` int(11) DEFAULT NULL,
+  `amount` decimal(15,2) NOT NULL DEFAULT 0.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `archived_activity_budget_items`
---
-
-LOCK TABLES `archived_activity_budget_items` WRITE;
-/*!40000 ALTER TABLE `archived_activity_budget_items` DISABLE KEYS */;
-/*!40000 ALTER TABLE `archived_activity_budget_items` ENABLE KEYS */;
-UNLOCK TABLES;
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `archived_activity_designs`
 --
 
-DROP TABLE IF EXISTS `archived_activity_designs`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `archived_activity_designs` (
-  `archive_id` int NOT NULL AUTO_INCREMENT,
-  `original_act_design_id` int NOT NULL,
-  `activity_title` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `archive_id` int(11) NOT NULL,
+  `original_act_design_id` int(11) NOT NULL,
+  `activity_title` varchar(255) DEFAULT NULL,
   `start_date` date DEFAULT NULL,
   `end_date` date DEFAULT NULL,
   `start_time` time DEFAULT NULL,
   `end_time` time DEFAULT NULL,
-  `status` varchar(50) COLLATE utf8mb4_general_ci DEFAULT 'Approved',
-  `attachment` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `user_id` bigint unsigned DEFAULT NULL,
-  `gpb_id` int DEFAULT NULL,
-  `venue` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `venue_id` int DEFAULT NULL,
-  `target_participants` int DEFAULT NULL,
-  `proposed_budget` int DEFAULT NULL,
-  `form_type` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `status` varchar(50) DEFAULT 'Approved',
+  `attachment` varchar(500) DEFAULT NULL,
+  `user_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `gpb_id` int(11) DEFAULT NULL,
+  `venue` varchar(255) DEFAULT NULL,
+  `target_participants` int(11) DEFAULT NULL,
+  `proposed_budget` int(8) DEFAULT NULL,
+  `form_type` varchar(255) NOT NULL,
   `assessment_date` date DEFAULT NULL,
   `accomplishment_deadline` date DEFAULT NULL,
-  `remarks` text COLLATE utf8mb4_general_ci,
-  `archived_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`archive_id`)
+  `remarks` text DEFAULT NULL,
+  `archived_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `venue_id` int(11) DEFAULT NULL,
+  `gad_mandate_id` int(11) DEFAULT NULL,
+  `gender_issue_id` int(11) DEFAULT NULL,
+  `classification_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `archived_activity_designs`
---
-
-LOCK TABLES `archived_activity_designs` WRITE;
-/*!40000 ALTER TABLE `archived_activity_designs` DISABLE KEYS */;
-/*!40000 ALTER TABLE `archived_activity_designs` ENABLE KEYS */;
-UNLOCK TABLES;
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `budget_realignment_logs`
 --
 
-DROP TABLE IF EXISTS `budget_realignment_logs`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `budget_realignment_logs` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `reference_no` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `gpb_id` int NOT NULL,
-  `type` enum('augmentation','realignment') COLLATE utf8mb4_general_ci NOT NULL,
+  `id` int(11) NOT NULL,
+  `reference_no` varchar(50) NOT NULL,
+  `gpb_id` int(11) NOT NULL,
+  `type` enum('augmentation','realignment') NOT NULL,
   `amount` decimal(15,2) NOT NULL,
-  `justification` text COLLATE utf8mb4_general_ci NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `gpb_id` (`gpb_id`),
-  CONSTRAINT `fk_realignment_gpb` FOREIGN KEY (`gpb_id`) REFERENCES `gad_plan_budget` (`gpb_id`) ON DELETE CASCADE
+  `justification` text NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `budget_realignment_logs`
---
-
-LOCK TABLES `budget_realignment_logs` WRITE;
-/*!40000 ALTER TABLE `budget_realignment_logs` DISABLE KEYS */;
-/*!40000 ALTER TABLE `budget_realignment_logs` ENABLE KEYS */;
-UNLOCK TABLES;
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `control_number`
 --
 
-DROP TABLE IF EXISTS `control_number`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `control_number` (
-  `control_number_id` int NOT NULL AUTO_INCREMENT,
-  `control_number` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `act_design_id` int DEFAULT NULL,
-  `user_id` bigint unsigned DEFAULT NULL,
-  PRIMARY KEY (`control_number_id`),
-  UNIQUE KEY `control_number` (`control_number`),
-  UNIQUE KEY `uk_control_number` (`control_number`),
-  KEY `fk_control_activity` (`act_design_id`),
-  KEY `fk_control_user` (`user_id`),
-  CONSTRAINT `fk_control_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+  `control_number_id` int(11) NOT NULL,
+  `control_number` varchar(50) DEFAULT NULL,
+  `act_design_id` int(11) DEFAULT NULL,
+  `user_id` bigint(20) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+
+-- --------------------------------------------------------
 
 --
--- Dumping data for table `control_number`
+-- Table structure for table `form_types`
 --
 
-LOCK TABLES `control_number` WRITE;
-/*!40000 ALTER TABLE `control_number` DISABLE KEYS */;
-/*!40000 ALTER TABLE `control_number` ENABLE KEYS */;
-UNLOCK TABLES;
+CREATE TABLE `form_types` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `form_types`
+--
+
+INSERT INTO `form_types` (`id`, `name`) VALUES
+(1, 'In-Service Training Design and Request'),
+(2, 'Employees\' Activity Design'),
+(3, 'Extension Training Design'),
+(4, 'External Training Form');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `gad_mandates`
+--
+
+CREATE TABLE `gad_mandates` (
+  `id` int(11) NOT NULL,
+  `code` varchar(100) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `status` varchar(50) DEFAULT 'active',
+  `budget` varchar(100) DEFAULT '₱0.00',
+  `responsible_unit` varchar(255) DEFAULT 'OSS'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `gad_mandates`
+--
+
+INSERT INTO `gad_mandates` (`id`, `code`, `title`, `status`, `budget`, `responsible_unit`) VALUES
+(1, 'RA10931-AAP', 'Republic Act No. 10931, Universal Access to Quality Tertiary Education Act Section 8 on Affirmative Action Program; CHED Memorandum Orders on GAD Mainstreaming in Higher Education Institutions (HEIs)', 'active', '₱700,000.00', 'OSS'),
+(2, 'CMO1-2015', 'CHED Memorandum Order No. 01 series 2015', 'active', '₱453,363.00', 'OSS'),
+(3, 'CMO1-2015-RE', 'Part VII of CHED Memorandum Order Number 1, series 2015 on Gender-Responsive Research and Extension Program', 'active', '₱3,500,000.00', 'OSS'),
+(4, 'JC2003-01-PWD', 'Limited access of PWDs to gender-responsive programs and services/DBM-DSWD Joint Circular No. 2003-01 provides guidelines for the implementation of Section 29 of the General Appropriations Act (GAA), requiring government agencies to set aside at least 1%', 'active', '₱350,000.00', 'OSS'),
+(5, 'JC2003-01-SC', 'Lack of senior citizens access to gender-responsive programs and services/DBM-DSWD Joint Circular No. 2003-01 provides guidelines for the implementation of Section 29 of the General Appropriations Act (GAA), requiring government agencies to set aside at l', 'active', '₱250,000.00', 'OSS'),
+(6, 'MCW-IRR-S14', 'Low number of women\'s participation in sports/MCW-IRR Section 14 Develop, establish and strengthen programs for the participation of women in competitive and non-competitive sports as means to achieve excellence, promote physical and social well-being', 'active', '₱160,000.00', 'OSS'),
+(7, 'PRAISE-GFPS', 'Programs on Awards and Incentives for Service Excellence (PRAISE under CSC Res.No.010112 and CSC MC No.1,s. 2001); Memo Circular No.2011-01 (Guidelines for the Creation, Strengthening and Institutionalization of GAD Focal Point System)', 'active', '₱12,285,000.00', 'OSS'),
+(8, 'RA9710-GM', 'Limited application of GAD Mainstreaming (GM) in Instruction, Research, Extension and Production/Magna Carta of Women (RA 9710)', 'active', '₱4,000,000.00', 'OSS'),
+(9, 'MCW-IRR-S37', 'Magna Carta of Women IRR Section 37 Gender Mainstreaming as a Strategy for Implementing the Magna Carta of Women', 'active', '₱120,000.00', 'OSS'),
+(10, 'EO340-1997', 'Executive Order No. 340 s. 1997 Directing National Government Agencies and Government-Owned and-Controlled Corporations to provide Day Care Services for their Employee\'s Children under five years of age', 'active', '₱230,000.00', 'OSS'),
+(11, 'RA9710', 'Magna Carta of Women (RA 9710)', 'active', '₱330,000.00', 'OSS'),
+(12, 'MCW-GFPS', 'Magna Carta of Women IRR Section 37 C. Creation and/or Strengthening of the GAD Focal Points (GFPs)', 'active', '₱396,000.00', 'OSS'),
+(13, 'MCW-S37C2', 'Section 37-C2 Rule VI of the Magna Carta of Women\'s IRR on duties and function of the GAD Focal Point System/Magna Carta of Women (RA 9710)', 'active', '₱211,720.00', 'OSS'),
+(14, 'GFPS-DUTIES', 'Duties and function of the GAD Focal Point System/CHED Memo 2015-1', 'active', '₱550,000.00', 'OSS'),
+(15, 'GM-ORIENT', 'Low level of Awareness on Gender Mainstreaming (GM) in Instruction, Research, Extension and Production among newly hired personnel/Magna Carta of Women (RA 9710), CHED Memo 2015-1', 'active', '₱330,000.00', 'OSS'),
+(16, 'CMO1-2015-S4', 'Part V, Rule II, Section 4 of CHED Memorandum Order No. 1 Series of 2015/CHED Memo 2015-1', 'active', '₱2,600,000.00', 'OSS'),
+(17, 'GAD-IEC', 'Development and Dissemination of Gender and Development (GAD) Information, Education, and Communication (IEC) Materials', 'active', '₱296,000.00', 'OSS'),
+(18, 'SDD-RA9710', 'Institutionalizing GAD database and Sex-Disaggregated Database/Magna Carta of Women (RA 9710), Section 36 on Sex-Disaggregated Database', 'active', '₱500,000.00', 'OSS'),
+(19, 'MCW-RA10121', 'Magna Carta for women, Chapter IV: Section 10 and RA 10121, Section 2 & 9', 'active', '₱211,200.00', 'OSS'),
+(20, 'LEAVE-BEN', 'Compliance to Section 18 of MCW RA 9710: Special Leave Benefits for Women; RA 8187: Paternity Leave; Section 8 of RA 8972: Solo Parents Welfare Act of 2000; Section 43 of RA 9262: Anti-Violence Against Women and Their Children Act of 2004', 'active', '₱12,285,000.00', 'OSS'),
+(21, 'WOMENS-MONTH', 'Compliance to Proclamation 227 on the observance of Women\'s Role in History Month and Proclamation 1172, s. 2006 on the 18-Day Campaign to End Violence Against Women (VAW)', 'active', '₱450,000.00', 'OSS'),
+(22, 'MCW-PROD', 'Productivity of employees affected due to filial obligations, affecting promotion of women to higher positions or from participating in capability enhancement sessions/Magna Carta of Women IRR Section 37 Gender Mainstreaming as a Strategy for Implementing', 'active', '₱220,000.00', 'OSS'),
+(23, 'GESI-CAPDEV', 'Low level of employees understanding of gender issues/concept to promote gender equality and a gender-responsive work environment./RA 9710 (Magna Carta of Women), PCW-NEDA-DBM Joint Circular 2012-01, and CSC MC No. 12 s. 2005', 'active', '₱12,285,000.00', 'OSS'),
+(24, 'GRCP-CMO1', 'Establishment of Gender-Responsive Curricular Programs/Part V of CMO 01, s. 2015/CHED Memo 2015-1', 'active', '₱12,285,000.00', 'OSS'),
+(25, 'GAD-OFFICE', 'Need to sustain a functional and gender-responsive GAD Focal Point System (GFPS) and GAD Office to ensure the effective mainstreaming of gender perspective in BSU academic, research, extension, and administrative programs/Section 37-C2 of the Magna Carta ', 'active', '₱8,052,420.09', 'OSS'),
+(26, 'TEO', 'Transportation Equipment Outlay', 'active', '₱12,285,000.00', 'OSS'),
+(27, 'RMOBS', 'Repair and Maintenance Office Building and other Structures', 'active', '₱12,285,000.00', 'OSS'),
+(28, 'BIDEC', 'Bamboo Industry Development for Environment Conservation and Countryside', 'active', '₱12,285,000.00', 'OSS'),
+(29, 'SIAS', 'Benguet State University Student Information and Accounting System (SIAS)', 'active', '₱12,285,000.00', 'OSS');
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `gad_plan_budget`
 --
 
-DROP TABLE IF EXISTS `gad_plan_budget`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gad_plan_budget` (
-  `gpb_id` int NOT NULL AUTO_INCREMENT,
-  `gender_issue_mandate` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `cause_of_gender_issue` text COLLATE utf8mb4_general_ci,
-  `gad_result_objective` text COLLATE utf8mb4_general_ci,
-  `relevant_org_mfo_pap` text COLLATE utf8mb4_general_ci,
-  `gad_activity` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `performance_indicators_targets` text COLLATE utf8mb4_general_ci,
+  `gpb_id` int(11) NOT NULL,
+  `gender_issue_mandate` varchar(255) DEFAULT NULL,
+  `cause_of_gender_issue` text DEFAULT NULL,
+  `gad_result_objective` text DEFAULT NULL,
+  `relevant_org_mfo_pap` text DEFAULT NULL,
+  `gad_activity` varchar(255) DEFAULT NULL,
+  `performance_indicators_targets` text DEFAULT NULL,
   `gad_budget` decimal(15,2) DEFAULT NULL,
-  `responsible_unit_office` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `form_type` enum('client-focused activity','organization-focused activity','attributed program') COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `budget_breakdown` text COLLATE utf8mb4_general_ci,
-  `source_of_budget` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  PRIMARY KEY (`gpb_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+  `budget_breakdown` text DEFAULT NULL,
+  `source_of_budget` varchar(100) DEFAULT NULL,
+  `responsible_unit_office` varchar(100) NOT NULL,
+  `form_type` enum('client-focused activity','organization-focused activity','attributed program') DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `gad_plan_budget`
 --
 
-LOCK TABLES `gad_plan_budget` WRITE;
-/*!40000 ALTER TABLE `gad_plan_budget` DISABLE KEYS */;
-INSERT INTO `gad_plan_budget` VALUES (1,'Republic Act No. 10931, Universal Access to Quality Tertiary Education Act Section 8 on Affirmative Action Program; CHED Memorandum Orders on GAD Mainstreaming in Higher Education Institutions (HEIs)','Extraordinary life situations due to disasters, calamities, and socio-cultural discrimination','To promote equitable access and participation of both women and men from GIDAs in tertiary education through gender-responsive implementation of the Affirmative Action Agenda.','MFO: Higher Education Program','Implementation of Affirmative Action Agenda','Number of served disadvantaged students - 100% disadvantaged students',700000.00,'OSS','client-focused activity',NULL,NULL),(2,'Republic Act No. 10931, Universal Access to Quality Tertiary Education Act Section 8 on Affirmative Action Program; CHED Memorandum Orders on GAD Mainstreaming in Higher Education Institutions (HEIs)','High tuition and miscellaneous fees, compounded by socio-cultural expectations for women to prioritize domestic roles over education','To promote gender equality in access to tertiary education by eliminating financial barriers for both male and female students.','MFO: Higher Education Program','Provision of free tuition fee under RA 10931 to eligible male and female students of the university','Percentage of qualified students granted free tuition - 100% of qualified students granted free tuition.',131100000.00,'OSS, OUR, UHS','client-focused activity',NULL,NULL),(3,'CHED Memorandum Order No. 01 series 2015','Limited activities to increase awareness of men and women students to GAD-related information (1st year students, transferees)','To increase the students level of awareness and appreciation on GAD','MFO: Higher Education Program','Conduct GAD orientation/ forum/ seminar to BSU 1st year/ transferees students (face to face/ online: 14 colleges)','No. of students oriented on GAD - 4,000 students oriented on GAD (F:2750 M:1250)',453363.26,'OSS, GAD Office, 3 Campuses (La Trinidad, Bokod & Buguias Campus)','client-focused activity',NULL,NULL),(4,'CHED Memorandum Order No. 01 series 2015','Student leaders have limited understanding on GAD in the University','To empower student leaders regarding GAD responsive leadership (La Trinidad Campus, Bokod Campus and Buguias Campus)','MFO: Higher Education Program','Continuous conduct of GAD responsive leadership training for student','No. of training conducted to increase GAD awareness and responsiveness of students leaders - 2 training (Female:200 Male:100) (La Trinidad Campus, Bokod Campus and Buguias Campus)',150000.00,'OSS','client-focused activity',NULL,NULL),(5,'Part VII of CHED Memorandum Order Number 1, series 2015 on Gender-Responsive Research and Extension Program','Presence of gender inequality, poverty and GAD-related concerns in the community','To sustain GAD-related extension activities delivering technology transfer, Livelihood Program, Technical Assistance, and Advocacy to community partners to help promote gender equality, poverty reduction and sustainable developmen','MFO: Extension Services- Research Services- Advance Education ServicesHigher Education Services','Conduct of Extension project/ activities to partner organizational/ communities as component of Gender Responsive Extension Program (GREP) to partner organization/ communities','No. of extension activities conducted within the year - 24 Extension program/project/ activities conducted within the year (Female:560 Male: 500)',3500000.00,'Research and Extension, various offices/ colleges in the University/ external campuses','client-focused activity',NULL,NULL),(6,'Limited access of PWDs to gender-responsive programs and services/DBM-DSWD Joint Circular No. 2003-01 provides guidelines for the implementation of Section 29 of the General Appropriations Act (GAA), requiring government agencies to set aside at least 1% ','Limited access of PWDs to gender-responsive programs and services','Improved access of PWDs to gender-responsive, inclusive, and empowering programs and services.','MFO: Research Services- Extension Services-Advance Education ServicesHigher Education Services','Awareness of women PWDs who benefited from the program','Number of women PWDs who benefited from the program - FM No. of GAD program/project/ activityprovided for PWD - At least 1 program/project/ activity',350000.00,'HRMO, OSS','client-focused activity',NULL,NULL),(7,'Lack of senior citizens access to gender-responsive programs and services/DBM-DSWD Joint Circular No. 2003-01 provides guidelines for the implementation of Section 29 of the General Appropriations Act (GAA), requiring government agencies to set aside at l','Absence of sustainable and gender-responsive university programs for senior citizens','Improved access of senior citizensto gender-responsive, inclusive, and empowering programs and services','MFO: Research Services- Extension Services- Advance Education ServicesHigher Education Services','Program: BSU Kalinga for women Senior Citizens','Number of Programs provided for Senior Citizens - At least 1 program for BSU Number of women senior citizens who benefited from the program - F21 M23',250000.00,'GAD Office, Colleges, External Campuses','client-focused activity',NULL,NULL),(8,'Low number of women\'s participation in sports/MCW-IRR Section 14 Develop, establish and strengthen programs for the participation of women in competitive and non-competitive sports as means to achieve excellence, promote physical and social well-being','Minimal attendance of female students to competitive and non-competitive sports','To increase female students level of participation and awareness on Gender in Sports','MFO: Higher Education Program','Participate in sports activities targeted for female students','No. of sports activities supported through allocation of budget for sports and socio- cultural activities/ E-sports (i.e. Annual Women\'s Martial Arts Festival- 2 sports activities (Female:20)',160000.00,'CHK','client-focused activity',NULL,NULL),(9,'Programs on Awards and Incentives for Service Excellence (PRAISE under CSC Res.No.010112 and CSC MC No.1,s. 2001); Memo Circular No.2011-01 (Guidelines for the Creation, Strengthening and Institutionalization of GAD Focal Point System: Roles and Responsib','Low recognition/ appreciation on the Gender Mainstreaming in BSU','Strengthen Gender Mainstreaming through recognition of GAD implementation in the University','MFO: Research Services-Extension Services- Advance Education ServicesHigher Education Services','Provide recognition and award to GAD implementer and other GAD-related award (GAD implementer for students and employees, GAD Advocate Award)','No. of award will be provided through BSU-PRAISE- At least 1 GAD Advocate award will be provided through BSU-PRAISE',205000.00,'HRDO, HRMO, BSU-PRAISE Committee, GAD Office','organization-focused activity',NULL,NULL),(10,'Limited application of GAD Mainstreaming (GM) in Instruction, Research, Extension and Production/Magna Carta of Women (RA 9710)','Low awareness among personnel in the University about GAD mainstreaming','To enhance GAD mainstreaming in Administration, Academic, Research and Extension, Production','MFO: Research Services- Extension Services- Advance Education ServicesHigher Education Services','Conduct GAD related Gender Mainstreaming capability building and competency acquisition','No. of training/workshop/ seminars conducted - 25 training/ workshop/ seminars/ Learning and Development (F:1500 M: 1000)',4000000.00,'GAD Office, HRDO, Research and Extension, OQAA, All Colleges with External Campuses','organization-focused activity',NULL,NULL),(11,'Magna Carta of Women IRR Section 37 Gender Mainstreaming as a Strategy for Implementing the Magna Carta of Women','Productivity of employees affected due to filial obligations, affecting promotion of women to higher positions or from participating in capability enhancement sessions','Inadequate support services to personnel and students with children','MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services','Operationalize of BSU College of Nursing Reproductive Health Care Center','No. of maintained Reproductive Health Care Center- 1 maintained BSU CN Reproductive Health Care Center',120000.00,'College of Nursing','organization-focused activity',NULL,NULL),(12,'Executive Order No. 340 s. 1997 Directing National Government Agencies and Government-Owned and-Controlled Corporations to provide Day Care Services for their Employee\'s Children under five years of age','Problems of parents and students related to child care','Ensure opportunities of personnel and students to have access on agency care services to children to avoid absenteeism','MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services','Maintenance of Child Minding Center for working parents in ensuring that they have a safe place to leave their child while they are at their work places','No. of established child minding center- Fully maintained new established and existing child minding centers at BSU La Trinidad,Bokod Campus and Buguias Campus',230000.00,'GAD Office, External Campuses','organization-focused activity',NULL,NULL),(13,'Magna Carta of Women (RA 9710)','Low integration of gender mainstreaming of BSU','To strengthen the GAD integration in the operations of BSU','MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services','Create a Monitoring Team to conduct monitoring and evaluation of the utilization/ outcome of GAD PAPs and ensure effectiveness of the GAD PAPs','No. of monitoring and assessment meetings with reports conducted4 monitoring and assessment meetings with reports conducted',330000.00,'GAD Office','organization-focused activity',NULL,NULL),(14,'Magna Carta of Women IRR Section 37 C. Creation and/or Strengthening of the GAD Focal Points (GFPs)','Low level of capacity of GFPS to develop and implement GAD programs and activities due to new members','Capacitated GFPS members in order to implement GAD PAP\'s and advance GAD Mainstreaming (GM) in the University','MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services','for GFPS/Secretariat: GMEF/HGDG/GPB/GAD Agenda/GAD Deepening Session and TOT among other related trainings and capacity building activities (Regional/ National GAD-related trainings/ seminars/ forum/workshop)','No. training/ seminars/ workshop attendance for each GFPS-members on GAD related updates and mandates- At least 1 Training/ seminar/ workshop attendance for each GFPS-members on GAD related updates and mandates (Female: 31, Male: 15)',896000.00,'GAD Office','organization-focused activity',NULL,NULL),(15,'Section 37-C2 Rule VI of the Magna Carta of Women\'s IRR on duties and function of the GAD Focal Point System/Magna Carta of Women (RA 9710)','Compliance to provisions regarding regular monitoring of gender mainstreaming efforts','To ensure operations of GAD Office as well as monitor and evaluate GM efforts of the University','MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services','Regular coordination and meetings of GAD-GFPS (Execom, GFPS- TWG members and external campus TWG members) and emergency meeting when necessary','No. of reports on regular meetings per campus conducted will be available at the end of the year - At least 6 reports on regular meetings conducted will be available at the end of the year, RGADC quarterly meeting/s',211720.00,'GAD Office','organization-focused activity',NULL,NULL),(16,'Duties and function of the GAD Focal Point System/CHED Memo 2015-1','No plantilla personnel assigned to plan, implement and monitor GAD PAPs on a full-time basis','To ensure operations of GAD Office as well as monitor and evaluate GM efforts of the University','MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services','Engage support staff to assist in the implementation of GFPS PPA\'s and Gender Mainstreaming in the university through rehiring of GAD staff and Student Assistant','Salary of GAD Staff: Casual No. of rehired personnel (casual) and student assistant -At least two (2) staff renewed/rehired (Casual) and at least one (3) Student Assistant/ SPES per semester',550000.00,'GAD Office','organization-focused activity',NULL,NULL),(17,'Low level of Awareness on Gender Mainstreaming (GM) in Instruction, Research, Extension and\nProduction among newly hired personnel/Magna of Women (RA 9710), CHED Memo 2015-1','Lack of regular orientation and refresher training on gender sensitivity and GAD mandates','To enhance awareness and understanding of gender concepts, GAD mandates, and gender-responsive work practices among newly hired and current personnel','MFO: Conduct Gender Sensitivity Training (GST) for newly hired and current personnel (continuing activity)','Conduct Gender Sensitivity Training (GST) for newly hired and current personnel (continuing activity)','No. of training conducted for newly hired personnel and refresher trainings for current personnel - 1 training conducted for at least 100% of newly hired personnel and 3 refresher trainings for current personnel',421728.32,'GAD Office','organization-focused activity',NULL,NULL),(18,'Part V, Rule II, Section 4 of CHED Memorandum Order No. 1 Series of 2015/CHED Memo 2015-1','Limited number of GAD library and related learning materials across various discipline','To increase the provision of adequate and accessible library and related learning materials across various disciplines and educational levels','MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services','Provision of knowledge products (books magazine, multi-media) for adequate and accessible library and related learning materials in support to gender-responsive Curriculum Programs','No. of procured library and learning materials- 200 books',2600000.00,'ULIS','organization-focused activity',NULL,NULL),(19,'Development and Dissemination of Gender and Development (GAD) Information, Education, and Communication (IEC) Materials','Presence of Gender Based Violence (GBV) issues/reports/cases in the university','Institutionalize GAD mechanisms in the University and sustain awareness campaigns on sexual harassment and gender-based violence','MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services','Development and Dissemination of Gender and Development (GAD) Information, Education, and Communication (IEC) Materials','No. of Communication and IEC materials/knowledge products - Official Publication of BSU with GAD articles, pictures as a medium for employees, clients, students partners to disseminate programs, achievement and advocacies, Maintained GAD Bulletin board - At least 8 GAD Bulletin board ,Sector-specific knowledge products on GAD generated and designed to be downloadable via BSU website - At least 2',296000.00,'UPAO, GAD Office','organization-focused activity',NULL,NULL),(20,'Institutionalizing GAD database and Sex-Disaggregated Database/Magna Carta of Women (RA 9710), Section 36 on Sex-Disaggregated Database','Minimal awareness and appreciation on the relevance of the centralized Sex-Disaggregated database','To establish a centralized GAD-related database of the University','MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services','Updating of Sex-Disaggregated Data (SDD) and other data related to personnel/students/clients GAD-related database for gender analysis and report preparation','No. of well-organized and maintained GAD database for easy reference and access 1 GAD databaseEstablishment of GAD-Database system per college/unit.',1100000.00,'ICT, GAD Office','organization-focused activity',NULL,NULL),(21,'Magna Carta for women, Chapter IV: Section 10 and RA 10121, Section 2 & 9','Limited resources of the DSWD and LGU to provide for students who are transient residents and limited appreciation on women\'s role in nation building among employees and students, especially new ones','To ensure that disaster assistance provided to distressed students are gender-responsive','MFO: MFO: Research ServicesMFO: Extension Services MFO: Advance Education ServicesMFO: Higher Education Services','Provision of gender-responsive services to employees and students who experienced crisis/ disaster (e.g. Distribution of hygiene kits for both women and men)','No. of pax of the most affected employees/ students during crises - 1,000 employees/students',210000.00,'GAD Office, HDRO, NSTP, various offices/ all colleges in the University','organization-focused activity',NULL,NULL),(22,'Compliance to Section 18 of MCW RA 9710:Special Leave Benefits for Women RA 8187: Paternity Leave Section 8 of RA 8972:Solo Parents Welfare Act of 2000 Section 43 of RA 9262: Anti-Violence Against Women and Their Children Act of 2004)','Employees may require special leaves due to parental obligations, health concerns and other circumstances that may require the need thereof','Enhanced support services for employees in need of special leaves','MFO: MFO: Research ServicesMFO: Extension Services MFO: Advance Education ServicesMFO: Higher Education Services','Provision of gender leaves and conduct of Seminar on Gender Related Leaves for Newly Hired Employees','No. of Maternity, Paternity, Solo parent, gynecological, VAWC leave of employees who will avail and 1 Seminar conducted (M:20 F:50)- All (100%) Maternity, Paternity, Solo parent, gynecological, VAWC leave of employees who will avail and 1 Seminar conducted (M:20 F:50)',1000000.00,'HRMO, CBOO, various offices/ colleges in the University','organization-focused activity',NULL,NULL),(23,'Compliance to Proclamation 227 on the observance of Women\'s Role in History Month and Proclamation 1172, s. 2006 on the 18-Day Campaign to End Violence Against Women (VAW)','The need to highlight women\'s rights, their role in national development/ nation building and need to provide platform to invoke protection of women\'s rights against VAW, gender-based violence, Safe Spaces Act (RA No. 11313) and concerns that affect women and men','To strengthen awareness of BSU students/ employees on women\'s rights and their role in national development and nation building','MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services','Participation to18-Day Campaign to end VAW and Women\'s Month Celebration/ activities and programs organized by PCW and other agency/ies','No. of activities conducted per campus - At least one (1) activity conducted per campus',450000.00,'GAD Office, various offices/ colleges in the University/ external campus','organization-focused activity',NULL,NULL),(24,'Productivity of employees affected due to filial obligations, affecting promotion of women to higher positions or from participating in capability enhancement sessions/Magna Carta of Women IRR Section 37 Gender Mainstreaming as a Strategy for Implementing','Inadequate support services for personnel/students with young children and breastfeeding mothers (affecting productivity, especially among women non implementation of RA 10028)','Inadequate support services to personnel and students with children','MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services','Establishment/ maintenance of breastfeeding station established in the preceding years','Fully maintained Lactation rooms - 100% fully maintained lactation rooms at BSU La Trinidad, Bokod and BuguiasCampus',220000.00,'GAD Office, External Campuses','organization-focused activity',NULL,NULL),(25,'Low level of employees understanding of gender issues/ concept to promote gender equality and a gender-responsive work environment./RA 9710 (Magna Carta of Women), PCWNEDADBM Joint Circular 2012-01, and CSC MC No. 12 s. 2005, the University shall conduct ','Lack of regular gender-related capacity-building activities and insufficient integration of gender sensitivity in employee development programs','To enhance the gender awareness and sensitivity of BSU employees, enabling them to recognize and eliminate gender bias and stereotyping, and to foster a gender-responsive and equitable workplace','MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services','Conduct of gender sensitivity orientations for BSU Personnel (continuing activity)','No. of training conducted for BSU personnel -At least 3 training to be conducted',253796.24,'GAD Office','organization-focused activity',NULL,NULL),(26,'Establishment of Gender-Responsive Curricular Programs/Part V of CMO 01, s. 2015/ CHED Memo 2015-1','Limited subject for GAD Integration of Gender-Responsive Instruction and Curriculum Developmen','Integration of gender mainstreaming in curriculum/ subjects in all levels','MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services','Preparation of syllabi and classroom teaching integrating gender perspective','Number of faculty members integrated Gender perspective in the syllabus - 567 permanent and 125 COS females and males faculty integrating and development of gender-sensitive learning materials',58294972.71,'GAD Office, GFPS-TWG members, all colleges','organization-focused activity',NULL,NULL),(27,'Need to sustain a functional and gender-responsive GAD Focal Point System (GFPS) and GAD Office to ensure the effective mainstreaming of gender perspective in BSU academic, research, extension, and administrative programs/Section 37-C2 of the Magna Carta ','Sustained operations of the existing GAD Office-Provision of administrative, logistical, and financial support for the day-to-day functioning of the GAD Office maintenance of GAD database and documentation systems coordination of GFPS and GAD-related activities across colleges and units.','To ensure the continuous and efficient operation of a functional, gender-responsive GAD Office that leads, monitors, and evaluates GAD mainstreaming efforts in the university.','MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services','Sustaining Gender Mainstreaming and Institutional Support in the University','Fully maintained GAD Office - 100% fully maintained GAD office',8052370.09,'GAD Office','organization-focused activity',NULL,NULL),(28,'','','','','Transportation Equipment Outlay','',12285000.00,'TASU, PMO, SPMO','attributed program',NULL,NULL),(29,'','','','','Repair and Maintenance Office Building and other Structures','',6402000.00,'PU, PMO, SPMO','attributed program',NULL,NULL),(30,'','','','','Bamboo Industry Development for Environment Conservation and Countryside','',3750000.00,'PU, PMO, SPMO','attributed program',NULL,NULL),(31,'','','','','Benguet State University Student Information and Accounting System (SIAS)','',5000000.00,'ICT, PMO','attributed program',NULL,NULL);
-/*!40000 ALTER TABLE `gad_plan_budget` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `gad_plan_budget` (`gpb_id`, `gender_issue_mandate`, `cause_of_gender_issue`, `gad_result_objective`, `relevant_org_mfo_pap`, `gad_activity`, `performance_indicators_targets`, `gad_budget`, `budget_breakdown`, `source_of_budget`, `responsible_unit_office`, `form_type`) VALUES
+(1, 'Republic Act No. 10931, Universal Access to Quality Tertiary Education Act Section 8 on Affirmative Action Program; CHED Memorandum Orders on GAD Mainstreaming in Higher Education Institutions (HEIs)', 'Extraordinary life situations due to disasters, calamities, and socio-cultural discrimination', 'To promote equitable access and participation of both women and men from GIDAs in tertiary education through gender-responsive implementation of the Affirmative Action Agenda.', 'MFO: Higher Education Program', 'Implementation of Affirmative Action Agenda', 'Number of served disadvantaged students - 100% disadvantaged students', 700000.00, 'PS Attribution 500,000.00 Supplies and Materials 200,000.00', 'GAA GAA', 'OSS', 'client-focused activity'),
+(2, 'Republic Act No. 10931, Universal Access to Quality Tertiary Education Act Section 8 on Affirmative Action Program; CHED Memorandum Orders on GAD Mainstreaming in Higher Education Institutions (HEIs)', 'High tuition and miscellaneous fees, compounded by socio-cultural expectations for women to prioritize domestic roles over education', 'To promote gender equality in access to tertiary education by eliminating financial barriers for both male and female students.', 'MFO: Higher Education Program', 'Provision of free tuition fee under RA 10931 to eligible male and female students of the university', 'Percentage of qualified students granted free tuition - 100% of qualified students granted free tuition.', 131100000.00, 'Tuition Fee 131,100,000.00', 'GAA', 'OSS, OUR, UHS', 'client-focused activity'),
+(3, 'CHED Memorandum Order No. 01 series 2015', 'Limited activities to increase awareness of men and women students to GAD-related information (1st year students, transferees)', 'To increase the students level of awareness and appreciation on GAD', 'MFO: Higher Education Program', 'Conduct GAD orientation/ forum/ seminar to BSU 1st year/ transferees students (face to face/ online: 14 colleges)', 'No. of students oriented on GAD - 4,000 students oriented on GAD (F:2750 M:1250)', 453363.00, 'Meals and Snack 318,800.00 Supplies and Materials 10,000.00 PS Attribution 124,563.26', 'GAA GAA GAA', 'OSS, GAD Office, 3 Campuses (La Trinidad, Bokod & Buguias Campus)', 'client-focused activity'),
+(4, 'CHED Memorandum Order No. 01 series 2015', 'Student leaders have limited understanding on GAD in the University', 'To empower student leaders regarding GAD responsive leadership (La Trinidad Campus, Bokod Campus and Buguias Campus)', 'MFO: Higher Education Program', 'Continuous conduct of GAD responsive leadership training for student', 'No. of training conducted to increase GAD awareness and responsiveness of students leaders - 2 training (Female:200 Male:100) (La Trinidad Campus, Bokod Campus and Buguias Campus)', 150000.00, 'Supplies and Materials 30,000.00 Snack 20,000.00 PS Attribution 100,000.00', 'GAA GAA GAA', 'OSS', 'client-focused activity'),
+(5, 'Part VII of CHED Memorandum Order Number 1, series 2015 on Gender-Responsive Research and Extension Program', 'Presence of gender inequality, poverty and GAD-related concerns in the community', 'To sustain GAD-related extension activities delivering technology transfer, Livelihood Program, Technical Assistance, and Advocacy to community partners to help promote gender equality, poverty reduction and sustainable developmen', 'MFO: Extension Services- Research Services- Advance Education ServicesHigher Education Services', 'Conduct of Extension project/ activities to partner organizational/ communities as component of Gender Responsive Extension Program (GREP) to partner organization/ communities', 'No. of extension activities conducted within the year - 24 Extension program/project/ activities conducted within the year (Female:560 Male: 500)', 3500000.00, 'Seminar Package/Meals & Snacks/ Fuel for Transportation/ Vehicle Rental/ Other Professional Services 2,500,000.00 PS Attribution 1,000,000.00', 'GAA GAA', 'Research and Extension, various offices/ colleges in the University/ external campuses', 'client-focused activity'),
+(6, 'Limited access of PWDs to gender-responsive programs and services/DBM-DSWD Joint Circular No. 2003-01 provides guidelines for the implementation of Section 29 of the General Appropriations Act (GAA), requiring government agencies to set aside at least 1% ', 'Limited access of PWDs to gender-responsive programs and services', 'Improved access of PWDs to gender-responsive, inclusive, and empowering programs and services.', 'MFO: Research Services- Extension Services-Advance Education ServicesHigher Education Services', 'Awareness of women PWDs who benefited from the program', 'Number of women PWDs who benefited from the program - FM No. of GAD program/project/ activityprovided for PWD - At least 1 program/project/ activity', 350000.00, 'PS Attribution 100,000.00 Supplies & Materials/ Meals & Snacks 250,000.00', 'GAA GAA', 'HRMO, OSS', 'client-focused activity'),
+(7, 'Lack of senior citizens access to gender-responsive programs and services/DBM-DSWD Joint Circular No. 2003-01 provides guidelines for the implementation of Section 29 of the General Appropriations Act (GAA), requiring government agencies to set aside at l', 'Absence of sustainable and gender-responsive university programs for senior citizens', 'Improved access of senior citizensto gender-responsive, inclusive, and empowering programs and services', 'MFO: Research Services- Extension Services- Advance Education ServicesHigher Education Services', 'Program: BSU Kalinga for women Senior Citizens', 'Number of Programs provided for Senior Citizens - At least 1 program for BSU Number of women senior citizens who benefited from the program - F21 M23', 250000.00, 'Supplies & Materials/ Meals & Snacks 250,000.00', 'GAA', 'GAD Office, Colleges, External Campuses', 'client-focused activity'),
+(8, 'Low number of women\'s participation in sports/MCW-IRR Section 14 Develop, establish and strengthen programs for the participation of women in competitive and non-competitive sports as means to achieve excellence, promote physical and social well-being', 'Minimal attendance of female students to competitive and non-competitive sports', 'To increase female students level of participation and awareness on Gender in Sports', 'MFO: Higher Education Program', 'Participate in sports activities targeted for female students', 'No. of sports activities supported through allocation of budget for sports and socio- cultural activities/ E-sports (i.e. Annual Women\'s Martial Arts Festival- 2 sports activities (Female:20)', 160000.00, 'Registration & Travelling Expenses 80,000.00 Meals and Snacks 60,000.00 PS Attribution 20,000.00', 'GAA GAA GAA', 'CHK', 'client-focused activity'),
+(9, 'Programs on Awards and Incentives for Service Excellence (PRAISE under CSC Res.No.010112 and CSC MC No.1,s. 2001); Memo Circular No.2011-01 (Guidelines for the Creation, Strengthening and Institutionalization of GAD Focal Point System: Roles and Responsib', 'Low recognition/ appreciation on the Gender Mainstreaming in BSU', 'Strengthen Gender Mainstreaming through recognition of GAD implementation in the University', 'MFO: Research Services-Extension Services- Advance Education ServicesHigher Education Services', 'Provide recognition and award to GAD implementer and other GAD-related award (GAD implementer for students and employees, GAD Advocate Award)', 'No. of award will be provided through BSU-PRAISE- At least 1 GAD Advocate award will be provided through BSU-PRAISE', 205000.00, 'Incentive GAD Advocate Award 5,000.00 PS Attribution 200,000.00', 'GAA GAA', 'HRDO, HRMO, BSU-PRAISE Committee, GAD Office', 'organization-focused activity'),
+(10, 'Limited application of GAD Mainstreaming (GM) in Instruction, Research, Extension and Production/Magna Carta of Women (RA 9710)', 'Low awareness among personnel in the University about GAD mainstreaming', 'To enhance GAD mainstreaming in Administration, Academic, Research and Extension, Production', 'MFO: Research Services- Extension Services- Advance Education ServicesHigher Education Services', 'Conduct GAD related Gender Mainstreaming capability building and competency acquisition', 'No. of training/workshop/ seminars conducted - 25 training/ workshop/ seminars/ Learning and Development (F:1500 M: 1000)', 4000000.00, 'Seminar Package/Meals & Snacks/ Fuel for Transportation/ Vehicle Rental/ Professional Services (La Trinidad Bokod and Buguias Campus) 3,500,000.00 PS Attribution 500,000.00', 'GAA GAA', 'GAD Office, HRDO, Research and Extension, OQAA, All Colleges with External Campuses', 'organization-focused activity'),
+(11, 'Magna Carta of Women IRR Section 37 Gender Mainstreaming as a Strategy for Implementing the Magna Carta of Women', 'Productivity of employees affected due to filial obligations, affecting promotion of women to higher positions or from participating in capability enhancement sessions', 'Inadequate support services to personnel and students with children', 'MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services', 'Operationalize of BSU College of Nursing Reproductive Health Care Center', 'No. of maintained Reproductive Health Care Center- 1 maintained BSU CN Reproductive Health Care Center', 120000.00, 'Supplies and Materials 20,000.00 PS Attribution 100,000.00', 'GAA GAA', 'College of Nursing', 'organization-focused activity'),
+(12, 'Executive Order No. 340 s. 1997 Directing National Government Agencies and Government-Owned and-Controlled Corporations to provide Day Care Services for their Employee\'s Children under five years of age', 'Problems of parents and students related to child care', 'Ensure opportunities of personnel and students to have access on agency care services to children to avoid absenteeism', 'MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services', 'Maintenance of Child Minding Center for working parents in ensuring that they have a safe place to leave their child while they are at their work places', 'No. of established child minding center- Fully maintained new established and existing child minding centers at BSU La Trinidad,Bokod Campus and Buguias Campus', 230000.00, 'Supplies and Materials 130,000.00 PS Attribution 100,000.00', 'GAA GAA', 'GAD Office, External Campuses', 'organization-focused activity'),
+(13, 'Magna Carta of Women (RA 9710)', 'Low integration of gender mainstreaming of BSU', 'To strengthen the GAD integration in the operations of BSU', 'MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services', 'Create a Monitoring Team to conduct monitoring and evaluation of the utilization/ outcome of GAD PAPs and ensure effectiveness of the GAD PAPs', 'No. of monitoring and assessment meetings with reports conducted4 monitoring and assessment meetings with reports conducted', 330000.00, 'Supplies and Materials 10,000.00 PS Attribution 320,000.00', 'GAA GAA', 'GAD Office', 'organization-focused activity'),
+(14, 'Magna Carta of Women IRR Section 37 C. Creation and/or Strengthening of the GAD Focal Points (GFPs)', 'Low level of capacity of GFPS to develop and implement GAD programs and activities due to new members', 'Capacitated GFPS members in order to implement GAD PAP\'s and advance GAD Mainstreaming (GM) in the University', 'MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services', 'for GFPS/Secretariat: GMEF/HGDG/GPB/GAD Agenda/GAD Deepening Session and TOT among other related trainings and capacity building activities (Regional/ National GAD-related trainings/ seminars/ forum/workshop)', 'No. training/ seminars/ workshop attendance for each GFPS-members on GAD related updates and mandates- At least 1 Training/ seminar/ workshop attendance for each GFPS-members on GAD related updates and mandates (Female: 31, Male: 15)', 396000.00, 'GFPS TWG PAPs 396,000.00 PS Attribution 500,000.00', 'GAA GAA', 'GAD Office', 'organization-focused activity'),
+(15, 'Section 37-C2 Rule VI of the Magna Carta of Women\'s IRR on duties and function of the GAD Focal Point System/Magna Carta of Women (RA 9710)', 'Compliance to provisions regarding regular monitoring of gender mainstreaming efforts', 'To ensure operations of GAD Office as well as monitor and evaluate GM efforts of the University', 'MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services', 'Regular coordination and meetings of GAD-GFPS (Execom, GFPS- TWG members and external campus TWG members) and emergency meeting when necessary', 'No. of reports on regular meetings per campus conducted will be available at the end of the year - At least 6 reports on regular meetings conducted will be available at the end of the year, RGADC quarterly meeting/s', 211720.00, 'Meals & Snack 111,720.00 PS Attribution 100,000.00', 'GAA GAA', 'GAD Office', 'organization-focused activity'),
+(16, 'Duties and function of the GAD Focal Point System/CHED Memo 2015-1', 'No plantilla personnel assigned to plan, implement and monitor GAD PAPs on a full-time basis', 'To ensure operations of GAD Office as well as monitor and evaluate GM efforts of the University', 'MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services', 'Engage support staff to assist in the implementation of GFPS PPA\'s and Gender Mainstreaming in the university through rehiring of GAD staff and Student Assistant', 'Salary of GAD Staff: Casual No. of rehired personnel (casual) and student assistant -At least two (2) staff renewed/rehired (Casual) and at least one (3) Student Assistant/ SPES per semester', 550000.00, 'Salary of GAD Staff and SPES/ Student Assistant 550,000.00', 'GAA', 'GAD Office', 'organization-focused activity'),
+(17, 'Low level of Awareness on Gender Mainstreaming (GM) in Instruction, Research, Extension and\nProduction among newly hired personnel/Magna of Women (RA 9710), CHED Memo 2015-1', 'Lack of regular orientation and refresher training on gender sensitivity and GAD mandates', 'To enhance awareness and understanding of gender concepts, GAD mandates, and gender-responsive work practices among newly hired and current personnel', 'MFO: Conduct Gender Sensitivity Training (GST) for newly hired and current personnel (continuing activity)', 'Conduct Gender Sensitivity Training (GST) for newly hired and current personnel (continuing activity)', 'No. of training conducted for newly hired personnel and refresher trainings for current personnel - 1 training conducted for at least 100% of newly hired personnel and 3 refresher trainings for current personnel', 421728.00, 'Meals & Snack 167,200.00 Token 4,000.00 Professional Fee 144,528.32 Supplies and Materials 6,000.00 PS Attribution 100,000.00', 'GAA GAA GAA GAA GAA', 'GAD Office', 'organization-focused activity'),
+(18, 'Part V, Rule II, Section 4 of CHED Memorandum Order No. 1 Series of 2015/CHED Memo 2015-1', 'Limited number of GAD library and related learning materials across various discipline', 'To increase the provision of adequate and accessible library and related learning materials across various disciplines and educational levels', 'MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services', 'Provision of knowledge products (books magazine, multi-media) for adequate and accessible library and related learning materials in support to gender-responsive Curriculum Programs', 'No. of procured library and learning materials- 200 books', 2600000.00, 'Books and Instructional Materials 2,500,000.00 PS Attribution 100,000.00', 'GAA GAA', 'ULIS', 'organization-focused activity'),
+(19, 'Development and Dissemination of Gender and Development (GAD) Information, Education, and Communication (IEC) Materials', 'Presence of Gender Based Violence (GBV) issues/reports/cases in the university', 'Institutionalize GAD mechanisms in the University and sustain awareness campaigns on sexual harassment and gender-based violence', 'MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services', 'Development and Dissemination of Gender and Development (GAD) Information, Education, and Communication (IEC) Materials', 'No. of Communication and IEC materials/knowledge products - Official Publication of BSU with GAD articles, pictures as a medium for employees, clients, students partners to disseminate programs, achievement and advocacies, Maintained GAD Bulletin board - At least 8 GAD Bulletin board ,Sector-specific knowledge products on GAD generated and designed to be downloadable via BSU website - At least 2', 296000.00, 'Shamag 96,000.00 PS Attribution 100,000.00 Supplies and Materials 100,000.00', 'GAA GAA GAA', 'UPAO, GAD Office', 'organization-focused activity'),
+(20, 'Institutionalizing GAD database and Sex-Disaggregated Database/Magna Carta of Women (RA 9710), Section 36 on Sex-Disaggregated Database', 'Minimal awareness and appreciation on the relevance of the centralized Sex-Disaggregated database', 'To establish a centralized GAD-related database of the University', 'MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services', 'Updating of Sex-Disaggregated Data (SDD) and other data related to personnel/students/clients GAD-related database for gender analysis and report preparation', 'No. of well-organized and maintained GAD database for easy reference and access 1 GAD databaseEstablishment of GAD-Database system per college/unit.', 500000.00, 'PS Attribution 100,000.00 Maintenance of SDD/ Internet connection 1,000,000.00', 'GAA GAA', 'ICT, GAD Office', 'organization-focused activity'),
+(21, 'Magna Carta for women, Chapter IV: Section 10 and RA 10121, Section 2 & 9', 'Limited resources of the DSWD and LGU to provide for students who are transient residents and limited appreciation on women\'s role in nation building among employees and students, especially new ones', 'To ensure that disaster assistance provided to distressed students are gender-responsive', 'MFO: MFO: Research ServicesMFO: Extension Services MFO: Advance Education ServicesMFO: Higher Education Services', 'Provision of gender-responsive services to employees and students who experienced crisis/ disaster (e.g. Distribution of hygiene kits for both women and men)', 'No. of pax of the most affected employees/ students during crises - 1,000 employees/students', 211200.00, 'Crisis pack: Php,200/ pack X 1,000.00 pax 200,000.00 PS TWG Members 10,000.00', 'GAA GAA', 'GAD Office, HDRO, NSTP, various offices/ all colleges in the University', 'organization-focused activity'),
+(22, 'Compliance to Section 18 of MCW RA 9710:Special Leave Benefits for Women RA 8187: Paternity Leave Section 8 of RA 8972:Solo Parents Welfare Act of 2000 Section 43 of RA 9262: Anti-Violence Against Women and Their Children Act of 2004)', 'Employees may require special leaves due to parental obligations, health concerns and other circumstances that may require the need thereof', 'Enhanced support services for employees in need of special leaves', 'MFO: MFO: Research ServicesMFO: Extension Services MFO: Advance Education ServicesMFO: Higher Education Services', 'Provision of gender leaves and conduct of Seminar on Gender Related Leaves for Newly Hired Employees', 'No. of Maternity, Paternity, Solo parent, gynecological, VAWC leave of employees who will avail and 1 Seminar conducted (M:20 F:50)- All (100%) Maternity, Paternity, Solo parent, gynecological, VAWC leave of employees who will avail and 1 Seminar conducted (M:20 F:50)', 1000000.00, 'PS Attribution 1,000,000.00', 'GAA', 'HRMO, CBOO, various offices/ colleges in the University', 'organization-focused activity'),
+(23, 'Compliance to Proclamation 227 on the observance of Women\'s Role in History Month and Proclamation 1172, s. 2006 on the 18-Day Campaign to End Violence Against Women (VAW)', 'The need to highlight women\'s rights, their role in national development/ nation building and need to provide platform to invoke protection of women\'s rights against VAW, gender-based violence, Safe Spaces Act (RA No. 11313) and concerns that affect women and men', 'To strengthen awareness of BSU students/ employees on women\'s rights and their role in national development and nation building', 'MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services', 'Participation to18-Day Campaign to end VAW and Women\'s Month Celebration/ activities and programs organized by PCW and other agency/ies', 'No. of activities conducted per campus - At least one (1) activity conducted per campus', 450000.00, 'At least one (1) activity conducted per campus 250,000.00 PS Attribution 200,000.00', 'GAA GAA', 'GAD Office, various offices/ colleges in the University/ external campus', 'organization-focused activity'),
+(24, 'Productivity of employees affected due to filial obligations, affecting promotion of women to higher positions or from participating in capability enhancement sessions/Magna Carta of Women IRR Section 37 Gender Mainstreaming as a Strategy for Implementing', 'Inadequate support services for personnel/students with young children and breastfeeding mothers (affecting productivity, especially among women non implementation of RA 10028)', 'Inadequate support services to personnel and students with children', 'MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services', 'Establishment/ maintenance of breastfeeding station established in the preceding years', 'Fully maintained Lactation rooms - 100% fully maintained lactation rooms at BSU La Trinidad, Bokod and BuguiasCampus', 220000.00, 'Supplies and Materials 50,000.00 PS Attribution 170,000.00', 'GAA GAA', 'GAD Office, External Campuses', 'organization-focused activity'),
+(25, 'Low level of employees understanding of gender issues/ concept to promote gender equality and a gender-responsive work environment./RA 9710 (Magna Carta of Women), PCWNEDADBM Joint Circular 2012-01, and CSC MC No. 12 s. 2005, the University shall conduct ', 'Lack of regular gender-related capacity-building activities and insufficient integration of gender sensitivity in employee development programs', 'To enhance the gender awareness and sensitivity of BSU employees, enabling them to recognize and eliminate gender bias and stereotyping, and to foster a gender-responsive and equitable workplace', 'MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services', 'Conduct of gender sensitivity orientations for BSU Personnel (continuing activity)', 'No. of training conducted for BSU personnel -At least 3 training to be conducted', 253796.24, 'Supplies and Materials 10,000.00 Meals & Snack/ Professional Fee 233,796.24 PS 10,000.00', 'GAA GAA GAA', 'GAD Office', 'organization-focused activity'),
+(26, 'Establishment of Gender-Responsive Curricular Programs/Part V of CMO 01, s. 2015/ CHED Memo 2015-1', 'Limited subject for GAD Integration of Gender-Responsive Instruction and Curriculum Developmen', 'Integration of gender mainstreaming in curriculum/ subjects in all levels', 'MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services', 'Preparation of syllabi and classroom teaching integrating gender perspective', 'Number of faculty members integrated Gender perspective in the syllabus - 567 permanent and 125 COS females and males faculty integrating and development of gender-sensitive learning materials', 58295539.71, 'PS 567 Teaching employees and COS 51,294,972.71 Teaching Overload 7,000,000.00', 'GAA GAA', 'GAD Office, GFPS-TWG members, all colleges', 'organization-focused activity'),
+(27, 'Need to sustain a functional and gender-responsive GAD Focal Point System (GFPS) and GAD Office to ensure the effective mainstreaming of gender perspective in BSU academic, research, extension, and administrative programs/Section 37-C2 of the Magna Carta ', 'Sustained operations of the existing GAD Office-Provision of administrative, logistical, and financial support for the day-to-day functioning of the GAD Office maintenance of GAD database and documentation systems coordination of GFPS and GAD-related activities across colleges and units.', 'To ensure the continuous and efficient operation of a functional, gender-responsive GAD Office that leads, monitors, and evaluates GAD mainstreaming efforts in the university.', 'MFO: Research ServicesExtension Services Advance Education ServicesHigher Education Services', 'Sustaining Gender Mainstreaming and Institutional Support in the University', 'Fully maintained GAD Office - 100% fully maintained GAD office', 8052420.09, 'PS on Procurement Process 30,992.09 PS Attribution: Execom & TWG members 7,219,424.00 Supplies Equipment and Materials 300,000.00 PS of GAD Director(50%) 501,954.00', 'GAA GAA GAA GAA', 'GAD Office', 'organization-focused activity'),
+(28, '', '', '', '', 'Transportation Equipment Outlay', '', 12285000.00, '', 'GAA', 'TASU, PMO, SPMO', 'attributed program'),
+(29, '', '', '', '', 'Repair and Maintenance Office Building and other Structures', '', 6402000.00, '', 'GAA', 'PU, PMO, SPMO', 'attributed program'),
+(30, '', '', '', '', 'Bamboo Industry Development for Environment Conservation and Countryside', '', 3750000.00, '', 'GAA', 'PU, PMO, SPMO', 'attributed program'),
+(31, '', '', '', '', 'Benguet State University Student Information and Accounting System (SIAS)', '', 6098183.58, '', 'GAA', 'ICT, PMO', 'attributed program');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `gender_issues`
+--
+
+CREATE TABLE `gender_issues` (
+  `id` int(11) NOT NULL,
+  `mandate_id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `gad_objective` text DEFAULT NULL,
+  `status` varchar(50) DEFAULT 'active'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `gender_issues`
+--
+
+INSERT INTO `gender_issues` (`id`, `mandate_id`, `title`, `gad_objective`, `status`) VALUES
+(1, 1, 'Extraordinary life situations due to disasters, calamities, and socio-cultural discrimination', 'Provide educational assistance and support mechanisms to students affected by disasters, calamities, and socio-cultural discrimination.', 'active'),
+(2, 1, 'High tuition and miscellaneous fees, compounded by socio-cultural expectations for women to prioritize domestic roles over education', 'Increase access to tertiary education for financially disadvantaged students.', 'active'),
+(3, 2, 'Limited activities to increase awareness of men and women students to GAD-related information', 'Increase awareness of men and women students on Gender and Development (GAD).', 'active'),
+(4, 2, 'Student leaders have limited understanding on GAD in the University', 'Strengthen the understanding of student leaders on GAD in the University.', 'active'),
+(5, 3, 'Presence of gender inequality, poverty and GAD-related concerns in the community', 'Address gender inequality, poverty, and GAD-related concerns in communities through gender-responsive research and extension.', 'active'),
+(6, 4, 'Limited access of PWDs to gender-responsive programs and services', 'Improve access of persons with disabilities to gender-responsive programs and services.', 'active'),
+(7, 5, 'Absence of sustainable and gender-responsive university programs for senior citizens', 'Provide sustainable and gender-responsive programs and services for senior citizens.', 'active'),
+(8, 6, 'Minimal attendance of female students to competitive and non-competitive sports', 'Increase participation of women in competitive and non-competitive sports.', 'active'),
+(9, 7, 'Low recognition/appreciation on the Gender Mainstreaming in BSU', 'Strengthen recognition and appreciation of gender mainstreaming efforts in BSU.', 'active'),
+(10, 8, 'Low awareness among personnel in the University about GAD mainstreaming', 'Increase awareness and application of gender mainstreaming in instruction, research, extension and production.', 'active'),
+(11, 9, 'Productivity of employees affected due to filial obligations, affecting promotion of women to higher positions or from participating in capability enhancement sessions', 'Improve employee productivity and participation in capability enhancement activities.', 'active'),
+(12, 10, 'Problems of parents and students related to child care', 'Provide support services for employees and students with childcare responsibilities.', 'active'),
+(13, 8, 'Low integration of gender mainstreaming of BSU', 'To strengthen gender mainstreaming in BSU.', 'active'),
+(14, 11, 'Low level of capacity of GFPS to develop and implement GAD programs and activities due to new members', 'To strengthen the capacity of GFPS members in developing and implementing GAD programs and activities.', 'active'),
+(15, 12, 'Compliance to provisions regarding regular monitoring of gender mainstreaming efforts', 'To ensure regular monitoring of gender mainstreaming efforts.', 'active'),
+(16, 13, 'No plantilla personnel assigned to plan, implement and monitor GAD PAPs on a full-time basis', 'Provide dedicated personnel support for planning, implementation and monitoring of GAD PAPs.', 'active'),
+(17, 14, 'Lack of regular orientation and refresher training on gender sensitivity and GAD mandates', 'Improve awareness of newly hired personnel on gender sensitivity and GAD mandates.', 'active'),
+(18, 15, 'Limited number of GAD library and related learning materials across various discipline', 'Increase the availability of GAD library and learning materials across disciplines.', 'active'),
+(19, 16, 'Presence of Gender Based Violence (GBV) issues/reports/cases in the university', 'Prevent and address Gender-Based Violence (GBV) through information, education and communication initiatives.', 'active'),
+(20, 17, 'Minimal awareness and appreciation on the relevance of the centralized Sex-Disaggregated database', 'Strengthen awareness and appreciation of the centralized Sex-Disaggregated Database.', 'active'),
+(21, 18, 'Limited resources of the DSWD and LGU to provide for students who are transient residents and limited appreciation on women\'s role in nation building among employees and students, especially new ones', 'Provide support mechanisms for vulnerable students and strengthen appreciation of women\'s role in nation building.', 'active'),
+(22, 19, 'Employees may require special leaves due to parental obligations, health concerns and other circumstances that may require the need thereof', 'Ensure access to gender-responsive leave benefits and support services for employees.', 'active'),
+(23, 20, 'The need to highlight women\'s rights, their role in national development/nation building and need to provide platform to invoke protection of women\'s rights against VAW, gender-based violence, Safe Spaces Act (RA No. 11313) and concerns that affect women ', 'To strengthen awareness of BSU students/employees on women\'s rights and their role in national development and nation building.', 'active'),
+(24, 21, 'Inadequate support services for personnel/students with young children and breastfeeding mothers', 'Inadequate support services to personnel and students with children', 'active'),
+(25, 23, 'Lack of regular gender-related capacity-building activities and insufficient integration of gender sensitivity in employee development programs', 'To enhance the gender awareness and sensitivity of BSU employees, enabling them to recognize and eliminate gender bias and stereotyping, and to foster a gender-responsive and equitable workplace', 'active'),
+(26, 24, 'Limited subject for GAD Integration of Gender-Responsive Instruction and Curriculum Developmen', 'Integration of gender mainstreaming in curriculum/ subjects in all levels', 'active'),
+(27, 25, 'Sustained operations of the existing GAD Office-Provision of administrative, logistical, and financial support for the day-to-day functioning of the GAD Office maintenance of GAD database and documentation systems coordination of GFPS and GAD-related acti', 'To ensure the continuous and efficient operation of a functional, gender-responsive GAD Office that leads, monitors, and evaluates GAD mainstreaming efforts in the university.', 'active');
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `gpb_budget_breakdown`
 --
 
-DROP TABLE IF EXISTS `gpb_budget_breakdown`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gpb_budget_breakdown` (
-  `breakdown_id` int NOT NULL AUTO_INCREMENT,
-  `gpb_id` int NOT NULL,
-  `category` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `amount` decimal(15,2) DEFAULT NULL,
-  `source_of_budget` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  PRIMARY KEY (`breakdown_id`),
-  KEY `gpb_id` (`gpb_id`),
-  CONSTRAINT `gpb_budget_breakdown_ibfk_1` FOREIGN KEY (`gpb_id`) REFERENCES `gad_plan_budget` (`gpb_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=62 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+  `breakdown_id` int(11) NOT NULL,
+  `gpb_id` int(11) NOT NULL,
+  `category` varchar(255) DEFAULT NULL,
+  `amount` decimal(15,2) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `gpb_budget_breakdown`
+-- Triggers `gpb_budget_breakdown`
 --
+DELIMITER $$
+CREATE TRIGGER `trg_sync_budget` AFTER INSERT ON `gpb_budget_breakdown` FOR EACH ROW BEGIN
+    UPDATE gad_plan_budget
+    SET budget_breakdown = (
+        SELECT GROUP_CONCAT(CONCAT(category, ': ', amount) SEPARATOR ', ')
+        FROM gpb_budget_breakdown
+        WHERE gpb_id = NEW.gpb_id
+    )
+    WHERE gpb_id = NEW.gpb_id;
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_sync_budget_delete` AFTER DELETE ON `gpb_budget_breakdown` FOR EACH ROW BEGIN
+    UPDATE gad_plan_budget
+    SET budget_breakdown = (
+        SELECT GROUP_CONCAT(CONCAT(category, ': ', amount) SEPARATOR ', ')
+        FROM gpb_budget_breakdown
+        WHERE gpb_id = OLD.gpb_id
+    )
+    WHERE gpb_id = OLD.gpb_id;
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_sync_budget_update` AFTER UPDATE ON `gpb_budget_breakdown` FOR EACH ROW BEGIN
+    UPDATE gad_plan_budget
+    SET budget_breakdown = (
+        SELECT GROUP_CONCAT(CONCAT(category, ': ', amount) SEPARATOR ', ')
+        FROM gpb_budget_breakdown
+        WHERE gpb_id = NEW.gpb_id
+    )
+    WHERE gpb_id = NEW.gpb_id;
+END
+$$
+DELIMITER ;
 
-LOCK TABLES `gpb_budget_breakdown` WRITE;
-/*!40000 ALTER TABLE `gpb_budget_breakdown` DISABLE KEYS */;
-INSERT INTO `gpb_budget_breakdown` VALUES (2,1,'PS Attribution',500000.00,'GAA'),(3,1,'Supplies and Materials',200000.00,'GAA'),(4,2,'Tuition Fee',131100000.00,'GAA'),(5,3,'Meals and Snack',318800.00,'GAA'),(6,3,'Supplies and Materials',10000.00,'GAA'),(7,3,'PS Attribution',124563.26,'GAA'),(8,4,'Supplies and Materials',30000.00,'GAA'),(9,4,'Snack',20000.00,'GAA'),(10,4,'PS Attribution',100000.00,'GAA'),(11,5,'Seminar Package/Meals & Snacks/ Fuel for Transportation/ Vehicle Rental/ Other Professional Services',2500000.00,'GAA'),(12,5,'PS Attribution',1000000.00,'GAA'),(13,6,'PS Attribution',100000.00,'GAA'),(14,6,'Supplies & Materials/ Meals & Snacks',250000.00,'GAA'),(15,7,'Supplies & Materials/ Meals & Snacks',250000.00,'GAA'),(16,8,'Registration & Travelling Expenses',80000.00,'GAA'),(17,8,'Meals and Snacks',60000.00,'GAA'),(18,8,'PS Attribution',20000.00,'GAA'),(19,9,'Incentive GAD Advocate Award',5000.00,'GAA'),(20,9,'PS Attribution',200000.00,'GAA'),(21,10,'Seminar Package/Meals & Snacks/ Fuel for Transportation/ Vehicle Rental/ Professional Services (La Trinidad Bokod and Buguias Campus)',3500000.00,'GAA'),(22,10,'PS Attribution',500000.00,'GAA'),(23,11,'Supplies and Materials',20000.00,'GAA'),(24,11,'PS Attribution',100000.00,'GAA'),(25,12,'Supplies and Materials',130000.00,'GAA'),(26,12,'PS Attribution',100000.00,'GAA'),(27,13,'Supplies and Materials',10000.00,'GAA'),(28,13,'PS Attribution',320000.00,'GAA'),(29,14,'GFPS TWG PAPs',396000.00,'GAA'),(30,14,'PS Attribution',500000.00,'GAA'),(31,15,'Meals & Snack',111720.00,'GAA'),(32,15,'PS Attribution',100000.00,'GAA'),(33,16,'Salary of GAD Staff and SPES/ Student Assistant',550000.00,'GAA'),(34,17,'Meals & Snack',167200.00,'GAA'),(35,17,'Token',4000.00,'GAA'),(36,17,'Professional Fee',144528.32,'GAA'),(37,17,'Supplies and Materials',6000.00,'GAA'),(38,17,'PS Attribution',100000.00,'GAA'),(39,18,'Books and Instructional Materials',2500000.00,'GAA'),(40,18,'PS Attribution',100000.00,'GAA'),(41,19,'Shamag',96000.00,'GAA'),(42,19,'PS Attribution',100000.00,'GAA'),(43,19,'Supplies and Materials',100000.00,'GAA'),(44,20,'PS Attribution',100000.00,'GAA'),(45,20,'Maintenance of SDD/ Internet connection',1000000.00,'GAA'),(46,21,'Crisis pack: Php,200/ pack X 1,000.00 pax',200000.00,'GAA'),(47,21,'PS TWG Members',10000.00,'GAA'),(48,22,'PS Attribution',1000000.00,'GAA'),(49,23,'At least one (1) activity conducted per campus',250000.00,'GAA'),(50,23,'PS Attribution',200000.00,'GAA'),(51,24,'Supplies and Materials',50000.00,'GAA'),(52,24,'PS Attribution',170000.00,'GAA'),(53,25,'Supplies and Materials',10000.00,'GAA'),(54,25,'Meals & Snack/ Professional Fee',233796.24,'GAA'),(55,25,'PS',10000.00,'GAA'),(56,26,'PS 567 Teaching employees and COS',51294972.71,'GAA'),(57,26,'Teaching Overload',7000000.00,'GAA'),(58,27,'PS on Procurement Process',30992.09,'GAA'),(59,27,'PS Attribution: Execom & TWG members',7219424.00,'GAA'),(60,27,'Supplies Equipment and Materials',300000.00,'GAA'),(61,27,'PS of GAD Director(50%)',501954.00,'GAA');
-/*!40000 ALTER TABLE `gpb_budget_breakdown` ENABLE KEYS */;
-UNLOCK TABLES;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`127.0.0.1`*/ /*!50003 TRIGGER `trg_sync_budget_total_insert` AFTER INSERT ON `gpb_budget_breakdown` FOR EACH ROW UPDATE gad_plan_budget SET gad_budget = (SELECT COALESCE(SUM(amount), 0) FROM gpb_budget_breakdown WHERE gpb_id = NEW.gpb_id) WHERE gpb_id = NEW.gpb_id */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`127.0.0.1`*/ /*!50003 TRIGGER `trg_sync_budget_total_update` AFTER UPDATE ON `gpb_budget_breakdown` FOR EACH ROW UPDATE gad_plan_budget SET gad_budget = (SELECT COALESCE(SUM(amount), 0) FROM gpb_budget_breakdown WHERE gpb_id = NEW.gpb_id) WHERE gpb_id = NEW.gpb_id */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`127.0.0.1`*/ /*!50003 TRIGGER `trg_sync_budget_total_delete` AFTER DELETE ON `gpb_budget_breakdown` FOR EACH ROW UPDATE gad_plan_budget SET gad_budget = (SELECT COALESCE(SUM(amount), 0) FROM gpb_budget_breakdown WHERE gpb_id = OLD.gpb_id) WHERE gpb_id = OLD.gpb_id */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `gpb_offices_map`
 --
 
-DROP TABLE IF EXISTS `gpb_offices_map`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gpb_offices_map` (
-  `gpb_id` int NOT NULL,
-  `office_id` int NOT NULL,
-  PRIMARY KEY (`gpb_id`,`office_id`),
-  KEY `office_id` (`office_id`),
-  CONSTRAINT `gpb_offices_map_ibfk_1` FOREIGN KEY (`gpb_id`) REFERENCES `gad_plan_budget` (`gpb_id`) ON DELETE CASCADE,
-  CONSTRAINT `gpb_offices_map_ibfk_2` FOREIGN KEY (`office_id`) REFERENCES `office_units` (`office_id`) ON DELETE CASCADE
+  `gpb_id` int(11) NOT NULL,
+  `office_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `gpb_offices_map`
+-- Triggers `gpb_offices_map`
 --
-
-LOCK TABLES `gpb_offices_map` WRITE;
-/*!40000 ALTER TABLE `gpb_offices_map` DISABLE KEYS */;
-/*!40000 ALTER TABLE `gpb_offices_map` ENABLE KEYS */;
-UNLOCK TABLES;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`127.0.0.1`*/ /*!50003 TRIGGER `trg_sync_offices` AFTER INSERT ON `gpb_offices_map` FOR EACH ROW BEGIN
+DELIMITER $$
+CREATE TRIGGER `trg_sync_offices` AFTER INSERT ON `gpb_offices_map` FOR EACH ROW BEGIN
     UPDATE gad_plan_budget
     SET responsible_unit_office = (
         SELECT GROUP_CONCAT(o.office_name SEPARATOR ', ')
@@ -575,46 +558,11 @@ DELIMITER ;;
         WHERE gom.gpb_id = NEW.gpb_id
     )
     WHERE gpb_id = NEW.gpb_id;
-END */;;
+END
+$$
 DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`127.0.0.1`*/ /*!50003 TRIGGER `trg_sync_offices_update` AFTER UPDATE ON `gpb_offices_map` FOR EACH ROW BEGIN
-    UPDATE gad_plan_budget
-    SET responsible_unit_office = (
-        SELECT GROUP_CONCAT(o.office_name SEPARATOR ', ')
-        FROM office_units o
-        JOIN gpb_offices_map gom ON o.office_id = gom.office_id
-        WHERE gom.gpb_id = NEW.gpb_id
-    )
-    WHERE gpb_id = NEW.gpb_id;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`127.0.0.1`*/ /*!50003 TRIGGER `trg_sync_offices_delete` AFTER DELETE ON `gpb_offices_map` FOR EACH ROW BEGIN
+DELIMITER $$
+CREATE TRIGGER `trg_sync_offices_delete` AFTER DELETE ON `gpb_offices_map` FOR EACH ROW BEGIN
     UPDATE gad_plan_budget
     SET responsible_unit_office = (
         SELECT GROUP_CONCAT(o.office_name SEPARATOR ', ')
@@ -623,258 +571,725 @@ DELIMITER ;;
         WHERE gom.gpb_id = OLD.gpb_id
     )
     WHERE gpb_id = OLD.gpb_id;
-END */;;
+END
+$$
 DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
+DELIMITER $$
+CREATE TRIGGER `trg_sync_offices_update` AFTER UPDATE ON `gpb_offices_map` FOR EACH ROW BEGIN
+    UPDATE gad_plan_budget
+    SET responsible_unit_office = (
+        SELECT GROUP_CONCAT(o.office_name SEPARATOR ', ')
+        FROM office_units o
+        JOIN gpb_offices_map gom ON o.office_id = gom.office_id
+        WHERE gom.gpb_id = NEW.gpb_id
+    )
+    WHERE gpb_id = NEW.gpb_id;
+END
+$$
+DELIMITER ;
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `mandate`
 --
 
-DROP TABLE IF EXISTS `mandate`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mandate` (
-  `mandate_id` int NOT NULL AUTO_INCREMENT,
-  `mandate_name` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `description` text COLLATE utf8mb4_general_ci,
-  `gpb_id` int DEFAULT NULL,
-  PRIMARY KEY (`mandate_id`),
-  KEY `fk_mandate_gpb` (`gpb_id`),
-  CONSTRAINT `fk_mandate_gpb` FOREIGN KEY (`gpb_id`) REFERENCES `gad_plan_budget` (`gpb_id`) ON DELETE SET NULL
+  `mandate_id` int(11) NOT NULL,
+  `mandate_name` varchar(255) DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `gpb_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `mandate`
---
-
-LOCK TABLES `mandate` WRITE;
-/*!40000 ALTER TABLE `mandate` DISABLE KEYS */;
-/*!40000 ALTER TABLE `mandate` ENABLE KEYS */;
-UNLOCK TABLES;
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `messages`
 --
 
-DROP TABLE IF EXISTS `messages`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `messages` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `sender_id` int unsigned NOT NULL,
-  `recipient_id` int unsigned NOT NULL,
-  `parent_id` int unsigned DEFAULT NULL,
-  `message_text` text COLLATE utf8mb4_general_ci NOT NULL,
-  `document_type` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `document_id` text COLLATE utf8mb4_general_ci,
-  `is_read` tinyint(1) NOT NULL DEFAULT '0',
+  `id` int(11) UNSIGNED NOT NULL,
+  `sender_id` int(11) UNSIGNED NOT NULL,
+  `recipient_id` int(11) UNSIGNED NOT NULL,
+  `parent_id` int(11) UNSIGNED DEFAULT NULL,
+  `message_text` text NOT NULL,
+  `document_type` varchar(100) DEFAULT NULL,
+  `document_id` text DEFAULT NULL,
+  `is_read` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` datetime DEFAULT NULL,
   `deleted_by_sender_at` datetime DEFAULT NULL,
   `deleted_by_recipient_at` datetime DEFAULT NULL,
-  `is_announcement` tinyint(1) DEFAULT '0',
-  PRIMARY KEY (`id`)
+  `is_announcement` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `messages`
---
-
-LOCK TABLES `messages` WRITE;
-/*!40000 ALTER TABLE `messages` DISABLE KEYS */;
-/*!40000 ALTER TABLE `messages` ENABLE KEYS */;
-UNLOCK TABLES;
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `migrations`
 --
 
-DROP TABLE IF EXISTS `migrations`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `migrations` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `version` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `class` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `group` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `namespace` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `time` int NOT NULL,
-  `batch` int unsigned NOT NULL,
-  PRIMARY KEY (`id`)
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `version` varchar(255) NOT NULL,
+  `class` varchar(255) NOT NULL,
+  `group` varchar(255) NOT NULL,
+  `namespace` varchar(255) NOT NULL,
+  `time` int(11) NOT NULL,
+  `batch` int(11) UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `migrations`
 --
 
-LOCK TABLES `migrations` WRITE;
-/*!40000 ALTER TABLE `migrations` DISABLE KEYS */;
-/*!40000 ALTER TABLE `migrations` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `migrations` (`id`, `version`, `class`, `group`, `namespace`, `time`, `batch`) VALUES
+(1, '2026-06-19-022849', 'App\\Database\\Migrations\\CreateMessagesTable', 'default', 'App', 1781836185, 1),
+(2, '2026-06-19-033911', 'App\\Database\\Migrations\\AlterMessagesDocumentId', 'default', 'App', 1781840369, 2),
+(3, '2026-06-19-063936', 'App\\Database\\Migrations\\AddThreadAndTrashToMessages', 'default', 'App', 1781851202, 3),
+(4, '2026-06-19-082034', 'App\\Database\\Migrations\\AddDeletedAtToDocuments', 'default', 'App', 1781857260, 4),
+(5, '2026-06-23-025857', 'App\\Database\\Migrations\\CreateActivityLogsTable', 'default', 'App', 1782183569, 5),
+(6, '2026-06-24-000000', 'App\\Database\\Migrations\\AddLastLoginToUsers', 'default', 'App', 1782263806, 6),
+(7, '2026-06-24-000001', 'App\\Database\\Migrations\\AddIsAnnouncementToMessages', 'default', 'App', 1782264591, 7),
+(8, '2026-06-26-014303', 'App\\Database\\Migrations\\DropTitleFromMessages', 'default', 'App', 1782438211, 8),
+(9, '2026-06-28-000000', 'App\\Database\\Migrations\\AddBudgetTrackingTables', 'default', 'App', 1782635571, 9),
+(10, '2026-06-28-120229', 'App\\Database\\Migrations\\AddDynamicFormTables', 'default', 'App', 1782649887, 10),
+(11, '2026-06-28-124500', 'App\\Database\\Migrations\\AlterGadMandatesAndIssues', 'default', 'App', 1782650786, 11);
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `office_units`
 --
 
-DROP TABLE IF EXISTS `office_units`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `office_units` (
-  `office_id` int NOT NULL AUTO_INCREMENT,
-  `office_name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  PRIMARY KEY (`office_id`),
-  UNIQUE KEY `office_name` (`office_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+  `office_id` int(11) NOT NULL,
+  `office_name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `office_units`
 --
 
-LOCK TABLES `office_units` WRITE;
-/*!40000 ALTER TABLE `office_units` DISABLE KEYS */;
-INSERT INTO `office_units` VALUES (25,'Accounting Office'),(28,'Bokod Focal Person, University Health Services'),(23,'BSU Office of Student Services'),(14,'Budget Office'),(31,'Budget Office Buguias Campus'),(29,'Buguias Focal Person, College of Agriculture'),(2,'College of Agriculture'),(8,'College of Applied Techonology BSU Bokod Campus'),(36,'College of Arts and Humanities'),(45,'College of Education BSU Bokod Campus'),(21,'College of Engineering'),(46,'College of Forestry'),(39,'College of Home Economics and Technology'),(26,'College of Human Kenetics'),(32,'College of Information Sciences'),(17,'College of Natural Sciences'),(42,'College of Numeracy and Applied Sciences'),(22,'College of Nursing'),(18,'College of Public Administration and Governance'),(7,'College of Social Science'),(37,'College of Teacher Education'),(11,'College of Veterinary Medicine'),(12,'Compensarion, Benefits and Other Obligations'),(6,'Disaster Risk Reduction Management'),(47,'gad.staff'),(1,'Gender And Development'),(20,'General Services Office'),(27,'Horticulture'),(38,'Human Resource and Management Office'),(4,'Human Resources and Management Office BSU Bokod Campus'),(30,'Human Resources Development Office'),(19,'Information and Communications Technolgy'),(5,'International Relations Office'),(43,'Northern Philippines Root Crops Research  & Training Center'),(15,'Office for Quality Assurance and Accreditation'),(35,'Office of Student Services'),(44,'Open University'),(34,'Procurement Management Office'),(33,'Procurement Management Office BSU Bokod Campus'),(13,'Records Office and Archives'),(3,'Registrar\'s Office BSU Buguias Campus'),(40,'Supply Property Management Office'),(9,'University Business Affairs Office'),(16,'University Health Services BSU Buguias Campus'),(10,'University Library and Information Service BSU Buguias Campus'),(41,'University Library and Information Services'),(24,'University Public Affairs Office');
-/*!40000 ALTER TABLE `office_units` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `office_units` (`office_id`, `office_name`) VALUES
+(25, 'Accounting Office'),
+(28, 'Bokod Focal Person'),
+(23, 'BSU Office of Student Services'),
+(14, 'Budget Office'),
+(31, 'Budget Office Buguias Campus'),
+(29, 'Buguias Focal Person'),
+(2, 'College of Agriculture'),
+(8, 'College of Applied Techonology BSU Bokod Campus'),
+(36, 'College of Arts and Humanities'),
+(45, 'College of Education BSU Bokod Campus'),
+(21, 'College of Engineering'),
+(46, 'College of Forestry'),
+(39, 'College of Home Economics and Technology'),
+(26, 'College of Human Kenetics'),
+(32, 'College of Information Sciences'),
+(17, 'College of Natural Sciences'),
+(42, 'College of Numeracy and Applied Sciences'),
+(22, 'College of Nursing'),
+(18, 'College of Public Administration and Governance'),
+(7, 'College of Social Science'),
+(37, 'College of Teacher Education'),
+(11, 'College of Veterinary Medicine'),
+(12, 'Compensarion, Benefits and Other Obligations'),
+(6, 'Disaster Risk Reduction Management'),
+(1, 'Gender and Development Office'),
+(20, 'General Services Office'),
+(27, 'Horticulture'),
+(38, 'Human Resource and Management Office'),
+(4, 'Human Resources and Management Office BSU Bokod Campus'),
+(30, 'Human Resources Development Office'),
+(19, 'Information and Communications Technolgy'),
+(5, 'International Relations Office'),
+(43, 'Northern Philippines Root Crops Research  & Training Center'),
+(15, 'Office for Quality Assurance and Accreditation'),
+(35, 'Office of Student Services'),
+(44, 'Open University'),
+(34, 'Procurement Management Office'),
+(33, 'Procurement Management Office BSU Bokod Campus'),
+(13, 'Records Office and Archives'),
+(3, 'Registrar\'s Office BSU Buguias Campus'),
+(40, 'Supply Property Management Office'),
+(9, 'University Business Affairs Office'),
+(16, 'University Health Services BSU Buguias Campus'),
+(10, 'University Library and Information Service BSU Buguias Campus'),
+(41, 'University Library and Information Services'),
+(24, 'University Public Affairs Office');
 
---
--- Table structure for table `system_logs`
---
-
-DROP TABLE IF EXISTS `system_logs`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `system_logs` (
-  `log_id` bigint NOT NULL AUTO_INCREMENT,
-  `user_id` bigint unsigned DEFAULT NULL,
-  `action_type` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `target_table` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `target_id` int DEFAULT NULL,
-  `log_timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`log_id`),
-  KEY `idx_logs_user` (`user_id`),
-  KEY `idx_logs_action` (`action_type`),
-  KEY `idx_logs_time` (`log_timestamp`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `system_logs`
---
-
-LOCK TABLES `system_logs` WRITE;
-/*!40000 ALTER TABLE `system_logs` DISABLE KEYS */;
-/*!40000 ALTER TABLE `system_logs` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `user_profiles`
---
-
-DROP TABLE IF EXISTS `user_profiles`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `user_profiles` (
-  `user_id` bigint unsigned NOT NULL,
-  `first_name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `middle_name` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `last_name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `user_role` enum('Director','Staff','TWG','Non-TWG') COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `office_unit_id` int DEFAULT NULL,
-  PRIMARY KEY (`user_id`),
-  CONSTRAINT `fk_user_profiles_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `user_profiles`
---
-
-LOCK TABLES `user_profiles` WRITE;
-/*!40000 ALTER TABLE `user_profiles` DISABLE KEYS */;
-/*!40000 ALTER TABLE `user_profiles` ENABLE KEYS */;
-UNLOCK TABLES;
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `users`
 --
 
-DROP TABLE IF EXISTS `users`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `username` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `email` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `username` varchar(255) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
   `email_verified_at` timestamp NULL DEFAULT NULL,
-  `password` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `role` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `full_name` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `student_id` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `office_id` int DEFAULT NULL,
-  `year_level` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `user_acronym` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `remember_token` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `deleted_at` timestamp NULL DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `reset_token` varchar(64) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `password` varchar(255) DEFAULT NULL,
+  `reset_token` varchar(64) DEFAULT NULL,
   `reset_token_expires_at` datetime DEFAULT NULL,
-  `last_login` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `idx_users_office_id` (`office_id`),
-  CONSTRAINT `fk_users_office_id` FOREIGN KEY (`office_id`) REFERENCES `office_units` (`office_id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=49 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+  `role` varchar(255) DEFAULT NULL,
+  `full_name` varchar(255) DEFAULT NULL,
+  `student_id` varchar(255) DEFAULT NULL,
+  `office_id` int(11) DEFAULT NULL,
+  `year_level` varchar(255) DEFAULT NULL,
+  `user_acronym` varchar(255) DEFAULT NULL,
+  `remember_token` varchar(100) DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `last_login` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-LOCK TABLES `users` WRITE;
-/*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Gender And Development','gad.office@bsu.edu.ph',NULL,'$2y$10$gW/D7O4xYMVZVZdyZ3nyFudQXjnh1.fiex56lB2y9vOr51rDkRHaW','admin',NULL,NULL,1,NULL,'GAD',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(2,'College of Agriculture','ca@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,2,NULL,'CA',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(3,'Registrar\'s Office BSU Buguias Campus','buguias.registrar@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,3,NULL,'Buguias-RO',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(4,'Human Resources and Management Office BSU Bokod Campus','bokod.hrmo@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,4,NULL,NULL,'Bokod-HRMO',NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(5,'International Relations Office','iro@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,5,NULL,'IRO',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(6,'Disaster Risk Reduction Management','drrm@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,6,NULL,'DRRM',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(7,'College of Social Science','css@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,7,NULL,'CSS',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(8,'College of Applied Techonology BSU Bokod Campus','bokod.cat@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,8,NULL,'Bokod-CAT',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(9,'University Business Affairs Office','ubao@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,9,NULL,'UBAO',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(10,'University Library and Information Service BSU Buguias Campus','ulis.buguias@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,10,NULL,'Buguias-ULIS',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(11,'College of Veterinary Medicine','vm@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,11,NULL,'CVM',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(12,'Compensarion, Benefits and Other Obligations','cboo@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,12,NULL,'CBOO',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(13,'Records Office and Archives','roa@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,13,NULL,'ROA',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(14,'Budget Office','bo@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,14,NULL,NULL,'BO',NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(15,'Office for Quality Assurance and Accreditation','oqaa@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,15,NULL,'OQAA',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(16,'University Health Services BSU Buguias Campus','buguias.uhs@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,16,NULL,'Buguias-UHS',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(17,'College of Natural Sciences','cns@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,17,NULL,NULL,'CNS',NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(18,'College of Public Administration and Governance','cpag@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,18,NULL,'CPAG',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(19,'Information and Communications Technolgy','ict@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,19,NULL,'ICT',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(20,'General Services Office','gso@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,20,NULL,'GSO',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(21,'College of Engineering','ce@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,21,NULL,'CE',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(22,'College of Nursing','cn@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,22,NULL,'CN',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(23,'BSU Office of Student Services','oss@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,23,NULL,'OSS',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(24,'University Public Affairs Office','upao@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,24,NULL,'UPAO',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(25,'Accounting Office','ao@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,25,NULL,'AO',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(26,'College of Human Kenetics','chk@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,26,NULL,'CHK',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(27,'Horticulture','h@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,27,NULL,'Horticulture',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(28,'Bokod Focal Person, University Health Services','bokod.uhs@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,28,NULL,'Bokod-FC,UHS',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(29,'Buguias Focal Person, College of Agriculture','buguias.ca@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,29,NULL,'Buguias-FC,CA',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(30,'Human Resources Development Office','hrdo@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,30,NULL,'HRDO',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(31,'Budget Office Buguias Campus','buguias.bo@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,31,NULL,'Buguias-BO',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(32,'College of Information Sciences','cis@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,32,NULL,'CIS',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(33,'Procurement Management Office BSU Bokod Campus','bokod.pmo@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,33,NULL,'Bokod-PMO',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(34,'Procurement Management Office','pmo@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,34,NULL,'PMO',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(35,'Office of Student Services','oss.2@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,35,NULL,'OSS',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(36,'College of Arts and Humanities','cah@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,36,NULL,'CAH',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(37,'College of Teacher Education','cte@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,37,NULL,'CTE',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(38,'Human Resource and Management Office','hrmo@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,38,NULL,'HRMO',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(39,'College of Home Economics and Technology','chet@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,39,NULL,'CHET',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(40,'Supply Property Management Office','spmo@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,40,NULL,'SPMO',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(41,'University Library and Information Services','ulis@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,41,NULL,'ULIS',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(42,'College of Numeracy and Applied Sciences','cnas@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,42,NULL,'CNAS',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(43,'Northern Philippines Root Crops Research  & Training Center','nprcrtc@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,43,NULL,'NPRCRTC',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(44,'Open University','ou@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,44,NULL,'OU',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(45,'College of Education BSU Bokod Campus','bokod.ce@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,45,NULL,'Bokod-CE',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(46,'College of Forestry','cf@bsu.edu.ph',NULL,'$2y$10$3x6clGcgADrbFgFSB2vjyOSTQbkoug91Ag2qD7tSOwr674Ko4/2sy','college',NULL,NULL,46,NULL,'CF',NULL,NULL,'2026-05-25 11:58:10','2026-06-15 12:35:03',NULL,NULL,NULL),(47,'gad.staff','gad.staff@bsu.edu.ph',NULL,'$2y$10$6FU4N02TUOyDdNWEPCnFqOU9f0cb.ddZ/QscMCiVkBJGkbWuHRE1W','gad_staff','GAD Staff User',NULL,47,NULL,'GAD-STAFF',NULL,NULL,'2026-03-26 15:53:56','2026-06-15 12:35:03',NULL,NULL,NULL);
-/*!40000 ALTER TABLE `users` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `users` (`id`, `username`, `email`, `email_verified_at`, `password`, `reset_token`, `reset_token_expires_at`, `role`, `full_name`, `student_id`, `office_id`, `year_level`, `user_acronym`, `remember_token`, `deleted_at`, `created_at`, `updated_at`, `last_login`) VALUES
+(1, 'Gender and Development Office', 'gad.office@bsu.edu.ph', NULL, '$2y$10$a9XVQgTdygySA0E7XCNf4euNdZmuXjqGxSvUbQEzd5X7qiFmPNae6', NULL, NULL, 'admin', 'Jude Tayaben', NULL, 1, NULL, 'GAD', NULL, NULL, '2026-05-25 11:58:10', '2026-06-28 12:53:46', '2026-06-28 12:53:46'),
+(2, 'College of Agriculture', 'ca@bsu.edu.ph', NULL, '$2y$12$CNLb7UPOnZpF2yZRY0lwSeykT0VWruAa6R753JUJR3bGr2OCvUyei', NULL, NULL, 'college', 'CA TWG', NULL, 2, NULL, 'CA', NULL, NULL, '2026-05-25 11:58:10', '2026-06-28 12:38:43', '2026-06-28 12:38:43'),
+(3, 'Registrar\'s Office BSU Buguias Campus', 'buguias.registrar@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 3, NULL, 'Buguias-RO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(4, 'Human Resources and Management Office BSU Bokod Campus', 'bokod.hrmo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 4, NULL, NULL, 'Bokod-HRMO', NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(5, 'International Relations Office', 'iro@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 5, NULL, 'IRO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(6, 'Disaster Risk Reduction Management', 'drrm@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 6, NULL, 'DRRM', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(7, 'College of Social Science', 'css@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 7, NULL, 'CSS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-30 11:07:16', NULL),
+(8, 'College of Applied Techonology BSU Bokod Campus', 'bokod.cat@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 8, NULL, 'Bokod-CAT', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(9, 'University Business Affairs Office', 'ubao@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 9, NULL, 'UBAO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(10, 'University Library and Information Service BSU Buguias Campus', 'ulis.buguias@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 10, NULL, 'Buguias-ULIS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(11, 'College of Veterinary Medicine', 'vm@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 11, NULL, 'CVM', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(12, 'Compensarion, Benefits and Other Obligations', 'cboo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 12, NULL, 'CBOO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(13, 'Records Office and Archives', 'roa@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 13, NULL, 'ROA', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(14, 'Budget Office', 'bo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 14, NULL, NULL, 'BO', NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(15, 'Office for Quality Assurance and Accreditation', 'oqaa@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 15, NULL, 'OQAA', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(16, 'University Health Services BSU Buguias Campus', 'buguias.uhs@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 16, NULL, 'Buguias-UHS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(17, 'College of Natural Sciences', 'cns@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 17, NULL, NULL, 'CNS', NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(18, 'College of Public Administration and Governance', 'cpag@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 18, NULL, 'CPAG', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(19, 'Information and Communications Technolgy', 'ict@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 19, NULL, 'ICT', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(20, 'General Services Office', 'gso@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 20, NULL, 'GSO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(21, 'College of Engineering', 'ce@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 21, NULL, 'CE', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(22, 'College of Nursing', 'cn@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 22, NULL, 'CN', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(23, 'BSU Office of Student Services', 'oss@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 23, NULL, 'OSS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(24, 'University Public Affairs Office', 'upao@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 24, NULL, 'UPAO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(25, 'Accounting Office', 'ao@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 25, NULL, 'AO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(26, 'College of Human Kenetics', 'chk@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 26, NULL, 'CHK', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(27, 'Horticulture', 'h@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 27, NULL, 'Horticulture', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(28, 'Bokod Focal Person, University Health Services', 'bokod.uhs@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 28, NULL, 'Bokod-FC,UHS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(29, 'Buguias Focal Person, College of Agriculture', 'buguias.ca@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 29, NULL, 'Buguias-FC,CA', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(30, 'Human Resources Development Office', 'hrdo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 30, NULL, 'HRDO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(31, 'Budget Office Buguias Campus', 'buguias.bo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 31, NULL, 'Buguias-BO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(32, 'College of Information Sciences', 'cis@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 32, NULL, 'CIS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(33, 'Procurement Management Office BSU Bokod Campus', 'bokod.pmo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 33, NULL, 'Bokod-PMO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(34, 'Procurement Management Office', 'pmo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 34, NULL, 'PMO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(35, 'Office of Student Services', 'oss.2@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 35, NULL, 'OSS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(36, 'College of Arts and Humanities', 'cah@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 36, NULL, 'CAH', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(37, 'College of Teacher Education', 'cte@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 37, NULL, 'CTE', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(38, 'Human Resource and Management Office', 'hrmo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 38, NULL, 'HRMO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(39, 'College of Home Economics and Technology', 'chet@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 39, NULL, 'CHET', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(40, 'Supply Property Management Office', 'spmo@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 40, NULL, 'SPMO', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(41, 'University Library and Information Services', 'ulis@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 41, NULL, 'ULIS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(42, 'College of Numeracy and Applied Sciences', 'cnas@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 42, NULL, 'CNAS', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(43, 'Northern Philippines Root Crops Research  & Training Center', 'nprcrtc@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 43, NULL, 'NPRCRTC', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(44, 'Open University', 'ou@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 44, NULL, 'OU', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(45, 'College of Education BSU Bokod Campus', 'bokod.ce@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 45, NULL, 'Bokod-CE', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(46, 'College of Forestry', 'cf@bsu.edu.ph', NULL, '$2y$12$l7EFqawcRIOIN9O.LGwQ..4PpoSt5sbaRziIQVMbNsOJbF7b/3Lpq', NULL, NULL, 'college', NULL, NULL, 46, NULL, 'CF', NULL, NULL, '2026-05-25 11:58:10', '2026-05-25 11:58:10', NULL),
+(47, 'gad.staff', 'gad.staff@bsu.edu.ph', NULL, '$2y$12$fbD/jvk.znEQnBmKq4.ebOojmijHJO/zU7.P7Tzo.zV3FgvP8PzNe', NULL, NULL, 'gad_staff', 'GAD Staff', NULL, 1, NULL, 'GAD-STAFF', NULL, NULL, '2026-03-26 15:53:56', '2026-06-28 12:38:34', '2026-06-28 12:38:34'),
+(51, 'marksantos', 'marksantos@gmail.com', NULL, '$2y$10$XpBQvnSPe15XDdOdDySVf.5ri9Y2wCDwqZcdGLoOXmjClhEZTA6Aa', NULL, NULL, 'college', 'Mark Santos', NULL, 32, NULL, NULL, NULL, NULL, '2026-06-17 12:57:12', '2026-06-23 13:47:33', NULL),
+(52, 'bisayotduligas', 'bisayotduligas@gmail.com', NULL, '$2y$10$EfHJmvx7.gMSH9fe2TEjkeAlty0Js39/MB0qukXQkfvLE2/JZaD3a', NULL, NULL, 'college', 'Joshua Duligas', NULL, 32, NULL, NULL, NULL, NULL, '2026-06-25 02:46:48', '2026-06-25 07:39:59', '2026-06-25 07:39:59');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_profiles`
+--
+
+CREATE TABLE `user_profiles` (
+  `user_id` bigint(20) UNSIGNED NOT NULL,
+  `first_name` varchar(100) NOT NULL,
+  `middle_name` varchar(100) DEFAULT NULL,
+  `last_name` varchar(100) NOT NULL,
+  `user_role` enum('Director','Staff','TWG','Non-TWG') DEFAULT NULL,
+  `office_unit_id` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `user_profiles`
+--
+
+INSERT INTO `user_profiles` (`user_id`, `first_name`, `middle_name`, `last_name`, `user_role`, `office_unit_id`) VALUES
+(1, '', NULL, '', 'Director', 1),
+(2, '', NULL, '', 'TWG', 2),
+(3, '', NULL, '', 'TWG', 3),
+(4, '', NULL, '', 'TWG', 4),
+(5, '', NULL, '', 'TWG', 5),
+(6, '', NULL, '', 'TWG', 6),
+(7, '', NULL, '', 'TWG', 7),
+(8, '', NULL, '', 'TWG', 8),
+(9, '', NULL, '', 'TWG', 9),
+(10, '', NULL, '', 'TWG', 10),
+(11, '', NULL, '', 'TWG', 11),
+(12, '', NULL, '', 'TWG', 12),
+(13, '', NULL, '', 'TWG', 13),
+(14, '', NULL, '', 'TWG', 14),
+(15, '', NULL, '', 'TWG', 15),
+(16, '', NULL, '', 'TWG', 16),
+(17, '', NULL, '', 'TWG', 17),
+(18, '', NULL, '', 'TWG', 18),
+(19, '', NULL, '', 'TWG', 19),
+(20, '', NULL, '', 'TWG', 20),
+(21, '', NULL, '', 'TWG', 21),
+(22, '', NULL, '', 'TWG', 22),
+(23, '', NULL, '', 'TWG', 23),
+(24, '', NULL, '', 'TWG', 24),
+(25, '', NULL, '', 'TWG', 25),
+(26, '', NULL, '', 'TWG', 26),
+(27, '', NULL, '', 'TWG', 27),
+(28, '', NULL, '', 'TWG', 28),
+(29, '', NULL, '', 'TWG', 29),
+(30, '', NULL, '', 'TWG', 30),
+(31, '', NULL, '', 'TWG', 31),
+(32, '', NULL, '', 'TWG', 32),
+(33, '', NULL, '', 'TWG', 33),
+(34, '', NULL, '', 'TWG', 34),
+(35, '', NULL, '', 'TWG', 35),
+(36, '', NULL, '', 'TWG', 36),
+(37, '', NULL, '', 'TWG', 37),
+(38, '', NULL, '', 'TWG', 38),
+(39, '', NULL, '', 'TWG', 39),
+(40, '', NULL, '', 'TWG', 40),
+(41, '', NULL, '', 'TWG', 41),
+(42, '', NULL, '', 'TWG', 42),
+(43, '', NULL, '', 'TWG', 43),
+(44, '', NULL, '', 'TWG', 44),
+(45, '', NULL, '', 'TWG', 45),
+(46, '', NULL, '', 'TWG', 46),
+(47, 'GAD', 'Staff', 'User', 'Staff', 1),
+(51, 'Mark', '', 'Santos', 'Non-TWG', 32),
+(52, '', NULL, '', 'Non-TWG', 32);
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `venues`
 --
 
-DROP TABLE IF EXISTS `venues`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `venues` (
-  `venue_id` int NOT NULL AUTO_INCREMENT,
-  `venue_name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  PRIMARY KEY (`venue_id`),
-  UNIQUE KEY `uk_venue_name` (`venue_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+  `venue_id` int(11) NOT NULL,
+  `venue_name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `venues`
 --
 
-LOCK TABLES `venues` WRITE;
-/*!40000 ALTER TABLE `venues` DISABLE KEYS */;
-INSERT INTO `venues` VALUES (2,'BSU Covered Court'),(1,'BSU Gymnasium'),(12,'Carnation Hall'),(10,'CHET Hall'),(11,'CHK Function Hall'),(9,'CTE DSG Hall'),(16,'Dimas Hall, IHFSA'),(13,'Everlasting Hall'),(7,'Gladiola Center'),(15,'Igorota Hall'),(5,'International Dorm Hall'),(6,'IRO Hall'),(18,'Main Auditorium'),(17,'OSS Social Hall'),(3,'RDC Hall'),(8,'RSDC Executive Hall'),(14,'Solibao Hall'),(4,'VP AdFin Hall');
-/*!40000 ALTER TABLE `venues` ENABLE KEYS */;
-UNLOCK TABLES;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+INSERT INTO `venues` (`venue_id`, `venue_name`) VALUES
+(1, 'BSU Gymnasium'),
+(2, 'BSU Covered Court'),
+(3, 'RDC Hall'),
+(4, 'VP AdFin Hall'),
+(5, 'International Dorm Hall'),
+(6, 'IRO Hall'),
+(7, 'Gladiola Center'),
+(8, 'RSDC Executive Hall'),
+(9, 'CTE DSG Hall'),
+(10, 'CHET Hall'),
+(11, 'CHK Function Hall'),
+(12, 'Carnation Hall'),
+(13, 'Everlasting Hall'),
+(14, 'Solibao Hall'),
+(15, 'Igorota Hall'),
+(16, 'Dimas Hall, IHFSA'),
+(17, 'OSS Social Hall'),
+(18, 'Main Auditorium');
 
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `accomplishment_budget_items`
+--
+ALTER TABLE `accomplishment_budget_items`
+  ADD PRIMARY KEY (`item_id`);
+
+--
+-- Indexes for table `accomplishment_evaluation_results`
+--
+ALTER TABLE `accomplishment_evaluation_results`
+  ADD PRIMARY KEY (`evaluation_id`);
+
+--
+-- Indexes for table `accomplishment_report`
+--
+ALTER TABLE `accomplishment_report`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_report_user` (`user_id`),
+  ADD KEY `idx_ar_control_number` (`control_number`);
+
+--
+-- Indexes for table `activity_budget_items`
+--
+ALTER TABLE `activity_budget_items`
+  ADD PRIMARY KEY (`item_id`);
+
+--
+-- Indexes for table `activity_classifications`
+--
+ALTER TABLE `activity_classifications`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `activity_design`
+--
+ALTER TABLE `activity_design`
+  ADD PRIMARY KEY (`act_design_id`),
+  ADD KEY `fk_activity_user` (`user_id`),
+  ADD KEY `fk_activity_gpb` (`gpb_id`);
+
+--
+-- Indexes for table `activity_logs`
+--
+ALTER TABLE `activity_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- Indexes for table `archived_accomplishment_budget_items`
+--
+ALTER TABLE `archived_accomplishment_budget_items`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `archived_accomplishment_reports`
+--
+ALTER TABLE `archived_accomplishment_reports`
+  ADD PRIMARY KEY (`archive_id`),
+  ADD KEY `idx_aar_control_number` (`control_number`);
+
+--
+-- Indexes for table `archived_activity_budget_items`
+--
+ALTER TABLE `archived_activity_budget_items`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `archived_activity_designs`
+--
+ALTER TABLE `archived_activity_designs`
+  ADD PRIMARY KEY (`archive_id`);
+
+--
+-- Indexes for table `budget_realignment_logs`
+--
+ALTER TABLE `budget_realignment_logs`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `control_number`
+--
+ALTER TABLE `control_number`
+  ADD PRIMARY KEY (`control_number_id`),
+  ADD UNIQUE KEY `control_number` (`control_number`),
+  ADD UNIQUE KEY `uk_control_number` (`control_number`),
+  ADD KEY `fk_control_activity` (`act_design_id`),
+  ADD KEY `fk_control_user` (`user_id`);
+
+--
+-- Indexes for table `form_types`
+--
+ALTER TABLE `form_types`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `gad_mandates`
+--
+ALTER TABLE `gad_mandates`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `gad_plan_budget`
+--
+ALTER TABLE `gad_plan_budget`
+  ADD PRIMARY KEY (`gpb_id`);
+
+--
+-- Indexes for table `gender_issues`
+--
+ALTER TABLE `gender_issues`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `gpb_budget_breakdown`
+--
+ALTER TABLE `gpb_budget_breakdown`
+  ADD PRIMARY KEY (`breakdown_id`),
+  ADD KEY `gpb_id` (`gpb_id`);
+
+--
+-- Indexes for table `gpb_offices_map`
+--
+ALTER TABLE `gpb_offices_map`
+  ADD PRIMARY KEY (`gpb_id`,`office_id`),
+  ADD KEY `office_id` (`office_id`);
+
+--
+-- Indexes for table `mandate`
+--
+ALTER TABLE `mandate`
+  ADD PRIMARY KEY (`mandate_id`),
+  ADD KEY `fk_mandate_gpb` (`gpb_id`);
+
+--
+-- Indexes for table `messages`
+--
+ALTER TABLE `messages`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `migrations`
+--
+ALTER TABLE `migrations`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `office_units`
+--
+ALTER TABLE `office_units`
+  ADD PRIMARY KEY (`office_id`),
+  ADD UNIQUE KEY `office_name` (`office_name`);
+
+--
+-- Indexes for table `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_users_office_id` (`office_id`);
+
+--
+-- Indexes for table `user_profiles`
+--
+ALTER TABLE `user_profiles`
+  ADD PRIMARY KEY (`user_id`);
+
+--
+-- Indexes for table `venues`
+--
+ALTER TABLE `venues`
+  ADD PRIMARY KEY (`venue_id`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `accomplishment_budget_items`
+--
+ALTER TABLE `accomplishment_budget_items`
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `accomplishment_evaluation_results`
+--
+ALTER TABLE `accomplishment_evaluation_results`
+  MODIFY `evaluation_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `accomplishment_report`
+--
+ALTER TABLE `accomplishment_report`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+
+--
+-- AUTO_INCREMENT for table `activity_budget_items`
+--
+ALTER TABLE `activity_budget_items`
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+
+--
+-- AUTO_INCREMENT for table `activity_classifications`
+--
+ALTER TABLE `activity_classifications`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `activity_design`
+--
+ALTER TABLE `activity_design`
+  MODIFY `act_design_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
+
+--
+-- AUTO_INCREMENT for table `activity_logs`
+--
+ALTER TABLE `activity_logs`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
+
+--
+-- AUTO_INCREMENT for table `archived_accomplishment_budget_items`
+--
+ALTER TABLE `archived_accomplishment_budget_items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `archived_accomplishment_reports`
+--
+ALTER TABLE `archived_accomplishment_reports`
+  MODIFY `archive_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+
+--
+-- AUTO_INCREMENT for table `archived_activity_budget_items`
+--
+ALTER TABLE `archived_activity_budget_items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `archived_activity_designs`
+--
+ALTER TABLE `archived_activity_designs`
+  MODIFY `archive_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+
+--
+-- AUTO_INCREMENT for table `budget_realignment_logs`
+--
+ALTER TABLE `budget_realignment_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `control_number`
+--
+ALTER TABLE `control_number`
+  MODIFY `control_number_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+
+--
+-- AUTO_INCREMENT for table `form_types`
+--
+ALTER TABLE `form_types`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `gad_mandates`
+--
+ALTER TABLE `gad_mandates`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+
+--
+-- AUTO_INCREMENT for table `gad_plan_budget`
+--
+ALTER TABLE `gad_plan_budget`
+  MODIFY `gpb_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+
+--
+-- AUTO_INCREMENT for table `gender_issues`
+--
+ALTER TABLE `gender_issues`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+
+--
+-- AUTO_INCREMENT for table `gpb_budget_breakdown`
+--
+ALTER TABLE `gpb_budget_breakdown`
+  MODIFY `breakdown_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `mandate`
+--
+ALTER TABLE `mandate`
+  MODIFY `mandate_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `messages`
+--
+ALTER TABLE `messages`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=673;
+
+--
+-- AUTO_INCREMENT for table `migrations`
+--
+ALTER TABLE `migrations`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+
+--
+-- AUTO_INCREMENT for table `office_units`
+--
+ALTER TABLE `office_units`
+  MODIFY `office_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
+
+--
+-- AUTO_INCREMENT for table `users`
+--
+ALTER TABLE `users`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
+
+--
+-- AUTO_INCREMENT for table `venues`
+--
+ALTER TABLE `venues`
+  MODIFY `venue_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `accomplishment_report`
+--
+ALTER TABLE `accomplishment_report`
+  ADD CONSTRAINT `fk_ar_control_number` FOREIGN KEY (`control_number`) REFERENCES `control_number` (`control_number`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_report_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `activity_design`
+--
+ALTER TABLE `activity_design`
+  ADD CONSTRAINT `fk_activity_gpb` FOREIGN KEY (`gpb_id`) REFERENCES `gad_plan_budget` (`gpb_id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_activity_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `archived_accomplishment_reports`
+--
+ALTER TABLE `archived_accomplishment_reports`
+  ADD CONSTRAINT `fk_aar_control_number` FOREIGN KEY (`control_number`) REFERENCES `control_number` (`control_number`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `control_number`
+--
+ALTER TABLE `control_number`
+  ADD CONSTRAINT `fk_control_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `gpb_budget_breakdown`
+--
+ALTER TABLE `gpb_budget_breakdown`
+  ADD CONSTRAINT `gpb_budget_breakdown_ibfk_1` FOREIGN KEY (`gpb_id`) REFERENCES `gad_plan_budget` (`gpb_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `gpb_offices_map`
+--
+ALTER TABLE `gpb_offices_map`
+  ADD CONSTRAINT `gpb_offices_map_ibfk_1` FOREIGN KEY (`gpb_id`) REFERENCES `gad_plan_budget` (`gpb_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `gpb_offices_map_ibfk_2` FOREIGN KEY (`office_id`) REFERENCES `office_units` (`office_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `mandate`
+--
+ALTER TABLE `mandate`
+  ADD CONSTRAINT `fk_mandate_gpb` FOREIGN KEY (`gpb_id`) REFERENCES `gad_plan_budget` (`gpb_id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `users`
+--
+ALTER TABLE `users`
+  ADD CONSTRAINT `fk_users_office_id` FOREIGN KEY (`office_id`) REFERENCES `office_units` (`office_id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
+-- Constraints for table `user_profiles`
+--
+ALTER TABLE `user_profiles`
+  ADD CONSTRAINT `fk_user_profiles_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+COMMIT;
+
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
--- Dump completed on 2026-06-28 11:25:50

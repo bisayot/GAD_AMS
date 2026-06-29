@@ -14,47 +14,40 @@
                     <div class="input-group">
                       <label class="form-label">Form Type *</label>
                       <select 
-                        v-model="form.nature" 
+                        v-model="form.form_type" 
                         required 
                         class="custom-input-field select-arrow-fix"
                       >
                         <option value="" disabled class="dark-option">Select form type...</option>
-                        <option value="inset" class="dark-option">INSET</option>
-                        <option value="extension" class="dark-option">Extension Program</option>
-                        <option value="employee" class="dark-option">Employee Training</option>
+                        <option 
+                          v-for="ft in formTypes" 
+                          :key="ft.id" 
+                          :value="ft.id" 
+                          class="dark-option"
+                        >
+                          {{ ft.name }}
+                        </option>
                       </select>
                     </div>
 
                     <div class="input-group">
-                      <label class="form-label">Venue *</label>
-                      <select 
-                        v-model="form.venue" 
-                        required 
+                      <label class="form-label">Activity Classification *</label>
+                      <select
+                        v-model="form.activity_classification_id"
+                        required
                         class="custom-input-field select-arrow-fix"
                       >
-                        <option value="" disabled class="dark-option">Select venue...</option>
-                        <option 
-                          v-for="v in venues" 
-                          :key="v.venue_id" 
-                          :value="v.venue_id" 
+                        <option value="" disabled class="dark-option">Select Classification</option>
+                        <option
+                          v-for="classification in ActClassification"
+                          :key="classification.id"
+                          :value="classification.id"
                           class="dark-option"
                         >
-                          {{ v.venue_name }}
+                          {{ classification.classification_name }}
                         </option>
-                        <option value="Other" class="dark-option">Other</option>
                       </select>
                     </div>
-                  </div>
-
-                  <div v-if="form.venue === 'Other'" class="input-group">
-                    <label class="form-label">Specify Other Venue *</label>
-                    <input 
-                      type="text" 
-                      v-model="customVenue" 
-                      required 
-                      class="custom-input-field"
-                      placeholder="Enter the complete venue name"
-                    >
                   </div>
 
                   <div class="input-group">
@@ -66,6 +59,73 @@
                       class="custom-input-field textarea-no-resize"
                       placeholder="Enter the complete title of the activity"
                     ></textarea>
+                  </div>
+
+                  <div class="input-group">
+                    <label class="form-label">GAD Mandate *</label>
+                    <select v-model="form.gad_mandate_id" required class="custom-input-field select-arrow-fix">
+                      <option value="" disabled class="dark-option">Select Mandate</option>
+                      <option v-for="mandate in GADMandates" :key="mandate.id" :value="mandate.id" class="dark-option">
+                        {{ mandate.code }} - {{ mandate.title }}
+                      </option>
+                      <option value="Other" class="dark-option">+ New Mandate</option>
+                    </select>
+                    <input v-if="form.gad_mandate_id === 'Other'" 
+                          v-model="customMandate" 
+                          type="text" 
+                          placeholder="Enter new mandate name..." 
+                          class="custom-input-field" 
+                          style="margin-top: 10px;" />
+                  </div>
+
+                  <div class="input-group">
+                    <label class="form-label">Gender Issues *</label>
+                    <select v-model="form.gender_issue_id" required class="custom-input-field select-arrow-fix">
+                      <option value="" disabled class="dark-option">
+                        {{ form.gad_mandate_id ? 'Select Gender Issue' : 'Select Mandate first' }}
+                      </option>
+                      <option v-for="issue in genderIssues" :key="issue.id" :value="issue.id" class="dark-option">
+                        {{ issue.title }}
+                      </option>
+                      <option value="Other" class="dark-option">+ New Gender Issue</option>
+                    </select>
+                    <input v-if="form.gender_issue_id === 'Other'" 
+                          v-model="customGenderIssue" 
+                          type="text" 
+                          placeholder="Enter new gender issue..." 
+                          class="custom-input-field" 
+                          style="margin-top: 10px;" />
+                  </div>
+
+                  <div class="input-group">
+                    <label class="form-label">Venue *</label>
+                    <select 
+                      v-model="form.venue" 
+                      required 
+                      class="custom-input-field select-arrow-fix"
+                    >
+                      <option value="" disabled class="dark-option">Select venue...</option>
+                      <option 
+                        v-for="v in venues" 
+                        :key="v.venue_id" 
+                        :value="v.venue_id" 
+                        class="dark-option"
+                      >
+                        {{ v.venue_name }}
+                      </option>
+                      <option value="Other" class="dark-option">Other</option>
+                    </select>
+                  </div>
+
+                  <div v-if="form.venue === 'Other'" class="input-group">
+                    <label class="form-label">Specify Other Venue *</label>
+                    <input 
+                      type="text" 
+                      v-model="customVenue" 
+                      required 
+                      class="custom-input-field"
+                      placeholder="Enter the complete venue name"
+                    >
                   </div>
 
                   <div class="form-sub-grid">
@@ -625,9 +685,19 @@ const isValidActivityDuration = (startDateString, endDateString) => {
 
 const venues = ref([]);
 const customVenue = ref('');
+const formTypes = ref([]);
+const GADMandates = ref([]);
+const genderIssues = ref([]);
+const ActClassification = ref([]); 
+const customMandate = ref('');
+const customGenderIssue = ref('');
 
 const form = ref({
+  form_type: '',
   nature: '',
+  activity_classification_id: '',
+  gad_mandate_id: '',
+  gender_issue_id: '',
   activity_title: '',
   start_date: '',
   end_date: '',
@@ -679,6 +749,51 @@ const fetchVenues = async () => {
     console.error('Error fetching venues:', error);
   }
 };
+
+const fetchFormTypes = async () => {
+  try {
+    const res = await api.get('get-form-types');
+    formTypes.value = res.data;
+  } catch (error) {
+    console.error('Error fetching form types:', error);
+  }
+};
+
+const fetchActivityClassifications = async () => {
+  try {
+    const res = await api.get('get-activity-classifications');
+    ActClassification.value = res.data;
+  } catch (error) {
+    console.error('Error fetching activity classifications:', error);
+  }
+};
+
+const fetchGADMandates = async () => {
+  try {
+    const res = await api.get('get-gad-mandates');
+    GADMandates.value = res.data;
+  } catch (error) {
+    console.error('Error fetching GAD mandates:', error);
+  }
+};
+
+const fetchGenderIssues = async (mandateId) => {
+  if (!mandateId || mandateId === 'Other') {
+    genderIssues.value = [];
+    return;
+  }
+  try {
+    const res = await api.get(`get-gender-issues/${mandateId}`);
+    genderIssues.value = res.data;
+  } catch (error) {
+    console.error('Error fetching gender issues:', error);
+  }
+};
+
+watch(() => form.value.gad_mandate_id, (newVal) => {
+  form.value.gender_issue_id = '';
+  fetchGenderIssues(newVal);
+});
 
 watch(() => form.value.budget_items, (newItems) => {
   const total = newItems.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
@@ -875,12 +990,23 @@ const submitActivityDesign = async () => {
   try {
     const formData = new FormData();
     
-    formData.append('form-type', form.value.nature);
-    formData.append('activity-title', form.value.activity_title);
-    formData.append('start-date', form.value.start_date);
-    formData.append('end-date', form.value.end_date);
-    formData.append('start-time', form.value.start_time);
-    formData.append('end-time', form.value.end_time);
+    formData.append('form_type', form.value.form_type || form.value.nature);
+    formData.append('activity_classification_id', form.value.activity_classification_id);
+    formData.append('gad_mandate_id', form.value.gad_mandate_id);
+    formData.append('gender_issue_id', form.value.gender_issue_id);
+    
+    if (form.value.gad_mandate_id === 'Other') {
+      formData.append('custom_gad_mandate', customMandate.value);
+    }
+    if (form.value.gender_issue_id === 'Other') {
+      formData.append('custom_gender_issue', customGenderIssue.value);
+    }
+
+    formData.append('activity_title', form.value.activity_title);
+    formData.append('start_date', form.value.start_date);
+    formData.append('end_date', form.value.end_date);
+    formData.append('start_time', form.value.start_time);
+    formData.append('end_time', form.value.end_time);
     formData.append('user_id', user.value.id || user.value.user_id);
     
     if (form.value.venue && form.value.venue !== 'Other') {
@@ -1015,7 +1141,7 @@ const submitActivityDesign = async () => {
     formData.append('budgetary-requirements', JSON.stringify(finalBudgetItems));
 
     if (designFile.value) {
-      formData.append('attachment', designFile.value);
+      formData.append('design_file', designFile.value);
     }
 
     const response = await api.post('submit-activity-design', formData, {
@@ -1059,9 +1185,12 @@ const handleLogout = async () => {
 };
 
 onMounted(() => {
-  if (!user.value.id || user.value.role !== 'college') {
+  if (!user.value.id || user.value.role !== 'twg') {
     router.push('/login');
   }
+  fetchFormTypes();
+  fetchActivityClassifications();
+  fetchGADMandates();
   fetchVenues();
   fetchHolidays();
   document.addEventListener('click', closeAllHelp);

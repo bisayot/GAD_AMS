@@ -518,7 +518,7 @@ const fetchStats = async () => {
     upcomingDeadlines.value = dl.slice(0, 5);
 
     if (budgetRes && budgetRes.data && budgetRes.data.success) {
-      const budgetFormat = new Intl.NumberFormat('en-PH', { maximumFractionDigits: 0 });
+      const budgetFormat = new Intl.NumberFormat('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       metricsStats.value[2].value = '₱' + budgetFormat.format(budgetRes.data.data.total_budget || 0);
       metricsStats.value[3].value = '₱' + budgetFormat.format(budgetRes.data.data.remaining_balance || 0);
     }

@@ -13,7 +13,7 @@ class ActivityDesignController extends BaseController
         $activityDesignModel = new ActivityDesignModel();
 
         $rules = [
-            "nature"              => "required",
+            "form_type"           => "required",
             "activity_title"      => "required",
             "start_date"          => "required",
             "end_date"            => "required",
@@ -28,7 +28,7 @@ class ActivityDesignController extends BaseController
         ];
 
         $messages = [
-            "nature"              => ["required" => "Form type is required"],
+            "form_type"           => ["required" => "Form type is required"],
             "activity_title"      => ["required" => "Activity title is required"],
             "start_date"          => ["required" => "Start date is required"],
             "end_date"            => ["required" => "End date is required"],
@@ -80,24 +80,52 @@ class ActivityDesignController extends BaseController
                 $venueId = $venueModel->getInsertID();
             }
 
+            $gadMandateId = $this->request->getPost('gad_mandate_id');
+            if ($gadMandateId === 'Other' || $gadMandateId === 'new') {
+                $customMandate = $this->request->getPost('custom_gad_mandate');
+                $db = \Config\Database::connect();
+                $db->table('gad_mandates')->insert([
+                    'code' => 'CUSTOM',
+                    'title' => $customMandate
+                ]);
+                $gadMandateId = $db->insertID();
+            }
+
+            $genderIssueId = $this->request->getPost('gender_issue_id');
+            if ($genderIssueId === 'Other' || $genderIssueId === 'new') {
+                $customIssue = $this->request->getPost('custom_gender_issue');
+                $db = \Config\Database::connect();
+                $db->table('gender_issues')->insert([
+                    'mandate_id' => $gadMandateId,
+                    'title' => $customIssue,
+                    'gad_objective' => null
+                ]);
+                $genderIssueId = $db->insertID();
+            }
+
             // Save uploaded PDF to writable/uploads/drafts/
             $file = $this->request->getFile('attachment');
             $fileName = FileStorage::saveToDrafts($file);
 
             $data = [
-                "form_type"           => $this->request->getPost("nature"),
-                "activity_title"      => $this->request->getPost("activity_title"),
-                "start_date"          => $this->request->getPost("start_date"),
-                "end_date"            => $this->request->getPost("end_date"),
-                "start_time"          => $this->request->getPost("start_time"),
-                "end_time"            => $this->request->getPost("end_time"),
-                "venue_id"            => $venueId,
-                "target_participants" => $this->request->getPost("target_participants"),
-                "proposed_budget"     => $this->request->getPost("proposed_budget"),
-                "user_id"             => $this->request->getPost("user_id"),
-                "attachment"          => $fileName,
-                "status"              => "Pending",
+                "form_type"                  => $this->request->getPost("form_type"),
+                "activity_classification_id" => $this->request->getPost("activity_classification_id"),
+                "classification_id"          => $this->request->getPost("activity_classification_id"), // mapping to db column
+                "gad_mandate_id"             => $gadMandateId,
+                "gender_issue_id"            => $genderIssueId,
+                "activity_title"             => $this->request->getPost("activity_title"),
+                "start_date"                 => $this->request->getPost("start_date"),
+                "end_date"                   => $this->request->getPost("end_date"),
+                "start_time"                 => $this->request->getPost("start_time"),
+                "end_time"                   => $this->request->getPost("end_time"),
+                "venue_id"                   => $venueId,
+                "target_participants"        => $this->request->getPost("target_participants"),
+                "proposed_budget"            => $this->request->getPost("proposed_budget"),
+                "user_id"                    => $this->request->getPost("user_id"),
+                "attachment"                 => $fileName,
+                "status"                     => "Pending",
             ];
+            unset($data['activity_classification_id']); // remove the temporary mapping key
 
             if (empty($data['user_id'])) {
                 throw new \Exception("User ID is missing. Please log in again.");
@@ -362,12 +390,16 @@ class ActivityDesignController extends BaseController
 
         $data = [
             'activity_title'      => $this->request->getPost('activity_title'),
-            'form_type'           => $this->request->getPost('nature'),
+            'form_type'           => $this->request->getPost('form_type') ?? $this->request->getPost('nature'),
+            'classification_id'   => $this->request->getPost('activity_classification_id'),
+            'gad_mandate_id'      => $this->request->getPost('gad_mandate_id'),
+            'gender_issue_id'     => $this->request->getPost('gender_issue_id'),
             'start_date'          => $this->request->getPost('start_date'),
             'end_date'            => $this->request->getPost('end_date'),
             'start_time'          => $this->request->getPost('start_time'),
             'end_time'            => $this->request->getPost('end_time'),
-            'venue_id'            => $venueId,
+            'venue'               => $this->request->getPost('venue'),
+            'venue_id'            => $venueId ?? $this->request->getPost('venue_id'),
             'proposed_budget'     => $this->request->getPost('proposed_budget'),
             'target_participants' => $this->request->getPost('target_participants'),
             'status'              => $this->request->getPost('status') ?? 'Pending', 
@@ -639,5 +671,42 @@ class ActivityDesignController extends BaseController
         }
 
         return $this->response->setJSON(['success' => false, 'message' => 'Failed to move activity design to trash'])->setStatusCode(500);
+    }
+
+    public function getFormTypes()
+    {
+        $db = \Config\Database::connect();
+        $builder = $db->table('form_types');
+        $query = $builder->get();
+        return $this->response->setJSON($query->getResult());
+    }
+
+    public function getGADMandates()
+    {
+        $db = \Config\Database::connect();
+        $builder = $db->table('gad_mandates');
+        $query = $builder->get();
+        return $this->response->setJSON($query->getResult());
+    }
+
+    public function getGenderIssues($mandate_id = null)
+    {
+        $db = \Config\Database::connect();
+        $builder = $db->table('gender_issues');
+
+        if ($mandate_id) {
+            $builder->where('mandate_id', $mandate_id);
+        }
+
+        $query = $builder->get();
+        return $this->response->setJSON($query->getResult());
+    }
+
+    public function getActivityClassifications()
+    {
+        $db = \Config\Database::connect();
+        $builder = $db->table('activity_classifications');
+        $query = $builder->get();
+        return $this->response->setJSON($query->getResult());
     }
 }

@@ -1,5 +1,5 @@
 <template>
-      <main class="flex-1 overflow-y-auto">
+  <main class="main-viewport flex-1 overflow-y-auto" style="background: linear-gradient(135deg, #0f172a 0%, #1e1e2f 100%); min-height: 100vh; padding: 2rem;">
         <div class="mx-auto">
 
           <div class="hero-section">
@@ -32,29 +32,35 @@
             </div>
           </div>
  
-          <div class="filter-bar">
-            <div class="filter-group">
-              <span class="filter-label">Filter:</span>
-              <select v-model="filters.status" class="filter-select" @change="applyFilters">
-                <option value="all">All Mandates</option>
-                <option value="active">In Progress</option>
-                <option value="completed">Completed</option>
-                <option value="upcoming">Upcoming</option>
-              </select>
-            </div>
-            <div class="filter-group">
-              <div class="search-box">
-                <span>🔍</span>
-                <input 
-                  type="text" 
-                  v-model="filters.search" 
-                  placeholder="Search mandates..." 
-                  @keyup.enter="applyFilters"
-                >
+          <div class="filter-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div style="display: flex; gap: 15px;">
+              <div class="filter-group">
+                <span class="filter-label">Filter:</span>
+                <select v-model="filters.status" class="filter-select" @change="applyFilters">
+                  <option value="all">All Mandates</option>
+                  <option value="active">In Progress</option>
+                  <option value="completed">Completed</option>
+                  <option value="upcoming">Upcoming</option>
+                </select>
               </div>
-              <button class="btn-reset btn-primary-custom" @click="applyFilters">Apply</button>
-              <button class="btn-reset" @click="resetFilters">Reset</button>
+              <div class="filter-group">
+                <div class="search-box">
+                  <span>🔍</span>
+                  <input 
+                    type="text" 
+                    v-model="filters.search" 
+                    placeholder="Search mandates..." 
+                    @keyup.enter="applyFilters"
+                  >
+                </div>
+                <button class="btn-reset btn-primary-custom" @click="applyFilters">Apply</button>
+                <button class="btn-reset" @click="resetFilters">Reset</button>
+              </div>
             </div>
+            
+            <button class="btn-primary-custom" @click="openMandateModal(null)" style="padding: 10px 20px; font-weight: bold; background: #b979cc; color: #16213e; border: none; border-radius: 8px; cursor: pointer;">
+              + Add New Mandate
+            </button>
           </div>
 
           <div v-if="loading" class="loading-state">
@@ -63,10 +69,11 @@
           </div>
 
           <div v-else class="table-wrapper">
-            <div class="table-header">
+            <div class="table-header" style="display: grid; grid-template-columns: 50px 1fr 200px 150px; gap: 20px; color: #cbd5e1; font-size: 13px; font-weight: 600; padding: 12px 16px; background: rgba(255,255,255,0.05); border-radius: 8px;">
               <div>#</div>
               <div>Gender Issue / GAD Mandate</div>
-              <div>Responsible Unit</div>
+              <div style="text-align: center;">Responsible Unit</div>
+              <div>Actions</div>
             </div>
 
             <div v-if="paginatedMandates.length === 0" class="empty-state">
@@ -75,22 +82,51 @@
               <button @click="resetFilters" class="btn-reset">Clear all filters</button>
             </div>
 
-            <router-link 
+            <div 
               v-for="(item, idx) in paginatedMandates" 
               :key="item.id"
-              :to="`/admin/mandate-details/${item.id}`"
-              class="mandate-row"
+              class="mandate-row-container"
+              style="border-bottom: 1px solid rgba(255,255,255,0.05); padding: 15px 0;"
             >
-              <div class="mandate-number">{{ String(startIndex + idx + 1).padStart(2, '01') }}</div>
-              <div class="mandate-title">
-                {{ item.title }}
-                <div class="mandate-meta">
-                  <span class="status-badge" :class="getStatusClass(item.status)">{{ getStatusText(item.status) }}</span>
-                  <span class="budget-text">Budget: {{ item.budget }}</span>
+              <div class="mandate-row" style="display: grid; grid-template-columns: 50px 1fr 200px 150px; gap: 20px; align-items: center; text-decoration: none; cursor: pointer; padding: 0 16px;" @click="toggleExpand(item.id)">
+                <div class="mandate-number" style="color: #64748b; font-weight: 500;">{{ String(startIndex + idx + 1).padStart(2, '01') }}</div>
+                <div class="mandate-title" style="color: #fff; font-weight: 600;">
+                  {{ item.code }} - {{ item.title }}
+                  <div class="mandate-meta" style="margin-top: 6px; display: flex; align-items: center; gap: 10px;">
+                    <span class="status-badge" :class="getStatusClass(item.status)">{{ getStatusText(item.status) }}</span>
+                    <span class="budget-text" style="color: #64748b; font-size: 12px;">Budget: {{ item.budget }}</span>
+                    <span style="font-size: 11px; color: #b979cc;">{{ item.gender_issues?.length || 0 }} Gender Issues {{ expandedMandates.includes(item.id) ? '▲' : '▼' }}</span>
+                  </div>
+                </div>
+                <div class="mandate-office" style="color: #cbd5e1; font-size: 14px; text-align: center;">{{ item.responsible_unit }}</div>
+                <div class="mandate-actions" style="display: flex; gap: 10px;" @click.stop>
+                  <button @click="openMandateModal(item)" style="background: transparent; color: #b979cc; border: 1px solid #b979cc; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-size: 12px;">Edit</button>
+                  <button @click="deleteMandate(item.id)" style="background: transparent; color: #ff4d4f; border: 1px solid #ff4d4f; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-size: 12px;">Delete</button>
                 </div>
               </div>
-              <div class="mandate-office">{{ item.responsible }}</div>
-            </router-link>
+              
+              <!-- Expanded Gender Issues -->
+              <div v-if="expandedMandates.includes(item.id)" class="gender-issues-container" style="padding: 15px 15px 15px 70px; background: rgba(0,0,0,0.2); margin-top: 15px; border-radius: 8px; margin-left: 16px; margin-right: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                  <h4 style="margin: 0; color: #fff; font-size: 14px;">Associated Gender Issues</h4>
+                  <button @click="openIssueModal(null, item.id)" style="background: #b979cc; color: #16213e; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-size: 12px; font-weight: bold;">+ Add Issue</button>
+                </div>
+                <div v-if="!item.gender_issues || item.gender_issues.length === 0" style="color: #64748b; font-size: 13px;">No gender issues found.</div>
+                <ul v-else style="list-style: none; padding: 0; margin: 0; font-size: 13px;">
+                  <li v-for="issue in item.gender_issues" :key="issue.id" style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed rgba(255,255,255,0.1);">
+                    <div style="flex: 1; padding-right: 20px;">
+                      <strong style="color: #cbd5e1; display: block; margin-bottom: 4px;">{{ issue.title }}</strong>
+                      <p style="margin: 0; color: #64748b; line-height: 1.4;">{{ issue.gad_objective }}</p>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: flex-start;">
+                      <span class="status-badge" :class="getStatusClass(issue.status)" style="font-size: 11px; padding: 3px 8px;">{{ getStatusText(issue.status) }}</span>
+                      <button @click="openIssueModal(issue, item.id)" style="background: none; border: none; color: #b979cc; cursor: pointer; font-size: 13px; padding: 0 4px; text-decoration: underline;">Edit</button>
+                      <button @click="deleteIssue(issue.id)" style="background: none; border: none; color: #ff4d4f; cursor: pointer; font-size: 13px; padding: 0 4px; text-decoration: underline;">Delete</button>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
 
           <div class="pagination" v-if="!loading && totalPages > 1">
@@ -117,6 +153,79 @@
           <div class="footer-note">
             <p>Showing OSS (Office of Student Services) mandates as outlined in the BSU GAD Plan and Budget (GPB) 2026 | Last updated: {{ lastUpdated }}</p>
           </div>
+
+          <!-- Mandate Modal -->
+          <div v-if="showMandateModal" class="modal-overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 1000;">
+            <div class="modal-content" style="background: #1a1a2e; padding: 30px; border-radius: 12px; border: 1px solid #b979cc; width: 500px; max-width: 90%;">
+              <h3 style="margin-top: 0; color: #fff; font-size: 18px; margin-bottom: 20px;">{{ editingMandate ? 'Edit Mandate' : 'Add New Mandate' }}</h3>
+              
+              <div class="input-group" style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 6px; color: #cbd5e1; font-size: 13px;">Mandate Code *</label>
+                <input v-model="mandateForm.code" type="text" class="custom-input-field" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(15,23,42,0.5); border: 1px solid rgba(255,255,255,0.1); color: #fff; box-sizing: border-box;" required placeholder="e.g. GAD-IEC">
+              </div>
+              
+              <div class="input-group" style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 6px; color: #cbd5e1; font-size: 13px;">Mandate Title *</label>
+                <textarea v-model="mandateForm.title" rows="3" class="custom-input-field" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(15,23,42,0.5); border: 1px solid rgba(255,255,255,0.1); color: #fff; box-sizing: border-box;" required placeholder="Enter mandate title..."></textarea>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div class="input-group">
+                  <label style="display: block; margin-bottom: 6px; color: #cbd5e1; font-size: 13px;">Status</label>
+                  <select v-model="mandateForm.status" class="custom-input-field" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(15,23,42,0.5); border: 1px solid rgba(255,255,255,0.1); color: #fff; box-sizing: border-box;">
+                    <option value="active" class="dark-option">In Progress</option>
+                    <option value="completed" class="dark-option">Completed</option>
+                    <option value="upcoming" class="dark-option">Upcoming</option>
+                  </select>
+                </div>
+                <div class="input-group">
+                  <label style="display: block; margin-bottom: 6px; color: #cbd5e1; font-size: 13px;">Budget</label>
+                  <input v-model="mandateForm.budget" type="text" class="custom-input-field" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(15,23,42,0.5); border: 1px solid rgba(255,255,255,0.1); color: #fff; box-sizing: border-box;" placeholder="₱0.00">
+                </div>
+              </div>
+
+              <div class="input-group" style="margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 6px; color: #cbd5e1; font-size: 13px;">Responsible Unit</label>
+                <input v-model="mandateForm.responsible_unit" type="text" class="custom-input-field" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(15,23,42,0.5); border: 1px solid rgba(255,255,255,0.1); color: #fff; box-sizing: border-box;" placeholder="e.g. OSS">
+              </div>
+              
+              <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                <button @click="showMandateModal = false" style="padding: 10px 18px; background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; cursor: pointer;">Cancel</button>
+                <button @click="saveMandate" style="padding: 10px 18px; background: #b979cc; color: #16213e; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Save Mandate</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Issue Modal -->
+          <div v-if="showIssueModal" class="modal-overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 1000;">
+            <div class="modal-content" style="background: #1a1a2e; padding: 30px; border-radius: 12px; border: 1px solid #b979cc; width: 500px; max-width: 90%;">
+              <h3 style="margin-top: 0; color: #fff; font-size: 18px; margin-bottom: 20px;">{{ editingIssue ? 'Edit Gender Issue' : 'Add New Gender Issue' }}</h3>
+              
+              <div class="input-group" style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 6px; color: #cbd5e1; font-size: 13px;">Issue Title *</label>
+                <textarea v-model="issueForm.title" rows="2" class="custom-input-field" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(15,23,42,0.5); border: 1px solid rgba(255,255,255,0.1); color: #fff; box-sizing: border-box;" required placeholder="Enter issue title..."></textarea>
+              </div>
+              
+              <div class="input-group" style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 6px; color: #cbd5e1; font-size: 13px;">GAD Objective</label>
+                <textarea v-model="issueForm.gad_objective" rows="3" class="custom-input-field" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(15,23,42,0.5); border: 1px solid rgba(255,255,255,0.1); color: #fff; box-sizing: border-box;" placeholder="Enter objective..."></textarea>
+              </div>
+
+              <div class="input-group" style="margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 6px; color: #cbd5e1; font-size: 13px;">Status</label>
+                <select v-model="issueForm.status" class="custom-input-field" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(15,23,42,0.5); border: 1px solid rgba(255,255,255,0.1); color: #fff; box-sizing: border-box;">
+                  <option value="active" class="dark-option">In Progress</option>
+                  <option value="completed" class="dark-option">Completed</option>
+                  <option value="upcoming" class="dark-option">Upcoming</option>
+                </select>
+              </div>
+              
+              <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                <button @click="showIssueModal = false" style="padding: 10px 18px; background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; cursor: pointer;">Cancel</button>
+                <button @click="saveIssue" style="padding: 10px 18px; background: #b979cc; color: #16213e; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Save Issue</button>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
 </template>
@@ -131,6 +240,15 @@ const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 
 const mandates = ref([]);
 const loading = ref(false);
+const expandedMandates = ref([]);
+
+const showMandateModal = ref(false);
+const editingMandate = ref(false);
+const mandateForm = ref({ id: null, code: '', title: '', status: 'active', budget: '', responsible_unit: 'OSS' });
+
+const showIssueModal = ref(false);
+const editingIssue = ref(false);
+const issueForm = ref({ id: null, mandate_id: null, title: '', gad_objective: '', status: 'active' });
 
 const filters = ref({
   status: 'all',
@@ -183,17 +301,98 @@ const visiblePages = computed(() => {
 const fetchMandates = async () => {
   loading.value = true;
   try {
-    // TODO: Replace with your actual API endpoint
-    // const response = await api.get('mandates');
-    // mandates.value = response.data;
-    
-    // Temporary empty array - remove this once database is connected
-    mandates.value = [];
-    
+    const response = await api.get('mandates');
+    if (response.data && response.data.success) {
+      mandates.value = response.data.data;
+    }
   } catch (error) {
     console.error('Error fetching mandates:', error);
   } finally {
     loading.value = false;
+  }
+};
+
+const toggleExpand = (id) => {
+  if (expandedMandates.value.includes(id)) {
+    expandedMandates.value = expandedMandates.value.filter(mId => mId !== id);
+  } else {
+    expandedMandates.value.push(id);
+  }
+};
+
+const openMandateModal = (mandate = null) => {
+  if (mandate) {
+    editingMandate.value = true;
+    mandateForm.value = { ...mandate };
+  } else {
+    editingMandate.value = false;
+    mandateForm.value = { id: null, code: '', title: '', status: 'active', budget: '', responsible_unit: 'OSS' };
+  }
+  showMandateModal.value = true;
+};
+
+const saveMandate = async () => {
+  try {
+    if (editingMandate.value) {
+      await api.put(`mandates/${mandateForm.value.id}`, mandateForm.value);
+    } else {
+      await api.post('mandates', mandateForm.value);
+    }
+    showMandateModal.value = false;
+    fetchMandates();
+  } catch (error) {
+    console.error('Error saving mandate:', error);
+    alert('Failed to save mandate');
+  }
+};
+
+const deleteMandate = async (id) => {
+  if (confirm('Are you sure you want to delete this mandate and all its associated gender issues?')) {
+    try {
+      await api.delete(`mandates/${id}`);
+      fetchMandates();
+    } catch (error) {
+      console.error('Error deleting mandate:', error);
+      alert('Failed to delete mandate');
+    }
+  }
+};
+
+const openIssueModal = (issue = null, mandateId) => {
+  if (issue) {
+    editingIssue.value = true;
+    issueForm.value = { ...issue };
+  } else {
+    editingIssue.value = false;
+    issueForm.value = { id: null, mandate_id: mandateId, title: '', gad_objective: '', status: 'active' };
+  }
+  showIssueModal.value = true;
+};
+
+const saveIssue = async () => {
+  try {
+    if (editingIssue.value) {
+      await api.put(`gender-issues/${issueForm.value.id}`, issueForm.value);
+    } else {
+      await api.post('gender-issues', issueForm.value);
+    }
+    showIssueModal.value = false;
+    fetchMandates();
+  } catch (error) {
+    console.error('Error saving issue:', error);
+    alert('Failed to save gender issue');
+  }
+};
+
+const deleteIssue = async (id) => {
+  if (confirm('Are you sure you want to delete this gender issue?')) {
+    try {
+      await api.delete(`gender-issues/${id}`);
+      fetchMandates();
+    } catch (error) {
+      console.error('Error deleting issue:', error);
+      alert('Failed to delete gender issue');
+    }
   }
 };
 
@@ -677,7 +876,7 @@ onMounted(() => {
 
 .pagination-info {
   font-size: 0.8rem;
-  color: #16213e;
+  color: #cbd5e1;
 }
 
 .pagination-buttons {
@@ -698,7 +897,7 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.2s;
   text-decoration: none;
-  color: #16213e;
+  color: #cbd5e1;
 }
 
 .page-btn:hover {
@@ -724,7 +923,7 @@ onMounted(() => {
   text-align: center;
   margin-top: 1.5rem;
   font-size: 1rem;
-  color: #16213e;
+  color: #cbd5e1;
 }
 
 /* Responsive */
