@@ -907,12 +907,16 @@ const handleUpdate = async () => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
   if (!user.value.id || user.value.role !== 'college') {
     router.push('/login');
   } else {
-    fetchVenues();
-    fetchDesignDetails();
+    try {
+      await fetchVenues();
+      await fetchDesignDetails();
+    } catch (err) {
+      console.error(err);
+    }
   }
 });
 </script>

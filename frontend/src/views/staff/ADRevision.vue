@@ -909,12 +909,16 @@ const handleUpdate = async () => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
   if (!user.value.id || user.value.role !== 'gad_staff') {
     router.push('/login');
   } else {
-    fetchVenues();
-    fetchDesignDetails();
+    try {
+      await fetchVenues();
+      await fetchDesignDetails();
+    } catch (err) {
+      console.error(err);
+    }
   }
 });
 </script>
