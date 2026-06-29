@@ -501,7 +501,6 @@ class ActivityDesignController extends BaseController
         }
 
         $db = \Config\Database::connect();
-        $db->transStart();
 
         $item = $db->table('activity_design')->where('act_design_id', $id)->get()->getRowArray();
         if (!$item) {
