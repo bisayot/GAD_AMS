@@ -39,35 +39,81 @@
 
                   <div class="input-group-ar">
                     <label class="form-label-ar">Activity Classification *</label>
-                    <input
-                      type="text"
-                      v-model="form.activity_classification"
-                      class="custom-input-field"
-                      placeholder="Activity Classification"
+                    <select
+                      v-model="form.classification_id"
                       required
+                      class="custom-input-field select-arrow-fix"
                     >
+                      <option value="" disabled class="dark-option">Select Classification</option>
+                      <option
+                        v-for="classification in ActClassification"
+                        :key="classification.id"
+                        :value="classification.id"
+                        class="dark-option"
+                      >
+                        {{ classification.classification_name }}
+                      </option>
+                    </select>
                   </div>
 
                   <div class="input-group-ar">
                     <label class="form-label-ar">GAD Mandate *</label>
-                    <input
-                      type="text"
-                      v-model="form.gad_mandate"
-                      class="custom-input-field"
-                      placeholder="GAD Mandate"
-                      required
+                    <select 
+                      v-model="form.gad_mandate_id" 
+                      required 
+                      class="custom-input-field select-arrow-fix"
                     >
+                      <option value="" disabled class="dark-option">Select Mandate</option>
+                      <option 
+                        v-for="mandate in GADMandates" 
+                        :key="mandate.id" 
+                        :value="mandate.id" 
+                        class="dark-option"
+                      >
+                        {{ mandate.code }} - {{ mandate.title }}
+                      </option>
+                      <option value="Other" class="dark-option">+ New Mandate</option>
+                    </select>
+                    <input 
+                      v-if="form.gad_mandate_id === 'Other'" 
+                      v-model="customMandate" 
+                      type="text" 
+                      placeholder="Enter new mandate name..." 
+                      class="custom-input-field" 
+                      style="margin-top: 10px;" 
+                      required
+                    />
                   </div>
 
                   <div class="input-group-ar">
                     <label class="form-label-ar">Gender Issue *</label>
-                    <input
-                      type="text"
-                      v-model="form.gender_issue"
-                      class="custom-input-field"
-                      placeholder="Gender Issue"
-                      required
+                    <select 
+                      v-model="form.gender_issue_id" 
+                      required 
+                      class="custom-input-field select-arrow-fix"
                     >
+                      <option value="" disabled class="dark-option">
+                        {{ form.gad_mandate_id ? 'Select Gender Issue' : 'Select Mandate first' }}
+                      </option>
+                      <option 
+                        v-for="issue in genderIssues" 
+                        :key="issue.id" 
+                        :value="issue.id" 
+                        class="dark-option"
+                      >
+                        {{ issue.title }}
+                      </option>
+                      <option value="Other" class="dark-option">+ New Gender Issue</option>
+                    </select>
+                    <input 
+                      v-if="form.gender_issue_id === 'Other'" 
+                      v-model="customGenderIssue" 
+                      type="text" 
+                      placeholder="Enter new gender issue..." 
+                      class="custom-input-field" 
+                      style="margin-top: 10px;" 
+                      required
+                    />
                   </div>
 
                   <div class="form-sub-grid-ar">
@@ -168,12 +214,32 @@
 
                   <div class="input-group-ar">
                     <label class="form-label-ar">Venue *</label>
+                    <select 
+                      v-model="form.venue_id" 
+                      required 
+                      class="custom-input-field select-arrow-fix"
+                    >
+                      <option value="" disabled class="dark-option">Select venue...</option>
+                      <option 
+                        v-for="v in venues" 
+                        :key="v.venue_id" 
+                        :value="v.venue_id" 
+                        class="dark-option"
+                      >
+                        {{ v.venue_name }}
+                      </option>
+                      <option value="Other" class="dark-option">Other</option>
+                    </select>
+                  </div>
+
+                  <div v-if="form.venue_id === 'Other'" class="input-group-ar">
+                    <label class="form-label-ar">Specify Other Venue *</label>
                     <input 
                       type="text" 
-                      v-model="form.venue" 
+                      v-model="customVenue" 
                       required 
                       class="custom-input-field"
-                      placeholder="e.g., Convention Center, Main Hall"
+                      placeholder="Enter the complete venue name"
                     >
                   </div>
 
@@ -721,14 +787,18 @@ const form = ref({
   activity_title: '',
   control_number: '',
   activity_classification: '',
+  classification_id: '',
   gad_mandate: '',
+  gad_mandate_id: '',
   gender_issue: '',
+  gender_issue_id: '',
   act_design_id: null,
   start_date: '',
   end_date: '',
   start_time: '',
   end_time: '',
   venue: '',
+  venue_id: '',
   attendees: '',
   male: '',
   female: '', 
@@ -797,6 +867,13 @@ watch(
 
 const selectedProposedBudget = ref(0);
 const proposedBudgetItems = ref({});
+const venues = ref([]);
+const ActClassification = ref([]);
+const GADMandates = ref([]);
+const genderIssues = ref([]);
+const customVenue = ref('');
+const customMandate = ref('');
+const customGenderIssue = ref('');
 
 const isExceedingLimit = computed(() => {
   return selectedProposedBudget.value > 0 && form.value.proposed_budget > selectedProposedBudget.value;
@@ -814,6 +891,56 @@ const getBudgetItemAmount = (items, name) => {
     .reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
 };
 
+const fetchVenues = async () => {
+  try {
+    const response = await api.get('get-venues');
+    if (response.data && response.data.success) {
+      venues.value = response.data.data || [];
+    }
+  } catch (error) {
+    console.error('Error fetching venues:', error);
+  }
+};
+
+const fetchActivityClassifications = async () => {
+  try {
+    const res = await api.get('get-activity-classifications');
+    ActClassification.value = res.data;
+  } catch (error) {
+    console.error('Error fetching activity classifications:', error);
+  }
+};
+
+const fetchGADMandates = async () => {
+  try {
+    const res = await api.get('get-gad-mandates');
+    GADMandates.value = res.data;
+  } catch (error) {
+    console.error('Error fetching GAD mandates:', error);
+  }
+};
+
+const fetchGenderIssues = async (mandateId) => {
+  if (!mandateId || mandateId === 'Other') {
+    genderIssues.value = [];
+    return;
+  }
+  try {
+    const res = await api.get(`get-gender-issues/${mandateId}`);
+    genderIssues.value = res.data;
+  } catch (error) {
+    console.error('Error fetching gender issues:', error);
+  }
+};
+
+watch(() => form.value.gad_mandate_id, (newVal) => {
+  if (newVal && newVal !== 'Other') {
+    fetchGenderIssues(newVal);
+  } else {
+    genderIssues.value = [];
+  }
+});
+
 watch(() => form.value.control_number, async (newVal) => {
   const selected = approvedControls.value.find(c => c.control_number === newVal);
   if (selected) {
@@ -824,9 +951,14 @@ watch(() => form.value.control_number, async (newVal) => {
     form.value.start_time = selected.start_time;
     form.value.end_time = selected.end_time;
     form.value.venue = selected.venue_name || selected.venue; // Fallback to venue if venue_name is not available
+    form.value.venue_id = selected.venue_id || 'Other';
+    customVenue.value = selected.venue_id ? '' : (selected.venue || '');
     form.value.activity_classification = selected.activity_classification || 'N/A';
+    form.value.classification_id = selected.classification_id || '';
     form.value.gad_mandate = selected.gad_mandate || 'N/A';
+    form.value.gad_mandate_id = selected.gad_mandate_id || '';
     form.value.gender_issue = selected.gender_issue || 'N/A';
+    form.value.gender_issue_id = selected.gender_issue_id || '';
     selectedProposedBudget.value = Number(selected.proposed_budget) || 0;
 
     try {
@@ -860,8 +992,13 @@ watch(() => form.value.control_number, async (newVal) => {
   } else {
     selectedProposedBudget.value = 0;
     form.value.activity_classification = '';
+    form.value.classification_id = '';
     form.value.gad_mandate = '';
+    form.value.gad_mandate_id = '';
     form.value.gender_issue = '';
+    form.value.gender_issue_id = '';
+    form.value.venue_id = '';
+    customVenue.value = '';
     proposedBudgetItems.value = {};
   }
 });
@@ -1049,63 +1186,89 @@ const submitReport = async () => {
   try {
     const formData = new FormData();
     
-    Object.keys(form.value).forEach(key => {
-      if (key === 'budget_items') {
-        const finalBudgetItems = [];
-        const categoryMapping = {
-          'Meals': 'Catering & Hospitality',
-          'Snacks': 'Catering & Hospitality',
-          'Function Room/Venue': 'Venue & Logistics',
-          'Accommodation': 'Venue & Logistics',
-          'Equipment Rental': 'Venue & Logistics',
-          'Professional Fee/Honoria': 'Program & Speakers',
-          'Token/s': 'Program & Speakers',
-          'Materials and Supplies': 'Materials & Miscellaneous',
-          'Transportation': 'Venue & Logistics',
-          'Others': 'Materials & Miscellaneous'
-        };
+    // Append standard fields
+    formData.append('control_number', form.value.control_number);
+    formData.append('act_design_id', form.value.act_design_id);
+    formData.append('activity_title', form.value.activity_title);
+    formData.append('start_date', form.value.start_date);
+    formData.append('end_date', form.value.end_date);
+    formData.append('start_time', form.value.start_time);
+    formData.append('end_time', form.value.end_time);
+    formData.append('attendees', form.value.attendees);
+    formData.append('male', form.value.male);
+    formData.append('female', form.value.female);
+    formData.append('rating', form.value.rating);
+    formData.append('user_id', user.value.id);
+    formData.append('status', form.value.status || 'Pending');
 
-        form.value.budget_items.forEach(item => {
-          const totalAmt = Number(item.total) || 0;
-          const category = categoryMapping[item.name] || 'Miscellaneous';
+    // Append GAD alignment fields
+    formData.append('classification_id', form.value.classification_id || '');
+    formData.append('gad_mandate_id', form.value.gad_mandate_id || '');
+    formData.append('gender_issue_id', form.value.gender_issue_id || '');
+    formData.append('custom_gad_mandate', customMandate.value);
+    formData.append('custom_gender_issue', customGenderIssue.value);
 
-          if (item.name === 'Others') {
-            if (othersList.value && othersList.value.length > 0) {
-              othersList.value.forEach(other => {
-                if (Number(other.amount) > 0) {
-                  finalBudgetItems.push({
-                    category,
-                    name: 'Others',
-                    sub_item: other.name || 'Other Item',
-                    amount: Number(other.amount)
-                  });
-                }
-              });
-            } else if (totalAmt > 0) {
+    // Append Venue fields
+    if (form.value.venue_id === 'Other') {
+      formData.append('venue_id', 'Other');
+      formData.append('venue', customVenue.value);
+    } else {
+      formData.append('venue_id', form.value.venue_id || '');
+      const selectedVenue = venues.value.find(v => v.venue_id === form.value.venue_id);
+      formData.append('venue', selectedVenue ? selectedVenue.venue_name : '');
+    }
+
+    // Append budget items
+    const finalBudgetItems = [];
+    const categoryMapping = {
+      'Meals': 'Catering & Hospitality',
+      'Snacks': 'Catering & Hospitality',
+      'Function Room/Venue': 'Venue & Logistics',
+      'Accommodation': 'Venue & Logistics',
+      'Equipment Rental': 'Venue & Logistics',
+      'Professional Fee/Honoria': 'Program & Speakers',
+      'Token/s': 'Program & Speakers',
+      'Materials and Supplies': 'Materials & Miscellaneous',
+      'Transportation': 'Venue & Logistics',
+      'Others': 'Materials & Miscellaneous'
+    };
+
+    form.value.budget_items.forEach(item => {
+      const totalAmt = Number(item.total) || 0;
+      const category = categoryMapping[item.name] || 'Miscellaneous';
+
+      if (item.name === 'Others') {
+        if (othersList.value && othersList.value.length > 0) {
+          othersList.value.forEach(other => {
+            if (Number(other.amount) > 0) {
               finalBudgetItems.push({
                 category,
                 name: 'Others',
-                sub_item: 'Other Item',
-                amount: totalAmt
+                sub_item: other.name || 'Other Item',
+                amount: Number(other.amount)
               });
             }
-          } else {
-            finalBudgetItems.push({
-              category,
-              name: item.name,
-              sub_item: null,
-              amount: totalAmt
-            });
-          }
-        });
-
-        formData.append(key, JSON.stringify(finalBudgetItems));
-      } else if (key === 'evaluation_items') {
-        formData.append(key, JSON.stringify(form.value[key]));
+          });
+        } else if (totalAmt > 0) {
+          finalBudgetItems.push({
+            category,
+            name: 'Others',
+            sub_item: 'Other Item',
+            amount: totalAmt
+          });
+        }
       } else {
-        formData.append(key, form.value[key]);
+        finalBudgetItems.push({
+          category,
+          name: item.name,
+          sub_item: null,
+          amount: totalAmt
+        });
       }
     });
+
+    formData.append('budget_items', JSON.stringify(finalBudgetItems));
+    formData.append('evaluation_items', JSON.stringify(form.value.evaluation_items));
     
     uploadedFiles.value.forEach(file => {
       formData.append('attachment[]', file);
@@ -1189,6 +1352,9 @@ onMounted(() => {
   } else {
     fetchApprovedControls();
     fetchHolidays();
+    fetchVenues();
+    fetchActivityClassifications();
+    fetchGADMandates();
   }
   document.addEventListener('click', closeAllHelp);
 });
@@ -2058,5 +2224,13 @@ onUnmounted(() => {
   color: #fbbf24;
   font-weight: 600;
   margin-top: 0.25rem;
+}
+
+.select-arrow-fix {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b979cc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 20px center;
+  background-size: 16px;
 }
 </style>

@@ -58,6 +58,7 @@ class AccomplishmentReportController extends BaseController
                 'start_time'      => $this->request->getPost('start_time'),
                 'end_time'        => $this->request->getPost('end_time'),
                 'venue'           => $this->request->getPost('venue'),
+                'venue_id'        => $this->request->getPost('venue_id') ? (int)$this->request->getPost('venue_id') : null,
                 'attendees'       => $this->request->getPost('attendees'),
                 'male'            => $this->request->getPost('male'),
                 'female'          => $this->request->getPost('female'),
@@ -97,6 +98,39 @@ class AccomplishmentReportController extends BaseController
 
             if (!$reportId) {
                 throw new \Exception("Failed to insert main report.");
+            }
+
+            // Update GAD alignment in archived_activity_designs
+            $classificationId = $this->request->getPost('classification_id');
+            $gadMandateId = $this->request->getPost('gad_mandate_id');
+            $genderIssueId = $this->request->getPost('gender_issue_id');
+
+            if ($gadMandateId === 'Other') {
+                $customMandate = $this->request->getPost('custom_gad_mandate');
+                $db->table('gad_mandates')->insert([
+                    'title' => $customMandate,
+                    'code' => 'CUSTOM'
+                ]);
+                $gadMandateId = $db->insertID();
+            }
+
+            if ($genderIssueId === 'Other') {
+                $customGenderIssue = $this->request->getPost('custom_gender_issue');
+                $db->table('gender_issues')->insert([
+                    'title' => $customGenderIssue,
+                    'mandate_id' => $gadMandateId
+                ]);
+                $genderIssueId = $db->insertID();
+            }
+
+            if (!empty($actDesignId)) {
+                $db->table('archived_activity_designs')
+                    ->where('original_act_design_id', $actDesignId)
+                    ->update([
+                        'classification_id' => $classificationId ? (int)$classificationId : null,
+                        'gad_mandate_id'     => $gadMandateId ? (int)$gadMandateId : null,
+                        'gender_issue_id'    => $genderIssueId ? (int)$genderIssueId : null,
+                    ]);
             }
 
             // 3. Handle Actual Budget Items
