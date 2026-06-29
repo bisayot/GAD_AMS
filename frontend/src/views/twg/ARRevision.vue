@@ -118,7 +118,7 @@
                      <option 
                        v-for="v in venues" 
                        :key="v.venue_id" 
-                       :value="v.venue_id" 
+                       :value="Number(v.venue_id)" 
                        class="dark-option"
                      >
                        {{ v.venue_name }}
@@ -176,7 +176,7 @@
                     <option
                       v-for="classification in ActClassification"
                       :key="classification.id"
-                      :value="classification.id"
+                      :value="Number(classification.id)"
                       class="dark-option"
                     >
                       {{ classification.classification_name }}
@@ -195,7 +195,7 @@
                     <option 
                       v-for="mandate in GADMandates" 
                       :key="mandate.id" 
-                      :value="mandate.id" 
+                      :value="Number(mandate.id)" 
                       class="dark-option"
                     >
                       {{ mandate.code }} - {{ mandate.title }}
@@ -226,7 +226,7 @@
                     <option 
                       v-for="issue in genderIssues" 
                       :key="issue.id" 
-                      :value="issue.id" 
+                      :value="Number(issue.id)" 
                       class="dark-option"
                     >
                       {{ issue.title }}
