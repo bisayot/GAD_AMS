@@ -249,6 +249,13 @@
               </div>
 
               <div class="action-buttons">
+                <button 
+                  v-if="report.status && report.status.toLowerCase() === 'revision'"
+                  @click="router.push(`/staff/ar-revision/${report.id || route.params.id}`)" 
+                  class="btn-revise"
+                >
+                  ✏️ Revise Report
+                </button>
                 <button @click="router.back()" class="btn-back">
                   ← Back to Tracker
                 </button>
@@ -568,6 +575,9 @@ onMounted(() => {
 .read-only-remarks { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 12px; padding: 15px; color: #cbd5e1; font-size: 13px; min-height: 100px; margin-top: 10px; line-height: 1.5; }
 .btn-back { width: 100%; margin-top: 20px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); color: #94a3b8; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 800; text-transform: uppercase; cursor: pointer; }
 .btn-back:hover { color: white; border-color: #b979cc; }
+.btn-revise { width: 100%; padding: 12px; margin-bottom: 12px; font-size: 13px; font-weight: 800; text-transform: uppercase; color: white; border-radius: 12px; background: linear-gradient(135deg, #a78bfa, #8b5cf6); border: none; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3); }
+.btn-revise:hover { background: linear-gradient(135deg, #c084fc, #a78bfa); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4); }
+.btn-revise:active { transform: translateY(0); }
 .icon-pink { color: #b979cc; }
 .text-emerald-400 { color: #34d399; }
 .text-teal-400 { color: #2dd4bf; }
