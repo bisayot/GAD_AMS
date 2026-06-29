@@ -1143,7 +1143,7 @@ const submitActivityDesign = async () => {
     formData.append('budget_items', JSON.stringify(finalBudgetItems));
 
     if (designFile.value) {
-      formData.append('design_file', designFile.value);
+      formData.append('attachment', designFile.value);
     }
 
     const response = await api.post('submit-activity-design', formData, {
