@@ -5,9 +5,12 @@ namespace App\Controllers;
 use App\Models\AccomplishmentReportModel;
 use App\Models\ApprovedControlModel;
 use App\Libraries\FileStorage;
+use CodeIgniter\API\ResponseTrait;
 
 class AccomplishmentReportController extends BaseController
 {
+    use ResponseTrait;
+
     public function submitReport()
     {
         $reportModel = new AccomplishmentReportModel();
