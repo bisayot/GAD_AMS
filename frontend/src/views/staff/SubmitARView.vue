@@ -955,14 +955,20 @@ watch(() => form.value.control_number, async (newVal) => {
     form.value.start_time = selected.start_time;
     form.value.end_time = selected.end_time;
     form.value.venue = selected.venue_name || selected.venue; // Fallback to venue if venue_name is not available
-    form.value.venue_id = selected.venue_id || 'Other';
+    form.value.venue_id = selected.venue_id ? Number(selected.venue_id) : 'Other';
     customVenue.value = selected.venue_id ? '' : (selected.venue || '');
     form.value.activity_classification = selected.activity_classification || 'N/A';
-    form.value.classification_id = selected.classification_id || '';
+    form.value.classification_id = selected.classification_id ? Number(selected.classification_id) : '';
     form.value.gad_mandate = selected.gad_mandate || 'N/A';
-    form.value.gad_mandate_id = selected.gad_mandate_id || '';
+    form.value.gad_mandate_id = selected.gad_mandate_id ? Number(selected.gad_mandate_id) : '';
+
+    // Fetch gender issues synchronously before setting the ID to prevent race condition
+    if (selected.gad_mandate_id && selected.gad_mandate_id !== 'Other') {
+      await fetchGenderIssues(Number(selected.gad_mandate_id));
+    }
+
     form.value.gender_issue = selected.gender_issue || 'N/A';
-    form.value.gender_issue_id = selected.gender_issue_id || '';
+    form.value.gender_issue_id = selected.gender_issue_id ? Number(selected.gender_issue_id) : '';
     selectedProposedBudget.value = Number(selected.proposed_budget) || 0;
 
     try {
