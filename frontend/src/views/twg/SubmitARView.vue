@@ -537,7 +537,7 @@
                              <div class="budget-item-value">
                                <span class="budget-currency-symbol">₱</span>
                                <input 
-                                 type="number" 
+                                 type="number"
                                  v-model="form.budget_items[7].total" 
                                  class="budget-card-input"
                                  placeholder="0.00"
@@ -560,13 +560,18 @@
                                  <span class="others-total-badge">₱{{ Number(form.budget_items[9].total || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
                                </div>
                              </div>
-                            <div class="others-breakdown-container">
-                              <div v-for="(o, oIdx) in othersList" :key="oIdx" class="others-breakdown-row">
-                                <input type="text" v-model="o.name" placeholder="Item name" class="others-input-name" />
-                                <input type="number" v-model.number="o.amount" min="0" placeholder="₱0.00" class="others-input-amount" />
-                                <button type="button" @click="removeOtherItem(oIdx)" class="btn-remove-other" title="Remove">×</button>
-                              </div>
-                              <button type="button" @click="addOtherItem" class="btn-add-other" style="width: 100%; justify-content: center;">
+                             <div class="others-breakdown-container">
+                             <div v-for="(o, oIdx) in othersList" :key="oIdx" class="others-breakdown-row-wrapper" style="margin-bottom: 12px;">
+                               <div class="others-breakdown-row" style="margin-bottom: 2px;">
+                                 <input type="text" v-model="o.name" placeholder="Item name" class="others-input-name" />
+                                 <input type="number" v-model.number="o.amount" min="0" placeholder="₱0.00" class="others-input-amount" />
+                                 <button type="button" @click="removeOtherItem(oIdx)" class="btn-remove-other" title="Remove">×</button>
+                               </div>
+                               <div v-if="o.proposed_amount !== undefined && o.proposed_amount > 0" class="others-item-proposed" style="font-size: 0.75rem; color: #fbbf24; font-weight: 600; padding-left: 12px; margin-top: 2px;">
+                                 Proposed: ₱{{ formatCurrency(o.proposed_amount) }}
+                               </div>
+                             </div>
+                             <button type="button" @click="addOtherItem" class="btn-add-other" style="width: 100%; justify-content: center;">
                                 <span>+</span> Add Item
                               </button>
                             </div>
@@ -983,7 +988,8 @@ watch(() => form.value.control_number, async (newVal) => {
           .filter(i => i.item_name === 'Others')
           .map(i => ({
             name: i.sub_item || '',
-            amount: ''
+            amount: '',
+            proposed_amount: Number(i.amount) || 0
           }));
       }
     } catch (err) {
