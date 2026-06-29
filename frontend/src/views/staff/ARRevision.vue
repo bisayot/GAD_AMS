@@ -819,7 +819,7 @@ const handleUpdate = async () => {
       submitData.append('venue', customVenue.value);
     } else {
       submitData.append('venue_id', formData.value.venue_id);
-      const v = venues.value.find(v => v.venue_id === formData.value.venue_id);
+      const v = venues.value.find(v => Number(v.venue_id) === Number(formData.value.venue_id));
       submitData.append('venue', v ? v.venue_name : '');
     }
 

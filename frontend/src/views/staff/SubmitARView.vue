@@ -1235,7 +1235,7 @@ const submitReport = async () => {
       formData.append('venue', customVenue.value);
     } else {
       formData.append('venue_id', form.value.venue_id || '');
-      const selectedVenue = venues.value.find(v => v.venue_id === form.value.venue_id);
+      const selectedVenue = venues.value.find(v => Number(v.venue_id) === Number(form.value.venue_id));
       formData.append('venue', selectedVenue ? selectedVenue.venue_name : '');
     }
 
