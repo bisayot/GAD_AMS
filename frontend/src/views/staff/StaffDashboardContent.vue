@@ -74,12 +74,109 @@
             <h4 class="section-title">Data Visualization & Analytics</h4>
           </div>
           
-          <div class="analytics-placeholder">
-            <div class="placeholder-icon">📊</div>
-            <h5 class="placeholder-title">Analytics Workspace Staged</h5>
-            <p class="placeholder-text">
-              Database connections ready. Visualization dashboards and metric trends will load here automatically once live transaction reporting engines are instantiated.
-            </p>
+          <div class="analytics-chart-container" style="background: rgba(0, 0, 0, 0.25); padding: 1.5rem; border-radius: 1rem; border: 1px solid rgba(147, 51, 234, 0.15); margin-top: 1.5rem; box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+              <h5 style="color: #f8fafc; font-weight: 600; font-size: 1.1rem; margin: 0;">Gender-Disaggregated Data</h5>
+              <select v-model="analyticsYear" @change="fetchAnalyticsData" style="background: rgba(15, 23, 42, 0.8); color: #f8fafc; border: 1px solid rgba(147, 51, 234, 0.3); border-radius: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.9rem; outline: none; cursor: pointer;">
+                <option v-for="year in availableYears" :key="year" :value="year" style="background: #1e293b; color: white;">{{ year }}</option>
+              </select>
+            </div>
+            
+            <div v-if="!analyticsLoading">
+              <!-- Yearly Summary -->
+              <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; justify-content: center; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 120px; background: rgba(147, 51, 234, 0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(147, 51, 234, 0.2); text-align: center;">
+                  <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Total Participants</div>
+                  <div style="font-size: 1.25rem; font-weight: 700; color: #f8fafc;">{{ yearlyTotal }}</div>
+                </div>
+                <div style="flex: 1; min-width: 120px; background: rgba(6, 182, 212, 0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(6, 182, 212, 0.2); text-align: center;">
+                  <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Total Male</div>
+                  <div style="font-size: 1.25rem; font-weight: 700; color: #22d3ee;">{{ yearlyMale }}</div>
+                </div>
+                <div style="flex: 1; min-width: 120px; background: rgba(192, 132, 252, 0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(192, 132, 252, 0.2); text-align: center;">
+                  <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Total Female</div>
+                  <div style="font-size: 1.25rem; font-weight: 700; color: #c084fc;">{{ yearlyFemale }}</div>
+                </div>
+              </div>
+
+              <!-- Chart -->
+              <div style="height: 250px; position: relative; margin-bottom: 1.5rem;">
+                <Bar :data="chartData" :options="chartOptions" />
+              </div>
+
+              <!-- Monthly Breakdown -->
+              <div style="max-height: 250px; overflow-y: auto; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 0.5rem;">
+                <table style="width: 100%; text-align: left; border-collapse: collapse; color: #e2e8f0; font-size: 0.85rem;">
+                  <thead style="background: #1e293b; position: sticky; top: 0; z-index: 1; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                    <tr>
+                      <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600;">Month</th>
+                      <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600;">Total</th>
+                      <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600; color: #22d3ee;">Male</th>
+                      <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600; color: #c084fc;">Female</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(month, index) in monthlyData" :key="index" style="border-bottom: 1px solid rgba(255, 255, 255, 0.02);">
+                      <td style="padding: 0.75rem 1rem;">{{ monthNames[index] }}</td>
+                      <td style="padding: 0.75rem 1rem; font-weight: 600;">{{ month.male + month.female }}</td>
+                      <td style="padding: 0.75rem 1rem; color: rgba(34, 211, 238, 0.9);">{{ month.male }}</td>
+                      <td style="padding: 0.75rem 1rem; color: rgba(192, 132, 252, 0.9);">{{ month.female }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Office Breakdown -->
+              <h6 style="color: #f8fafc; font-weight: 600; font-size: 1rem; margin: 1.5rem 0 1rem 0;">Office / Unit Breakdown</h6>
+              
+              <!-- Office Highlights -->
+              <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; justify-content: center; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 120px; background: rgba(147, 51, 234, 0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(147, 51, 234, 0.2); text-align: center;">
+                  <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Highest Total</div>
+                  <div style="font-size: 0.9rem; font-weight: 700; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="highestTotalOffice ? highestTotalOffice.office : 'N/A'">{{ highestTotalOffice ? highestTotalOffice.office : 'N/A' }}</div>
+                  <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 0.2rem;">{{ highestTotalOffice ? (highestTotalOffice.male + highestTotalOffice.female) : 0 }}</div>
+                </div>
+                <div style="flex: 1; min-width: 120px; background: rgba(6, 182, 212, 0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(6, 182, 212, 0.2); text-align: center;">
+                  <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Highest Male</div>
+                  <div style="font-size: 0.9rem; font-weight: 700; color: #22d3ee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="highestMaleOffice ? highestMaleOffice.office : 'N/A'">{{ highestMaleOffice ? highestMaleOffice.office : 'N/A' }}</div>
+                  <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 0.2rem;">{{ highestMaleOffice ? highestMaleOffice.male : 0 }}</div>
+                </div>
+                <div style="flex: 1; min-width: 120px; background: rgba(192, 132, 252, 0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(192, 132, 252, 0.2); text-align: center;">
+                  <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Highest Female</div>
+                  <div style="font-size: 0.9rem; font-weight: 700; color: #c084fc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="highestFemaleOffice ? highestFemaleOffice.office : 'N/A'">{{ highestFemaleOffice ? highestFemaleOffice.office : 'N/A' }}</div>
+                  <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 0.2rem;">{{ highestFemaleOffice ? highestFemaleOffice.female : 0 }}</div>
+                </div>
+              </div>
+
+              <!-- Office Table -->
+              <div style="max-height: 250px; overflow-y: auto; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 0.5rem;">
+                <table style="width: 100%; text-align: left; border-collapse: collapse; color: #e2e8f0; font-size: 0.85rem;">
+                  <thead style="background: #1e293b; position: sticky; top: 0; z-index: 1; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                    <tr>
+                      <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600;">Office / Unit</th>
+                      <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600;">Total</th>
+                      <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600; color: #22d3ee;">Male</th>
+                      <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600; color: #c084fc;">Female</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-if="officeData.length === 0">
+                      <td colspan="4" style="padding: 1rem; text-align: center; color: #94a3b8;">No data available</td>
+                    </tr>
+                    <tr v-else v-for="(office, index) in officeData" :key="index" style="border-bottom: 1px solid rgba(255, 255, 255, 0.02);">
+                      <td style="padding: 0.75rem 1rem;">{{ office.office }}</td>
+                      <td style="padding: 0.75rem 1rem; font-weight: 600;">{{ office.male + office.female }}</td>
+                      <td style="padding: 0.75rem 1rem; color: rgba(34, 211, 238, 0.9);">{{ office.male }}</td>
+                      <td style="padding: 0.75rem 1rem; color: rgba(192, 132, 252, 0.9);">{{ office.female }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
+            <div v-else style="height: 300px; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
+              <span class="material-symbols-outlined" style="animation: spin 1s linear infinite; font-size: 2rem;">refresh</span>
+            </div>
           </div>
         </div>
       </div>
@@ -131,17 +228,23 @@
         </div>
 
         <div class="activity-logs-card">
-          <h5 class="logs-title">System Activity Logs</h5>
-          <div class="logs-list">
-            <div v-if="activityLogs.length === 0" class="logs-empty">
-              No recent transaction events
+          <div class="schedule-header" style="margin-bottom: 0;">
+            <h4 class="schedule-title flex items-center gap-2">
+              <span class="material-symbols-outlined text-pink-400">bolt</span>
+              Recent Activity
+            </h4>
+          </div>
+          <p class="text-xs text-slate-400 mt-1 mb-4">Latest system actions across all users.</p>
+          
+          <div class="relative border-l border-slate-700 ml-3 space-y-6">
+            <div v-for="log in activityLogs.slice(0, 10)" :key="'recent-'+log.id" class="relative pl-6">
+              <div class="absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full bg-slate-800 border-2 border-pink-500"></div>
+              <div class="text-xs text-slate-400 mb-0.5">{{ formatTimeAgo(log.created_at) }}</div>
+              <div class="text-sm font-medium text-white mb-1">{{ log.email || 'Unknown User' }}</div>
+              <div class="text-xs text-slate-300">{{ log.action }}</div>
             </div>
-            <div v-else v-for="log in activityLogs" :key="log.id" class="log-item">
-              <div class="log-icon">{{ log.icon }}</div>
-              <div class="log-content">
-                <p class="log-action">{{ log.action }}</p>
-                <p class="log-time">{{ log.time }}</p>
-              </div>
+            <div v-if="activityLogs.length === 0" class="text-slate-400 text-sm pl-6 py-4">
+              No recent activity.
             </div>
           </div>
         </div>
@@ -155,6 +258,123 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../../api';
+import { Bar } from 'vue-chartjs';
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js';
+
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
+
+const getPHYear = () => {
+  return new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" })).getFullYear();
+};
+
+const analyticsYear = ref(getPHYear());
+const analyticsLoading = ref(true);
+const monthlyData = ref([]);
+const officeData = ref([]);
+const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+const availableYears = computed(() => {
+  const startYear = 2026;
+  const currentYear = getPHYear();
+  const maxYear = Math.max(currentYear + 2, startYear + 2);
+  const years = [];
+  for (let y = startYear; y <= maxYear; y++) {
+    years.push(y);
+  }
+  return years;
+});
+
+const yearlyTotal = computed(() => monthlyData.value.reduce((acc, curr) => acc + curr.male + curr.female, 0));
+const yearlyMale = computed(() => monthlyData.value.reduce((acc, curr) => acc + curr.male, 0));
+const yearlyFemale = computed(() => monthlyData.value.reduce((acc, curr) => acc + curr.female, 0));
+
+const highestMaleOffice = computed(() => {
+  if (!officeData.value.length) return null;
+  return officeData.value.reduce((prev, current) => (prev.male > current.male) ? prev : current);
+});
+const highestFemaleOffice = computed(() => {
+  if (!officeData.value.length) return null;
+  return officeData.value.reduce((prev, current) => (prev.female > current.female) ? prev : current);
+});
+const highestTotalOffice = computed(() => {
+  if (!officeData.value.length) return null;
+  return officeData.value.reduce((prev, current) => ((prev.male + prev.female) > (current.male + current.female)) ? prev : current);
+});
+
+const chartData = ref({
+  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+  datasets: [
+    {
+      label: 'Male',
+      backgroundColor: '#06b6d4',
+      data: []
+    },
+    {
+      label: 'Female',
+      backgroundColor: '#c084fc',
+      data: []
+    }
+  ]
+});
+
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  scales: {
+    x: {
+      grid: { color: 'rgba(255, 255, 255, 0.05)' },
+      ticks: { color: '#94a3b8' }
+    },
+    y: {
+      grid: { color: 'rgba(255, 255, 255, 0.05)' },
+      ticks: { color: '#94a3b8' }
+    }
+  },
+  plugins: {
+    legend: {
+      labels: { color: '#e2e8f0' }
+    }
+  }
+};
+
+const fetchAnalyticsData = async () => {
+  analyticsLoading.value = true;
+  try {
+    const res = await api.get('analytics/participants/' + analyticsYear.value);
+    if (res.data.success) {
+      const data = res.data.data;
+      monthlyData.value = data;
+      if (res.data.officeData) {
+        officeData.value = res.data.officeData;
+      } else {
+        officeData.value = [];
+      }
+      chartData.value = {
+        labels: chartData.value.labels,
+        datasets: [
+          {
+            ...chartData.value.datasets[0],
+            data: data.map(d => d.male)
+          },
+          {
+            ...chartData.value.datasets[1],
+            data: data.map(d => d.female)
+          }
+        ]
+      };
+    }
+  } catch (error) {
+    console.error('Failed to load analytics', error);
+  } finally {
+    analyticsLoading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchAnalyticsData();
+});
+
+
 
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
@@ -182,6 +402,10 @@ const nextMonth = () => {
 
 const currentMonthYear = computed(() => {
   return calendarBaseDate.value.toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase();
+});
+
+onMounted(() => {
+  fetchAnalyticsData();
 });
 
 const calendarDays = computed(() => {
@@ -264,17 +488,41 @@ const upcomingDeadlines = ref([]);
 const activityLogs = ref([]);
 const notificationItems = ref([]);
 
+const formatTimeAgo = (dateStr) => {
+  if (!dateStr) return '';
+  const utcDateStr = dateStr.endsWith('Z') ? dateStr : dateStr.replace(' ', 'T') + 'Z';
+  const date = new Date(utcDateStr);
+  const now = new Date();
+  const seconds = Math.floor((now - date) / 1000);
+  
+  if (seconds < 60) return 'Just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return date.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+
 onMounted(async () => {
   if (!user.value.id || user.value.role !== 'gad_staff') {
     router.push('/login');
     return;
   }
   try {
-    const [designsRes, reportsRes, archiveRes] = await Promise.all([
+    const [designsRes, reportsRes, archiveRes, logsRes, budgetRes] = await Promise.all([
       api.get('activity-designs'),
       api.get('activity-reports'),
-      api.get('archives')
+      api.get('archives'),
+      api.get('activity-logs', { params: { exclude_admin: 'true' } }),
+      api.get('budget/summary')
     ]);
+
+    if (logsRes && logsRes.data && logsRes.data.success) {
+      activityLogs.value = logsRes.data.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
 
     const designs = designsRes.data.success ? designsRes.data.data : [];
     const reports = reportsRes.data.success ? reportsRes.data.data : [];
@@ -382,6 +630,12 @@ onMounted(async () => {
 
     dl.sort((a, b) => a.sortDate - b.sortDate);
     upcomingDeadlines.value = dl.slice(0, 5);
+
+    if (budgetRes && budgetRes.data && budgetRes.data.success) {
+      const budgetFormat = new Intl.NumberFormat('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      metricsStats.value[3].value = '₱' + budgetFormat.format(budgetRes.data.data.total_budget || 0);
+      metricsStats.value[4].value = Number(budgetRes.data.data.utilization_rate || 0).toFixed(2) + '%';
+    }
   } catch (err) {
     console.error('Dashboard load error:', err);
   }
@@ -500,6 +754,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .title-indicator {
@@ -511,17 +766,17 @@ onMounted(async () => {
 
 .section-title {
   font-weight: 700;
-  color: #16213e;
-  font-size: 1.25rem;
+  color: #ffffff;
+  font-size: 1.125rem;
+  margin: 0;
 }
 
 /* Table Container */
 .table-container {
-  border: 1px solid rgba(147, 51, 234, 0.15);
+  border: 1px solid rgba(147, 51, 234, 0.1);
   border-radius: 0.75rem;
   overflow: hidden;
-  background: linear-gradient(135deg, #0f172a, #020617);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  background: transparent;
 }
 
 .table-wrapper {
@@ -659,15 +914,22 @@ onMounted(async () => {
 }
 
 /* Analytics Placeholder */
+.pending-activities-section,
 .analytics-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(147, 51, 234, 0.15);
+  background: linear-gradient(135deg, #0f172a, #020617);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 1.5rem;
+}
+
+.analytics-section .section-title {
+  color: #e2e8f0;
 }
 
 .analytics-placeholder {
   border: 1px solid rgba(147, 51, 234, 0.15);
-  background: rgba(15, 23, 42, 0.6);
+  background: transparent;
   padding: 2rem;
   border-radius: 0.75rem;
   min-height: 260px;
@@ -676,7 +938,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   text-align: center;
-  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+  margin-top: 0.5rem;
 }
 
 .placeholder-icon {
@@ -690,13 +952,12 @@ onMounted(async () => {
   justify-content: center;
   font-size: 1.125rem;
   margin-bottom: 0.75rem;
-  opacity: 0.6;
 }
 
 .placeholder-title {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #e2e8f0;
+  color: #c084fc;
 }
 
 .placeholder-text {

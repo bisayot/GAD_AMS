@@ -1,9 +1,12 @@
 <template>
-      <main class="flex-1 overflow-y-auto bg-transparent">
+
+      <main class="flex-1 overflow-y-auto">
         <div class="max-w-7xl mx-auto">
-
+            <div class="page-header">
+              <h1 class="page-title">Archives Tracker</h1>
+              <p class="page-subtitle">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+            </div>
           <div class="stats-container">
-
             <div class="stat-card-purple">
               <div class="stat-card-inner">
                 <div class="stat-icon-wrapper purple">
@@ -11,7 +14,7 @@
                 </div>
                 <div class="stat-content">
                   <h3 class="stat-number-purple">{{ totalArchived }}</h3>
-                  <p class="stat-label-purple">TOTAL ARCHIVED</p>
+                  <p class="stat-label-purple">TOTAL ARCHIVED ITEMS</p>
                 </div>
               </div>
             </div>
@@ -150,13 +153,13 @@
                     </td>
                     <td class="table-cell">
                       <div class="control-number">{{ item.control }}</div>
-                      <div class="item-date">{{ item.dateArchived }}</div>
+                      <div class="item-date">{{ item.date }}</div>
                     </td>
                     <td class="table-cell">
                       <div class="item-title">{{ item.title }}</div>
                     </td>
                     <td class="table-cell">
-                      <div class="item-date">{{ item.dateArchived }}</div>
+                      <div class="item-date">{{ formatDate(item.archived_at) }}</div>
                     </td>
                     <td class="table-cell">
                       <span class="status-badge" :class="item.statusClass">
@@ -208,10 +211,10 @@ const archivedReports = ref([]);
 const loading = ref(false);
 const activeTab = ref('designs');
 
-const filters = ref({
+const filters = ref({ 
   status: 'all',
   sort: 'date_desc',
-  search: ''
+  search: '' 
 });
 
 const currentPage = ref(1);
@@ -237,10 +240,6 @@ const totalReports = computed(() => {
   return archivedReports.value.length;
 });
 
-const pendingCount = computed(() => {
-  return 0;
-});
-
 const currentSourceData = computed(() => {
   return activeTab.value === 'designs' ? archivedDesigns.value : archivedReports.value;
 });
@@ -248,8 +247,10 @@ const currentSourceData = computed(() => {
 const filteredItems = computed(() => {
   let items = [...currentSourceData.value];
   
-  if (filters.value.status !== 'all') {
-    items = items.filter(item => item.status === filters.value.status);
+  if (filters.value.status === 'completed') {
+    items = items.filter(item => item.status.toLowerCase() === 'approved' || item.status.toLowerCase() === 'verified');
+  } else if (filters.value.status === 'cancelled') {
+    items = items.filter(item => item.status.toLowerCase() === 'cancelled');
   }
   
   if (filters.value.search.trim()) {
@@ -271,7 +272,7 @@ const filteredItems = computed(() => {
     case 'date_asc':
       sorted.sort((a, b) => new Date(a.dateRaw) - new Date(b.dateRaw));
       break;
-    default:
+    default: 
       sorted.sort((a, b) => new Date(b.dateRaw) - new Date(a.dateRaw));
   }
   
@@ -303,21 +304,60 @@ const visiblePages = computed(() => {
 const fetchArchives = async () => {
   loading.value = true;
   try {
-    const response = await api.get(`archives?user_id=${user.value.id}&role=${user.value.role}`);
-    const allData = (response.data.data || []).map(item => ({
-      ...item,
-      id: item.original_id,
-      dateArchived: item.dateRaw ? new Date(item.dateRaw).toLocaleDateString() : 'N/A',
-      statusText: item.status,
-      statusClass: (item.status === 'Approved' || item.status === 'Verified') ? 'status-approved' : 'status-cancelled'
-    }));
-    archivedDesigns.value = allData.filter(item => item.type === 'design');
-    archivedReports.value = allData.filter(item => item.type === 'report');
+    const response = await api.get('/archives');
+    
+    if (response.data.success) {
+      // Only include records that were submitted by the current user
+      const allData = response.data.data.filter(item => item.user_id === user.value.id);
+
+      archivedDesigns.value = allData.filter(i => i.type === 'design').map(d => ({
+        id: d.original_id,
+        ...d,
+        statusClass: getStatusClass(d.status),
+        statusText: d.status,
+        formClass: getFormClass(d.form_label)
+      }));
+
+      archivedReports.value = allData.filter(i => i.type === 'report').map(r => ({
+        id: r.original_id,
+        ...r,
+        statusClass: getStatusClass(r.status),
+        statusText: r.status,
+        formClass: getFormClass(r.form_label)
+      }));
+    }
   } catch (error) {
     console.error('Error fetching archive records:', error);
   } finally {
     loading.value = false;
   }
+};
+
+const formatDate = (date) => {
+  if (!date) return '---';
+  return new Date(date).toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric', 
+    year: 'numeric' 
+  });
+};
+
+const formatFormType = (type) => {
+  const types = { 'inset': 'INSET', 'extension': 'Extension Program', 'employee': 'Employee Training' };
+  return types[type] || type;
+};
+
+const getFormClass = (type) => {
+  return `form-badge-${type}`;
+};
+
+const getStatusClass = (status) => {
+  if (!status) return '';
+  const s = status.toLowerCase();
+  if (s === 'approved') return 'status-approved';
+  if (s === 'verified') return 'status-completed';
+  if (s === 'cancelled') return 'status-revision';
+  return 'status-pending';
 };
 
 const applyFilters = () => {
@@ -349,7 +389,7 @@ const viewItem = (item) => {
 
 const handleLogout = async () => {
   try {
-    await api.get('logout');
+    await api.get('/logout');
     localStorage.removeItem('user');
     router.push('/login');
   } catch (err) {
@@ -367,6 +407,23 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.page-header {
+  padding: 0 0.25rem 1.5rem 0;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  color: #16213e;
+}
+
+.page-subtitle {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: 0.25rem;
+}
+
 .stats-container {
   display: grid;
   grid-template-columns: 1fr;
@@ -484,14 +541,14 @@ onMounted(() => {
 }
 
 .stat-sub {
-  font-size: 1rem;
-  color: #94a3b8;
+  font-size: 0.75rem;
+  color: #64748b;
   opacity: 0.7;
   margin: 0.25rem 0 0 0;
 }
 
 .stat-sub-purple {
-  font-size: 1rem;
+  font-size: 0.75rem;
   color: #b979cc;
   opacity: 0.7;
   margin: 0.25rem 0 0 0;
@@ -530,7 +587,7 @@ onMounted(() => {
 
 .tab-inactive {
   border-bottom: 3px solid transparent;
-  color: #94a3b8;
+  color: #64748b;
 }
 
 .tab-inactive:hover {
@@ -541,10 +598,10 @@ onMounted(() => {
 
 .tab-badge {
   background: #f1f5f9;
-  color: #94a3b8;
+  color: #64748b;
   padding: 0.125rem 0.5rem;
   border-radius: 30px;
-  font-size: 0.95rem;
+  font-size: 0.7rem;
   font-weight: 600;
 }
 
@@ -582,7 +639,7 @@ onMounted(() => {
 
 .filter-label {
   display: block;
-  font-size: 0.9rem;
+  font-size: 0.65rem;
   font-weight: 700;
   color: #b979cc;
   text-transform: uppercase;
@@ -651,7 +708,7 @@ onMounted(() => {
   color: white;
   padding: 0.5rem 1.25rem;
   border-radius: 0.75rem;
-  font-size: 1rem;
+  font-size: 0.75rem;
   font-weight: 600;
   border: none;
   cursor: pointer;
@@ -693,7 +750,7 @@ onMounted(() => {
 }
 
 .record-count {
-  font-size: 0.95rem;
+  font-size: 0.7rem;
   color: #94a3b8;
 }
 
@@ -713,7 +770,7 @@ onMounted(() => {
 }
 
 .loading-state p {
-  color: #cbd5e1;
+  color: #475569;
   margin-top: 1rem;
 }
 
@@ -757,7 +814,7 @@ onMounted(() => {
 .table-header-cell {
   padding: 1rem 1.5rem;
   text-align: left;
-  font-size: 0.95rem;
+  font-size: 0.7rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -784,7 +841,7 @@ onMounted(() => {
   align-items: center;
   padding: 0.25rem 0.8rem;
   border-radius: 30px;
-  font-size: 0.95rem;
+  font-size: 0.7rem;
   font-weight: 700;
 }
 
@@ -803,10 +860,10 @@ onMounted(() => {
   align-items: center;
   padding: 0.2rem 0.6rem;
   border-radius: 30px;
-  font-size: 0.9rem;
+  font-size: 0.65rem;
   font-weight: 600;
   background: #f1f5f9;
-  color: #cbd5e1;
+  color: #475569;
 }
 
 .status-badge {
@@ -814,7 +871,7 @@ onMounted(() => {
   align-items: center;
   padding: 0.3rem 0.8rem;
   border-radius: 30px;
-  font-size: 0.95rem;
+  font-size: 0.7rem;
   font-weight: 700;
 }
 
@@ -830,31 +887,36 @@ onMounted(() => {
   border: 1px solid #bae6fd;
 }
 
-.status-badge.status-cancelled {
+.status-badge.status-revision { /* Reusing revision style for cancelled */
   background: #fee2e2;
   color: #dc2626;
   border: 1px solid #fecaca;
 }
 
+.status-badge.status-pending { /* Fallback for any other status */
+  background: #fef3c7;
+  color: #d97706;
+  border: 1px solid #fde68a;
+}
+
 .control-number {
   font-family: monospace;
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: #6b21a8;
-  letter-spacing: 0.05em;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #7e22ce;
+  letter-spacing: 0.03em;
 }
 
 .item-date {
-  font-size: 0.95rem;
-  color: #334155;
-  font-weight: 700;
-  margin-top: 0.35rem;
+  font-size: 0.65rem;
+  color: #94a3b8;
+  margin-top: 0.25rem;
 }
 
 .item-title {
-  font-weight: 800;
-  color: #0f172a;
-  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.85rem;
   line-height: 1.4;
 }
 
@@ -880,7 +942,7 @@ onMounted(() => {
 }
 
 .empty-content p {
-  color: #cbd5e1;
+  color: #475569;
   font-size: 0.85rem;
 }
 
@@ -896,8 +958,8 @@ onMounted(() => {
 }
 
 .pagination-info {
-  font-size: 1rem;
-  color: #94a3b8;
+  font-size: 0.75rem;
+  color: #64748b;
 }
 
 .info-highlight {
@@ -921,10 +983,10 @@ onMounted(() => {
   border: 1px solid #e2e8f0;
   border-radius: 0.6rem;
   background: #ffffff;
-  font-size: 1rem;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
-  color: #cbd5e1;
+  color: #475569;
   transition: all 0.2s ease;
 }
 

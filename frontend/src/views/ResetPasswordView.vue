@@ -39,7 +39,7 @@
                 id="password" 
                 placeholder="••••••••" 
                 required 
-                minlength="6"
+                minlength="8"
               />
               <button 
                 @click="showPassword = !showPassword"
@@ -49,6 +49,28 @@
                 <span class="material-symbols-outlined text-sm">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
               </button>
             </div>
+            <ul class="text-xs mt-2 space-y-1 font-medium transition-colors">
+              <li class="flex items-center gap-1 transition-colors" :class="password.length >= 8 ? 'text-green-600' : 'text-slate-400'">
+                <span class="material-symbols-outlined text-[14px]">{{ password.length >= 8 ? 'check_circle' : 'cancel' }}</span>
+                At least 8 characters
+              </li>
+              <li class="flex items-center gap-1 transition-colors" :class="/[A-Z]/.test(password || '') ? 'text-green-600' : 'text-slate-400'">
+                <span class="material-symbols-outlined text-[14px]">{{ /[A-Z]/.test(password || '') ? 'check_circle' : 'cancel' }}</span>
+                One uppercase letter
+              </li>
+              <li class="flex items-center gap-1 transition-colors" :class="/[a-z]/.test(password || '') ? 'text-green-600' : 'text-slate-400'">
+                <span class="material-symbols-outlined text-[14px]">{{ /[a-z]/.test(password || '') ? 'check_circle' : 'cancel' }}</span>
+                One lowercase letter
+              </li>
+              <li class="flex items-center gap-1 transition-colors" :class="/[0-9]/.test(password || '') ? 'text-green-600' : 'text-slate-400'">
+                <span class="material-symbols-outlined text-[14px]">{{ /[0-9]/.test(password || '') ? 'check_circle' : 'cancel' }}</span>
+                One number
+              </li>
+              <li class="flex items-center gap-1 transition-colors" :class="/[^A-Za-z0-9]/.test(password || '') ? 'text-green-600' : 'text-slate-400'">
+                <span class="material-symbols-outlined text-[14px]">{{ /[^A-Za-z0-9]/.test(password || '') ? 'check_circle' : 'cancel' }}</span>
+                One special character
+              </li>
+            </ul>
           </div>
 
           <!-- Confirm Password Input -->
@@ -63,7 +85,7 @@
                 id="confirmPassword" 
                 placeholder="••••••••" 
                 required 
-                minlength="6"
+                minlength="8"
               />
             </div>
           </div>
@@ -106,10 +128,30 @@ const showPassword = ref(false);
 const token = computed(() => route.query.token);
 
 const canSubmit = computed(() => {
-  return password.value.length >= 6 && password.value === confirmPassword.value && token.value;
+  return password.value.length >= 8 && /[A-Z]/.test(password.value) && /[a-z]/.test(password.value) && /[0-9]/.test(password.value) && /[^A-Za-z0-9]/.test(password.value) && password.value === confirmPassword.value && token.value;
 });
 
 const handleResetPassword = async () => {
+  if (password.value.length < 8) {
+    error.value = 'Password must be at least 8 characters long.';
+    return;
+  }
+  if (!/[A-Z]/.test(password.value)) {
+    error.value = 'Password must contain at least 1 uppercase letter.';
+    return;
+  }
+  if (!/[a-z]/.test(password.value)) {
+    error.value = 'Password must contain at least 1 lowercase letter.';
+    return;
+  }
+  if (!/[0-9]/.test(password.value)) {
+    error.value = 'Password must contain at least 1 number.';
+    return;
+  }
+  if (!/[^A-Za-z0-9]/.test(password.value)) {
+    error.value = 'Password must contain at least 1 special character.';
+    return;
+  }
   if (password.value !== confirmPassword.value) {
     error.value = "Passwords do not match";
     return;

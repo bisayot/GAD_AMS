@@ -14,12 +14,6 @@ class AuthController extends ResourceController
         // Handle JSON or Form-data
         $data = $this->request->getJSON(true) ?: $this->request->getPost();
 
-        $turnstileCheck = $this->verifyTurnstile($data['turnstile_token'] ?? '');
-        if ($turnstileCheck['success'] !== true) {
-            return $this->fail('Invalid security token: ' . ($turnstileCheck['error'] ?? 'Unknown Error') . 
-                (isset($turnstileCheck['cloudflare_response']) ? ' | CF Details: ' . json_encode($turnstileCheck['cloudflare_response']) : ''));
-        }
-
         $rules = [
             'identity' => 'required',
             'password' => 'required'
@@ -41,6 +35,10 @@ class AuthController extends ResourceController
             return $this->failUnauthorized("User not found for identity: $identity");
         }
 
+        if (!empty($user['deleted_at'])) {
+            return $this->failUnauthorized("Your account has been suspended. Please contact the GAD Office.");
+        }
+
         if (!password_verify($password, $user['password'])) {
             // Debug: Check if it's a legacy MD5 or something (unlikely but let's check)
             if (md5($password) === $user['password']) {
@@ -53,10 +51,13 @@ class AuthController extends ResourceController
 
         // In a real app, you'd generate a JWT here. 
         // For this demo, we'll just return user info.
+        $userModel->update($user['id'], ['last_login' => date('Y-m-d H:i:s')]);
+        
         $db = \Config\Database::connect();
         $userProfile = $db->table('user_profiles')->where('user_id', $user['id'])->get()->getRowArray();
         $userRole = $userProfile ? ($userProfile['user_role'] ?? 'Non-TWG') : 'Non-TWG';
 
+        \App\Models\ActivityLogModel::log($user['id'], 'Login', $user['full_name'] . " logged in");
         return $this->respond([
             'status' => 200,
             'message' => 'Login successful',
@@ -65,7 +66,8 @@ class AuthController extends ResourceController
                 'username' => $user['username'],
                 'role' => $user['role'],
                 'user_role' => $userRole,
-                'full_name' => $user['full_name']
+                'full_name' => $user['full_name'],
+                'office_id' => $user['office_id']
             ]
         ]);
     }
@@ -74,17 +76,11 @@ class AuthController extends ResourceController
     {
         $data = $this->request->getJSON(true) ?: $this->request->getPost();
 
-        $turnstileCheck = $this->verifyTurnstile($data['turnstile_token'] ?? '');
-        if ($turnstileCheck['success'] !== true) {
-            return $this->fail('Invalid security token: ' . ($turnstileCheck['error'] ?? 'Unknown Error') . 
-                (isset($turnstileCheck['cloudflare_response']) ? ' | CF Details: ' . json_encode($turnstileCheck['cloudflare_response']) : ''));
-        }
-
         $rules = [
             'fullname' => 'required',
             'department' => 'required',
             'email' => 'required|valid_email',
-            'password' => 'required|min_length[6]',
+            'password' => ['label' => 'Password', 'rules' => 'required|min_length[8]|regex_match[/[A-Z]/]|regex_match[/[a-z]/]|regex_match[/[0-9]/]|regex_match[/[^A-Za-z0-9]/]'],
             'confirm_password' => 'required|matches[password]'
         ];
 
@@ -110,16 +106,11 @@ class AuthController extends ResourceController
         if (is_numeric($departmentInput)) {
             $officeId = (int) $departmentInput;
         } else {
-            // Clean the input to prevent redundant entries (spaces, casing)
-            $cleanName = trim($departmentInput);
-            $cleanName = preg_replace('/\s+/', ' ', $cleanName);
-            $cleanName = ucwords(strtolower($cleanName));
-
-            $office = $db->table('office_units')->where('office_name', $cleanName)->get()->getRowArray();
+            $office = $db->table('office_units')->where('office_name', $departmentInput)->get()->getRowArray();
             if ($office) {
                 $officeId = $office['office_id'];
             } else {
-                $db->table('office_units')->insert(['office_name' => $cleanName]);
+                $db->table('office_units')->insert(['office_name' => $departmentInput]);
                 $officeId = $db->insertID();
             }
         }
@@ -160,6 +151,8 @@ class AuthController extends ResourceController
                 'office_unit_id' => $officeId
             ]);
 
+            $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $newUserId;
+            \App\Models\ActivityLogModel::log($actionUserId, 'Register User', 'registered a new user: ' . $data['fullname']);
             return $this->respondCreated(['message' => 'Account created successfully. Please log in.']);
         }
 
@@ -172,37 +165,27 @@ class AuthController extends ResourceController
         
         $turnstileCheck = $this->verifyTurnstile($data['turnstile_token'] ?? '');
         if ($turnstileCheck['success'] !== true) {
-            return $this->fail('Invalid security token: ' . ($turnstileCheck['error'] ?? 'Unknown Error') . 
-                (isset($turnstileCheck['cloudflare_response']) ? ' | CF Details: ' . json_encode($turnstileCheck['cloudflare_response']) : ''));
+            return $this->fail('Invalid security token: ' . ($turnstileCheck['error'] ?? 'Unknown Error'));
         }
 
         if (empty($data['email'])) {
             return $this->fail('Email is required');
         }
 
-        $email = $data['email'];
         $userModel = new UserModel();
-        $user = $userModel->findByIdentity($email);
+        $user = $userModel->findByIdentity($data['email']);
 
         if (!$user) {
-            // For security, don't reveal if email exists or not, just return success
-            return $this->respond(['message' => 'If your email is registered, you will receive a reset link shortly.']);
+            return $this->respond(['success' => true, 'message' => 'If your email is registered, you will receive a reset link shortly.']);
         }
 
         $token = bin2hex(random_bytes(32));
         $expiresAt = date('Y-m-d H:i:s', strtotime('+1 hour'));
 
         $userModel->update($user['id'], [
-            'reset_token' => hash('sha256', $token),
+            'reset_token' => $token,
             'reset_token_expires_at' => $expiresAt
         ]);
-
-        // Brevo requires an API Key (starts with xkeysib-) for HTTP requests, not an SMTP password
-        $apiKey = getenv('BREVO_API_KEY') ?: env('BREVO_API_KEY') ?: getenv('SMTP_PASS') ?: env('SMTP_PASS') ?: env('email.SMTPPass') ?: '';
-        $fromEmail = getenv('FROM_EMAIL') ?: env('FROM_EMAIL') ?: env('email.fromEmail') ?: 'gadims.bsu.bsit@gmail.com';
-
-        $frontendUrl = rtrim(getenv('FRONTEND_URL') ?: env('FRONTEND_URL') ?: getenv('app.baseURL') ?: env('app.baseURL') ?: 'http://localhost:5173', '/');
-        $resetLink = $frontendUrl . '/reset-password?token=' . $token;
 
         $message = "
         <html>
@@ -259,7 +242,7 @@ class AuthController extends ResourceController
         
         $rules = [
             'token' => 'required',
-            'password' => 'required|min_length[6]',
+            'password' => ['label' => 'Password', 'rules' => 'required|min_length[8]|regex_match[/[A-Z]/]|regex_match[/[a-z]/]|regex_match[/[0-9]/]|regex_match[/[^A-Za-z0-9]/]'],
         ];
 
         if (!$this->validateData($data, $rules)) {
@@ -316,20 +299,20 @@ class AuthController extends ResourceController
     public function addOffice() {
         $data = $this->request->getJSON(true);
         $db = \Config\Database::connect();
-        
-        // Clean the input to prevent redundant entries (spaces, casing)
-        $cleanName = trim($data['unit_name']);
-        $cleanName = preg_replace('/\s+/', ' ', $cleanName);
-        $cleanName = ucwords(strtolower($cleanName));
-
-        // Check if the cleaned name already exists to prevent duplication
-        $existing = $db->table('office_units')->where('office_name', $cleanName)->get()->getRowArray();
-        if ($existing) {
-            return $this->respondCreated(['new_id' => $existing['office_id']]);
-        }
-
-        $db->table('office_units')->insert(['office_name' => $cleanName]);
+        $db->table('office_units')->insert(['office_name' => $data['unit_name']]);
         return $this->respondCreated(['new_id' => $db->insertID()]);
+    }
+    public function getAllUsers() {
+        $db = \Config\Database::connect();
+        $users = $db->table('users')
+            ->select('users.id, users.email, users.full_name, users.role, users.office_id, users.deleted_at, users.created_at, users.last_login, user_profiles.user_role, office_units.office_name')
+            ->select('(SELECT COUNT(*) FROM activity_design WHERE activity_design.user_id = users.id) as ad_count')
+            ->select('(SELECT COUNT(*) FROM accomplishment_report WHERE accomplishment_report.user_id = users.id) as ar_count')
+            ->join('user_profiles', 'user_profiles.user_id = users.id', 'left')
+            ->join('office_units', 'office_units.office_id = users.office_id', 'left')
+            ->get()
+            ->getResultArray();
+        return $this->respond($users);
     }
 
     protected function verifyTurnstile($token)

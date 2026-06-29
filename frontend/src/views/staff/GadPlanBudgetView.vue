@@ -63,7 +63,7 @@
               </tr>
             </thead>
             
-            <tbody class="table-body">
+             <tbody class="table-body">
               <tr class="section-header-row">
                 <td colspan="9" class="section-header-cell client-header">
                   <span class="section-indicator client-indicator"></span>
@@ -82,7 +82,7 @@
                 <td class="data-cell data-cell-mfo"><span class="mfo-badge">{{ item.mfo }}</span></td>
                 <td class="data-cell data-cell-activity">{{ item.activity }}</td>
                 <td class="data-cell data-cell-indicators">{{ item.indicators }}</td>
-                <td class="data-cell data-cell-right data-cell-budget">{{ item.budget }}</td>
+                <td class="data-cell data-cell-right data-cell-budget">₱{{ formatCurrency(item.budget) }}</td>
                 <td class="data-cell data-cell-center data-cell-source">{{ item.source }}</td>
                </tr>
 
@@ -104,7 +104,29 @@
                 <td class="data-cell data-cell-mfo"><span class="mfo-badge">{{ item.mfo }}</span></td>
                 <td class="data-cell data-cell-activity">{{ item.activity }}</td>
                 <td class="data-cell data-cell-indicators">{{ item.indicators }}</td>
-                <td class="data-cell data-cell-right data-cell-budget">{{ item.budget }}</td>
+                <td class="data-cell data-cell-right data-cell-budget">₱{{ formatCurrency(item.budget) }}</td>
+                <td class="data-cell data-cell-center data-cell-source">{{ item.source }}</td>
+               </tr>
+
+              <tr class="section-header-row">
+                <td colspan="9" class="section-header-cell client-header" style="background: linear-gradient(90deg, rgba(16, 185, 129, 0.15) 0%, transparent 100%)">
+                  <span class="section-indicator" style="background-color: #10b981"></span>
+                  ATTRIBUTED PROGRAMS
+                 </td>
+               </tr>
+              <tr 
+                v-for="(item, idx) in attributedPrograms" 
+                :key="'attributed-' + item.id" 
+                class="data-row"
+              >
+                <td class="data-cell data-cell-center data-cell-number">{{ clientFocused.length + orgFocused.length + idx + 1 }}</td>
+                <td class="data-cell data-cell-mandate">{{ item.mandate || 'N/A' }}</td>
+                <td class="data-cell data-cell-cause">{{ item.cause || 'N/A' }}</td>
+                <td class="data-cell data-cell-result">{{ item.result || 'N/A' }}</td>
+                <td class="data-cell data-cell-mfo"><span class="mfo-badge">{{ item.mfo || 'N/A' }}</span></td>
+                <td class="data-cell data-cell-activity">{{ item.activity }}</td>
+                <td class="data-cell data-cell-indicators">{{ item.indicators || 'N/A' }}</td>
+                <td class="data-cell data-cell-right data-cell-budget">₱{{ formatCurrency(item.budget) }}</td>
                 <td class="data-cell data-cell-center data-cell-source">{{ item.source }}</td>
                </tr>
             </tbody>
@@ -112,7 +134,7 @@
             <tfoot>
               <tr class="total-row">
                 <td colspan="7" class="total-label-cell">Total GAD Budget:</td>
-                <td class="total-amount-cell">₱243,541,951</td>
+                <td class="total-amount-cell">₱{{ formatCurrency(totalGadBudget) }}</td>
                 <td class="total-empty-cell"></td>
                </tr>
             </tfoot>
@@ -156,7 +178,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../../api';
 
@@ -172,26 +194,18 @@ const handleYearChange = () => {
   activeView.value = 'pdf';
 };
 
-const clientFocused = ref([
-  { id: 1, mandate: "RA 10931 - Affirmative Action Program", cause: "Extraordinary life situations due to disasters, calamities, and socio-cultural discrimination", result: "To promote equitable access and participation of both women and men from GIDAs in tertiary education", mfo: "Higher Education Program", activity: "Implementation of Affirmative Action Agenda", indicators: "Number of served disadvantaged students - 100% disadvantaged students", budget: "₱700,000", source: "GAA" },
-  { id: 2, mandate: "RA 10931 - Free Tuition Provision", cause: "High tuition and miscellaneous fees, compounded by socio-cultural expectations for women", result: "To promote gender equality in access to tertiary education", mfo: "Higher Education Program", activity: "Provision of free tuition fee under RA 10931", indicators: "100% of qualified students granted free tuition", budget: "₱131,100,000", source: "GAA" },
-  { id: 3, mandate: "CHED Memo 01 s.2015 - GAD Orientation", cause: "Limited activities to increase awareness of men and women students", result: "To increase the students level of awareness and appreciation on GAD", mfo: "Higher Education Program", activity: "Conduct GAD orientation/forum/seminar to students", indicators: "4,000 students oriented on GAD (F-2750 M-1250)", budget: "₱453,363", source: "GAA" },
-  { id: 4, mandate: "CHED Memo 01 s.2015 - Student Leadership Training", cause: "Student leaders have limited understanding on GAD", result: "To empower student leaders regarding GAD responsive leadership", mfo: "Higher Education Program", activity: "Continuous conduct of GAD responsive leadership training", indicators: "2 training conducted (F:200 M:100)", budget: "₱150,000", source: "GAA" },
-  { id: 5, mandate: "GREP Extension Program", cause: "Presence of gender inequality, poverty and GAD-related concerns", result: "To sustain GAD-related extension activities", mfo: "Extension Services", activity: "Conduct of Extension project/activities", indicators: "24 extension activities conducted (F:560 M:500)", budget: "₱3,500,000", source: "GAA" },
-  { id: 6, mandate: "PWD Programs", cause: "Limited access of PWDs to gender-responsive programs", result: "Improved access of PWDs to gender-responsive programs", mfo: "Research Services", activity: "Gender-responsive programs for PWDs", indicators: "Number of PWDs who benefited", budget: "₱350,000", source: "GAA" },
-  { id: 7, mandate: "Senior Citizens Program", cause: "Absence of senior citizens access to sustainable programs", result: "Improved access of senior citizens to gender-responsive programs", mfo: "Extension Services", activity: "BSU Kalinga for women Senior Citizens", indicators: "Programs provided for Senior Citizens", budget: "₱250,000", source: "GAA" }
-]);
+const clientFocused = ref([]);
+const orgFocused = ref([]);
+const attributedPrograms = ref([]);
 
-const orgFocused = ref([
-  { id: 8, mandate: "GAD Mainstreaming Capability Building", cause: "Low awareness among personnel about GAD mainstreaming", result: "To enhance GAD mainstreaming in Administration, Academic, Research and Extension", mfo: "Research Services", activity: "Conduct GAD related Gender Mainstreaming capability building", indicators: "25 training/workshop/seminars conducted (F:1500 M:1000)", budget: "₱4,000,000", source: "GAA" },
-  { id: 9, mandate: "GFPS Capacity Building", cause: "Low level of capacity of GFPS members", result: "Capacitated GFPS members to implement GAD PAPs", mfo: "Research Services", activity: "GMFE/HGDG/GPB/GAD Deepening Session", indicators: "At least 1 training per GFPS member (F:31 M:15)", budget: "₱396,000", source: "GAA" },
-  { id: 10, mandate: "Gender Sensitivity Training", cause: "Lack of regular orientation on gender sensitivity", result: "To enhance awareness of gender concepts among personnel", mfo: "Higher Education Program", activity: "Conduct Gender Sensitivity Training", indicators: "1 training for newly hired, 3 refresher trainings (F:50 M:20)", budget: "₱421,728", source: "GAA" },
-  { id: 11, mandate: "Child Minding Center", cause: "Problems of parents and students related to child care", result: "Ensure access to agency care services for children", mfo: "Research Services", activity: "Maintenance of Child Minding Center", indicators: "Fully maintained child minding centers", budget: "₱230,000", source: "GAA" },
-  { id: 12, mandate: "Breastfeeding Station", cause: "Inadequate support for breastfeeding mothers", result: "Adequate support services for personnel with children", mfo: "Research Services", activity: "Establishment/maintenance of breastfeeding stations", indicators: "100% fully maintained lactation rooms", budget: "₱220,000", source: "GAA" },
-  { id: 13, mandate: "GAD Database System", cause: "No centralized GAD database", result: "Institutionalized GAD database system", mfo: "Higher Education Program", activity: "Institutionalize GAD database and Sex-Disaggregated Database", indicators: "Fully functional GAD database", budget: "₱500,000", source: "GAA" },
-  { id: 14, mandate: "VAW Campaigns", cause: "Need to highlight women's rights and provide platform to invoke protection", result: "To strengthen awareness on women's rights", mfo: "Research Services", activity: "Participation to 18-Day Campaign to end VAW and Women's Month", indicators: "At least one activity conducted per campus", budget: "₱450,000", source: "GAA" },
-  { id: 15, mandate: "IEC Materials Development", cause: "Presence of Gender Based Violence issues", result: "Institutionalize GAD mechanisms and sustain awareness campaigns", mfo: "Research Services", activity: "Development and Dissemination of GAD IEC Materials", indicators: "Official Publication of BSU with GAD articles", budget: "₱296,000", source: "GAA" }
-]);
+const totalGadBudget = computed(() => {
+  const all = [...clientFocused.value, ...orgFocused.value, ...attributedPrograms.value];
+  return all.reduce((sum, item) => sum + (Number(item.budget) || 0), 0);
+});
+
+const formatCurrency = (val) => {
+  return Number(val || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
 
 const exportToExcel = () => {
   alert(`Exporting ${selectedYear.value} GAD Plan & Budget table content to Excel...`);
@@ -208,15 +222,61 @@ const handleLogout = async () => {
   }
 };
 
-const fetchMandates = () => {
-  console.log('Fetching mandates...');
+const fetchGadPlan = async () => {
+  loading.value = true;
+  try {
+    const res = await api.get('budget/gad-plan');
+    if (res.data.success) {
+      const allItems = res.data.data;
+      
+      clientFocused.value = allItems.filter(item => item.form_type === 'client-focused activity').map(item => ({
+        id: item.gpb_id,
+        mandate: item.gender_issue_mandate,
+        cause: item.cause_of_gender_issue,
+        result: item.gad_result_objective,
+        mfo: item.relevant_org_mfo_pap,
+        activity: item.gad_activity,
+        indicators: item.performance_indicators_targets,
+        budget: item.gad_budget,
+        source: item.source || 'GAA'
+      }));
+
+      orgFocused.value = allItems.filter(item => item.form_type === 'organization-focused activity').map(item => ({
+        id: item.gpb_id,
+        mandate: item.gender_issue_mandate,
+        cause: item.cause_of_gender_issue,
+        result: item.gad_result_objective,
+        mfo: item.relevant_org_mfo_pap,
+        activity: item.gad_activity,
+        indicators: item.performance_indicators_targets,
+        budget: item.gad_budget,
+        source: item.source || 'GAA'
+      }));
+
+      attributedPrograms.value = allItems.filter(item => item.form_type === 'attributed program').map(item => ({
+        id: item.gpb_id,
+        mandate: item.gender_issue_mandate,
+        cause: item.cause_of_gender_issue,
+        result: item.gad_result_objective,
+        mfo: item.relevant_org_mfo_pap,
+        activity: item.gad_activity,
+        indicators: item.performance_indicators_targets,
+        budget: item.gad_budget,
+        source: item.source || 'GAA'
+      }));
+    }
+  } catch (err) {
+    console.error('Error fetching GAD plan:', err);
+  } finally {
+    loading.value = false;
+  }
 };
 
 onMounted(() => {
   if (!user.value.id || user.value.role !== 'gad_staff') {
     router.push('/login');
   }
-  fetchMandates();
+  fetchGadPlan();
 });
 </script>
 
@@ -266,7 +326,7 @@ onMounted(() => {
 
 .year-selector:focus {
   outline: none;
-  ring: 2px solid #990dd1;
+  box-shadow: 0 0 0 2px #990dd1;
 }
 
 .selector-icon {

@@ -44,7 +44,7 @@
             <div class="space-y-2">
               <div class="flex justify-between items-end px-1">
                 <label class="block font-label text-xs font-bold uppercase tracking-widest text-on-surface-variant" for="password">Password</label>
-                <router-link to="/forgot-password" class="text-primary text-[10px] font-bold uppercase tracking-wider hover:underline underline-offset-4 decoration-2">Forgot Password?</router-link>
+                <a class="text-primary text-[10px] font-bold uppercase tracking-wider hover:underline underline-offset-4 decoration-2" href="#">Forgot Password?</a>
               </div>
               <div class="relative group">
                 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline transition-colors group-focus-within:text-primary">lock</span>
@@ -70,9 +70,6 @@
               <input class="w-4 h-4 rounded border-outline text-primary focus:ring-primary" id="remember" type="checkbox" />
               <label class="text-sm text-on-surface-variant select-none" for="remember">Remember this device</label>
             </div>
-
-            <!-- Turnstile Widget -->
-            <TurnstileWidget ref="turnstileRef" @verify="onTurnstileVerify" />
 
             <!-- CTA -->
             <button 
@@ -119,7 +116,6 @@ import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 // Use the relative path to step up out of the 'views' folder and find api.js
 import api from '../api'; 
-import TurnstileWidget from '../components/TurnstileWidget.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -128,27 +124,15 @@ const password = ref('');
 const loading = ref(false);
 const error = ref('');
 const showPassword = ref(false);
-const turnstileToken = ref('');
-const turnstileRef = ref(null);
-
-const onTurnstileVerify = (token) => {
-  turnstileToken.value = token;
-};
 
 const handleLogin = async () => {
-  if (!turnstileToken.value) {
-    error.value = 'Please complete the security check.';
-    return;
-  }
-
   loading.value = true;
   error.value = '';
   
   try {
     const response = await api.post('login', {
       identity: identity.value,
-      password: password.value,
-      turnstile_token: turnstileToken.value
+      password: password.value
     });
     
     // Store user info in localStorage or a store
@@ -181,8 +165,6 @@ const handleLogin = async () => {
     
   } catch (err) {
     console.error('Login error:', err);
-    if (turnstileRef.value) turnstileRef.value.reset();
-    turnstileToken.value = '';
     
     if (err && err.messages) {
       error.value = err.messages.error || 'Login failed';

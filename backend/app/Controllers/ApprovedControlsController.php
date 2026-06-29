@@ -3,7 +3,6 @@
 namespace App\Controllers;
 
 use App\Models\ApprovedControlModel;
-use App\Models\ActivityBudgetItemsModel;
 use CodeIgniter\API\ResponseTrait;
 use CodeIgniter\Controller;
 
@@ -22,15 +21,28 @@ class ApprovedControlsController extends Controller
         $model = new ApprovedControlModel();
         $controls = $model->getApprovedControlsWithActivityDetails($userId);
 
-        // Fetch budget items for each activity design
-        $budgetModel = new ActivityBudgetItemsModel();
-        foreach ($controls as &$control) {
+        // N+1 Optimized: Fetch all budget items in one query
+        $designIds = [];
+        foreach ($controls as $control) {
             if (!empty($control['original_act_design_id'])) {
-                $budgetItems = $budgetModel->where('act_design_id', $control['original_act_design_id'])->findAll();
-                $control['budget_items'] = $budgetItems;
-            } else {
-                $control['budget_items'] = [];
+                $designIds[] = $control['original_act_design_id'];
             }
+        }
+
+        $allBudgetItems = [];
+        if (!empty($designIds)) {
+            $budgetModel = new \App\Models\ActivityBudgetItemsModel();
+            $budgetResults = $budgetModel->whereIn('act_design_id', array_unique($designIds))->findAll();
+            
+            // Group them by act_design_id
+            foreach ($budgetResults as $item) {
+                $allBudgetItems[$item['act_design_id']][] = $item;
+            }
+        }
+
+        foreach ($controls as &$control) {
+            $id = $control['original_act_design_id'] ?? null;
+            $control['budget_items'] = ($id && isset($allBudgetItems[$id])) ? $allBudgetItems[$id] : [];
         }
 
         return $this->respond([

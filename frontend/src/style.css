@@ -12,22 +12,3 @@ body {
   min-width: 320px;
   min-height: 100vh;
 }
-
-/* Global Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(185, 121, 204, 0.3);
-  border-radius: 99px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(153, 13, 209, 0.5);
-}

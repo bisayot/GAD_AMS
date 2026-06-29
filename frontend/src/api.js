@@ -1,6 +1,15 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://gad-ams-2-1.onrender.com/api/';
+const getApiBaseUrl = () => {
+  if (typeof window !== 'undefined' && window.location.hostname.includes('.app.github.dev')) {
+    const hostname = window.location.hostname;
+    const backendHostname = hostname.replace(/-5173\./, '-8080.');
+    return `https://${backendHostname}/api/`;
+  }
+  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/';
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -14,8 +23,17 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('authToken');
+    const userStr = localStorage.getItem('user');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        if (user && user.id) {
+          config.headers['X-User-Id'] = user.id;
+        }
+      } catch(e) {}
     }
     return config;
   },

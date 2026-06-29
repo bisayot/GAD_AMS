@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\ActivityDesignModel;
+use App\Models\ApprovedControlModel;
 use App\Libraries\FileStorage;
 
 class ActivityDesignController extends BaseController
@@ -11,30 +12,29 @@ class ActivityDesignController extends BaseController
     {
         $activityDesignModel = new ActivityDesignModel();
 
-        // Validation rules aligned with frontend FormData field names
         $rules = [
-            "nature"              => "required",
+            "form_type"           => "required",
             "activity_title"      => "required",
             "start_date"          => "required",
             "end_date"            => "required",
             "start_time"          => "required",
             "end_time"            => "required",
-            "venue_id"            => "required|numeric",
+            "venue_id"            => "required",
             "target_participants" => "required|numeric",
             "proposed_budget"     => "required|numeric",
             "budget_items"        => "required",
             "user_id"             => "required",
-            "design_file"         => "uploaded[design_file]|max_size[design_file,10240]|ext_in[design_file,pdf]",
+            "attachment"          => "uploaded[attachment]|max_size[attachment,10240]|ext_in[attachment,pdf]",
         ];
 
         $messages = [
-            "nature"              => ["required" => "Form type is required"],
+            "form_type"           => ["required" => "Form type is required"],
             "activity_title"      => ["required" => "Activity title is required"],
             "start_date"          => ["required" => "Start date is required"],
             "end_date"            => ["required" => "End date is required"],
             "start_time"          => ["required" => "Start time is required"],
             "end_time"            => ["required" => "End time is required"],
-            "venue_id"            => ["required" => "Venue is required", "numeric" => "Invalid venue format"],
+            "venue_id"            => ["required" => "Venue is required"],
             "target_participants" => [
                 "required" => "Target participants is required",
                 "numeric"  => "Target participants must be a number",
@@ -43,9 +43,10 @@ class ActivityDesignController extends BaseController
                 "required" => "Proposed budget is required",
                 "numeric"  => "Proposed budget must be a numeric value",
             ],
-            "budget_items"        => ["required" => "Budget items breakdown is required"],
+            "budget_items"        => ["required" => "Budget items are required"],
             "user_id"             => ["required" => "User identification is missing"],
-            "design_file"         => [
+            "attachment"          => [
+                "required" => "Design file is required",
                 "uploaded" => "Design file was not uploaded correctly",
                 "max_size" => "Design file size exceeds the 10MB limit",
                 "ext_in"   => "Design file must be a PDF",
@@ -60,47 +61,106 @@ class ActivityDesignController extends BaseController
         }
 
         try {
+            $db = \Config\Database::connect();
+            $db->transStart();
+
+            $venueId = $this->request->getPost("venue_id");
+            if ($venueId === 'Other') {
+                $customVenueName = $this->request->getPost("custom_venue");
+                if (empty($customVenueName)) {
+                    return $this->response->setJSON([
+                        "success" => false,
+                        "errors"  => ["custom_venue" => "Custom venue name is required"]
+                    ])->setStatusCode(422);
+                }
+
+                // Insert new venue
+                $venueModel = new \App\Models\VenueModel();
+                $venueModel->insert(['venue_name' => $customVenueName]);
+                $venueId = $venueModel->getInsertID();
+            }
+
+            $gadMandateId = $this->request->getPost('gad_mandate_id');
+            if ($gadMandateId === 'Other' || $gadMandateId === 'new') {
+                $customMandate = $this->request->getPost('custom_gad_mandate');
+                $db = \Config\Database::connect();
+                $db->table('gad_mandates')->insert([
+                    'code' => 'CUSTOM',
+                    'title' => $customMandate
+                ]);
+                $gadMandateId = $db->insertID();
+            }
+
+            $genderIssueId = $this->request->getPost('gender_issue_id');
+            if ($genderIssueId === 'Other' || $genderIssueId === 'new') {
+                $customIssue = $this->request->getPost('custom_gender_issue');
+                $db = \Config\Database::connect();
+                $db->table('gender_issues')->insert([
+                    'mandate_id' => $gadMandateId,
+                    'title' => $customIssue,
+                    'gad_objective' => null
+                ]);
+                $genderIssueId = $db->insertID();
+            }
+
             // Save uploaded PDF to writable/uploads/drafts/
-            $file = $this->request->getFile('design_file');
+            $file = $this->request->getFile('attachment');
             $fileName = FileStorage::saveToDrafts($file);
 
             $data = [
-                "form_type"           => $this->request->getPost("nature"),
-                "activity_title"      => $this->request->getPost("activity_title"),
-                "start_date"          => $this->request->getPost("start_date"),
-                "end_date"            => $this->request->getPost("end_date"),
-                "start_time"          => $this->request->getPost("start_time"),
-                "end_time"            => $this->request->getPost("end_time"),
-                "venue_id"            => $this->request->getPost("venue_id"),
-                "target_participants" => $this->request->getPost("target_participants"),
-                "proposed_budget"     => $this->request->getPost("proposed_budget"),
-                "user_id"             => $this->request->getPost("user_id"),
-                "attachment"          => $fileName,
-                "status"              => "Pending",
+                "form_type"                  => $this->request->getPost("form_type"),
+                "activity_classification_id" => $this->request->getPost("activity_classification_id"),
+                "classification_id"          => $this->request->getPost("activity_classification_id"), // mapping to db column
+                "gad_mandate_id"             => $gadMandateId,
+                "gender_issue_id"            => $genderIssueId,
+                "activity_title"             => $this->request->getPost("activity_title"),
+                "start_date"                 => $this->request->getPost("start_date"),
+                "end_date"                   => $this->request->getPost("end_date"),
+                "start_time"                 => $this->request->getPost("start_time"),
+                "end_time"                   => $this->request->getPost("end_time"),
+                "venue_id"                   => $venueId,
+                "target_participants"        => $this->request->getPost("target_participants"),
+                "proposed_budget"            => $this->request->getPost("proposed_budget"),
+                "user_id"                    => $this->request->getPost("user_id"),
+                "attachment"                 => $fileName,
+                "status"                     => "Pending",
             ];
+            unset($data['activity_classification_id']); // remove the temporary mapping key
 
             if (empty($data['user_id'])) {
                 throw new \Exception("User ID is missing. Please log in again.");
             }
 
-            if ($activityDesignModel->insert($data)) {
-                $actDesignId = $activityDesignModel->getInsertID();
-
-                // Save budget items
+            $insertId = $activityDesignModel->insert($data);
+            
+            if ($insertId) {
                 $budgetItemsStr = $this->request->getPost("budget_items");
                 if ($budgetItemsStr) {
                     $budgetItems = json_decode($budgetItemsStr, true);
                     if (is_array($budgetItems)) {
-                        $budgetItemsModel = new \App\Models\ActivityBudgetItemsModel();
-                        $budgetItems['act_design_id'] = $actDesignId;
-                        $budgetItemsModel->insert($budgetItems);
+                        foreach ($budgetItems as $item) {
+                            $db->table('activity_budget_items')->insert([
+                                'act_design_id' => $insertId,
+                                'category'      => $item['category'] ?? 'Miscellaneous',
+                                'item_name'     => $item['name'] ?? 'Other',
+                                'sub_item'      => $item['sub_item'] ?? null,
+                                'pax'           => isset($item['pax']) && $item['pax'] !== '' ? (int)$item['pax'] : null,
+                                'amount'        => isset($item['amount']) && $item['amount'] !== '' ? (float)$item['amount'] : 0.00
+                            ]);
+                        }
                     }
                 }
 
-                return $this->response->setJSON([
-                    "success" => true,
-                    "message" => "Data saved successfully"
-                ]);
+                $db->transComplete();
+
+                if ($db->transStatus() === true) {
+                    \App\Models\ActivityLogModel::log($data['user_id'], 'Submit Document', 'submitted Activity Design: ' . $data['activity_title']);
+
+                    return $this->response->setJSON([
+                        "success" => true,
+                        "message" => "Data saved successfully"
+                    ]);
+                }
             }
 
             return $this->response->setJSON([
@@ -119,218 +179,15 @@ class ActivityDesignController extends BaseController
 
     public function index()
     {
-        $db = \Config\Database::connect();
-        
-        $active = $db->table('activity_design as ad')
-            ->select('ad.act_design_id, ad.status, cn.control_number as control, office_units.office_name as office, users.full_name as submitter_name, ad.activity_title as title, ad.form_type as formLabel, ad.start_date as date, ad.end_date')
-            ->join('users', 'users.id = ad.user_id', 'left')
-            ->join('office_units', 'office_units.office_id = users.office_id', 'left')
-            ->join('control_number as cn', 'cn.act_design_id = ad.act_design_id', 'left')
-            ->get()->getResultArray();
-
-        usort($active, function($a, $b) {
-            return $a['act_design_id'] <=> $b['act_design_id'];
-        });
-
-        return $this->response->setJSON([
-            'success' => true,
-            'data'    => $active
-        ]);
-    }
-
-
-    public function getUserDesigns($userId = null)
-    {
-        if (!$userId) {
-            return $this->response->setJSON(['success' => false, 'message' => 'User ID required'])->setStatusCode(400);
-        }
-
-        $db = \Config\Database::connect();
-        
-        $active = $db->table('activity_design as ad')
-            ->select('ad.act_design_id, ad.status, cn.control_number as control, office_units.office_name as office, users.full_name as submitter_name, ad.activity_title as title, ad.form_type as formLabel, ad.start_date as date, ad.end_date')
-            ->join('users', 'users.id = ad.user_id', 'left')
-            ->join('office_units', 'office_units.office_id = users.office_id', 'left')
-            ->join('control_number as cn', 'cn.act_design_id = ad.act_design_id', 'left')
-            ->where('ad.user_id', $userId)
-            ->get()->getResultArray();
-
-        usort($active, function($a, $b) {
-            return $a['act_design_id'] <=> $b['act_design_id'];
-        });
-
-        return $this->response->setJSON([
-            'success' => true,
-            'data'    => $active
-        ]);
-    }
-
-    public function show($id = null)
-    {
-        if (!$id) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Design ID required'])->setStatusCode(400);
-        }
-
-        $activityDesignModel = new ActivityDesignModel();
-        $design = $activityDesignModel
-            ->select('activity_design.*, control_number.control_number as control, office_units.office_name as office, users.full_name as submitter_name, activity_design.start_date as date, venues.venue_name as venue')
-            ->join('users', 'users.id = activity_design.user_id', 'left')
-            ->join('office_units', 'office_units.office_id = users.office_id', 'left')
-            ->join('control_number', 'control_number.act_design_id = activity_design.act_design_id', 'left')
-            ->join('venues', 'venues.venue_id = activity_design.venue_id', 'left')
-            ->where('activity_design.act_design_id', $id)
-            ->first();
-
-        if (!$design) {
-            // Try searching in archive fallback
-            $db = \Config\Database::connect();
-            $design = $db->table('archived_activity_designs as aad')
-                ->select('aad.*, aad.original_act_design_id as act_design_id, aad.activity_title as title, aad.form_type as formLabel, office_units.office_name as office, users.full_name as submitter_name, aad.start_date as date, venues.venue_name as venue')
-                ->join('users', 'users.id = aad.user_id', 'left')
-                ->join('office_units', 'office_units.office_id = users.office_id', 'left')
-                ->join('control_number as cn', 'cn.act_design_id = aad.original_act_design_id', 'left')
-                ->join('venues', 'venues.venue_id = aad.venue_id', 'left')
-                ->select('COALESCE(cn.control_number, "N/A") as control')
-                ->where('aad.original_act_design_id', $id)
-                ->get()->getRowArray();
-
-            if (!$design) {
-                return $this->response->setJSON(['success' => false, 'message' => 'Activity design not found'])->setStatusCode(404);
-            }
-            $design['is_archived'] = true;
-        } else {
-            $design['is_archived'] = false;
-        }
-
-        // Fetch budget items
-        $budgetModel = new \App\Models\ActivityBudgetItemsModel();
-        $budget = $budgetModel->where('act_design_id', $design['act_design_id'])->first();
-        if ($budget) {
-            $design = array_merge($design, $budget);
-        }
-
-        return $this->response->setJSON(['success' => true, 'data' => $design]);
-    }
-
-    public function getTWGSubmissions()
-    {
-        $db = \Config\Database::connect();
-
-        $gadOfficeId = 1;
-        $gadStaffOfficeId = 47;
-
-        $offices = $db->table('office_units')
-            ->select('office_id, office_name')
-            ->where('office_id !=', $gadStaffOfficeId)
-            ->orderBy('office_id', 'ASC')
-            ->get()
-            ->getResultArray();
-
-        $users = $db->table('users')
-            ->select('users.office_id, COALESCE(user_profiles.user_role, "Non-TWG") as user_role')
-            ->join('user_profiles', 'user_profiles.user_id = users.id', 'left')
-            ->select('( (SELECT COUNT(*) FROM activity_design WHERE activity_design.user_id = users.id) + (SELECT COUNT(*) FROM archived_activity_designs WHERE archived_activity_designs.user_id = users.id) ) as activity_designs_count')
-            ->select('( (SELECT COUNT(*) FROM accomplishment_report WHERE accomplishment_report.user_id = users.id) + (SELECT COUNT(*) FROM archived_accomplishment_reports WHERE archived_accomplishment_reports.user_id = users.id) ) as accomplishment_reports_count')
-            ->where('users.role !=', 'admin')
-            ->get()
-            ->getResultArray();
-
-        $officeStats = [];
-        foreach ($users as $u) {
-            $officeId = (int) ($u['office_id'] ?? 0);
-            if ($officeId === $gadStaffOfficeId) {
-                $officeId = $gadOfficeId;
-            }
-            if ($officeId === 0) {
-                continue;
-            }
-
-            if (! isset($officeStats[$officeId])) {
-                $officeStats[$officeId] = [
-                    'twg_count' => 0,
-                    'nontwg_count' => 0,
-                    'staff_count' => 0,
-                    'activity_designs_count' => 0,
-                    'accomplishment_reports_count' => 0,
-                ];
-            }
-
-            $roleLower = strtolower($u['user_role']);
-            if ($roleLower === 'twg') {
-                $officeStats[$officeId]['twg_count']++;
-            } elseif ($roleLower === 'staff') {
-                $officeStats[$officeId]['staff_count']++;
-            } else {
-                $officeStats[$officeId]['nontwg_count']++;
-            }
-
-            $officeStats[$officeId]['activity_designs_count'] += (int) $u['activity_designs_count'];
-            $officeStats[$officeId]['accomplishment_reports_count'] += (int) $u['accomplishment_reports_count'];
-        }
-
-        $data = [];
-        $totalDesigns = 0;
-        $totalReports = 0;
-        $totalTWG = 0;
-        $totalStaff = 0;
-        $totalNonTWG = 0;
-
-        foreach ($offices as $office) {
-            $officeId = (int) $office['office_id'];
-            $stats = $officeStats[$officeId] ?? [
-                'twg_count' => 0,
-                'nontwg_count' => 0,
-                'staff_count' => 0,
-                'activity_designs_count' => 0,
-                'accomplishment_reports_count' => 0,
-            ];
-
-            $totalSubmissions = $stats['activity_designs_count'] + $stats['accomplishment_reports_count'];
-
-            $data[] = [
-                'id' => $officeId,
-                'office_name' => $office['office_name'],
-                'twg_count' => $stats['twg_count'],
-                'nontwg_count' => $stats['nontwg_count'],
-                'staff_count' => $stats['staff_count'],
-                'activity_designs_count' => $stats['activity_designs_count'],
-                'accomplishment_reports_count' => $stats['accomplishment_reports_count'],
-                'total_submissions' => $totalSubmissions,
-            ];
-
-            $totalDesigns += $stats['activity_designs_count'];
-            $totalReports += $stats['accomplishment_reports_count'];
-            $totalTWG += $stats['twg_count'];
-            $totalStaff += $stats['staff_count'];
-            $totalNonTWG += $stats['nontwg_count'];
-        }
-
-        return $this->response->setJSON([
-            'success' => true,
-            'data'    => $data,
-            'meta'    => [
-                'total' => count($data),
-                'total_twg' => $totalTWG,
-                'total_staff' => $totalStaff,
-                'total_nontwg' => $totalNonTWG,
-                'total_designs' => $totalDesigns,
-                'total_reports' => $totalReports,
-                'last_page' => 1
-            ]
-        ]);
-    }
-
-    public function getArchivedDesigns()
-    {
         $activityDesignModel = new ActivityDesignModel();
 
-        // Fetch designs that are 'Approved' or 'Cancelled'
         $designs = $activityDesignModel
-            ->select('activity_design.*, control_number.control_number as control, office_units.office_name as office, users.full_name as submitter_name, activity_design.activity_title as title, activity_design.form_type as formLabel, activity_design.start_date as date')
+            ->select('activity_design.*, control_number.control_number as control, users.username as office, users.username as username, activity_design.activity_title as title, activity_design.form_type as formLabel, activity_design.start_date as date, COALESCE(venues.venue_name, activity_design.venue) as venue')
             ->join('users', 'users.id = activity_design.user_id', 'left')
-            ->join('office_units', 'office_units.office_id = users.office_id', 'left')
+            ->join('venues', 'venues.venue_id = activity_design.venue_id', 'left')
             ->join('control_number', 'control_number.act_design_id = activity_design.act_design_id', 'left')
-            ->whereIn('activity_design.status', ['Approved', 'Cancelled'])
+            ->whereNotIn('activity_design.status', ['Approved', 'Cancelled'])
+            ->where('activity_design.deleted_at', null)
             ->orderBy('activity_design.act_design_id', 'DESC')
             ->findAll();
 
@@ -340,11 +197,173 @@ class ActivityDesignController extends BaseController
         ]);
     }
 
+    public function getUserDesigns($userId = null)
+    {
+        if (!$userId) {
+            return $this->response->setJSON(['success' => false, 'message' => 'User ID required'])->setStatusCode(400);
+        }
+
+        $db = \Config\Database::connect();
+
+        $active = $db->table('activity_design as ad')
+            ->select('ad.*, cn.control_number as control, u.username as office, ad.activity_title as title, ad.form_type as formLabel, ad.start_date as date, COALESCE(v.venue_name, ad.venue) as venue')
+            ->join('users u', 'u.id = ad.user_id', 'left')
+            ->join('venues v', 'v.venue_id = ad.venue_id', 'left')
+            ->join('control_number cn', 'cn.act_design_id = ad.act_design_id', 'left')
+            ->whereNotIn('ad.status', ['Approved', 'Cancelled'])
+            ->where('ad.user_id', $userId)
+            ->where('ad.deleted_at', null)
+            ->get()->getResultArray();
+
+        usort($active, function($a, $b) {
+            return (int)$b['act_design_id'] - (int)$a['act_design_id'];
+        });
+
+        return $this->response->setJSON(['success' => true, 'data' => $active]);
+    }
+
+    public function show($id = null)
+    {
+        if (!$id) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Design ID required'])->setStatusCode(400);
+        }
+
+        $db = \Config\Database::connect();
+        $activityDesignModel = new ActivityDesignModel();
+        $design = $activityDesignModel
+            ->select('activity_design.*, control_number.control_number as control, office_units.office_name as office, users.full_name as submitter_name, activity_design.start_date as date, COALESCE(venues.venue_name, activity_design.venue) as venue')
+            ->join('users', 'users.id = activity_design.user_id', 'left')
+            ->join('office_units', 'office_units.office_id = users.office_id', 'left')
+            ->join('venues', 'venues.venue_id = activity_design.venue_id', 'left')
+            ->join('control_number', 'control_number.act_design_id = activity_design.act_design_id', 'left')
+            ->where('activity_design.act_design_id', $id)
+            ->first();
+
+        $isActive = true;
+        if (!$design) {
+            $design = $db->table('archived_activity_designs as aad')
+                ->select('aad.*, aad.original_act_design_id as act_design_id, aad.activity_title as title, aad.form_type as formLabel, office_units.office_name as office, users.full_name as submitter_name, aad.start_date as date, COALESCE(v.venue_name, aad.venue) as venue, COALESCE(cn.control_number, "N/A") as control')
+                ->join('users', 'users.id = aad.user_id', 'left')
+                ->join('office_units', 'office_units.office_id = users.office_id', 'left')
+                ->join('control_number as cn', 'cn.act_design_id = aad.original_act_design_id', 'left')
+                ->join('venues as v', 'v.venue_id = aad.venue_id', 'left')
+                ->where('aad.original_act_design_id', $id)
+                ->get()->getRowArray();
+
+            if (!$design) {
+                return $this->response->setJSON(['success' => false, 'message' => 'Activity design not found'])->setStatusCode(404);
+            }
+            $isActive = false;
+        }
+
+        $actDesignId = $isActive ? ($design['act_design_id'] ?? $id) : ($design['original_act_design_id'] ?? $id);
+        $table = $isActive ? 'activity_budget_items' : 'archived_activity_budget_items';
+        
+        $budgetItems = $db->table($table)->where('act_design_id', $actDesignId)->get()->getResultArray();
+        
+        // Populate virtual columns for backward compatibility
+        $design['meals_and_snacks'] = 0;
+        $design['function_room_venue'] = 0;
+        $design['accommodation'] = 0;
+        $design['equipment_rental'] = 0;
+        $design['professional_fee_honoria'] = 0;
+        $design['tokens'] = 0;
+        $design['materials_and_supplies'] = 0;
+        $design['transportation'] = 0;
+        $design['others'] = 0;
+
+        foreach ($budgetItems as $bi) {
+            $amt = (float)$bi['amount'];
+            if ($bi['item_name'] === 'Meals' || $bi['item_name'] === 'Snacks' || $bi['item_name'] === 'Meals and Snacks (AM/PM)') {
+                $design['meals_and_snacks'] += $amt;
+            } elseif ($bi['item_name'] === 'Function Room/Venue') {
+                $design['function_room_venue'] += $amt;
+            } elseif ($bi['item_name'] === 'Accommodation') {
+                $design['accommodation'] += $amt;
+            } elseif ($bi['item_name'] === 'Equipment Rental') {
+                $design['equipment_rental'] += $amt;
+            } elseif ($bi['item_name'] === 'Professional Fee/Honoria' || $bi['item_name'] === 'Professional Fee/Honoria') {
+                $design['professional_fee_honoria'] += $amt;
+            } elseif ($bi['item_name'] === 'Token/s') {
+                $design['tokens'] += $amt;
+            } elseif ($bi['item_name'] === 'Materials and Supplies') {
+                $design['materials_and_supplies'] += $amt;
+            } elseif ($bi['item_name'] === 'Transportation') {
+                $design['transportation'] += $amt;
+            } elseif ($bi['item_name'] === 'Others') {
+                $design['others'] += $amt;
+            }
+        }
+
+        $design['budget_items'] = $budgetItems;
+
+        return $this->response->setJSON(['success' => true, 'data' => $design]);
+    }
+
+    public function getTWGSubmissions()
+    {
+        $db = \Config\Database::connect();
+        
+        $users = $db->table('users')
+            ->select('id, username, role')
+            ->select('(
+                (SELECT COUNT(*) FROM activity_design WHERE activity_design.user_id = users.id) + 
+                (SELECT COUNT(*) FROM archived_activity_designs WHERE archived_activity_designs.user_id = users.id)
+            ) as activity_designs_count')
+            ->select('(
+                (SELECT COUNT(*) FROM accomplishment_report WHERE accomplishment_report.user_id = users.id) + 
+                (SELECT COUNT(*) FROM archived_accomplishment_reports WHERE archived_accomplishment_reports.user_id = users.id)
+            ) as accomplishment_reports_count')
+            ->where('role !=', 'admin')
+            ->orderBy('id', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        $totalDesigns = 0;
+        $totalReports = 0;
+        
+        foreach ($users as &$u) {
+            $u['activity_designs_count'] = (int)$u['activity_designs_count'];
+            $u['accomplishment_reports_count'] = (int)$u['accomplishment_reports_count'];
+            $u['total_submissions'] = $u['activity_designs_count'] + $u['accomplishment_reports_count'];
+            
+            $totalDesigns += $u['activity_designs_count'];
+            $totalReports += $u['accomplishment_reports_count'];
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data'    => $users,
+            'meta'    => [
+                'total' => count($users),
+                'total_designs' => $totalDesigns,
+                'total_reports' => $totalReports,
+                'last_page' => 1
+            ]
+        ]);
+    }
+
+    public function getArchivedDesigns()
+    {
+        $db = \Config\Database::connect();
+
+        $designs = $db->table('archived_activity_designs as aad')
+            ->select('aad.*, aad.original_act_design_id as act_design_id, cn.control_number as control, u.username as office, u.username as username, aad.activity_title as title, aad.form_type as formLabel, aad.start_date as date, COALESCE(v.venue_name, aad.venue) as venue')
+            ->join('users u', 'u.id = aad.user_id', 'left')
+            ->join('venues v', 'v.venue_id = aad.venue_id', 'left')
+            ->join('control_number cn', 'cn.act_design_id = aad.original_act_design_id', 'left')
+            ->orderBy('aad.archived_at', 'DESC')
+            ->get()->getResultArray();
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data'    => $designs
+        ]);
+    }
+
     public function updateDesign($id)
     {
-        // 1. Initialize the Model
-        // Ensure you have "use App\Models\ActivityDesignModel;" at the top of your file
-        $model = new \App\Models\ActivityDesignModel(); 
+        $model = new ActivityDesignModel(); 
         
         $design = $model->find($id);
         if (!$design) {
@@ -354,60 +373,70 @@ class ActivityDesignController extends BaseController
             ])->setStatusCode(404);
         }
 
-        // 2. Collect only the fields that were sent in the request
-        // Using array_filter ensures we don't overwrite existing data with nulls
+        $db = \Config\Database::connect();
+        $venueId = $this->request->getPost("venue_id");
+        $venueName = $this->request->getPost("venue_name");
+
+        if (empty($venueId) && !empty($venueName)) {
+            $vTable = $db->table('venues');
+            $existing = $vTable->where('venue_name', $venueName)->get()->getRowArray();
+            if ($existing) { 
+                $venueId = $existing['venue_id'];
+            } else {
+                $vTable->insert(['venue_name' => $venueName]);
+                $venueId = $db->insertID();
+            }
+        }
+
         $data = [
             'activity_title'      => $this->request->getPost('activity_title'),
-            'form_type'           => $this->request->getPost('form_type'),
+            'form_type'           => $this->request->getPost('form_type') ?? $this->request->getPost('nature'),
+            'classification_id'   => $this->request->getPost('activity_classification_id'),
+            'gad_mandate_id'      => $this->request->getPost('gad_mandate_id'),
+            'gender_issue_id'     => $this->request->getPost('gender_issue_id'),
             'start_date'          => $this->request->getPost('start_date'),
             'end_date'            => $this->request->getPost('end_date'),
             'start_time'          => $this->request->getPost('start_time'),
             'end_time'            => $this->request->getPost('end_time'),
             'venue'               => $this->request->getPost('venue'),
+            'venue_id'            => $venueId ?? $this->request->getPost('venue_id'),
             'proposed_budget'     => $this->request->getPost('proposed_budget'),
             'target_participants' => $this->request->getPost('target_participants'),
-            'status'              => $this->request->getPost('status') ?? 'Pending', // Force back to Pending
+            'status'              => $this->request->getPost('status') ?? 'Pending', 
         ];
 
-        // Remove null values so we only update what was provided in the form
         $updateData = array_filter($data, function($value) {
             return $value !== null && $value !== '';
         });
 
-        // 3. Handle New File Upload (if any) — saves to drafts, removes old draft
         $file = $this->request->getFile('attachment');
         if ($file && $file->isValid() && !$file->hasMoved()) {
-            // Remove the old draft file to avoid orphaned files
-            if (!empty($design['attachment'])) {
-                FileStorage::deleteFromDrafts($design['attachment']);
-            }
-            $newName = FileStorage::saveToDrafts($file);
-            $updateData['attachment'] = $newName;
+            $fileName = FileStorage::saveToDrafts($file);
+            $updateData['attachment'] = $fileName;
         }
 
-        // 4. Execute Update
         try {
+            $db->transStart();
             if ($model->update($id, $updateData)) {
-
-                // Update or Insert budget items
                 $budgetItemsStr = $this->request->getPost("budget_items");
                 if ($budgetItemsStr) {
                     $budgetItems = json_decode($budgetItemsStr, true);
                     if (is_array($budgetItems)) {
-                        $budgetItemsModel = new \App\Models\ActivityBudgetItemsModel();
-                        $existingBudget = $budgetItemsModel->where('act_design_id', $id)->first();
-                        
-                        // We use the primary key if it exists, otherwise insert
-                        if ($existingBudget) {
-                            $primaryKey = $budgetItemsModel->primaryKey;
-                            $budgetItemsModel->update($existingBudget[$primaryKey], $budgetItems);
-                        } else {
-                            $budgetItems['act_design_id'] = $id;
-                            $budgetItemsModel->insert($budgetItems);
+                        $db->table('activity_budget_items')->where('act_design_id', $id)->delete();
+                        foreach ($budgetItems as $item) {
+                            $db->table('activity_budget_items')->insert([
+                                'act_design_id' => $id,
+                                'category'      => $item['category'] ?? 'Miscellaneous',
+                                'item_name'     => $item['name'] ?? 'Other',
+                                'sub_item'      => $item['sub_item'] ?? null,
+                                'pax'           => isset($item['pax']) && $item['pax'] !== '' ? (int)$item['pax'] : null,
+                                'amount'        => isset($item['amount']) && $item['amount'] !== '' ? (float)$item['amount'] : 0.00
+                            ]);
                         }
                     }
                 }
-
+                
+                $db->transComplete();
                 return $this->response->setJSON([
                     'success' => true,
                     'message' => 'Activity Design updated and resubmitted successfully.'
@@ -427,28 +456,21 @@ class ActivityDesignController extends BaseController
         }
     }
 
-    /**
-     * Approve an Activity Design:
-     *  1. Assigns control number & assessment metadata
-     *  2. Updates status to 'Approved'
-     *  3. Inserts into archived_activity_designs table
-     *  4. Deletes from active activity_design table
-     *  5. Moves the PDF from drafts → archived
-     */
+    public function getVenues()
+    {
+        $db = \Config\Database::connect();
+        $venues = $db->table('venues')->orderBy('venue_name', 'ASC')->get()->getResultArray();
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data'    => $venues
+        ]);
+    }
+
     public function approveDesign($id = null)
     {
         if (!$id) {
             return $this->response->setJSON(['success' => false, 'message' => 'Design ID required'])->setStatusCode(400);
-        }
-
-        $body = $this->request->getJSON(true) ?? $this->request->getPost();
-        $controlNumber        = $body['control_number']        ?? null;
-        $assessmentDate       = $body['assessment_date']       ?? date('Y-m-d');
-        $accomplishmentDeadline = $body['accomplishment_deadline'] ?? null;
-        $remarks              = $body['remarks']               ?? '';
-
-        if (!$controlNumber) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Control number is required'])->setStatusCode(422);
         }
 
         $db = \Config\Database::connect();
@@ -456,43 +478,51 @@ class ActivityDesignController extends BaseController
 
         $item = $db->table('activity_design')->where('act_design_id', $id)->get()->getRowArray();
         if (!$item) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Activity design not found'])->setStatusCode(404);
+            return $this->response->setJSON(['success' => false, 'message' => 'Design not found'])->setStatusCode(404);
         }
 
-        // 1. Save control number record
-        $existingControl = $db->table('control_number')->where('act_design_id', $id)->get()->getRowArray();
-        if ($existingControl) {
-            $db->table('control_number')->where('act_design_id', $id)->update(['control_number' => $controlNumber]);
-        } else {
-            $db->table('control_number')->insert([
-                'act_design_id'  => $id,
-                'control_number' => $controlNumber
-            ]);
-        }
+        $controlNum = $this->request->getPost('control');
+        $assessmentDate = $this->request->getPost('assessment-date');
+        $deadline = $this->request->getPost('accomplishment-deadline');
+        $remarks = $this->request->getPost('remarks');
 
-        // 2. Insert into archived_activity_designs
         $archiveData = [
-            'original_act_design_id'   => $item['act_design_id'],
-            'activity_title'           => $item['activity_title'],
-            'start_date'               => $item['start_date'],
-            'end_date'                 => $item['end_date'],
-            'start_time'               => $item['start_time'],
-            'end_time'                 => $item['end_time'],
-            'status'                   => 'Approved',
-            'attachment'               => $item['attachment'],
-            'user_id'                  => $item['user_id'],
-            'gpb_id'                   => $item['gpb_id'] ?? null,
-            'venue_id'                 => $item['venue_id'],
-            'target_participants'      => $item['target_participants'],
-            'proposed_budget'          => $item['proposed_budget'],
-            'form_type'                => $item['form_type'],
-            'assessment_date'          => $assessmentDate,
-            'accomplishment_deadline'  => $accomplishmentDeadline,
-            'remarks'                  => $remarks,
+            'original_act_design_id' => $item['act_design_id'],
+            'activity_title'         => $item['activity_title'],
+            'start_date'             => $item['start_date'],
+            'end_date'               => $item['end_date'],
+            'start_time'             => $item['start_time'],
+            'end_time'               => $item['end_time'],
+            'status'                 => 'Approved',
+            'remarks'                => $remarks,
+            'assessment_date'        => $assessmentDate,
+            'accomplishment_deadline' => $deadline,
+            'attachment'             => $item['attachment'],
+            'user_id'                => $item['user_id'],
+            'gpb_id'                 => $item['gpb_id'] ?? null,
+            'venue'                  => $item['venue'],
+            'venue_id'               => $item['venue_id'],
+            'target_participants'    => $item['target_participants'],
+            'proposed_budget'        => $item['proposed_budget'],
+            'form_type'              => $item['form_type']
         ];
         $db->table('archived_activity_designs')->insert($archiveData);
 
-        // 3. Delete from active table
+        // Copy budget items to archived_activity_budget_items before deleting
+        $budgetItems = $db->table('activity_budget_items')->where('act_design_id', $id)->get()->getResultArray();
+        foreach ($budgetItems as $bi) {
+            unset($bi['id']);
+            $db->table('archived_activity_budget_items')->insert($bi);
+        }
+
+        $db->table('control_number')->where('act_design_id', $id)->delete();
+        $db->table('control_number')->insert([
+            'control_number' => $controlNum,
+            'act_design_id'  => $id,
+            'user_id'        => $item['user_id']
+        ]);
+
+        // Delete the original record from the active table to perform a true MOVE operation.
         $db->table('activity_design')->where('act_design_id', $id)->delete();
 
         $db->transComplete();
@@ -501,12 +531,22 @@ class ActivityDesignController extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'Failed to approve and archive design'])->setStatusCode(500);
         }
 
-        // 4. Move PDF from drafts → archived (outside transaction)
+        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
+        \App\Models\ActivityLogModel::log($actionUserId, 'Approve Document', 'approved Activity Design: ' . $item['activity_title']);
+
+        // Move PDF from drafts -> archived (outside transaction)
         FileStorage::moveToArchived($item['attachment']);
 
+        return $this->response->setJSON(['success' => true, 'message' => 'Design approved and archived.']);
+    }
+
+    public function getControlNumbers($userId = null)
+    {
+        $model = new ApprovedControlModel();
+        $data = $model->getApprovedControlsWithActivityDetails($userId ? (int)$userId : null);
         return $this->response->setJSON([
             'success' => true,
-            'message' => 'Activity Design approved and archived successfully.'
+            'data'    => $data
         ]);
     }
 
@@ -516,32 +556,157 @@ class ActivityDesignController extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'Design ID required'])->setStatusCode(400);
         }
 
-        $body = $this->request->getJSON(true) ?? $this->request->getPost();
-        $remarks = $body['remarks'] ?? '';
-        $deadline = $body['deadline'] ?? null;
-
+        $model = new ActivityDesignModel();
         $db = \Config\Database::connect();
-        
-        $updateData = [
-            'status' => 'Revision Required'
-        ];
-        
-        // If remarks column exists in activity_design, it will be updated.
-        // Even if it doesn't, we update status.
+
+        $remarks = $this->request->getPost('remarks');
+        $assessmentDate = $this->request->getPost('assessment-date');
+        $accomplishmentDeadline = $this->request->getPost('accomplishment-deadline');
+        $controlNum = $this->request->getPost('control');
+        $status = $this->request->getPost('status') ?? 'Revision';
+
         try {
-            $updateData['remarks'] = $remarks;
-            if ($deadline) {
-                $updateData['accomplishment_deadline'] = $deadline;
+            $db->transStart();
+
+            $db->table('activity_design')->where('act_design_id', $id)->update([
+                'status'  => $status,
+                'remarks' => $remarks,
+                'assessment_date' => $assessmentDate,
+                'accomplishment_deadline' => $accomplishmentDeadline
+            ]);
+
+            if (!empty($controlNum)) {
+                $controlTable = $db->table('control_number');
+                $existingControl = $controlTable->where('act_design_id', $id)->get()->getRow();
+
+                if ($existingControl) {
+                    $controlTable->where('act_design_id', $id)->update(['control_number' => $controlNum]);
+                } else {
+                    $design = $model->find($id);
+                    $controlTable->insert([
+                        'control_number' => $controlNum,
+                        'act_design_id'  => $id,
+                        'user_id'        => $design['user_id']
+                    ]);
+                }
             }
-            $db->table('activity_design')->where('act_design_id', $id)->update($updateData);
+
+            $db->transComplete();
+
+            if ($db->transStatus() === false) {
+                throw new \Exception("Database transaction failed.");
+            }
+
+            $item = $db->table('activity_design')->where('act_design_id', $id)->get()->getRowArray();
+            if ($item) {
+                $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
+                \App\Models\ActivityLogModel::log($actionUserId, 'Update Status', 'requested revision for Activity Design: ' . $item['activity_title']);
+            }
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'The design has been returned to the submitter for revision.'
+            ]);
+
         } catch (\Exception $e) {
-            // Fallback: If columns don't exist in active table, just update status.
-            $db->table('activity_design')->where('act_design_id', $id)->update(['status' => 'Revision Required']);
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Server Error: ' . $e->getMessage()
+            ])->setStatusCode(500);
+        }
+    }
+
+    public function updateDeadline($id = null)
+    {
+        if (!$id) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Design ID required'])->setStatusCode(400);
         }
 
-        return $this->response->setJSON([
-            'success' => true,
-            'message' => 'Sent for revision successfully'
-        ]);
+        $body = $this->request->getJSON(true) ?? $this->request->getPost();
+        $deadline = $body['deadline'] ?? null;
+        $isArchived = filter_var($body['is_archived'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        if (!$deadline) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Deadline required'])->setStatusCode(400);
+        }
+
+        $db = \Config\Database::connect();
+        $table = $isArchived ? 'archived_activity_designs' : 'activity_design';
+        $idColumn = $isArchived ? 'original_act_design_id' : 'act_design_id';
+
+        try {
+            $updated = $db->table($table)->where($idColumn, $id)->update(['accomplishment_deadline' => $deadline]);
+            if ($updated) {
+                $item = $db->table($table)->where($idColumn, $id)->get()->getRowArray();
+                if ($item) {
+                    $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
+                    \App\Models\ActivityLogModel::log($actionUserId, 'Update Deadline', 'updated accomplishment deadline for Activity Design: ' . $item['activity_title']);
+                }
+                return $this->response->setJSON(['success' => true, 'message' => 'Deadline updated successfully']);
+            }
+            return $this->response->setJSON(['success' => false, 'message' => 'No changes made or record not found']);
+        } catch (\Exception $e) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Server Error: ' . $e->getMessage()])->setStatusCode(500);
+        }
+    }
+
+    public function trash($id = null)
+    {
+        if (!$id) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Design ID required'])->setStatusCode(400);
+        }
+
+        $model = new ActivityDesignModel();
+        
+        // Find if it exists first
+        $design = $model->find($id);
+        if (!$design) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Activity design not found'])->setStatusCode(404);
+        }
+
+        if ($model->delete($id)) {
+            $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
+            \App\Models\ActivityLogModel::log($actionUserId, 'Trash Document', 'moved to trash Activity Design: ' . $design['activity_title']);
+            return $this->response->setJSON(['success' => true, 'message' => 'Activity design moved to trash successfully']);
+        }
+
+        return $this->response->setJSON(['success' => false, 'message' => 'Failed to move activity design to trash'])->setStatusCode(500);
+    }
+
+    public function getFormTypes()
+    {
+        $db = \Config\Database::connect();
+        $builder = $db->table('form_types');
+        $query = $builder->get();
+        return $this->response->setJSON($query->getResult());
+    }
+
+    public function getGADMandates()
+    {
+        $db = \Config\Database::connect();
+        $builder = $db->table('gad_mandates');
+        $query = $builder->get();
+        return $this->response->setJSON($query->getResult());
+    }
+
+    public function getGenderIssues($mandate_id = null)
+    {
+        $db = \Config\Database::connect();
+        $builder = $db->table('gender_issues');
+
+        if ($mandate_id) {
+            $builder->where('mandate_id', $mandate_id);
+        }
+
+        $query = $builder->get();
+        return $this->response->setJSON($query->getResult());
+    }
+
+    public function getActivityClassifications()
+    {
+        $db = \Config\Database::connect();
+        $builder = $db->table('activity_classifications');
+        $query = $builder->get();
+        return $this->response->setJSON($query->getResult());
     }
 }

@@ -12,7 +12,7 @@ class ActivityDesignModel extends Model // No change needed here, class name is 
 	protected $useAutoIncrement     = true;
 	protected $insertID             = 0;
 	protected $returnType           = 'array';
-	protected $useSoftDelete        = false;
+	protected $useSoftDeletes   = true;
 	protected $protectFields        = true;
 
     protected $allowedFields = [
@@ -20,16 +20,15 @@ class ActivityDesignModel extends Model // No change needed here, class name is 
         "activity_title",
         "start_date",
         "end_date",
-          "start_time",
-          "end_time",
-          "venue",
-          "venue_id",
-          "assessment_date",
-          "target_participants",
-          "proposed_budget",
+        "start_time",
+        "end_time",
+        "venue",
+        "target_participants",
+        "proposed_budget",
         "attachment",
         "user_id",
-        "status"
+        "status",
+        "deleted_at"
     ];
 
 	// Dates
