@@ -592,7 +592,7 @@ onMounted(() => {
 
 .table-body {
   display: table-row-group;
-  background: #cbd5e1;
+  background: transparent;
 }
 
 .empty-state {
