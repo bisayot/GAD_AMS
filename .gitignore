@@ -33,3 +33,7 @@ frontend/dist/
 backend/.env
 frontend/.env
 frontend/.env.local
+
+# Local logs and commit files
+logs.md
+local_commits.md
