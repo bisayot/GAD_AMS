@@ -719,6 +719,9 @@ const fetchReportDetails = async () => {
       }
 
       formData.value = {
+        control_number: fetchedReport.control_number,
+        act_design_id: fetchedReport.act_design_id,
+        user_id: fetchedReport.user_id,
         activity_title: fetchedReport.activity_title,
         office: fetchedReport.office,
         form_type: fetchedReport.form_type,
@@ -728,10 +731,10 @@ const fetchReportDetails = async () => {
         start_time: fetchedReport.start_time,
         end_time: fetchedReport.end_time,
         venue: fetchedReport.venue,
-        venue_id: fetchedReport.venue_id || 'Other',
-        classification_id: fetchedReport.classification_id || '',
-        gad_mandate_id: fetchedReport.gad_mandate_id || '',
-        gender_issue_id: fetchedReport.gender_issue_id || '',
+        venue_id: fetchedReport.venue_id ? Number(fetchedReport.venue_id) : 'Other',
+        classification_id: fetchedReport.classification_id ? Number(fetchedReport.classification_id) : '',
+        gad_mandate_id: fetchedReport.gad_mandate_id ? Number(fetchedReport.gad_mandate_id) : '',
+        gender_issue_id: fetchedReport.gender_issue_id ? Number(fetchedReport.gender_issue_id) : '',
         male: fetchedReport.male,
         female: fetchedReport.female,
         attendees: fetchedReport.attendees,
@@ -807,6 +810,9 @@ const handleUpdate = async () => {
   try {
     const id = route.params.id;
     const submitData = new FormData();
+    submitData.append('control_number', formData.value.control_number);
+    submitData.append('act_design_id', formData.value.act_design_id);
+    submitData.append('user_id', formData.value.user_id);
     submitData.append('activity_title', formData.value.activity_title);
     submitData.append('form_type', formData.value.form_type);
     submitData.append('start_date', formData.value.start_date);
@@ -827,6 +833,11 @@ const handleUpdate = async () => {
     submitData.append('female', formData.value.female);
     submitData.append('attendees', formData.value.attendees);
     submitData.append('rating', formData.value.rating);
+    submitData.append('classification_id', formData.value.classification_id || '');
+    submitData.append('gad_mandate_id', formData.value.gad_mandate_id || '');
+    submitData.append('gender_issue_id', formData.value.gender_issue_id || '');
+    submitData.append('custom_gad_mandate', customMandate.value);
+    submitData.append('custom_gender_issue', customGenderIssue.value);
     
     const budget = [];
     formData.value.budget_items.forEach(item => {
