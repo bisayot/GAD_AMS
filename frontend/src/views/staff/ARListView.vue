@@ -199,7 +199,16 @@ const paginationMeta = ref({ total: 0, from: 0, to: 0, last_page: 1 });
 const formatDate = (date) => date ? new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '---';
 const formatFormType = (type) => {
   if (!type) return '---';
-  const map = { 'employee': 'Employee', 'inset': 'INSET', 'extension': 'Extension', 'student': 'Student' };
+  const map = {
+    '1': 'In-Service Training Design and Request',
+    '2': "Employees' Activity Design",
+    '3': 'Extension Training Design',
+    '4': 'External Training Form',
+    'employee': 'Employee Training',
+    'inset': 'INSET Training',
+    'extension': 'Extension Program',
+    'student': 'Student Activity'
+  };
   return map[type] || type;
 };
 

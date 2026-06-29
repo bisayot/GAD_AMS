@@ -418,6 +418,10 @@ const formatStatus = (status) => {
 const formatFormType = (type) => {
   if (!type) return '---';
   const map = {
+    '1': 'In-Service Training Design and Request',
+    '2': "Employees' Activity Design",
+    '3': 'Extension Training Design',
+    '4': 'External Training Form',
     'employee': 'Employee Training',
     'inset': 'INSET Training',
     'extension': 'Extension Program',

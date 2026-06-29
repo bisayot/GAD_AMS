@@ -346,8 +346,18 @@ const fetchSubmissions = async () => {
 };
 
 const formatFormType = (type) => {
-  const types = { 'inset': 'INSET Training', 'extension': 'Extension Program', 'employee': 'Employee Training' };
-  return types[type] || type;
+  if (!type) return '---';
+  const map = {
+    '1': 'In-Service Training Design and Request',
+    '2': "Employees' Activity Design",
+    '3': 'Extension Training Design',
+    '4': 'External Training Form',
+    'employee': 'Employee Training',
+    'inset': 'INSET Training',
+    'extension': 'Extension Program',
+    'student': 'Student Activity'
+  };
+  return map[type] || type;
 };
 
 const getFormClass = (type) => {
