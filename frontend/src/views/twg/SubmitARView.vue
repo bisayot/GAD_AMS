@@ -11,7 +11,7 @@
               <div class="form-grid-main-ar">
                 <div class="form-column-left-ar">
                   <div class="input-group-ar">
-                    <label class="form-label-ar">Activity Design Control Number *</label>
+                    <label class="form-label-ar">Approved Activity Design *</label>
                     <select 
                       v-model="form.control_number" 
                       required 
@@ -20,9 +20,9 @@
                       <option value="" class="dark-option">Select approved activity design...</option>
                       <option v-if="loadingControls" value="" disabled class="dark-option">Loading...</option>
                       <option v-for="control in approvedControls" :key="control.control_number" :value="control.control_number" class="dark-option">
-                        {{ control.control_number }} - {{ control.activity_title }}
+                        {{ control.activity_title }}
                       </option>
-                      <option v-if="!loadingControls && approvedControls.length === 0" value="" disabled class="dark-option">No approved control numbers found</option>
+                      <option v-if="!loadingControls && approvedControls.length === 0" value="" disabled class="dark-option">No approved activity designs found</option>
                     </select>
                   </div>
 
