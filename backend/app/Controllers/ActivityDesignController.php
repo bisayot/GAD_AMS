@@ -545,7 +545,10 @@ class ActivityDesignController extends BaseController
             'venue_id'               => $item['venue_id'],
             'target_participants'    => $item['target_participants'],
             'proposed_budget'        => $item['proposed_budget'],
-            'form_type'              => $item['form_type']
+            'form_type'              => $item['form_type'],
+            'classification_id'      => $item['classification_id'] ? (int)$item['classification_id'] : null,
+            'gad_mandate_id'         => $item['gad_mandate_id'] ? (int)$item['gad_mandate_id'] : null,
+            'gender_issue_id'        => $item['gender_issue_id'] ? (int)$item['gender_issue_id'] : null
         ];
         $db->table('archived_activity_designs')->insert($archiveData);
 
