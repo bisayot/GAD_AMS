@@ -586,6 +586,13 @@
 
               <div class="form-actions-ar">
                 <button 
+                  type="button"
+                  @click="router.back()" 
+                  class="back-button"
+                >
+                  ← Back
+                </button>
+                <button 
                   type="submit" 
                   class="submit-action-btn"
                   :disabled="isExceedingLimit"
@@ -1600,6 +1607,24 @@ onUnmounted(() => {
   font-size: 14px;
   opacity: 0.6;
   flex-shrink: 0;
+}
+
+.back-button {
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #b979cc;
+  border-radius: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.back-button:hover {
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .submit-action-btn {
