@@ -34,7 +34,8 @@ class AccomplishmentReportController extends BaseController
         ];
 
         if (!$this->validate($rules)) {
-            return $this->fail($this->validator->getErrors());
+            $errors = $this->validator->getErrors();
+            throw new \Exception("Validation Failed: " . json_encode($errors));
         }
 
         $db = \Config\Database::connect();
@@ -452,6 +453,10 @@ class AccomplishmentReportController extends BaseController
             return $this->failNotFound('Report not found');
         }
 
+        log_message('critical', 'RAW POST DATA: ' . json_encode($_POST));
+        log_message('critical', 'CI GETPOST DATA: ' . json_encode($this->request->getPost()));
+        log_message('critical', 'RAW FILES: ' . json_encode($_FILES));
+
         $rules = [
             'control_number'  => 'required',
             'act_design_id'   => 'required|numeric',
@@ -471,7 +476,8 @@ class AccomplishmentReportController extends BaseController
         ];
 
         if (!$this->validate($rules)) {
-            return $this->fail($this->validator->getErrors());
+            $errors = $this->validator->getErrors();
+            throw new \Exception("Validation Failed: " . json_encode($errors));
         }
 
         $db = \Config\Database::connect();

@@ -852,12 +852,25 @@ const handleUpdate = async () => {
     submitData.append('existing_attachments', JSON.stringify(existingFiles.value));
     newFiles.value.forEach(f => submitData.append('attachment[]', f));
 
-    const res = await api.post(`update-report/${id}`, submitData);
+    const res = await api.post(`update-report/${id}`, submitData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
     if (res.data.success) {
       Swal.fire({ icon: 'success', title: 'Resubmitted!', text: 'Report updated successfully.', confirmButtonColor: '#b979cc' }).then(() => router.push('/college/submitted-list'));
     }
   } catch (err) {
-    Swal.fire('Action Failed', err.response?.data?.message || 'A server error occurred.', 'error');
+    let errMsg = 'A server error occurred.';
+    if (err) {
+      if (err.message) errMsg = err.message;
+      else if (err.messages) {
+        errMsg = typeof err.messages === 'object'
+          ? Object.values(err.messages).join('\n')
+          : err.messages;
+      }
+    }
+    Swal.fire('Action Failed', errMsg, 'error');
   } finally {
     submitting.value = false;
   }

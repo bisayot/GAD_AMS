@@ -1352,7 +1352,16 @@ const submitReport = async () => {
     }
   } catch (error) {
     console.error('Submission error:', error);
-    alert('Failed to submit report. Please try again.');
+    let errMsg = 'A server error occurred.';
+    if (error) {
+      if (error.message) errMsg = error.message;
+      else if (error.messages) {
+        errMsg = typeof error.messages === 'object'
+          ? Object.values(error.messages).join('\n')
+          : error.messages;
+      }
+    }
+    Swal.fire('Action Failed', errMsg, 'error');
   }
 };
 
