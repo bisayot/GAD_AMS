@@ -173,6 +173,13 @@
               </div>
 
               <div class="action-buttons">
+                <button 
+                  v-if="design.status && design.status.toLowerCase() === 'revision'"
+                  @click="router.push(`/college/ad-revision/${design.act_design_id || route.params.id}`)" 
+                  class="btn-revise"
+                >
+                  ✏️ Revise Design
+                </button>
                 <button @click="router.back()" class="btn-back">
                   ← Back to Archive
                 </button>
@@ -457,6 +464,9 @@ onMounted(() => {
 }
 
 .action-buttons { margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(185, 121, 204, 0.15); }
+.btn-revise { width: 100%; padding: 12px; margin-bottom: 12px; font-size: 13px; font-weight: 800; text-transform: uppercase; color: white; border-radius: 12px; background: linear-gradient(135deg, #a78bfa, #8b5cf6); border: none; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3); }
+.btn-revise:hover { background: linear-gradient(135deg, #c084fc, #a78bfa); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4); }
+.btn-revise:active { transform: translateY(0); }
 .btn-back { width: 100%; padding: 12px; font-size: 13px; font-weight: 800; text-transform: uppercase; color: #cbd5e1; border-radius: 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(185, 121, 204, 0.15); cursor: pointer; transition: all 0.2s; }
 .btn-back:hover { color: white; border-color: #b979cc; background: rgba(185, 121, 204, 0.05); }
 
