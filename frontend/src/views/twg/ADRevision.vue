@@ -55,10 +55,15 @@
               <div class="info-item">
                 <span class="info-label">Form Type</span>
                 <select v-model="formData.form_type" class="modal-input select-input">
-                  <option value="employee">Employee Training</option>
-                  <option value="inset">INSET</option>
-                  <option value="extension">Extension Program</option>
-                  <option value="student">Student Activity</option>
+                  <option value="" disabled>Select form type...</option>
+                  <option 
+                    v-for="ft in formTypes" 
+                    :key="ft.id" 
+                    :value="ft.id" 
+                    class="dark-option"
+                  >
+                    {{ ft.name }}
+                  </option>
                 </select>
               </div>
             </div>
@@ -481,6 +486,7 @@ const loading = ref(true);
 const submitting = ref(false);
 const error = ref(null);
 const venues = ref([]);
+const formTypes = ref([]);
 const customVenue = ref('');
 const newFile = ref(null);
 
@@ -620,6 +626,17 @@ const fetchVenues = async () => {
   }
 };
 
+const fetchFormTypes = async () => {
+  try {
+    const response = await api.get('get-form-types');
+    if (response.data && response.data.success) {
+      formTypes.value = response.data.data || [];
+    }
+  } catch (err) {
+    console.error('Error fetching form types:', err);
+  }
+};
+
 const fetchDesignDetails = async () => {
   loading.value = true;
   try {
@@ -692,7 +709,7 @@ const fetchDesignDetails = async () => {
         end_date: design.value.end_date,
         start_time: design.value.start_time,
         end_time: design.value.end_time,
-        venue: design.value.venue_id || 'Other',
+        venue: (design.value.venue_id && design.value.venue_id !== 'Other') ? design.value.venue_id : 'Other',
         proposed_budget: design.value.proposed_budget,
         target_participants: design.value.target_participants,
         budget_items: [
@@ -709,7 +726,7 @@ const fetchDesignDetails = async () => {
         ]
       };
 
-      if (!design.value.venue_id) {
+      if (!design.value.venue_id || design.value.venue_id === 'Other') {
         customVenue.value = design.value.venue;
       }
     } else {
@@ -912,6 +929,7 @@ onMounted(async () => {
     router.push('/login');
   } else {
     try {
+      await fetchFormTypes();
       await fetchVenues();
       await fetchDesignDetails();
     } catch (err) {
