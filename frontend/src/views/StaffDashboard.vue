@@ -6,7 +6,7 @@
       @logout="handleLogout" 
     />      
 
-    <div class="dashboard-main bg-slate-50">
+    <div class="dashboard-main bg-transparent">
       <header class="dashboard-header bg-[#1a1a2e] border-b border-purple-900/30">
         <div class="flex items-center justify-between w-full h-full">
           <div>
@@ -100,9 +100,17 @@ onUnmounted(() => {
   min-height: 100vh;
   display: flex;
   color: #cbd5e1;
-  background-color: #f8fafc;}
+  background-color: transparent;}
 
-.dashboard-main { flex-grow: 1; margin-left: 256px; display: flex; flex-direction: column; min-height: 100vh; }
+.dashboard-main { 
+  flex-grow: 1; 
+  margin-left: 256px; 
+  display: flex; 
+  flex-direction: column; 
+  min-height: 100vh; 
+  background-color: #faf9fe;
+  background-image: linear-gradient(to right, rgba(168, 85, 247, 0.25) 0%, #faf9fe 2%, #faf9fe 98%, rgba(168, 85, 247, 0.25) 100%);
+}
 .dashboard-header { position: fixed; top: 0; left: 256px; right: 0; height: 80px; z-index: 10; display: flex; align-items: center; padding: 0 40px; background: #1a1a2e; border-bottom: 1px solid rgba(185, 121, 204, 0.3); }
 .header-title { font-size: 1.5rem; font-weight: 900; color: white; margin: 0; }
 .header-subtitle { font-size: 0.65rem; font-weight: 700; color: #b979cc; text-transform: uppercase; letter-spacing: 0.05em; }

@@ -11,4 +11,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  background-color: #faf9fe; /* Clean off-white purple */
+  background-image: linear-gradient(to right, rgba(168, 85, 247, 0.25) 0%, #faf9fe 2%, #faf9fe 98%, rgba(168, 85, 247, 0.25) 100%);
+  background-attachment: fixed;
 }
