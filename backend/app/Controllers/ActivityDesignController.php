@@ -513,6 +513,21 @@ class ActivityDesignController extends BaseController
         $deadline = $this->request->getPost('accomplishment-deadline');
         $remarks = $this->request->getPost('remarks');
 
+        // Check for duplicate control number
+        $existing = $db->table('control_number')
+            ->where('control_number', $controlNum)
+            ->where('act_design_id !=', $id)
+            ->get()
+            ->getRowArray();
+        if ($existing) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'The control number ' . $controlNum . ' has already been assigned to another activity. Please use a different control number.'
+            ])->setStatusCode(400);
+        }
+
+        $db->transStart();
+
         $archiveData = [
             'original_act_design_id' => $item['act_design_id'],
             'activity_title'         => $item['activity_title'],
@@ -574,6 +589,38 @@ class ActivityDesignController extends BaseController
         return $this->response->setJSON([
             'success' => true,
             'data'    => $data
+        ]);
+    }
+
+    public function getNextControlNumber()
+    {
+        $db = \Config\Database::connect();
+        $currentYear = date('Y');
+        $currentMonth = date('m');
+        
+        // Find the maximum control number for the current year
+        $row = $db->table('control_number')
+            ->select('control_number')
+            ->like('control_number', $currentYear . '-', 'after')
+            ->orderBy('control_number', 'DESC')
+            ->limit(1)
+            ->get()
+            ->getRowArray();
+            
+        if ($row) {
+            $parts = explode('-', $row['control_number']);
+            $suffix = isset($parts[1]) ? (int)$parts[1] : 0;
+            $nextSuffix = $suffix + 1;
+            // Pad to at least 4 digits
+            $nextSuffixStr = str_pad($nextSuffix, 4, '0', STR_PAD_LEFT);
+        } else {
+            $nextSuffixStr = $currentMonth . '01';
+        }
+        
+        return $this->response->setJSON([
+            'success' => true,
+            'next_control' => $currentYear . '-' . $nextSuffixStr,
+            'suggested_suffix' => $nextSuffixStr
         ]);
     }
 

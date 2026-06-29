@@ -113,6 +113,10 @@ $routes->group('api', function($routes) {
     
     $routes->options('get-control-numbers/(:num)', 'AuthController::handleOptions');
     $routes->get('get-control-numbers/(:num)', 'ActivityDesignController::getControlNumbers/$1');
+    
+    $routes->options('get-next-control-number', 'AuthController::handleOptions');
+    $routes->get('get-next-control-number', 'ActivityDesignController::getNextControlNumber');
+
     // Update deadline
     $routes->options('update-deadline/(:num)', 'AuthController::handleOptions');
     $routes->post('update-deadline/(:num)', 'ActivityDesignController::updateDeadline/$1');

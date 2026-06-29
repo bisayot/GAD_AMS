@@ -270,26 +270,11 @@ const assessmentForm = ref({
 
 const calculateNextControl = async () => {
   try {
-    const response = await api.get('activity-designs');
+    const response = await api.get('get-next-control-number');
     if (response.data.success) {
-      const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
-      const yearPrefix = `${currentYear}-`;
-      let maxVal = 0;
-
-      response.data.data.forEach(item => {
-        if (item.control && item.control.startsWith(yearPrefix)) {
-          const suffix = item.control.split('-')[1];
-          const val = parseInt(suffix);
-          if (!isNaN(val) && val > maxVal) maxVal = val;
-        }
-      });
-
-      if (maxVal === 0) {
-        suggestedSuffix.value = `${currentMonth}01`;
-      } else {
-        const monthInMax = Math.floor(maxVal / 100);
-        if (parseInt(currentMonth) > monthInMax) suggestedSuffix.value = `${currentMonth}01`;
-        else suggestedSuffix.value = String(maxVal + 1).padStart(4, '0');
+      suggestedSuffix.value = response.data.suggested_suffix;
+      if (!assessmentForm.value.controlSuffix) {
+        assessmentForm.value.controlSuffix = response.data.suggested_suffix;
       }
     }
   } catch (err) {
