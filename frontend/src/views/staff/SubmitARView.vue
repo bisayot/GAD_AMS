@@ -293,7 +293,6 @@
                             type="file" 
                             @change="handleFileUpload" 
                             accept=".pdf,.zip" 
-                            required 
                             class="file-input-hidden" 
                             multiple 
                           />
@@ -1132,6 +1131,16 @@ const removeFile = (index) => {
 };
 
 const submitReport = async () => {
+  if (uploadedFiles.value.length === 0) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Missing Attachments',
+      text: 'Please upload the Accomplishment Report and required attachments.',
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+
   if (!form.value.control_number) {
     Swal.fire({
       icon: 'warning',
