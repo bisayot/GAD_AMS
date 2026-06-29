@@ -78,13 +78,36 @@ Computation varies depending on the **venue type** (inside or outside BSU).
 
 ## Budget Flow / Computation Logic
 
-```
-Available Budget = Total Approved Budget − Total Utilized Budget
+### Step-by-Step Flow
 
-Once actual spending is recorded:
-  Difference = Total Approved Budget − Total Actual Spending
-  Remaining   = Difference + Total Available Budget
+**Step 1 — AD Proposal Submission**
+TWG submits the Activity Design Proposal to GAD, which includes the Budget Proposal Details in the form.
+
+**Step 2 — GAD Director Review & Approval**
+The GAD Director reviews the AD. If **approved**:
 ```
+Total Allocated Budget  −= Total Budget Proposed
+Total Pending Budget    += Total Budget Proposed
+```
+
+**Step 3 — Accomplishment Report Submission**
+Once the activity is done, the TWG submits an Accomplishment Report (AR) which includes the Actual Budget Spending Breakdown. When the AR is submitted:
+```
+Total Pending Budget (of that AD)  −= Total Actual Budget Spent (from AR)
+Difference                          = Total Pending Budget − Total Actual Budget Spent
+
+Total Available Budget  += Difference          (unspent amount goes back)
+Total Utilized Amount   += Total Actual Budget Spent
+```
+
+### Summary of Budget Buckets
+
+| Budget Bucket | When It Changes |
+|---|---|
+| **Total Allocated Budget** | Decreases when an AD is approved |
+| **Total Pending Budget** | Increases on AD approval; decreases on AR submission |
+| **Total Available Budget** | Increases when AR is submitted (receives the unspent difference) |
+| **Total Utilized Amount** | Increases when AR is submitted (receives the actual spending) |
 
 ---
 

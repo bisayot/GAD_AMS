@@ -21,8 +21,8 @@
                 <span class="material-symbols-outlined">account_balance</span>
               </div>
               <div class="stat-content">
-                <h3 class="stat-value">₱{{ formatNum(totalAllocatedBudget) }}</h3>
-                <p class="stat-label">Total Allocated Budget</p>
+                <h3 class="stat-value">₱{{ formatNum(totalAvailableBudget) }}</h3>
+                <p class="stat-label">Total Available Budget</p>
               </div>
             </div>
 
@@ -38,11 +38,11 @@
 
             <div class="stat-card">
               <div class="stat-icon-wrapper amber">
-                <span class="material-symbols-outlined">account_balance_wallet</span>
+                <span class="material-symbols-outlined">hourglass_empty</span>
               </div>
               <div class="stat-content">
-                <h3 class="stat-value">₱{{ formatNum(totalRemainingBudget) }}</h3>
-                <p class="stat-label">Total Remaining Budget</p>
+                <h3 class="stat-value">₱{{ formatNum(totalPendingBudget) }}</h3>
+                <p class="stat-label">Total Pending Budget</p>
               </div>
             </div>
 
@@ -65,14 +65,15 @@
                     <th class="table-header-cell col-number">#</th>
                     <th class="table-header-cell col-unit text-left">Unit / Office</th>
                     <th class="table-header-cell col-allocated">Total Allocated Budget</th>
+                    <th class="table-header-cell col-pending">Pending Budget</th>
                     <th class="table-header-cell col-utilized">Utilized Amount</th>
-                    <th class="table-header-cell col-remaining">Remaining Budget</th>
+                    <th class="table-header-cell col-remaining">Available Budget</th>
                     <th class="table-header-cell col-percent">% Utilization</th>
                   </tr>
                 </thead>
                 <tbody class="table-body">
                   <tr v-if="budgetRows.length === 0">
-                    <td colspan="6" class="empty-state">
+                    <td colspan="7" class="empty-state">
                       No budget records found in the database.
                     </td>
                   </tr>
@@ -104,6 +105,12 @@
                       <div v-else class="cell-value">
                         ₱{{ formatNum(row.allocated) }}
                         <span class="edit-icon">✏️</span>
+                      </div>
+                    </td>
+
+                    <td class="table-cell cell-pending">
+                      <div class="cell-value">
+                        ₱{{ formatNum(row.pending_approved) }}
                       </div>
                     </td>
 
@@ -199,12 +206,16 @@ const totalAllocatedBudget = computed(() => {
   return budgetRows.value.reduce((sum, row) => sum + (row.allocated || 0), 0);
 });
 
+const totalAvailableBudget = computed(() => {
+  return budgetRows.value.reduce((sum, row) => sum + (row.remaining || 0), 0);
+});
+
 const totalUtilizedAmount = computed(() => {
   return budgetRows.value.reduce((sum, row) => sum + (row.utilized || 0), 0);
 });
 
-const totalRemainingBudget = computed(() => {
-  return budgetRows.value.reduce((sum, row) => sum + (row.remaining || 0), 0);
+const totalPendingBudget = computed(() => {
+  return budgetRows.value.reduce((sum, row) => sum + (row.pending_approved || 0), 0);
 });
 
 const overallUtilizationRate = computed(() => {
@@ -551,11 +562,12 @@ onMounted(() => {
 }
 
 .col-number { width: 60px; text-align: center; }
-.col-unit { width: 250px; }
-.col-allocated { width: 160px; text-align: center; }
-.col-utilized { width: 160px; text-align: center; }
-.col-remaining { width: 160px; text-align: center; }
-.col-percent { width: 180px; text-align: center; }
+.col-unit { width: 220px; }
+.col-allocated { width: 150px; text-align: center; }
+.col-pending { width: 150px; text-align: center; }
+.col-utilized { width: 150px; text-align: center; }
+.col-remaining { width: 150px; text-align: center; }
+.col-percent { width: 150px; text-align: center; }
 
 .table-header-row {
   border-bottom: 1px solid rgba(185, 121, 204, 0.1);
