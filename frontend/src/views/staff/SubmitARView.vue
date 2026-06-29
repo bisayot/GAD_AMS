@@ -215,6 +215,41 @@
                       >
                     </div>
                   </div>
+
+                  <!-- Upload Documents (Moved inside left column) -->
+                  <div class="attachment-section-container-ar" style="margin-top: 1.5rem;">
+                    <label class="form-label-ar">Upload Documents (PDF/ZIP - Multiple files allowed) *</label>
+                    <div class="attachment-display-grid-ar">
+                      <div class="attachment-upload-column-ar">
+                        <div class="upload-dropzone-box" @click="$refs.fileInput.click()">
+                          <input 
+                            ref="fileInput" 
+                            type="file" 
+                            @change="handleFileUpload" 
+                            accept=".pdf,.zip" 
+                            required 
+                            class="file-input-hidden" 
+                            multiple 
+                          />
+                          <span class="upload-icon-ar">📤</span>
+                          <p class="upload-text-ar">Upload Accomplishment Report & Attachments</p>
+                          <p class="upload-hint-ar">Multiple files allowed (PDF, ZIP)</p>
+                        </div>
+                      </div>
+                      <div class="attachment-preview-column-ar">
+                        <div v-if="uploadedFiles.length > 0" class="uploaded-files-container-ar">
+                          <div v-for="(file, index) in uploadedFiles" :key="index" class="uploaded-file-tag">
+                            <span class="uploaded-file-name">📄 {{ file.name }}</span>
+                            <div class="uploaded-file-actions-ar">
+                              <span class="uploaded-file-size-ar">({{ (file.size / 1024).toFixed(2) }} KB)</span>
+                              <button type="button" @click="removeFile(index)" class="remove-file-btn">Remove</button>
+                            </div>
+                          </div>
+                        </div>
+                        <p v-else class="no-file-uploaded-text">No files uploaded yet.</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div class="form-column-right-ar">
@@ -534,39 +569,6 @@
                 </div>
               </div>
 
-              <div class="attachment-section-container-ar">
-                <label class="form-label-ar">Upload Documents (PDF/ZIP - Multiple files allowed) *</label>
-                <div class="attachment-display-grid-ar">
-                  <div class="attachment-upload-column-ar">
-                    <div class="upload-dropzone-box" @click="$refs.fileInput.click()">
-                      <input 
-                        ref="fileInput" 
-                        type="file" 
-                        @change="handleFileUpload" 
-                        accept=".pdf" 
-                        required 
-                        class="file-input-hidden" 
-                        multiple 
-                      />
-                      <span class="upload-icon-ar">📤</span>
-                      <p class="upload-text-ar">Upload Accomplishment Report & Attachments</p>
-                      <p class="upload-hint-ar">Multiple files allowed (PDF, ZIP)</p>
-                    </div>
-                  </div>
-                  <div class="attachment-preview-column-ar">
-                    <div v-if="uploadedFiles.length > 0" class="uploaded-files-container-ar">
-                      <div v-for="(file, index) in uploadedFiles" :key="index" class="uploaded-file-tag">
-                        <span class="uploaded-file-name">📄 {{ file.name }}</span>
-                        <div class="uploaded-file-actions-ar">
-                          <span class="uploaded-file-size-ar">({{ (file.size / 1024).toFixed(2) }} KB)</span>
-                          <button type="button" @click="removeFile(index)" class="remove-file-btn">Remove</button>
-                        </div>
-                      </div>
-                    </div>
-                    <p v-else class="no-file-uploaded-text">No files uploaded yet.</p>
-                  </div>
-                </div>
-              </div>
 
               <!-- Budget Exceeded Warning Card -->
               <div v-if="isExceedingLimit" class="ar-limit-warning-card">
@@ -836,6 +838,14 @@ watch(() => form.value.control_number, async (newVal) => {
           supplies: getBudgetItemAmount(fullDesign.budget_items, 'Materials and Supplies'),
           others: getBudgetItemAmount(fullDesign.budget_items, 'Others')
         };
+
+        // Auto-populate othersList from the AD's others items
+        othersList.value = (fullDesign.budget_items || [])
+          .filter(i => i.item_name === 'Others')
+          .map(i => ({
+            name: i.sub_item || '',
+            amount: ''
+          }));
       }
     } catch (err) {
       console.error('Error fetching full design budget items:', err);
