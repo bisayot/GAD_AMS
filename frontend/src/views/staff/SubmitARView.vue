@@ -42,9 +42,9 @@
                     <input
                       type="text"
                       v-model="form.activity_classification"
-                      class="custom-input-field input-disabled-ar"
+                      class="custom-input-field"
                       placeholder="Activity Classification"
-                      readonly
+                      required
                     >
                   </div>
 
@@ -53,9 +53,9 @@
                     <input
                       type="text"
                       v-model="form.gad_mandate"
-                      class="custom-input-field input-disabled-ar"
+                      class="custom-input-field"
                       placeholder="GAD Mandate"
-                      readonly
+                      required
                     >
                   </div>
 
@@ -64,9 +64,9 @@
                     <input
                       type="text"
                       v-model="form.gender_issue"
-                      class="custom-input-field input-disabled-ar"
+                      class="custom-input-field"
                       placeholder="Gender Issue"
-                      readonly
+                      required
                     >
                   </div>
 
@@ -186,9 +186,8 @@
                       v-model="form.attendees" 
                       required 
                       min="50"
-                      class="custom-input-field input-disabled-ar"
+                      class="custom-input-field"
                       placeholder="0"
-                      readonly
                     >
                   </div>
 
@@ -233,39 +232,45 @@
                         <div class="budget-group-content">
                           <!-- Meals Row -->
                           <div class="budget-row-item">
-                            <div class="budget-item-info">
-                              <div class="budget-item-title">Meals</div>
-                            </div>
-                            <div class="budget-item-value">
-                              <span class="budget-currency-symbol">₱</span>
-                              <input 
-                                type="number" 
-                                v-model="form.budget_items[0].total" 
-                                class="budget-card-input"
-                                placeholder="0.00"
-                                min="0"
-                                step="0.01"
-                              />
-                            </div>
-                          </div>
+                             <div class="budget-item-info">
+                               <div class="budget-item-title">Meals</div>
+                               <div v-if="proposedBudgetItems.meals !== undefined" class="budget-item-proposed">
+                                 Proposed: ₱{{ formatCurrency(proposedBudgetItems.meals) }}
+                               </div>
+                             </div>
+                             <div class="budget-item-value">
+                               <span class="budget-currency-symbol">₱</span>
+                               <input 
+                                 type="number" 
+                                 v-model="form.budget_items[0].total" 
+                                 class="budget-card-input"
+                                 placeholder="0.00"
+                                 min="0"
+                                 step="0.01"
+                               />
+                             </div>
+                           </div>
 
-                          <!-- Snacks Row -->
-                          <div class="budget-row-item">
-                            <div class="budget-item-info">
-                              <div class="budget-item-title">Snacks</div>
-                            </div>
-                            <div class="budget-item-value">
-                              <span class="budget-currency-symbol">₱</span>
-                              <input 
-                                type="number" 
-                                v-model="form.budget_items[1].total" 
-                                class="budget-card-input"
-                                placeholder="0.00"
-                                min="0"
-                                step="0.01"
-                              />
-                            </div>
-                          </div>
+                           <!-- Snacks Row -->
+                           <div class="budget-row-item">
+                             <div class="budget-item-info">
+                               <div class="budget-item-title">Snacks</div>
+                               <div v-if="proposedBudgetItems.snacks !== undefined" class="budget-item-proposed">
+                                 Proposed: ₱{{ formatCurrency(proposedBudgetItems.snacks) }}
+                               </div>
+                             </div>
+                             <div class="budget-item-value">
+                               <span class="budget-currency-symbol">₱</span>
+                               <input 
+                                 type="number" 
+                                 v-model="form.budget_items[1].total" 
+                                 class="budget-card-input"
+                                 placeholder="0.00"
+                                 min="0"
+                                 step="0.01"
+                               />
+                             </div>
+                           </div>
                         </div>
                       </div>
 
@@ -276,77 +281,89 @@
                           <span class="budget-group-title">Venue & Logistics</span>
                         </div>
                         <div class="budget-group-content">
-                          <!-- Function Room/Venue -->
-                          <div class="budget-row-item">
-                            <div class="budget-item-info">
-                              <div class="budget-item-title">Function Room/Venue</div>
-                            </div>
-                            <div class="budget-item-value">
-                              <span class="budget-currency-symbol">₱</span>
-                              <input 
-                                type="number" 
-                                v-model="form.budget_items[2].total" 
-                                class="budget-card-input"
-                                placeholder="0.00"
-                                min="0"
-                                step="0.01"
-                              />
-                            </div>
-                          </div>
+                           <!-- Function Room/Venue -->
+                           <div class="budget-row-item">
+                             <div class="budget-item-info">
+                               <div class="budget-item-title">Function Room/Venue</div>
+                               <div v-if="proposedBudgetItems.venue !== undefined" class="budget-item-proposed">
+                                 Proposed: ₱{{ formatCurrency(proposedBudgetItems.venue) }}
+                               </div>
+                             </div>
+                             <div class="budget-item-value">
+                               <span class="budget-currency-symbol">₱</span>
+                               <input 
+                                 type="number" 
+                                 v-model="form.budget_items[2].total" 
+                                 class="budget-card-input"
+                                 placeholder="0.00"
+                                 min="0"
+                                 step="0.01"
+                               />
+                             </div>
+                           </div>
 
-                          <!-- Accommodation -->
-                          <div class="budget-row-item">
-                            <div class="budget-item-info">
-                              <div class="budget-item-title">Accommodation</div>
-                            </div>
-                            <div class="budget-item-value">
-                              <span class="budget-currency-symbol">₱</span>
-                              <input 
-                                type="number" 
-                                v-model="form.budget_items[3].total" 
-                                class="budget-card-input"
-                                placeholder="0.00"
-                                min="0"
-                                step="0.01"
-                              />
-                            </div>
-                          </div>
+                           <!-- Accommodation -->
+                           <div class="budget-row-item">
+                             <div class="budget-item-info">
+                               <div class="budget-item-title">Accommodation</div>
+                               <div v-if="proposedBudgetItems.accommodation !== undefined" class="budget-item-proposed">
+                                 Proposed: ₱{{ formatCurrency(proposedBudgetItems.accommodation) }}
+                               </div>
+                             </div>
+                             <div class="budget-item-value">
+                               <span class="budget-currency-symbol">₱</span>
+                               <input 
+                                 type="number" 
+                                 v-model="form.budget_items[3].total" 
+                                 class="budget-card-input"
+                                 placeholder="0.00"
+                                 min="0"
+                                 step="0.01"
+                               />
+                             </div>
+                           </div>
 
-                          <!-- Equipment Rental -->
-                          <div class="budget-row-item">
-                            <div class="budget-item-info">
-                              <div class="budget-item-title">Equipment Rental</div>
-                            </div>
-                            <div class="budget-item-value">
-                              <span class="budget-currency-symbol">₱</span>
-                              <input 
-                                type="number" 
-                                v-model="form.budget_items[4].total" 
-                                class="budget-card-input"
-                                placeholder="0.00"
-                                min="0"
-                                step="0.01"
-                              />
-                            </div>
-                          </div>
+                           <!-- Equipment Rental -->
+                           <div class="budget-row-item">
+                             <div class="budget-item-info">
+                               <div class="budget-item-title">Equipment Rental</div>
+                               <div v-if="proposedBudgetItems.rental !== undefined" class="budget-item-proposed">
+                                 Proposed: ₱{{ formatCurrency(proposedBudgetItems.rental) }}
+                               </div>
+                             </div>
+                             <div class="budget-item-value">
+                               <span class="budget-currency-symbol">₱</span>
+                               <input 
+                                 type="number" 
+                                 v-model="form.budget_items[4].total" 
+                                 class="budget-card-input"
+                                 placeholder="0.00"
+                                 min="0"
+                                 step="0.01"
+                               />
+                             </div>
+                           </div>
 
-                          <!-- Transportation -->
-                          <div class="budget-row-item">
-                            <div class="budget-item-info">
-                              <div class="budget-item-title">Transportation</div>
-                            </div>
-                            <div class="budget-item-value">
-                              <span class="budget-currency-symbol">₱</span>
-                              <input 
-                                type="number" 
-                                v-model="form.budget_items[8].total" 
-                                class="budget-card-input"
-                                placeholder="0.00"
-                                min="0"
-                                step="0.01"
-                              />
-                            </div>
-                          </div>
+                           <!-- Transportation -->
+                           <div class="budget-row-item">
+                             <div class="budget-item-info">
+                               <div class="budget-item-title">Transportation</div>
+                               <div v-if="proposedBudgetItems.transportation !== undefined" class="budget-item-proposed">
+                                 Proposed: ₱{{ formatCurrency(proposedBudgetItems.transportation) }}
+                               </div>
+                             </div>
+                             <div class="budget-item-value">
+                               <span class="budget-currency-symbol">₱</span>
+                               <input 
+                                 type="number" 
+                                 v-model="form.budget_items[8].total" 
+                                 class="budget-card-input"
+                                 placeholder="0.00"
+                                 min="0"
+                                 step="0.01"
+                               />
+                             </div>
+                           </div>
                         </div>
                       </div>
 
@@ -358,40 +375,46 @@
                         </div>
                         <div class="budget-group-content">
                           <!-- Professional Fee/Honoraria -->
-                          <div class="budget-row-item">
-                            <div class="budget-item-info">
-                              <div class="budget-item-title">Professional Fee/Honoraria</div>
-                            </div>
-                            <div class="budget-item-value">
-                              <span class="budget-currency-symbol">₱</span>
-                              <input 
-                                type="number" 
-                                v-model="form.budget_items[5].total" 
-                                class="budget-card-input"
-                                placeholder="0.00"
-                                min="0"
-                                step="0.01"
-                              />
-                            </div>
-                          </div>
+                           <div class="budget-row-item">
+                             <div class="budget-item-info">
+                               <div class="budget-item-title">Professional Fee/Honoraria</div>
+                               <div v-if="proposedBudgetItems.honoraria !== undefined" class="budget-item-proposed">
+                                 Proposed: ₱{{ formatCurrency(proposedBudgetItems.honoraria) }}
+                               </div>
+                             </div>
+                             <div class="budget-item-value">
+                               <span class="budget-currency-symbol">₱</span>
+                               <input 
+                                 type="number" 
+                                 v-model="form.budget_items[5].total" 
+                                 class="budget-card-input"
+                                 placeholder="0.00"
+                                 min="0"
+                                 step="0.01"
+                               />
+                             </div>
+                           </div>
 
-                          <!-- Token/s -->
-                          <div class="budget-row-item">
-                            <div class="budget-item-info">
-                              <div class="budget-item-title">Token/s</div>
-                            </div>
-                            <div class="budget-item-value">
-                              <span class="budget-currency-symbol">₱</span>
-                              <input 
-                                type="number" 
-                                v-model="form.budget_items[6].total" 
-                                class="budget-card-input"
-                                placeholder="0.00"
-                                min="0"
-                                step="0.01"
-                              />
-                            </div>
-                          </div>
+                           <!-- Token/s -->
+                           <div class="budget-row-item">
+                             <div class="budget-item-info">
+                               <div class="budget-item-title">Token/s</div>
+                               <div v-if="proposedBudgetItems.tokens !== undefined" class="budget-item-proposed">
+                                 Proposed: ₱{{ formatCurrency(proposedBudgetItems.tokens) }}
+                               </div>
+                             </div>
+                             <div class="budget-item-value">
+                               <span class="budget-currency-symbol">₱</span>
+                               <input 
+                                 type="number" 
+                                 v-model="form.budget_items[6].total" 
+                                 class="budget-card-input"
+                                 placeholder="0.00"
+                                 min="0"
+                                 step="0.01"
+                               />
+                             </div>
+                           </div>
                         </div>
                       </div>
 
@@ -403,33 +426,39 @@
                         </div>
                         <div class="budget-group-content">
                           <!-- Materials and Supplies -->
-                          <div class="budget-row-item">
-                            <div class="budget-item-info">
-                              <div class="budget-item-title">Materials and Supplies</div>
-                            </div>
-                            <div class="budget-item-value">
-                              <span class="budget-currency-symbol">₱</span>
-                              <input 
-                                type="number" 
-                                v-model="form.budget_items[7].total" 
-                                class="budget-card-input"
-                                placeholder="0.00"
-                                min="0"
-                                step="0.01"
-                              />
-                            </div>
-                          </div>
+                           <div class="budget-row-item">
+                             <div class="budget-item-info">
+                               <div class="budget-item-title">Materials and Supplies</div>
+                               <div v-if="proposedBudgetItems.supplies !== undefined" class="budget-item-proposed">
+                                 Proposed: ₱{{ formatCurrency(proposedBudgetItems.supplies) }}
+                               </div>
+                             </div>
+                             <div class="budget-item-value">
+                               <span class="budget-currency-symbol">₱</span>
+                               <input 
+                                 type="number" 
+                                 v-model="form.budget_items[7].total" 
+                                 class="budget-card-input"
+                                 placeholder="0.00"
+                                 min="0"
+                                 step="0.01"
+                               />
+                             </div>
+                           </div>
 
-                          <!-- Others -->
-                          <div class="others-section-wrapper">
-                            <div class="budget-row-item others-row-item-header" style="border-bottom: none; padding-bottom: 8px;">
-                              <div class="budget-item-info">
-                                <div class="budget-item-title">Others</div>
-                              </div>
-                              <div class="budget-item-value">
-                                <span class="others-total-badge">₱{{ Number(form.budget_items[9].total || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
-                              </div>
-                            </div>
+                           <!-- Others -->
+                           <div class="others-section-wrapper">
+                             <div class="budget-row-item others-row-item-header" style="border-bottom: none; padding-bottom: 8px;">
+                               <div class="budget-item-info">
+                                 <div class="budget-item-title">Others</div>
+                                 <div v-if="proposedBudgetItems.others !== undefined" class="budget-item-proposed">
+                                   Proposed: ₱{{ formatCurrency(proposedBudgetItems.others) }}
+                                 </div>
+                               </div>
+                               <div class="budget-item-value">
+                                 <span class="others-total-badge">₱{{ Number(form.budget_items[9].total || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                               </div>
+                             </div>
                             <div class="others-breakdown-container">
                               <div v-for="(o, oIdx) in othersList" :key="oIdx" class="others-breakdown-row">
                                 <input type="text" v-model="o.name" placeholder="Item name" class="others-input-name" />
@@ -758,12 +787,25 @@ watch(
 );
 
 const selectedProposedBudget = ref(0);
+const proposedBudgetItems = ref({});
 
 const isExceedingLimit = computed(() => {
   return selectedProposedBudget.value > 0 && form.value.proposed_budget > selectedProposedBudget.value;
 });
 
-watch(() => form.value.control_number, (newVal) => {
+const formatCurrency = (val) => {
+  if (val === undefined || val === null) return '0.00';
+  return Number(val).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
+const getBudgetItemAmount = (items, name) => {
+  if (!items) return 0;
+  return items
+    .filter(i => i.item_name === name)
+    .reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
+};
+
+watch(() => form.value.control_number, async (newVal) => {
   const selected = approvedControls.value.find(c => c.control_number === newVal);
   if (selected) {
     form.value.act_design_id = selected.act_design_id;
@@ -777,11 +819,33 @@ watch(() => form.value.control_number, (newVal) => {
     form.value.gad_mandate = selected.gad_mandate || 'N/A';
     form.value.gender_issue = selected.gender_issue || 'N/A';
     selectedProposedBudget.value = Number(selected.proposed_budget) || 0;
+
+    try {
+      const res = await api.get(`activity-design/${selected.act_design_id}`);
+      if (res.data && res.data.success) {
+        const fullDesign = res.data.data;
+        proposedBudgetItems.value = {
+          meals: getBudgetItemAmount(fullDesign.budget_items, 'Meals'),
+          snacks: getBudgetItemAmount(fullDesign.budget_items, 'Snacks'),
+          venue: getBudgetItemAmount(fullDesign.budget_items, 'Function Room/Venue'),
+          accommodation: getBudgetItemAmount(fullDesign.budget_items, 'Accommodation'),
+          rental: getBudgetItemAmount(fullDesign.budget_items, 'Equipment Rental'),
+          transportation: getBudgetItemAmount(fullDesign.budget_items, 'Transportation'),
+          honoraria: getBudgetItemAmount(fullDesign.budget_items, 'Professional Fee/Honoria'),
+          tokens: getBudgetItemAmount(fullDesign.budget_items, 'Token/s'),
+          supplies: getBudgetItemAmount(fullDesign.budget_items, 'Materials and Supplies'),
+          others: getBudgetItemAmount(fullDesign.budget_items, 'Others')
+        };
+      }
+    } catch (err) {
+      console.error('Error fetching full design budget items:', err);
+    }
   } else {
     selectedProposedBudget.value = 0;
     form.value.activity_classification = '';
     form.value.gad_mandate = '';
     form.value.gender_issue = '';
+    proposedBudgetItems.value = {};
   }
 });
 
@@ -1952,5 +2016,12 @@ onUnmounted(() => {
 .fade-pop-leave-from {
   opacity: 1;
   transform: translate(-50%, 0) scale(1);
+}
+
+.budget-item-proposed {
+  font-size: 0.8125rem;
+  color: #fbbf24;
+  font-weight: 600;
+  margin-top: 0.25rem;
 }
 </style>
