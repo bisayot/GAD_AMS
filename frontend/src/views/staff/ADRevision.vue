@@ -55,16 +55,74 @@
               <div class="info-item">
                 <span class="info-label">Form Type</span>
                 <select v-model="formData.form_type" class="modal-input select-input">
-                  <option value="employee">Employee Training</option>
-                  <option value="inset">INSET</option>
-                  <option value="extension">Extension Program</option>
-                  <option value="student">Student Activity</option>
+                  <option value="" disabled>Select form type...</option>
+                  <option 
+                    v-for="ft in formTypes" 
+                    :key="ft.id" 
+                    :value="ft.id" 
+                    class="dark-option"
+                  >
+                    {{ ft.name }}
+                  </option>
                 </select>
               </div>
             </div>
           </div>
 
           <div class="report-body">
+            <!-- GAD Alignment Section Card -->
+            <div class="section-card">
+              <div class="section-header-row">
+                <span class="material-symbols-outlined icon-pink">gavel</span>
+                <h3 class="section-title">GAD Alignment</h3>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div class="input-group">
+                  <label class="form-label">Activity Classification *</label>
+                  <select v-model="formData.classification_id" required class="modal-input select-input">
+                    <option value="" disabled>Select Classification</option>
+                    <option v-for="c in ActClassifications" :key="c.id" :value="c.id" class="dark-option">
+                      {{ c.classification_name }}
+                    </option>
+                  </select>
+                </div>
+                <div class="input-group">
+                  <label class="form-label">GAD Mandate *</label>
+                  <select v-model="formData.gad_mandate_id" required class="modal-input select-input">
+                    <option value="" disabled>Select Mandate</option>
+                    <option v-for="m in GADMandates" :key="m.id" :value="m.id" class="dark-option">
+                      {{ m.code }} - {{ m.title }}
+                    </option>
+                    <option value="Other" class="dark-option">+ New Mandate</option>
+                  </select>
+                  <input v-if="formData.gad_mandate_id === 'Other'" 
+                         v-model="customMandate" 
+                         type="text" 
+                         placeholder="Enter new mandate name..." 
+                         class="modal-input" 
+                         style="margin-top: 10px;" />
+                </div>
+                <div class="input-group">
+                  <label class="form-label">Gender Issue *</label>
+                  <select v-model="formData.gender_issue_id" required class="modal-input select-input">
+                    <option value="" disabled>
+                      {{ formData.gad_mandate_id ? 'Select Gender Issue' : 'Select Mandate first' }}
+                    </option>
+                    <option v-for="i in genderIssues" :key="i.id" :value="i.id" class="dark-option">
+                      {{ i.title }}
+                    </option>
+                    <option value="Other" class="dark-option">+ New Gender Issue</option>
+                  </select>
+                  <input v-if="formData.gender_issue_id === 'Other'" 
+                         v-model="customGenderIssue" 
+                         type="text" 
+                         placeholder="Enter new gender issue..." 
+                         class="modal-input" 
+                         style="margin-top: 10px;" />
+                </div>
+              </div>
+            </div>
+
             <div class="section-card">
               <div class="section-header-row">
                 <span class="material-symbols-outlined icon-pink">calendar_month</span>
@@ -467,7 +525,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '../../api';
 import Swal from 'sweetalert2';
@@ -481,13 +539,23 @@ const loading = ref(true);
 const submitting = ref(false);
 const error = ref(null);
 const venues = ref([]);
+const formTypes = ref([]);
+const ActClassifications = ref([]);
+const GADMandates = ref([]);
+const genderIssues = ref([]);
 const customVenue = ref('');
+const customMandate = ref('');
+const customGenderIssue = ref('');
+const isInitialLoad = ref(false);
 const newFile = ref(null);
 
 const formData = ref({
   activity_title: '',
   office: '',
   form_type: '',
+  classification_id: '',
+  gad_mandate_id: '',
+  gender_issue_id: '',
   start_date: '',
   end_date: '',
   start_time: '',
@@ -620,6 +688,46 @@ const fetchVenues = async () => {
   }
 };
 
+const fetchFormTypes = async () => {
+  try {
+    const response = await api.get('get-form-types');
+    formTypes.value = response.data || [];
+  } catch (err) {
+    console.error('Error fetching form types:', err);
+  }
+};
+
+const fetchActivityClassifications = async () => {
+  try {
+    const res = await api.get('get-activity-classifications');
+    ActClassifications.value = res.data || [];
+  } catch (error) {
+    console.error('Error fetching activity classifications:', error);
+  }
+};
+
+const fetchGADMandates = async () => {
+  try {
+    const res = await api.get('get-gad-mandates');
+    GADMandates.value = res.data || [];
+  } catch (error) {
+    console.error('Error fetching GAD mandates:', error);
+  }
+};
+
+const fetchGenderIssues = async (mandateId) => {
+  if (!mandateId || mandateId === 'Other') {
+    genderIssues.value = [];
+    return;
+  }
+  try {
+    const res = await api.get(`get-gender-issues/${mandateId}`);
+    genderIssues.value = res.data || [];
+  } catch (error) {
+    console.error('Error fetching gender issues:', error);
+  }
+};
+
 const fetchDesignDetails = async () => {
   loading.value = true;
   try {
@@ -687,12 +795,15 @@ const fetchDesignDetails = async () => {
       formData.value = {
         activity_title: design.value.activity_title,
         office: design.value.office,
-        form_type: design.value.form_type,
+        form_type: String(design.value.form_type || ''),
+        classification_id: String(design.value.classification_id || ''),
+        gad_mandate_id: String(design.value.gad_mandate_id || ''),
+        gender_issue_id: String(design.value.gender_issue_id || ''),
         start_date: design.value.start_date,
         end_date: design.value.end_date,
         start_time: design.value.start_time,
         end_time: design.value.end_time,
-        venue: design.value.venue_id || 'Other',
+        venue: (design.value.venue_id && design.value.venue_id !== 'Other') ? design.value.venue_id : 'Other',
         proposed_budget: design.value.proposed_budget,
         target_participants: design.value.target_participants,
         budget_items: [
@@ -709,9 +820,17 @@ const fetchDesignDetails = async () => {
         ]
       };
 
-      if (!design.value.venue_id) {
+      if (!design.value.venue_id || design.value.venue_id === 'Other') {
         customVenue.value = design.value.venue;
       }
+
+      isInitialLoad.value = true;
+      if (design.value.gad_mandate_id) {
+        await fetchGenderIssues(design.value.gad_mandate_id);
+      }
+      setTimeout(() => {
+        isInitialLoad.value = false;
+      }, 100);
     } else {
       error.value = "Activity design not found.";
     }
@@ -746,6 +865,15 @@ const handleUpdate = async () => {
     // Aligning keys with ActivityDesignController expectations
     submitData.append('activity_title', formData.value.activity_title);
     submitData.append('form_type', formData.value.form_type);
+    submitData.append('activity_classification_id', formData.value.classification_id);
+    submitData.append('gad_mandate_id', formData.value.gad_mandate_id);
+    submitData.append('gender_issue_id', formData.value.gender_issue_id);
+    if (formData.value.gad_mandate_id === 'Other') {
+      submitData.append('custom_gad_mandate', customMandate.value);
+    }
+    if (formData.value.gender_issue_id === 'Other') {
+      submitData.append('custom_gender_issue', customGenderIssue.value);
+    }
     submitData.append('start_date', formData.value.start_date);
     submitData.append('end_date', formData.value.end_date);
     submitData.append('start_time', formData.value.start_time);
@@ -909,12 +1037,26 @@ const handleUpdate = async () => {
   }
 };
 
-onMounted(() => {
+watch(() => formData.value.gad_mandate_id, (newVal) => {
+  if (!isInitialLoad.value) {
+    formData.value.gender_issue_id = '';
+  }
+  fetchGenderIssues(newVal);
+});
+
+onMounted(async () => {
   if (!user.value.id || user.value.role !== 'gad_staff') {
     router.push('/login');
   } else {
-    fetchVenues();
-    fetchDesignDetails();
+    try {
+      await fetchFormTypes();
+      await fetchActivityClassifications();
+      await fetchGADMandates();
+      await fetchVenues();
+      await fetchDesignDetails();
+    } catch (err) {
+      console.error(err);
+    }
   }
 });
 </script>
