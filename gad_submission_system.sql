@@ -28,16 +28,13 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `accomplishment_budget_items` (
-  `item_id` int(11) NOT NULL,
+  `id` int(11) NOT NULL,
   `accomplishment_report_id` int(11) NOT NULL,
-  `meals_and_snacks` decimal(15,2) DEFAULT 0.00,
-  `function_room_venue` decimal(15,2) DEFAULT 0.00,
-  `accommodation` decimal(15,2) DEFAULT 0.00,
-  `equipment_rental` decimal(15,2) DEFAULT 0.00,
-  `professional_fee_honoria` decimal(15,2) DEFAULT 0.00,
-  `tokens` decimal(15,2) DEFAULT 0.00,
-  `materials_and_supplies` decimal(15,2) DEFAULT 0.00,
-  `transportation` decimal(15,2) DEFAULT 0.00
+  `category` varchar(100) NOT NULL,
+  `item_name` varchar(100) NOT NULL,
+  `sub_item` varchar(100) DEFAULT NULL,
+  `pax` int(11) DEFAULT NULL,
+  `amount` decimal(15,2) NOT NULL DEFAULT 0.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -94,16 +91,13 @@ CREATE TABLE `accomplishment_report` (
 --
 
 CREATE TABLE `activity_budget_items` (
-  `item_id` int(11) NOT NULL,
+  `id` int(11) NOT NULL,
   `act_design_id` int(11) NOT NULL,
-  `meals_and_snacks` decimal(15,2) DEFAULT 0.00,
-  `function_room_venue` decimal(15,2) DEFAULT 0.00,
-  `accommodation` decimal(15,2) DEFAULT 0.00,
-  `equipment_rental` decimal(15,2) DEFAULT 0.00,
-  `professional_fee_honoria` decimal(15,2) DEFAULT 0.00,
-  `tokens` decimal(15,2) DEFAULT 0.00,
-  `materials_and_supplies` decimal(15,2) DEFAULT 0.00,
-  `transportation` decimal(15,2) DEFAULT 0.00
+  `category` varchar(100) NOT NULL,
+  `item_name` varchar(100) NOT NULL,
+  `sub_item` varchar(100) DEFAULT NULL,
+  `pax` int(11) DEFAULT NULL,
+  `amount` decimal(15,2) NOT NULL DEFAULT 0.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -913,7 +907,7 @@ INSERT INTO `venues` (`venue_id`, `venue_name`) VALUES
 -- Indexes for table `accomplishment_budget_items`
 --
 ALTER TABLE `accomplishment_budget_items`
-  ADD PRIMARY KEY (`item_id`);
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `accomplishment_evaluation_results`
@@ -933,7 +927,7 @@ ALTER TABLE `accomplishment_report`
 -- Indexes for table `activity_budget_items`
 --
 ALTER TABLE `activity_budget_items`
-  ADD PRIMARY KEY (`item_id`);
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `activity_classifications`
@@ -1088,7 +1082,7 @@ ALTER TABLE `venues`
 -- AUTO_INCREMENT for table `accomplishment_budget_items`
 --
 ALTER TABLE `accomplishment_budget_items`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `accomplishment_evaluation_results`
@@ -1106,7 +1100,7 @@ ALTER TABLE `accomplishment_report`
 -- AUTO_INCREMENT for table `activity_budget_items`
 --
 ALTER TABLE `activity_budget_items`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `activity_classifications`
