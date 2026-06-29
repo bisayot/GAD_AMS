@@ -101,6 +101,29 @@
               </div>
             </div>
 
+            <!-- GAD Alignment Section Card -->
+            <div class="section-card">
+              <div class="section-header-row">
+                <span class="material-symbols-outlined icon-pink">gavel</span>
+                <h3 class="section-title">GAD Alignment</h3>
+              </div>
+              <div class="grid-2">
+                <div class="full-width-info">
+                  <label class="info-label">Activity Classification</label>
+                  <p class="info-value-white">{{ report.classification_name || '---' }}</p>
+                </div>
+                <div class="full-width-info">
+                  <label class="info-label">GAD Mandate / Plan Objective</label>
+                  <p class="info-value-white">{{ report.mandate_title || '---' }}</p>
+                </div>
+                <div class="full-width-info">
+                  <label class="info-label">Gender Issue Addressed</label>
+                  <p class="info-value-white">{{ report.gender_issue_title || '---' }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Budget Section -->
             <div class="section-card">
               <div class="section-header-row">
                 <span class="material-symbols-outlined icon-pink">payments</span>

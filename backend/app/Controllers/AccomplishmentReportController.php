@@ -231,18 +231,26 @@ class AccomplishmentReportController extends BaseController
         $reportModel = new AccomplishmentReportModel();
         
         $report = $reportModel
-            ->select('accomplishment_report.*, office_units.office_name as office, users.full_name as submitter_name, accomplishment_report.start_date as date')
+            ->select('accomplishment_report.*, office_units.office_name as office, users.full_name as submitter_name, accomplishment_report.start_date as date, gad_mandates.title as mandate_title, gender_issues.title as gender_issue_title, activity_classifications.classification_name')
             ->join('users', 'users.id = accomplishment_report.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
+            ->join('activity_design', 'activity_design.act_design_id = accomplishment_report.act_design_id', 'left')
+            ->join('gad_mandates', 'gad_mandates.id = activity_design.gad_mandate_id', 'left')
+            ->join('gender_issues', 'gender_issues.id = activity_design.gender_issue_id', 'left')
+            ->join('activity_classifications', 'activity_classifications.id = activity_design.classification_id', 'left')
             ->where('accomplishment_report.id', $id)
             ->first();
 
         $isActive = true;
         if (!$report) {
             $report = $db->table('archived_accomplishment_reports as aar')
-                ->select('aar.*, aar.original_report_id as id, aar.activity_title as title, office_units.office_name as office, users.full_name as submitter_name, aar.start_date as date')
+                ->select('aar.*, aar.original_report_id as id, aar.activity_title as title, office_units.office_name as office, users.full_name as submitter_name, aar.start_date as date, gm.title as mandate_title, gi.title as gender_issue_title, ac.classification_name')
                 ->join('users', 'users.id = aar.user_id', 'left')
                 ->join('office_units', 'office_units.office_id = users.office_id', 'left')
+                ->join('activity_design as ad', 'ad.act_design_id = aar.act_design_id', 'left')
+                ->join('gad_mandates as gm', 'gm.id = ad.gad_mandate_id', 'left')
+                ->join('gender_issues as gi', 'gi.id = ad.gender_issue_id', 'left')
+                ->join('activity_classifications as ac', 'ac.id = ad.classification_id', 'left')
                 ->where('aar.original_report_id', $id)
                 ->get()->getRowArray();
 
