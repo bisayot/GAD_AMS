@@ -704,7 +704,7 @@ const fetchDesignDetails = async () => {
       formData.value = {
         activity_title: design.value.activity_title,
         office: design.value.office,
-        form_type: design.value.form_type,
+        form_type: String(design.value.form_type || ''),
         start_date: design.value.start_date,
         end_date: design.value.end_date,
         start_time: design.value.start_time,
