@@ -629,9 +629,7 @@ const fetchVenues = async () => {
 const fetchFormTypes = async () => {
   try {
     const response = await api.get('get-form-types');
-    if (response.data && response.data.success) {
-      formTypes.value = response.data.data || [];
-    }
+    formTypes.value = response.data || [];
   } catch (err) {
     console.error('Error fetching form types:', err);
   }
