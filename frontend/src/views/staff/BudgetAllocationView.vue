@@ -271,7 +271,7 @@ const handleLogout = async () => {
 };
 
 onMounted(() => {
-  if (!user.value.id || user.value.role !== 'gad_staff') {
+  if (!user.value.id || (user.value.role !== 'gad_staff' && user.value.role !== 'admin')) {
     router.push('/login');
   } else {
     fetchInitialBudgetDataPipeline();

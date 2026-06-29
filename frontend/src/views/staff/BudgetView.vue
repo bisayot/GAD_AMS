@@ -107,23 +107,9 @@
                       </div>
                     </td>
 
-                    <td class="table-cell cell-utilized editable-cell" @click="startEditingCell(row.id, 'utilized', row.utilized)">
-                      <div v-if="isEditing(row.id, 'utilized')" class="edit-input-wrapper">
-                        <input 
-                          :ref="el => setCellInputRef(el, row.id, 'utilized')" 
-                          v-model.number="activeEditValue" 
-                          type="number" 
-                          step="1000" 
-                          min="0"
-                          @blur="saveCellAdjustment(row.id, 'utilized')" 
-                          @keyup.enter="saveCellAdjustment(row.id, 'utilized')" 
-                          @keyup.esc="cancelCellAdjustment" 
-                          class="edit-input"
-                        />
-                      </div>
-                      <div v-else class="cell-value">
+                    <td class="table-cell cell-utilized">
+                      <div class="cell-value">
                         ₱{{ formatNum(row.utilized) }}
-                        <span class="edit-icon">✏️</span>
                       </div>
                     </td>
 
@@ -165,7 +151,7 @@
               </span>
             </div>
             <div class="legend-right">
-              <span class="edit-note">✏️ Click on allocated or utilized cells to edit</span>
+              <span class="edit-note">✏️ Click on allocated cells to edit</span>
             </div>
           </div>
         </div>
@@ -241,7 +227,7 @@ const calculateUtilizationRate = (allocated, utilized) => {
 };
 
 const updateRowCalculations = (row) => {
-  row.remaining = calculateRemaining(row.allocated, row.utilized);
+  row.remaining = Math.max(0, (row.allocated || 0) - (row.utilized || 0) - (row.pending_approved || 0));
   row.utilizationRate = calculateUtilizationRate(row.allocated, row.utilized);
 };
 
@@ -698,7 +684,7 @@ onMounted(() => {
 
 .edit-input:focus {
   outline: none;
-  ring: 1px solid #b979cc;
+  box-shadow: 0 0 0 2px #b979cc;
 }
 
 /* Remaining Budget Colors */

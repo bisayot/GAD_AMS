@@ -38,6 +38,7 @@ const routes = [
       { path: 'reports', name: 'admin-reports', component: () => import('../views/admin/ReportsView.vue') },
       { path: 'user-manual', name: 'admin-user-manual', component: () => import('../views/admin/UserManualView.vue') },
       { path: 'budget', name: 'admin-budget', component: () => import('../views/admin/BudgetView.vue') },
+      { path: 'budget-allocation', name: 'admin-budget-allocation', component: () => import('../views/staff/BudgetAllocationView.vue') },
       { path: 'design-review', name: 'admin-design-review', component: () => import('../views/admin/DesignReview.vue') },
       { path: 'design-view', name: 'admin-design-view', component: () => import('../views/admin/DesignView.vue') },
       { path: 'assign-mandates', name: 'admin-assign-mandates', component: () => import('../views/admin/AssignMandates.vue') },
