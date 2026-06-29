@@ -202,26 +202,11 @@ const showConfirmModal = ref(false);
 const pendingUpdate = ref({ rowId: null, field: null, value: 0 });
 const inputRefs = {};
 
-const totalAllocatedBudget = computed(() => {
-  return budgetRows.value.reduce((sum, row) => sum + (row.allocated || 0), 0);
-});
-
-const totalAvailableBudget = computed(() => {
-  return budgetRows.value.reduce((sum, row) => sum + (row.remaining || 0), 0);
-});
-
-const totalUtilizedAmount = computed(() => {
-  return budgetRows.value.reduce((sum, row) => sum + (row.utilized || 0), 0);
-});
-
-const totalPendingBudget = computed(() => {
-  return budgetRows.value.reduce((sum, row) => sum + (row.pending_approved || 0), 0);
-});
-
-const overallUtilizationRate = computed(() => {
-  if (totalAllocatedBudget.value === 0) return 0;
-  return ((totalUtilizedAmount.value / totalAllocatedBudget.value) * 100).toFixed(1);
-});
+const totalAllocatedBudget = ref(0);
+const totalAvailableBudget = ref(0);
+const totalUtilizedAmount = ref(0);
+const totalPendingBudget = ref(0);
+const overallUtilizationRate = ref('0.0');
 
 const formatNum = (val) => {
   if (val === undefined || val === null) return '0.00';
@@ -333,14 +318,27 @@ const cancelModalAction = () => {
 
 const fetchBudgetData = async () => {
   try {
-    const response = await api.get('staff/budget-monitoring');
-    if (response.data) {
-      budgetRows.value = response.data;
+    const [monitoringRes, summaryRes] = await Promise.all([
+      api.get('staff/budget-monitoring'),
+      api.get('budget/summary')
+    ]);
+    
+    if (monitoringRes.data) {
+      budgetRows.value = monitoringRes.data;
       
       // Ensure calculations are correct for each row
       budgetRows.value.forEach(row => {
         updateRowCalculations(row);
       });
+    }
+
+    if (summaryRes.data && summaryRes.data.success) {
+      const b = summaryRes.data.data;
+      totalAllocatedBudget.value = b.total_budget || 0;
+      totalAvailableBudget.value = b.remaining_balance || 0;
+      totalUtilizedAmount.value = b.total_utilized || 0;
+      totalPendingBudget.value = b.total_pending_approved || 0;
+      overallUtilizationRate.value = Number(b.utilization_rate || 0).toFixed(1);
     }
   } catch (err) { 
     console.error('Error fetching budget data:', err); 
