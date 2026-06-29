@@ -742,24 +742,24 @@ const handleUpdate = async () => {
     const submitData = new FormData();
     
     // Aligning keys with ActivityDesignController expectations
-    submitData.append('activity-title', formData.value.activity_title);
-    submitData.append('form-type', formData.value.form_type);
-    submitData.append('start-date', formData.value.start_date);
-    submitData.append('end-date', formData.value.end_date);
-    submitData.append('start-time', formData.value.start_time);
-    submitData.append('end-time', formData.value.end_time);
-    submitData.append('proposed-budget', formData.value.proposed_budget);
-    submitData.append('target-participants', formData.value.target_participants);
+    submitData.append('activity_title', formData.value.activity_title);
+    submitData.append('form_type', formData.value.form_type);
+    submitData.append('start_date', formData.value.start_date);
+    submitData.append('end_date', formData.value.end_date);
+    submitData.append('start_time', formData.value.start_time);
+    submitData.append('end_time', formData.value.end_time);
+    submitData.append('proposed_budget', formData.value.proposed_budget);
+    submitData.append('target_participants', formData.value.target_participants);
 
     // Venue Logic
     if (formData.value.venue && formData.value.venue !== 'Other') {
-      submitData.append('venue-id', formData.value.venue);
+      submitData.append('venue_id', formData.value.venue);
       // Use the venue name from the venues array or fall back to the existing design name
       const v = venues.value.find(v => v.venue_id == formData.value.venue);
-      submitData.append('venue-name', v ? v.venue_name : formData.value.venue);
+      submitData.append('venue_name', v ? v.venue_name : formData.value.venue);
     } else if (formData.value.venue === 'Other') {
-      submitData.append('venue-id', '');
-      submitData.append('venue-name', customVenue.value || '');
+      submitData.append('venue_id', '');
+      submitData.append('venue_name', customVenue.value || '');
     }
 
     const transItem = formData.value.budget_items.find(i => i.name === 'Transportation');
@@ -879,7 +879,7 @@ const handleUpdate = async () => {
       }
     });
 
-    submitData.append('budgetary-requirements', JSON.stringify(finalBudgetItems));
+    submitData.append('budget_items', JSON.stringify(finalBudgetItems));
 
     submitData.append('status', 'Pending'); // Reset status so admin can review again
     

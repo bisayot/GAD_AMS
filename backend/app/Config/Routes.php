@@ -108,7 +108,10 @@ $routes->group('api', function($routes) {
     $routes->post('update-design/(:num)', 'ActivityDesignController::updateDesign/$1');
 
     // In app/Config/Routes.php
+    $routes->options('get-venues', 'AuthController::handleOptions');
     $routes->get('get-venues', 'ActivityDesignController::getVenues');
+    
+    $routes->options('get-control-numbers/(:num)', 'AuthController::handleOptions');
     $routes->get('get-control-numbers/(:num)', 'ActivityDesignController::getControlNumbers/$1');
     // Update deadline
     $routes->options('update-deadline/(:num)', 'AuthController::handleOptions');

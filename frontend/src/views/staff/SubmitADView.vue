@@ -1012,16 +1012,16 @@ const submitActivityDesign = async () => {
     formData.append('user_id', user.value.id || user.value.user_id);
     
     if (form.value.venue && form.value.venue !== 'Other') {
-      formData.append('venue-id', form.value.venue); 
+      formData.append('venue_id', form.value.venue); 
       const selectedVenue = venues.value.find(v => v.venue_id == form.value.venue);
-      formData.append('venue-name', selectedVenue ? selectedVenue.venue_name : '');
+      formData.append('venue_name', selectedVenue ? selectedVenue.venue_name : '');
     } else if (form.value.venue === 'Other') {
-      formData.append('venue-id', '');
-      formData.append('venue-name', customVenue.value);
+      formData.append('venue_id', 'Other');
+      formData.append('custom_venue', customVenue.value);
     }
     
-    formData.append('target-participants', form.value.target_participants);
-    formData.append('proposed-budget', form.value.proposed_budget);
+    formData.append('target_participants', form.value.target_participants);
+    formData.append('proposed_budget', form.value.proposed_budget);
     
     const transItem = form.value.budget_items.find(i => i.name === 'Transportation');
     if (transItem && Number(transItem.total) > 20000) {
@@ -1140,7 +1140,7 @@ const submitActivityDesign = async () => {
       }
     });
 
-    formData.append('budgetary-requirements', JSON.stringify(finalBudgetItems));
+    formData.append('budget_items', JSON.stringify(finalBudgetItems));
 
     if (designFile.value) {
       formData.append('design_file', designFile.value);
