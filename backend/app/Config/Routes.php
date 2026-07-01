@@ -15,6 +15,10 @@ $routes->group('api', function($routes) {
     $routes->post('login', 'AuthController::login');
     $routes->post('register', 'AuthController::register');
     $routes->get('logout', 'AuthController::logout');
+    $routes->post('forgot-password', 'AuthController::forgotPassword');
+    $routes->post('reset-password', 'AuthController::resetPassword');
+    $routes->options('forgot-password', 'AuthController::handleOptions');
+    $routes->options('reset-password', 'AuthController::handleOptions');
 
     // CORS preflight routes (existing)
     $routes->options('login', 'AuthController::handleOptions');
@@ -93,6 +97,9 @@ $routes->group('api', function($routes) {
     $routes->options('get-activity-classifications', 'AuthController::handleOptions');
     $routes->get('get-activity-classifications', 'ActivityDesignController::getActivityClassifications');
 
+    $routes->options('get-next-control-number', 'AuthController::handleOptions');
+    $routes->get('get-next-control-number', 'ActivityDesignController::getNextControlNumber');
+
     $routes->options('activity-designs', 'ActivityDesignController::index');
     $routes->get('activity-designs', 'ActivityDesignController::index');
 
@@ -107,15 +114,15 @@ $routes->group('api', function($routes) {
     $routes->options('update-design/(:num)', 'ActivityDesignController::updateDesign/$1');
     $routes->post('update-design/(:num)', 'ActivityDesignController::updateDesign/$1');
 
-    // In app/Config/Routes.php
-    $routes->options('get-venues', 'AuthController::handleOptions');
-    $routes->get('get-venues', 'ActivityDesignController::getVenues');
-    
-    $routes->options('get-control-numbers/(:num)', 'AuthController::handleOptions');
-    $routes->get('get-control-numbers/(:num)', 'ActivityDesignController::getControlNumbers/$1');
     // Update deadline
     $routes->options('update-deadline/(:num)', 'AuthController::handleOptions');
     $routes->post('update-deadline/(:num)', 'ActivityDesignController::updateDeadline/$1');
+
+    // Disapprove and Revert
+    $routes->options('disapprove-design/(:num)', 'AuthController::handleOptions');
+    $routes->post('disapprove-design/(:num)', 'ActivityDesignController::disapproveDesign/$1');
+    $routes->options('revert-design/(:num)', 'AuthController::handleOptions');
+    $routes->post('revert-design/(:num)', 'ActivityDesignController::revertDecision/$1');
 
     // ----------------------------------------------------------------
     // MANDATES & GENDER ISSUES ROUTES
@@ -162,6 +169,8 @@ $routes->group('api', function($routes) {
     // ----------------------------------------------------------------
     $routes->options('approved-controls/(:num)', 'AuthController::handleOptions');
     $routes->get('approved-controls/(:num)', 'ApprovedControlsController::index/$1');
+    $routes->options('get-next-control-number', 'AuthController::handleOptions');
+    $routes->get('get-next-control-number', 'ActivityDesignController::getNextControlNumber');
 
     // ----------------------------------------------------------------
     // ARCHIVE ROUTES (new)
@@ -205,9 +214,20 @@ $routes->group('api', function($routes) {
     $routes->options('revision-report/(:num)', 'AuthController::handleOptions');
     $routes->post('revision-report/(:num)', 'AccomplishmentReportController::revisionReport/$1');
 
+    $routes->options('activity-design/mark-viewed/(:num)', 'AuthController::handleOptions');
+    $routes->post('activity-design/mark-viewed/(:num)', 'ActivityDesignController::markViewed/$1');
+    $routes->options('activity-design/unmark-viewed/(:num)', 'AuthController::handleOptions');
+    $routes->post('activity-design/unmark-viewed/(:num)', 'ActivityDesignController::unmarkViewed/$1');
+
+    $routes->options('accomplishment-report/mark-viewed/(:num)', 'AuthController::handleOptions');
+    $routes->post('accomplishment-report/mark-viewed/(:num)', 'AccomplishmentReportController::markViewed/$1');
+    $routes->options('accomplishment-report/unmark-viewed/(:num)', 'AuthController::handleOptions');
+    $routes->post('accomplishment-report/unmark-viewed/(:num)', 'AccomplishmentReportController::unmarkViewed/$1');
+
     // ----------------------------------------------------------------
     // MESSAGING ROUTES
     // ----------------------------------------------------------------
+
     $routes->options('messages/send', 'AuthController::handleOptions');
     $routes->post('messages/send', 'MessageController::send');
     $routes->options('messages/announce', 'AuthController::handleOptions');
@@ -272,7 +292,9 @@ $routes->group('api', function($routes) {
     // ----------------------------------------------------------------
     // FILE SERVING ROUTES (serve PDFs from writable/uploads)
     // ----------------------------------------------------------------
+    $routes->options('files/drafts/(:segment)', 'AuthController::handleOptions');
     $routes->get('files/drafts/(:segment)', 'FileController::serveDraft/$1');
+    $routes->options('files/archived/(:segment)', 'AuthController::handleOptions');
     $routes->get('files/archived/(:segment)', 'FileController::serveArchived/$1');
     // Document Trash Endpoints
     $routes->options('documents/trashed', 'AuthController::handleOptions');

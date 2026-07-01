@@ -4,43 +4,24 @@
       <div class="loading-spinner"></div>
     </div>
 
-    <div v-else-if="error" class="error-view-wrapper">
-      <div class="error-card">
-        <div class="error-glow"></div>
-        <div class="error-icon-container">
-          <span class="material-symbols-outlined error-icon">error</span>
-        </div>
-        <h2 class="error-heading">Error Loading Data</h2>
-        <p class="error-text">{{ error }}</p>
-        <button @click="router.back()" class="error-btn">
-          <span class="material-symbols-outlined btn-icon">arrow_back</span>
-          Go Back
-        </button>
+    <div v-else-if="error" class="error-container">
+      <div class="error-box">
+        <p class="error-title">Error Loading Data</p>
+        <p class="error-message">{{ error }}</p>
+        <button @click="router.back()" class="error-back-btn">← Go Back</button>
       </div>
     </div>
 
     <div v-else class="page-container">
-      <div class="layout-grid">
-
-        <section class="flex-06 glass-card">
+      <div class="layout-vertical">
+        <!-- LEFT SECTION -->
+        <section class="flex-full glass-card">
           <div class="report-header">
             <div class="meta-header">
-              <div class="status-badge-wrapper">
-                <div class="status-badge-view" :class="getStatusClass(report.status)">
-                  <span class="status-text">{{ formatStatus(report.status) }}</span>
-                </div>
-                <span class="control-number">{{ report.control_number || 'N/A' }}</span>
+              <div class="status-badge-view" :class="getStatusClass(report.status)">
+                <span class="status-text">{{ formatStatus(report.status) }}</span>
               </div>
-              <div class="header-meta-group">
-                <div class="meta-tag">
-                  <span class="info-label header-label">Category:</span>
-                  <span class="info-value-white uppercase">Accomplishment Report</span>
-                </div>
-                <div class="meta-tag">
-                  <span class="info-label header-label">Form Type:</span>
-                  <span class="info-value-white uppercase">{{ formatFormType(report.form_type) }}</span>
-                </div>
-              </div>
+              <span class="control-number">{{ report.control || 'NO CONTROL NUMBER' }}</span>
             </div>
 
             <h2 class="report-title">{{ report.activity_title }}</h2>
@@ -48,153 +29,272 @@
             <div class="info-grid">
               <div class="info-item">
                 <span class="info-label">Submitted By</span>
-                <span class="info-value-white">{{ report.username || '---' }} ({{ report.email || '---' }})</span>
+                <span class="info-value-purple">{{ report.submitter_name || '' }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">Office / Unit</span>
-                <span class="info-value-white">{{ report.office || '---' }}</span>
+                <span class="info-label">Office</span>
+                <span class="info-value-white">{{ report.office }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">Date Submitted</span>
-                <span class="info-value-white">{{ formatDate(report.created_at) }}</span>
+                <span class="info-value-white">{{ report.date || '---' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Category</span>
+                <span class="info-value-white">Accomplishment Report</span>
               </div>
             </div>
           </div>
 
+          
           <div class="report-body">
-            <!-- Implementation Details -->
-            <div class="section-card">
+            <div class="ar-horizontal-layout">
+<!-- Approved Activity Design Details -->
+            <div class="section-card" v-if="report.activity_design">
               <div class="section-header-row">
-                <span class="material-symbols-outlined icon-pink">event_available</span>
-                <h3 class="section-title">Implementation Details</h3>
+                <span class="material-symbols-outlined icon-pink">info</span>
+                <h3 class="section-title">Approved Activity Design Details</h3>
               </div>
               <div class="grid-2">
-                <div>
-                  <label class="info-label">Date</label>
-                  <p class="info-value-white">{{ formatDate(report.start_date) }} — {{ formatDate(report.end_date) }}</p>
-                </div>
-                <div>
-                  <label class="info-label">Time</label>
-                  <p class="info-value-white">{{ formatTime(report.start_time) }} to {{ formatTime(report.end_time) }}</p>
-                </div>
                 <div class="full-width-info">
-                  <label class="info-label">Venue</label>
-                  <p class="info-value-white">{{ report.venue }}</p>
+                  <label class="info-label">Title</label>
+                  <p class="text-sm-light mt-1">{{ report.activity_design.activity_title }}</p>
                 </div>
-              </div>
-              
-              <div class="participants-summary mt-4 pt-4 border-t border-white/10">
-                <label class="info-label mb-3 block">Participation Breakdown</label>
-                <div class="grid-3">
-                  <div class="metric-box">
-                    <span class="metric-value">{{ report.male || 0 }}</span>
-                    <span class="metric-label">Male</span>
-                  </div>
-                  <div class="metric-box">
-                    <span class="metric-value">{{ report.female || 0 }}</span>
-                    <span class="metric-label">Female</span>
-                  </div>
-                  <div class="metric-box total-highlight">
-                    <span class="metric-value">{{ report.attendees || 0 }}</span>
-                    <span class="metric-label">Total Attendees</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- GAD Alignment Section Card -->
-            <div class="section-card">
-              <div class="section-header-row">
-                <span class="material-symbols-outlined icon-pink">gavel</span>
-                <h3 class="section-title">GAD Alignment</h3>
-              </div>
-              <div class="grid-2">
                 <div class="full-width-info">
                   <label class="info-label">Activity Classification</label>
-                  <p class="info-value-white">{{ report.classification_name || '---' }}</p>
+                  <p class="text-sm-light mt-1">{{ report.activity_design.activity_classification || '---' }}</p>
                 </div>
-                <div class="full-width-info">
-                  <label class="info-label">GAD Mandate / Plan Objective</label>
-                  <p class="info-value-white">{{ report.mandate_title || '---' }}</p>
+                <div>
+                  <label class="info-label">Form Type</label>
+                  <p class="text-sm-light mt-1 uppercase">{{ report.activity_design.form_type_name || report.activity_design.form_type || '---' }}</p>
                 </div>
-                <div class="full-width-info">
-                  <label class="info-label">Gender Issue Addressed</label>
-                  <p class="info-value-white">{{ report.gender_issue_title || '---' }}</p>
+                                <div class="full-width-info" v-if="report.activity_design">
+                  <label class="info-label">GAD Mandate</label>
+                  <div v-if="report.activity_design.gad_mandate" class="mandate-boxes">
+                    <span v-for="(mandate, index) in report.activity_design.gad_mandate.split(',')" :key="'m'+index" class="mandate-box">
+                      {{ mandate.trim() }}
+                    </span>
+                  </div>
+                  <p v-else class="text-sm-light mt-1">---</p>
+                </div>
+                <div class="full-width-info" v-if="report.activity_design">
+                  <label class="info-label">Gender Issues</label>
+                  <div v-if="report.activity_design.gender_issue" class="mandate-boxes">
+                    <span v-for="(issue, index) in report.activity_design.gender_issue.split(',')" :key="'gi'+index" class="mandate-box">
+                      {{ issue.trim() }}
+                    </span>
+                  </div>
+                  <p v-else class="text-sm-light mt-1">---</p>
+                </div>
+                <div>
+                  <label class="info-label">Venue</label>
+                  <p class="text-sm-light mt-1">{{ report.activity_design.venue_name || report.activity_design.venue }}</p>
+                </div>
+                <div>
+                  <label class="info-label">Start Date</label>
+                  <p class="text-sm-light mt-1">{{ formatDate(report.activity_design.start_date) }}</p>
+                </div>
+                <div>
+                  <label class="info-label">End Date</label>
+                  <p class="text-sm-light mt-1">{{ formatDate(report.activity_design.end_date) }}</p>
+                </div>
+                <div>
+                  <label class="info-label">Start Time</label>
+                  <p class="text-sm-light mt-1">{{ formatTime(report.activity_design.start_time) }}</p>
+                </div>
+                <div>
+                  <label class="info-label">End Time</label>
+                  <p class="text-sm-light mt-1">{{ formatTime(report.activity_design.end_time) }}</p>
+                </div>
+                <div>
+                  <label class="info-label">Proposed Budget</label>
+                  <p class="text-sm-light mt-1">PHP {{ Number(report.activity_design.proposed_budget || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</p>
+                </div>
+                <div>
+                  <label class="info-label">Assessment Date</label>
+                  <p class="text-sm-light mt-1">{{ report.activity_design.assessment_date ? formatDate(report.activity_design.assessment_date) : 'N/A' }}</p>
+                </div>
+                <div class="full-width-info" v-if="report.activity_design.remarks">
+                  <label class="info-label">Reviewer Remarks</label>
+                  <div class="read-only-remarks mt-1">{{ report.activity_design.remarks }}</div>
                 </div>
               </div>
-            </div>
 
-            <!-- Budget Section -->
-            <div class="section-card">
-              <div class="section-header-row">
-                <span class="material-symbols-outlined icon-pink">payments</span>
-                <h3 class="section-title">Actual Budgetary Requirements</h3>
-              </div>
-              <div v-if="parsedBudget.length" class="budget-content">
-                <div class="budget-table-wrapper">
-                  <table class="budget-table">
-                    <thead class="budget-table-header">
+              <!-- Approved Budget Breakdown -->
+              <div class="full-width-info mt-4" v-if="parsedADBudget && parsedADBudget.length > 0">
+                <label class="info-label mb-2">Approved Budget Breakdown</label>
+                <div class="table-responsive">
+                  <table class="custom-table">
+                    <thead>
                       <tr>
-                        <th class="table-header-cell">Budget Item</th>
-                        <th class="table-header-cell budget-total-header">Total</th>
+                        <th>Budget Item</th>
+                        <th class="text-right">Amount (PHP)</th>
                       </tr>
                     </thead>
-                    <tbody class="budget-table-body">
-                      <tr v-for="(item, idx) in parsedBudget" :key="idx" class="budget-table-row">
-                        <td class="budget-item-name" v-html="formatBudgetName(item.name)"></td>
-                        <td class="budget-item-value-cell budget-value-right">
-                          <span class="budget-item-value">₱{{ formatCurrency(item.total) }}</span>
-                        </td>
+                    <tbody>
+                      <tr v-for="(item, index) in parsedADBudget" :key="index">
+                        <td v-html="formatBudgetName(item.name)"></td>
+                        <td class="text-right">{{ Number(item.total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</td>
                       </tr>
                     </tbody>
-                    <tfoot class="budget-table-footer">
+                    <tfoot>
                       <tr>
-                        <td class="grand-total-label">Actual Total Expenditures</td>
-                        <td class="grand-total-value-white budget-value-right">₱{{ formatCurrency(actualTotal) }}</td>
+                        <td class="font-bold text-white">Grand Total (PHP)</td>
+                        <td class="font-bold text-white text-right">{{ Number(report.activity_design.proposed_budget || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</td>
                       </tr>
                     </tfoot>
                   </table>
                 </div>
               </div>
-              <div v-else class="empty-budget-notice">
-                No budgetary records found for this report.
+
+              <!-- AD Attachment -->
+              <div v-if="report.activity_design && report.activity_design.attachment && parseAttachments(report.activity_design.attachment).length > 0" class="attachments-list mt-4" style="width:100%;">
+                <label class="info-label mb-2">Approved Design Attachments</label>
+                <div v-for="(file, index) in parseAttachments(report.activity_design.attachment)" :key="'ad-'+index" class="doc-item mb-2">
+                  <div class="doc-info">
+                    <span class="material-symbols-outlined doc-pdf-icon">picture_as_pdf</span>
+                    <div>
+                      <p class="doc-title">{{ file.split('_').slice(1).join('_') || file }}</p>
+                      <p class="doc-meta">Reference: {{ file }}</p>
+                    </div>
+                  </div>
+                  <div class="doc-actions">
+                    <button @click="previewFile(file, 'archived')" class="preview-btn">Preview</button>
+                    <button @click="downloadFile(file, 'archived', 'Activity_Design')" class="download-btn-icon">
+                      <span class="material-symbols-outlined">download</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
-
-            <!-- Evaluation Results -->
+            <!-- Actual Accomplishment Details -->
             <div class="section-card">
               <div class="section-header-row">
-                <span class="material-symbols-outlined icon-pink">analytics</span>
-                <h3 class="section-title">Evaluation Results</h3>
+                <span class="material-symbols-outlined icon-pink">fact_check</span>
+                <h3 class="section-title">Actual Accomplishment Details</h3>
               </div>
-              <div class="evaluation-content">
-                <div class="budget-table-wrapper">
-                  <table class="budget-table">
-                    <thead class="budget-table-header">
+              <div class="grid-2">
+                <div class="full-width-info">
+                  <label class="info-label">Actual Activity Title</label>
+                  <p class="text-sm-light mt-1">{{ report.activity_title }}</p>
+                </div>
+                <div class="full-width-info" v-if="report.activity_design">
+                  <label class="info-label">Activity Classification</label>
+                  <p class="text-sm-light mt-1">{{ report.activity_design.activity_classification || '---' }}</p>
+                </div>
+                <div class="full-width-info" v-if="report.activity_design">
+                  <label class="info-label">Form Type</label>
+                  <p class="text-sm-light mt-1 uppercase">{{ report.activity_design.form_type_name || report.activity_design.form_type || '---' }}</p>
+                </div>
+                                <div class="full-width-info" v-if="report.activity_design">
+                  <label class="info-label">GAD Mandate</label>
+                  <div v-if="report.activity_design.gad_mandate" class="mandate-boxes">
+                    <span v-for="(mandate, index) in report.activity_design.gad_mandate.split(',')" :key="'m'+index" class="mandate-box">
+                      {{ mandate.trim() }}
+                    </span>
+                  </div>
+                  <p v-else class="text-sm-light mt-1">---</p>
+                </div>
+                <div class="full-width-info" v-if="report.activity_design">
+                  <label class="info-label">Gender Issues</label>
+                  <div v-if="report.activity_design.gender_issue" class="mandate-boxes">
+                    <span v-for="(issue, index) in report.activity_design.gender_issue.split(',')" :key="'gi'+index" class="mandate-box">
+                      {{ issue.trim() }}
+                    </span>
+                  </div>
+                  <p v-else class="text-sm-light mt-1">---</p>
+                </div>
+                <div>
+                  <label class="info-label">Target Participants</label>
+                  <p class="text-sm-light mt-1">{{ report.activity_design.target_participants }}</p>
+                </div>
+                <div>
+                  <label class="info-label">Start Date of Implementation</label>
+                  <p class="text-sm-light mt-1">{{ formatDate(report.start_date) }}</p>
+                </div>
+                <div>
+                  <label class="info-label">End Date of Implementation</label>
+                  <p class="text-sm-light mt-1">{{ formatDate(report.end_date) }}</p>
+                </div>
+                <div>
+                  <label class="info-label">Start Time</label>
+                  <p class="text-sm-light mt-1">{{ formatTime(report.start_time) }}</p>
+                </div>
+                <div>
+                  <label class="info-label">End Time</label>
+                  <p class="text-sm-light mt-1">{{ formatTime(report.end_time) }}</p>
+                </div>
+                <div class="full-width-info">
+                  <label class="info-label">Venue</label>
+                  <p class="text-sm-light mt-1">{{ report.venue }}</p>
+                </div>
+                <div>
+                  <label class="info-label">Number of Attendees</label>
+                  <p class="text-sm-light mt-1">{{ report.attendees }}</p>
+                </div>
+                <div>
+                  <label class="info-label">Male / Female Participants</label>
+                  <p class="text-sm-light mt-1"><span class="male-val">{{ report.male }} Male</span> / <span class="female-val">{{ report.female }} Female</span></p>
+                </div>
+              </div>
+
+              <!-- Actual Budget Expenditure -->
+              <div class="full-width-info mt-4" v-if="parsedARBudget && parsedARBudget.length > 0">
+                <label class="info-label mb-2">Actual Budget Expenditure</label>
+                <div class="table-responsive">
+                  <table class="custom-table">
+                    <thead>
                       <tr>
-                        <th class="table-header-cell">Area of Evaluation</th>
-                        <th class="table-header-cell text-center">Rating</th>
-                        <th class="table-header-cell text-right">Interpretation</th>
+                        <th>Budget Item</th>
+                        <th class="text-right">Total (PHP)</th>
                       </tr>
                     </thead>
-                    <tbody class="budget-table-body">
-                      <tr v-for="(item, idx) in parsedEvaluation" :key="idx" class="budget-table-row">
-                        <td class="budget-item-name">{{ item.area }}</td>
-                        <td class="budget-item-value-cell text-center">
-                          <span class="font-bold text-white">{{ item.rating }}</span>
-                        </td>
-                        <td class="budget-item-value-cell text-right">
-                          <span :class="getInterpretationClass(item.rating)">{{ getInterpretation(item.rating) }}</span>
+                    <tbody>
+                      <tr v-for="(item, index) in parsedARBudget" :key="index">
+                        <td v-html="formatBudgetName(item.name)"></td>
+                        <td class="text-right">{{ Number(item.total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</td>
+                      </tr>
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <td class="font-bold text-white">Grand Total (PHP)</td>
+                        <td class="font-bold text-white text-right">{{ Number(arBudgetTotal || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Evaluation Results -->
+              <div class="full-width-info mt-4" v-if="parsedAREval && parsedAREval.length > 0">
+                <label class="info-label mb-2">Evaluation Results</label>
+                <div class="table-responsive">
+                  <table class="custom-table">
+                    <thead>
+                      <tr>
+                        <th>Area of Evaluation</th>
+                        <th class="text-center">Average Rating</th>
+                        <th>Interpretation</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(item, index) in parsedAREval" :key="index">
+                        <td>{{ item.area }}</td>
+                        <td class="text-center">{{ item.rating }}</td>
+                        <td>
+                          <span :class="`interpretation-tag-ar ${getInterpretationClass(item.rating)}`">
+                            {{ getInterpretation(item.rating) }}
+                          </span>
                         </td>
                       </tr>
                     </tbody>
-                    <tfoot class="budget-table-footer">
+                    <tfoot>
                       <tr>
-                        <td class="grand-total-label">Total Average Rating</td>
-                        <td class="text-center font-black text-white text-lg">{{ report.rating }}</td>
-                        <td class="text-right">
-                          <span class="font-bold" :class="getInterpretationClass(report.rating)">
+                        <td class="font-bold text-white">Total Average Rating</td>
+                        <td class="font-bold text-white text-center">{{ report.rating }}</td>
+                        <td class="font-bold text-white">
+                          <span :class="`interpretation-tag-ar ${getInterpretationClass(report.rating)}`">
                             {{ getInterpretation(report.rating) }}
                           </span>
                         </td>
@@ -203,54 +303,54 @@
                   </table>
                 </div>
               </div>
-            </div>
 
-            <!-- Supporting Documents -->
-            <div v-if="parsedAttachments.length" class="section-card">
-              <div class="section-header-row">
-                <span class="material-symbols-outlined icon-pink">description</span>
-                <h3 class="section-title">Submitted Documents</h3>
-              </div>
-              <div class="doc-list">
-                <div v-for="(file, index) in parsedAttachments" :key="index" class="doc-item">
+                            <!-- AR Attachment -->
+              <div v-if="report.attachment && parseAttachments(report.attachment).length > 0" class="attachments-list mt-4" style="width:100%;">
+                <label class="info-label mb-2">Accomplishment Report Attachments</label>
+                <div v-for="(file, index) in parseAttachments(report.attachment)" :key="'ar-'+index" class="doc-item mb-2">
                   <div class="doc-info">
                     <span class="material-symbols-outlined doc-pdf-icon">picture_as_pdf</span>
                     <div>
-                      <p class="doc-title">Attachment {{ index + 1 }}</p>
+                      <p class="doc-title">{{ file.split('_').slice(1).join('_') || file }}</p>
                       <p class="doc-meta">Reference: {{ file }}</p>
                     </div>
                   </div>
-                  <button @click="previewFile(file)" class="preview-btn">👁️ Preview</button>
+                  <div class="doc-actions">
+                    <button @click="previewFile(file, report.is_archived ? 'archived' : 'drafts')" class="preview-btn">Preview</button>
+                    <button @click="downloadFile(file, report.is_archived ? 'archived' : 'drafts', 'Accomplishment_Report')" class="download-btn-icon">
+                      <span class="material-symbols-outlined">download</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </section>
 
-        <!-- Assessment Sidebar -->
-        <section class="flex-04-sidebar">
+                    </div>
+  </section>
+
+        <!-- RIGHT SECTION - Assessment Sidebar -->
+        <section class="flex-full">
           <div class="assessment-card-custom">
             <div class="assessment-header">
               <div class="assessment-icon">📋</div>
-              <div class="assessment-title">Report Assessment</div>
+              <div class="assessment-title">Assessment Record</div>
             </div>
 
             <div class="assessment-form">
-              <div class="info-item assessment-field">
-                <span class="info-label">Date of Assessment</span>
-                <span class="info-value-white">{{ formatDate(report.assessment_date) || '---' }}</span>
-              </div>
-
               <div class="info-item">
-                <span class="info-label">Reviewer Remarks</span>
+                <span class="info-label">Assessor Remarks</span>
                 <div class="read-only-remarks">
-                  {{ report.remarks || 'No remarks provided for this report.' }}
+                  {{ report.remarks || 'No remarks recorded for this accomplishment report.' }}
                 </div>
               </div>
 
               <div class="action-buttons">
+                <button @click="handleTrash" class="btn-trash">
+                  <span class="material-symbols-outlined">delete</span> MOVE TO TRASH
+                </button>
                 <button @click="router.back()" class="btn-back">
-                  ← Back to Tracker
+                  ← Back
                 </button>
               </div>
             </div>
@@ -259,6 +359,7 @@
       </div>
     </div>
 
+    <!-- PDF Preview Modal -->
     <PdfPreviewModal :isOpen="isPdfModalOpen" :fileUrl="pdfFileUrl" @close="closePdfModal" />
   </main>
 </template>
@@ -266,8 +367,31 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import api, { API_BASE_URL } from '../../api';
+import api from '../../api';
+
+const parseAttachments = (attachmentString) => {
+  if (!attachmentString) return [];
+  if (Array.isArray(attachmentString)) return attachmentString;
+  try {
+    let parsed = attachmentString;
+    if (typeof parsed === 'string') {
+      try { parsed = JSON.parse(parsed); } catch(e) {}
+    }
+    if (typeof parsed === 'string') {
+      try { parsed = JSON.parse(parsed); } catch(e) {}
+    }
+    if (Array.isArray(parsed)) {
+      return parsed;
+    }
+    return [attachmentString];
+  } catch (e) {
+    return [attachmentString];
+  }
+};
+
+import Swal from 'sweetalert2';
 import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
+
 
 const route = useRoute();
 const router = useRouter();
@@ -275,6 +399,51 @@ const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 const report = ref({});
 const loading = ref(true);
 const error = ref(null);
+
+const handleTrash = async () => {
+  if (report.value.status !== 'Pending' || report.value.is_viewed_by_admin == 1) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Action Denied',
+      text: 'You cannot move this document to trash because it is already being processed or has been viewed by an admin.',
+      confirmButtonColor: '#3085d6'
+    });
+    return;
+  }
+  const result = await Swal.fire({
+    title: 'Move to Trash?',
+    text: 'This document will be moved to the trash bin.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#334155',
+    confirmButtonText: 'Yes, move it'
+  });
+
+  if (result.isConfirmed) {
+    try {
+      const response = await api.delete(`accomplishment-reports/trash/${route.params.id}`);
+      if (response.data.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Moved to Trash',
+          text: 'Document has been moved to trash.',
+          timer: 1500,
+          showConfirmButton: false
+        });
+        router.push('/staff/mandates');
+      } else {
+        throw new Error(response.data.message || 'Failed to move to trash');
+      }
+    } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: err.message || 'An error occurred while moving to trash'
+      });
+    }
+  }
+};
 
 const fetchReportDetails = async () => {
   loading.value = true;
@@ -284,7 +453,7 @@ const fetchReportDetails = async () => {
     if (response.data.success) report.value = response.data.data;
     else error.value = "Accomplishment report not found.";
   } catch (err) {
-    error.value = "Failed to load report details.";
+    error.value = "Failed to load report data.";
   } finally {
     loading.value = false;
   }
@@ -299,144 +468,77 @@ const formatTime = (time) => {
 
 const formatStatus = (status) => {
   if (!status) return 'Unknown';
+  if (status.toLowerCase() === 'revision required') return 'For Revision';
   return status.charAt(0).toUpperCase() + status.slice(1);
-};
-
-const formatFormType = (type) => {
-  const map = { 'employee': 'Employee Training', 'inset': 'INSET', 'extension': 'Extension Program' };
-  return map[type] || type;
 };
 
 const getStatusClass = (status) => {
   const s = (status || '').toLowerCase();
   if (s === 'pending') return 'pending';
-  if (s === 'approved' || s === 'verified') return 'approved';
-  if (s.includes('revision')) return 'revision';
+  if (s === 'approved') return 'approved';
+  if (s === 'completed' || s === 'archived') return 'completed';
+  if (s === 'cancelled') return 'cancelled';
+  if (s === 'revision required' || s === 'revision') return 'revision';
   return 'completed';
 };
 
-const formatCurrency = (amt) => amt ? parseFloat(amt).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00';
+const isPdfModalOpen = ref(false);
+const pdfFileUrl = ref('');
 
-const parsedBudget = computed(() => {
-  const r = report.value;
-  if (!r) return [];
+const closePdfModal = () => {
+  isPdfModalOpen.value = false;
+};
 
-  const items = [];
-  if (r.budget_items && r.budget_items.length > 0) {
-    // 1. Meals
-    const meals = r.budget_items.filter(bi => bi.item_name === 'Meals');
-    if (meals.length > 0) {
-      let total = meals.reduce((sum, bi) => sum + Number(bi.amount), 0);
-      let subItems = meals.map(bi => bi.sub_item).filter(Boolean);
-      let name = 'Meals';
-      if (subItems.length > 0) {
-        name += ` (${subItems.join(', ')})`;
-      }
-      items.push({ name, total });
-    }
 
-    // 2. Snacks
-    const snacks = r.budget_items.filter(bi => bi.item_name === 'Snacks');
-    if (snacks.length > 0) {
-      let total = snacks.reduce((sum, bi) => sum + Number(bi.amount), 0);
-      let subItems = snacks.map(bi => bi.sub_item).filter(Boolean);
-      let name = 'Snacks';
-      if (subItems.length > 0) {
-        name += ` (${subItems.join(', ')})`;
-      }
-      items.push({ name, total });
-    }
+const parsedADBudget = computed(() => {
+  if (!report.value.activity_design || !report.value.activity_design.budget_items || report.value.activity_design.budget_items.length === 0) return [];
+  const b = report.value.activity_design.budget_items[0];
+  const catering = Number(b.meals_and_snacks || 0) + Number(b.accommodation || 0);
+  const venue = Number(b.function_room_venue || 0) + Number(b.equipment_rental || 0) + Number(b.transportation || 0);
+  const program = Number(b.professional_fee_honoria || 0) + Number(b.tokens || 0);
+  const materials = Number(b.materials_and_supplies || 0);
 
-    // 3. Standard items: Function Room/Venue, Accommodation, Equipment Rental, Materials and Supplies, Transportation
-    const standardNames = [
-      'Function Room/Venue',
-      'Accommodation',
-      'Equipment Rental',
-      'Materials and Supplies',
-      'Transportation'
-    ];
-    standardNames.forEach(sName => {
-      const found = r.budget_items.find(bi => bi.item_name === sName);
-      if (found && Number(found.amount) > 0) {
-        items.push({ name: found.item_name, total: found.amount });
-      }
-    });
-
-    // 4. Professional Fee with Pax
-    const pf = r.budget_items.find(bi => bi.item_name === 'Professional Fee/Honoria');
-    if (pf && Number(pf.amount) > 0) {
-      let name = pf.item_name;
-      if (pf.pax) {
-        name += ` (Number of Speakers: ${pf.pax})`;
-      }
-      items.push({ name, total: pf.amount });
-    }
-
-    // 5. Token/s with Pax
-    const tokens = r.budget_items.find(bi => bi.item_name === 'Token/s');
-    if (tokens && Number(tokens.amount) > 0) {
-      let name = tokens.item_name;
-      if (tokens.pax) {
-        name += ` (Number of Recipients: ${tokens.pax})`;
-      }
-      items.push({ name, total: tokens.amount });
-    }
-
-    // 6. Others
-    const others = r.budget_items.filter(bi => bi.item_name === 'Others');
-    if (others.length > 0) {
-      others.forEach(o => {
-        if (Number(o.amount) > 0) {
-          items.push({ name: `Other: ${o.sub_item || 'Unspecified'}`, total: o.amount });
-        }
-      });
-    }
-
-    return items;
-  }
-
-  // Fallback to static columns if budget_items not present (backward compatibility)
-  const fallbackItems = [
-    { name: 'Meals and Snacks (AM/PM)', total: r.meals_and_snacks },
-    { name: 'Function Room/Venue', total: r.function_room_venue },
-    { name: 'Accommodation', total: r.accommodation },
-    { name: 'Equipment Rental', total: r.equipment_rental },
-    { name: 'Professional Fee/Honoria', total: r.professional_fee_honoria },
-    { name: 'Token/s', total: r.tokens },
-    { name: 'Materials and Supplies', total: r.materials_and_supplies },
-    { name: 'Transportation', total: r.transportation },
-    { name: 'Others', total: r.others }
+  const items = [
+    { name: 'Catering & Hospitality', total: catering },
+    { name: 'Venue & Logistics', total: venue },
+    { name: 'Program & Speakers', total: program },
+    { name: 'Materials & Miscellaneous', total: materials }
   ];
-
-  return fallbackItems.filter(item => Number(item.total) > 0);
+  return items.filter(i => parseFloat(i.total) > 0);
 });
 
-const parsedEvaluation = computed(() => {
-  const r = report.value;
-  if (!r) return [];
+const parsedARBudget = computed(() => {
+  if (!report.value.budget_items || report.value.budget_items.length === 0) return [];
+  const b = report.value.budget_items[0];
+  const catering = Number(b.meals_and_snacks || 0) + Number(b.accommodation || 0);
+  const venue = Number(b.function_room_venue || 0) + Number(b.equipment_rental || 0) + Number(b.transportation || 0);
+  const program = Number(b.professional_fee_honoria || 0) + Number(b.tokens || 0);
+  const materials = Number(b.materials_and_supplies || 0);
 
-  // Mapping for individual columns if joined from an 'accomplishment_evaluation_results' table
   const items = [
-    { area: 'Time Management', rating: r.time_management },
-    { area: 'Orderliness and Program Flow', rating: r.orderliness_and_program_flow },
-    { area: 'Appropriateness of the Venue', rating: r.appropriateness_of_venue },
-    { area: 'Sound System and Hall Preparation', rating: r.sound_system_and_hall_preparation },
-    { area: 'Restroom/s', rating: r.restrooms },
-    { area: 'Food and Drinks', rating: r.food_drinks }
+    { name: 'Catering & Hospitality', total: catering },
+    { name: 'Venue & Logistics', total: venue },
+    { name: 'Program & Speakers', total: program },
+    { name: 'Materials & Miscellaneous', total: materials }
   ];
+  return items.filter(i => parseFloat(i.total) > 0);
+});
 
-  const filteredItems = items.filter(item => item.rating !== undefined && item.rating !== null && Number(item.rating) > 0);
-  if (filteredItems.length > 0) return filteredItems;
+const arBudgetTotal = computed(() => {
+  return parsedARBudget.value.reduce((sum, item) => sum + (parseFloat(item.total) || 0), 0);
+});
 
-  // Fallback: If stored as a JSON string in the 'evaluation_items' column
-  if (r.evaluation_items) {
-    try {
-      const jsonItems = typeof r.evaluation_items === 'string' ? JSON.parse(r.evaluation_items) : r.evaluation_items;
-      return Array.isArray(jsonItems) ? jsonItems : [];
-    } catch (e) { return []; }
-  }
-
-  return [];
+const parsedAREval = computed(() => {
+  if (!report.value.evaluation_results || report.value.evaluation_results.length === 0) return [];
+  const e = report.value.evaluation_results[0];
+  return [
+    { area: 'Time Management', rating: e.time_management },
+    { area: 'Orderliness and Program Flow', rating: e.orderliness_and_program_flow },
+    { area: 'Appropriateness of the Venue', rating: e.appropriateness_of_venue },
+    { area: 'Sound System and Hall Preparation', rating: e.sound_system_and_hall_preparation },
+    { area: 'Restroom/s', rating: e.restrooms },
+    { area: 'Food and Drinks', rating: e.food_and_drinks }
+  ];
 });
 
 const getInterpretation = (rating) => {
@@ -458,111 +560,233 @@ const getInterpretationClass = (rating) => {
   if (val >= 4.01) return 'text-teal-400';
   if (val >= 3.51) return 'text-cyan-400';
   if (val >= 3.01) return 'text-amber-400';
-  return 'text-rose-400';
+  if (val >= 2.51) return 'text-rose-400';
+  if (val >= 2.01) return 'text-rose-500';
+  return 'text-rose-600';
 };
 
-const formatBudgetName = (name) => name ? name.replace(/(\(.*\))/g, '<span class="budget-item-subtext">$1</span>') : '';
+const formatBudgetName = (name) => {
+  if (!name) return '';
+  return name.replace(/(\([^\)]+\))/g, '<span style="opacity:0.7;font-size:11px;">$1</span>');
+};
 
-const actualTotal = computed(() => {
-  return parsedBudget.value.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
-});
-
-const parsedAttachments = computed(() => {
-  const att = report.value.attachment;
-  if (!att) return [];
-  try {
-    // If it's already an array, return it; otherwise parse the JSON string
-    const parsed = typeof att === 'string' ? JSON.parse(att) : att;
-    return Array.isArray(parsed) ? parsed : [att];
-  } catch (e) {
-    // Fallback for legacy data stored as plain strings
-    return [att];
-  }
-});
-
-const isPdfModalOpen = ref(false);
-const pdfFileUrl = ref('');
-
-const previewFile = (fileName) => {
-  if (!fileName) return;
-  const base = API_BASE_URL.replace('/api/', '');
-  pdfFileUrl.value = `${base}/api/files/drafts/${fileName}`;
+const previewFile = (filename, folder) => {
+  if (!filename) return;
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api/', '') : 'https://gad-ams-2-1.onrender.com');
+  pdfFileUrl.value = `${base}/api/files/${folder}/${filename}`;
   isPdfModalOpen.value = true;
 };
 
-const closePdfModal = () => { isPdfModalOpen.value = false; pdfFileUrl.value = ''; };
+const downloadFile = (filename, folder, prefix) => {
+  if (!filename) return;
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api/', '') : 'https://gad-ams-2-1.onrender.com');
+  const url = `${base}/api/files/${folder}/${filename}`;
+  window.open(url, '_blank');
+};
+
 
 onMounted(() => {
-  if (!user.value.id) router.push('/login');
+  if (!user.value.id || user.value.role !== 'gad_staff') router.push('/login');
   else fetchReportDetails();
 });
 </script>
 
 <style scoped>
-.main-viewport { flex: 1; height: 100vh; background: transparent; }
+.main-viewport { flex: 1; overflow-y: auto; background: transparent; }
 .loading-wrapper { display: flex; justify-content: center; align-items: center; min-height: 400px; }
-.page-container { max-width: 1280px; margin: 0 auto; }
-.glass-card { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); backdrop-filter: blur(24px); border-radius: 24px; border: 1px solid rgba(185, 121, 204, 0.2); }
-.layout-grid { display: flex; gap: 20px; }
-.flex-06 { flex: 0.65; }
-.flex-04-sidebar { flex: 0.35; position: sticky; top: 20px; align-self: flex-start; }
-.report-header { padding: 32px; border-bottom: 1px solid rgba(185, 121, 204, 0.15); background: rgba(0, 0, 0, 0.2); }
-.meta-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-.header-meta-group { display: flex; gap: 20px; align-items: center; }
-.meta-tag { display: flex; flex-direction: column; align-items: flex-end; text-align: right; }
-.header-label { color: #64748b !important; margin-bottom: 2px; }
-.report-title { font-family: 'Times New Roman', serif; font-size: 26px; color: white; line-height: 1.25; margin: 16px 0; }
-.status-badge-view { padding: 4px 12px; border-radius: 9999px; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; }
+.error-container { max-width: 48rem; margin: 0 auto; padding: 2.5rem; }
+.error-box { background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 1rem; border-radius: 0.75rem; }
+.error-title { color: #ef4444; font-weight: 700; }
+.error-message { color: #cbd5e1; font-size: 1.1rem; }
+.error-back-btn { margin-top: 1rem; font-size: 1.1rem; font-weight: 700; color: #ef4444; background: transparent; border: none; cursor: pointer; }
+.page-container { min-height: 100vh;  }
+.glass-card { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); backdrop-filter: blur(24px); border-radius: 1.5rem; border: 1px solid rgba(185, 121, 204, 0.2); }
+
+.layout-grid { display: flex; gap: 32px; padding: 2.5rem; max-width: 80rem; margin: 0 auto; }
+.flex-055 { flex: 0.55; display: flex; flex-direction: column; overflow: hidden; }
+.flex-045-sidebar { flex: 0.45; position: sticky; top: 20px; align-self: flex-start; }
+
+.report-header { padding: 2rem; border-bottom: 1px solid rgba(185, 121, 204, 0.15); background: rgba(0, 0, 0, 0.2); }
+.meta-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
+.report-title { font-size: 26px; color: white; line-height: 1.25; margin: 1rem 0; }
+.status-badge-view { padding: 4px 12px; border-radius: 9999px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; }
 .status-badge-view.completed { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
 .status-badge-view.cancelled { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
 .status-badge-view.pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
 .status-badge-view.approved { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
 .status-badge-view.revision { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
-.status-badge-wrapper { display: flex; align-items: center; gap: 8px; }
-.control-number { font-size: 13px; font-weight: 700; color: #b979cc; text-transform: uppercase; margin-left: 12px; font-family: monospace; }
-.info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 16px; }
-.info-label { font-size: 13px; text-transform: uppercase; color: #b979cc; font-weight: 800; letter-spacing: 0.05em; }
-.info-value-white { color: white; font-weight: 600; font-size: 13px; display: block; }
-.report-body { padding: 32px; display: flex; flex-direction: column; gap: 24px; }
-.section-card { background: rgba(0, 0, 0, 0.25); border-radius: 16px; padding: 20px; border: 1px solid rgba(185, 121, 204, 0.12); }
-.section-header-row { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; }
-.section-title { font-size: 13px; font-weight: 800; text-transform: uppercase; color: #b979cc; letter-spacing: 0.1em; }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.metric-box { background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 12px; text-align: center; }
-.metric-value { display: block; font-size: 20px; font-weight: 800; color: white; }
-.metric-label { font-size: 13px; color: #94a3b8; text-transform: uppercase; }
-.total-highlight { border-color: rgba(185, 121, 204, 0.4); background: rgba(185, 121, 204, 0.05); }
-.budget-table-wrapper { border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); overflow: hidden; }
-.budget-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.budget-table-header { background: rgba(255, 255, 255, 0.05); color: #b979cc; text-transform: uppercase; font-size: 13px; letter-spacing: 0.05em; }
-.table-header-cell { padding: 10px 16px; text-align: left; font-weight: 700; }
-.budget-table-row { border-top: 1px solid rgba(255, 255, 255, 0.05); }
-.budget-item-name { padding: 12px 16px; color: #cbd5e1; line-height: 1.25; font-size: 13px; }
-.budget-item-value-cell { padding: 8px 16px; color: white; font-size: 13px; }
-.budget-table-footer { background: rgba(255, 255, 255, 0.05); font-weight: 800; }
-.grand-total-label { padding: 12px 16px; text-align: right; color: #b979cc; text-transform: uppercase; font-size: 13px; font-weight: 700; letter-spacing: 0.05em;}
-.grand-total-value-white { padding: 12px 16px; color: white; font-weight: 700; font-size: 14px; }
-.doc-item { display: flex; justify-content: space-between; align-items: center; background: rgba(0, 0, 0, 0.3); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
-.doc-list { display: flex; flex-direction: column; gap: 12px; }
-.doc-info { display: flex; align-items: center; gap: 12px; }
-.doc-pdf-icon { color: #f87171; font-size: 32px; }
-.doc-title { color: white; font-weight: 700; font-size: 13px; }
-.doc-meta { color: #94a3b8; font-size: 13px; }
-.preview-btn { background: rgba(185, 121, 204, 0.1); border: 1px solid rgba(185, 121, 204, 0.3); color: #b979cc; padding: 6px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: 0.2s; }
-.preview-btn:hover { background: #b979cc; color: white; }
-.assessment-card-custom { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 24px; padding: 32px; border: 1px solid rgba(185, 121, 204, 0.2); }
-.assessment-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-.assessment-icon { background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-.assessment-title { color: #b979cc; font-weight: 800; text-transform: uppercase; font-size: 13px; }
-.read-only-remarks { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 12px; padding: 15px; color: #cbd5e1; font-size: 13px; min-height: 100px; margin-top: 10px; line-height: 1.5; }
-.btn-back { width: 100%; margin-top: 20px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); color: #94a3b8; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 800; text-transform: uppercase; cursor: pointer; }
-.btn-back:hover { color: white; border-color: #b979cc; }
+.control-number { font-size: 11px; font-weight: 700; color: #b979cc; text-transform: uppercase; margin-left: 12px; font-family: monospace; }
+.info-grid { display: flex; flex-wrap: wrap; gap: 24px; padding-top: 16px; border-top: 1px solid rgba(185, 121, 204, 0.1); }
+.info-item { display: flex; flex-direction: column; }
+.info-label { font-size: 10px; text-transform: uppercase; color: #cbd5e1; font-weight: 700; margin-bottom: 4px; }
+.info-value-white { font-size: 14px; font-weight: 600; color: white; }
+.info-value-purple { font-size: 14px; font-weight: 600; color: #b979cc; }
+.report-body { padding: 2rem; }
+.report-body > * + * { margin-top: 1.5rem; }
+.section-card { background: rgba(0, 0, 0, 0.2); border-radius: 16px; padding: 24px; border: 1px solid rgba(185, 121, 204, 0.15); }
+.section-header-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
+.section-title { font-weight: 800; font-size: 13px; text-transform: uppercase; color: #b979cc; }
 .icon-pink { color: #b979cc; }
+.text-sm-light { font-size: 1.1rem; color: #cbd5e1; font-weight: 500; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.divider { color: rgba(203, 213, 225, 0.4); margin: 0 0.25rem; }
+.male-val { color: #60a5fa; }
+.female-val { color: #f472b6; }
+.metric-split { display: flex; align-items: center; justify-content: center; }
+.metric-box { background: rgba(0, 0, 0, 0.3); border-radius: 12px; padding: 16px; text-align: center; border: 1px solid rgba(185, 121, 204, 0.1); }
+.metric-value { font-size: 24px; font-weight: 700; color: white; }
+.metric-label { font-size: 10px; color: #cbd5e1; text-transform: uppercase; margin-top: 4px; }
+.doc-item { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 16px; background: rgba(0, 0, 0, 0.3); border-radius: 12px; border: 1px solid rgba(185, 121, 204, 0.15); overflow-x: auto; }
+.doc-info { display: flex; align-items: center; gap: 12px; }
+.doc-pdf-icon { font-size: 1.875rem; color: #ef4444; }
+.doc-title { font-size: 13px; font-weight: 700; color: white; white-space: nowrap; }
+.doc-meta { font-size: 11px; color: #cbd5e1; margin-top: 2px; white-space: nowrap; }
+.preview-btn { color: #b979cc; font-size: 11px; padding: 6px 16px; border-radius: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(185, 121, 204, 0.15); font-weight: 700; cursor: pointer; transition: all 0.2s; }
+.preview-btn:hover { border-color: #b979cc; color: white; background: rgba(185, 121, 204, 0.1); }
+.download-btn-icon { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(185, 121, 204, 0.15); color: #cbd5e1; padding: 6px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.download-btn-icon:hover { border-color: #b979cc; color: white; }
+
+.assessment-card-custom {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 1.5rem;
+  padding: 2rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(185, 121, 204, 0.2);
+}
+.assessment-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid rgba(185, 121, 204, 0.15); }
+.assessment-icon { width: 44px; height: 44px; background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: white; font-size: 22px; }
+.assessment-title { font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #b979cc; }
+.assessment-form { display: flex; flex-direction: column; }
+
+.read-only-remarks {
+  width: 100%;
+  border: 1px solid rgba(185, 121, 204, 0.2);
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 13px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #cbd5e1;
+  min-height: 100px;
+  line-height: 1.5;
+}
+
+.action-buttons { margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(185, 121, 204, 0.15); }
+.btn-back { width: 100%; padding: 12px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #cbd5e1; border-radius: 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(185, 121, 204, 0.15); cursor: pointer; transition: all 0.2s; }
+.btn-back:hover { color: white; border-color: #b979cc; background: rgba(185, 121, 204, 0.05); }
+
+@media (max-width: 1024px) {
+  .layout-grid { flex-direction: column; padding: 1rem; }
+  .flex-06, .flex-055, .flex-04-sidebar, .flex-045-sidebar { flex: 1 !important; width: 100% !important; max-width: 100% !important; position: relative !important; top: 0 !important; }
+}
+
+@media (max-width: 768px) {
+  .grid-2, .grid-3 { grid-template-columns: 1fr !important; }
+  .info-grid { flex-direction: column !important; gap: 12px !important; }
+}
+
+.mt-1 { margin-top: 0.25rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-4 { margin-top: 1.5rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+.font-bold { font-weight: 700; }
+.text-white { color: white; }
+
+.table-responsive {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(185, 121, 204, 0.15);
+  background: rgba(0, 0, 0, 0.2);
+}
+.custom-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.custom-table th {
+  background: rgba(185, 121, 204, 0.1);
+  color: #b979cc;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid rgba(185, 121, 204, 0.15);
+}
+.custom-table td {
+  padding: 12px 16px;
+  color: #cbd5e1;
+  border-bottom: 1px solid rgba(185, 121, 204, 0.05);
+}
+.custom-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.custom-table tfoot td {
+  border-top: 1px solid rgba(185, 121, 204, 0.15);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.interpretation-tag-ar {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(255,255,255,0.05);
+  display: inline-block;
+}
 .text-emerald-400 { color: #34d399; }
 .text-teal-400 { color: #2dd4bf; }
 .text-cyan-400 { color: #22d3ee; }
 .text-amber-400 { color: #fbbf24; }
-.text-rose-400 { color: #f87171; }
-.text-right { padding-right: 20px; font-size: 13px; }
+.text-rose-400 { color: #fb7185; }
+.text-rose-500 { color: #f43f5e; }
+.text-rose-600 { color: #e11d48; }
+
+
+.ar-horizontal-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+@media (min-width: 1280px) {
+  .ar-horizontal-layout {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .ar-horizontal-layout > .section-card {
+    flex: 1;
+    width: 50%;
+    margin-bottom: 0;
+  }
+}
+
+
+.layout-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.flex-full {
+  flex: 1;
+  width: 100%;
+}
+
+
+.mandate-boxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 5px;
+}
+.mandate-box {
+  background: rgba(185, 121, 204, 0.15);
+  border: 1px solid rgba(185, 121, 204, 0.3);
+  color: #f1f5f9;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
 </style>

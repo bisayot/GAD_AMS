@@ -11,7 +11,29 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #faf9fe; /* Clean off-white purple */
-  background-image: linear-gradient(to right, rgba(168, 85, 247, 0.25) 0%, #faf9fe 2%, #faf9fe 98%, rgba(168, 85, 247, 0.25) 100%);
-  background-attachment: fixed;
+}
+
+/* Global Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(185, 121, 204, 0.3);
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(153, 13, 209, 0.5);
+}
+
+/* Ensure all badges do not stretch horizontally */
+[class*="-badge"], [class*="badge-"] {
+  width: max-content !important;
+  white-space: nowrap !important;
 }

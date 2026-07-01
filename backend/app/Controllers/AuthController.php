@@ -14,6 +14,12 @@ class AuthController extends ResourceController
         // Handle JSON or Form-data
         $data = $this->request->getJSON(true) ?: $this->request->getPost();
 
+        $turnstileCheck = $this->verifyTurnstile($data['turnstile_token'] ?? '');
+        if ($turnstileCheck['success'] !== true) {
+            return $this->fail('Invalid security token: ' . ($turnstileCheck['error'] ?? 'Unknown Error') . 
+                (isset($turnstileCheck['cloudflare_response']) ? ' | CF Details: ' . json_encode($turnstileCheck['cloudflare_response']) : ''));
+        }
+
         $rules = [
             'identity' => 'required',
             'password' => 'required'
@@ -58,6 +64,7 @@ class AuthController extends ResourceController
         $userRole = $userProfile ? ($userProfile['user_role'] ?? 'Non-TWG') : 'Non-TWG';
 
         \App\Models\ActivityLogModel::log($user['id'], 'Login', $user['full_name'] . " logged in");
+
         return $this->respond([
             'status' => 200,
             'message' => 'Login successful',
@@ -75,6 +82,12 @@ class AuthController extends ResourceController
     public function register()
     {
         $data = $this->request->getJSON(true) ?: $this->request->getPost();
+
+        $turnstileCheck = $this->verifyTurnstile($data['turnstile_token'] ?? '');
+        if ($turnstileCheck['success'] !== true) {
+            return $this->fail('Invalid security token: ' . ($turnstileCheck['error'] ?? 'Unknown Error') . 
+                (isset($turnstileCheck['cloudflare_response']) ? ' | CF Details: ' . json_encode($turnstileCheck['cloudflare_response']) : ''));
+        }
 
         $rules = [
             'fullname' => 'required',
@@ -106,25 +119,30 @@ class AuthController extends ResourceController
         if (is_numeric($departmentInput)) {
             $officeId = (int) $departmentInput;
         } else {
-            $office = $db->table('office_units')->where('office_name', $departmentInput)->get()->getRowArray();
+            // Clean the input to prevent redundant entries (spaces, casing)
+            $cleanName = trim($departmentInput);
+            $cleanName = preg_replace('/\s+/', ' ', $cleanName);
+            $cleanName = ucwords(strtolower($cleanName));
+
+            $office = $db->table('office_units')->where('office_name', $cleanName)->get()->getRowArray();
             if ($office) {
                 $officeId = $office['office_id'];
             } else {
-                $db->table('office_units')->insert(['office_name' => $departmentInput]);
+                $db->table('office_units')->insert(['office_name' => $cleanName]);
                 $officeId = $db->insertID();
             }
         }
 
         // Map user_role from frontend to actual database role
-        $role = 'college'; // Default
+        $role = 'twg'; // Default
         if (isset($data['user_role'])) {
             switch ($data['user_role']) {
                 case 'Director': $role = 'admin'; break;
                 case 'Staff': $role = 'gad_staff'; break;
-                case 'TWG':
-                case 'Non-TWG':
+                case 'TWG': $role = 'twg'; break;
+                case 'Non-TWG': $role = 'non-twg'; break;
                 default:
-                    $role = 'college'; break;
+                    $role = 'twg'; break;
             }
         }
 
@@ -153,6 +171,7 @@ class AuthController extends ResourceController
 
             $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $newUserId;
             \App\Models\ActivityLogModel::log($actionUserId, 'Register User', 'registered a new user: ' . $data['fullname']);
+
             return $this->respondCreated(['message' => 'Account created successfully. Please log in.']);
         }
 
@@ -165,27 +184,37 @@ class AuthController extends ResourceController
         
         $turnstileCheck = $this->verifyTurnstile($data['turnstile_token'] ?? '');
         if ($turnstileCheck['success'] !== true) {
-            return $this->fail('Invalid security token: ' . ($turnstileCheck['error'] ?? 'Unknown Error'));
+            return $this->fail('Invalid security token: ' . ($turnstileCheck['error'] ?? 'Unknown Error') . 
+                (isset($turnstileCheck['cloudflare_response']) ? ' | CF Details: ' . json_encode($turnstileCheck['cloudflare_response']) : ''));
         }
 
         if (empty($data['email'])) {
             return $this->fail('Email is required');
         }
 
+        $email = $data['email'];
         $userModel = new UserModel();
-        $user = $userModel->findByIdentity($data['email']);
+        $user = $userModel->findByIdentity($email);
 
         if (!$user) {
-            return $this->respond(['success' => true, 'message' => 'If your email is registered, you will receive a reset link shortly.']);
+            // For security, don't reveal if email exists or not, just return success
+            return $this->respond(['message' => 'If your email is registered, you will receive a reset link shortly.']);
         }
 
         $token = bin2hex(random_bytes(32));
         $expiresAt = date('Y-m-d H:i:s', strtotime('+1 hour'));
 
         $userModel->update($user['id'], [
-            'reset_token' => $token,
+            'reset_token' => hash('sha256', $token),
             'reset_token_expires_at' => $expiresAt
         ]);
+
+        // Brevo requires an API Key (starts with xkeysib-) for HTTP requests, not an SMTP password
+        $apiKey = getenv('BREVO_API_KEY') ?: env('BREVO_API_KEY') ?: getenv('SMTP_PASS') ?: env('SMTP_PASS') ?: env('email.SMTPPass') ?: '';
+        $fromEmail = getenv('FROM_EMAIL') ?: env('FROM_EMAIL') ?: env('email.fromEmail') ?: 'gadims.bsu.bsit@gmail.com';
+
+        $frontendUrl = rtrim(getenv('FRONTEND_URL') ?: env('FRONTEND_URL') ?: getenv('app.baseURL') ?: env('app.baseURL') ?: 'http://localhost:5173', '/');
+        $resetLink = $frontendUrl . '/reset-password?token=' . $token;
 
         $message = "
         <html>
@@ -299,9 +328,22 @@ class AuthController extends ResourceController
     public function addOffice() {
         $data = $this->request->getJSON(true);
         $db = \Config\Database::connect();
-        $db->table('office_units')->insert(['office_name' => $data['unit_name']]);
+        
+        // Clean the input to prevent redundant entries (spaces, casing)
+        $cleanName = trim($data['unit_name']);
+        $cleanName = preg_replace('/\s+/', ' ', $cleanName);
+        $cleanName = ucwords(strtolower($cleanName));
+
+        // Check if the cleaned name already exists to prevent duplication
+        $existing = $db->table('office_units')->where('office_name', $cleanName)->get()->getRowArray();
+        if ($existing) {
+            return $this->respondCreated(['new_id' => $existing['office_id']]);
+        }
+
+        $db->table('office_units')->insert(['office_name' => $cleanName]);
         return $this->respondCreated(['new_id' => $db->insertID()]);
     }
+
     public function getAllUsers() {
         $db = \Config\Database::connect();
         $users = $db->table('users')

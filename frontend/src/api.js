@@ -1,15 +1,6 @@
 import axios from 'axios';
 
-const getApiBaseUrl = () => {
-  if (typeof window !== 'undefined' && window.location.hostname.includes('.app.github.dev')) {
-    const hostname = window.location.hostname;
-    const backendHostname = hostname.replace(/-5173\./, '-8080.');
-    return `https://${backendHostname}/api/`;
-  }
-  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/';
-};
-
-export const API_BASE_URL = getApiBaseUrl();
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://gad-ams-2-1.onrender.com/api/';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

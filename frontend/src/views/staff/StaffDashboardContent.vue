@@ -541,7 +541,8 @@ onMounted(async () => {
                status: item.status,
                control: item.control,
                title: item.title,
-               end_date: item.end_date
+               end_date: item.end_date,
+               accomplishment_deadline: item.accomplishment_deadline
             });
           }
         }
@@ -601,9 +602,14 @@ onMounted(async () => {
       
       if (status === 'approved') {
          const hasReport = reports.some(r => r.act_design_id === d.act_design_id || (r.control_number && r.control_number === d.control) || (r.control && r.control === d.control));
-         if (!hasReport && d.end_date) {
-            const arDeadline = new Date(d.end_date);
-            arDeadline.setDate(arDeadline.getDate() + 3);
+         if (!hasReport && (d.end_date || d.accomplishment_deadline)) {
+            let arDeadline;
+            if (d.accomplishment_deadline) {
+               arDeadline = new Date(d.accomplishment_deadline);
+            } else {
+               arDeadline = new Date(d.end_date);
+               arDeadline.setDate(arDeadline.getDate() + 14);
+            }
             dl.push({
                id: 'ar_due_' + d.act_design_id,
                title: d.title || d.activity_title,
@@ -629,7 +635,7 @@ onMounted(async () => {
     });
 
     dl.sort((a, b) => a.sortDate - b.sortDate);
-    upcomingDeadlines.value = dl.slice(0, 5);
+    upcomingDeadlines.value = dl;
 
     if (budgetRes && budgetRes.data && budgetRes.data.success) {
       const budgetFormat = new Intl.NumberFormat('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

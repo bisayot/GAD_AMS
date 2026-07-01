@@ -63,14 +63,17 @@
 
                   <div class="input-group">
                     <label class="form-label">GAD Mandate *</label>
-                    <select v-model="form.gad_mandate_id" required class="custom-input-field select-arrow-fix">
-                      <option value="" disabled class="dark-option">Select Mandate</option>
-                      <option v-for="mandate in GADMandates" :key="mandate.id" :value="mandate.id" class="dark-option">
-                        {{ mandate.code }} - {{ mandate.title }}
-                      </option>
-                      <option value="Other" class="dark-option">+ New Mandate</option>
-                    </select>
-                    <input v-if="form.gad_mandate_id === 'Other'" 
+                    <div class="checkbox-group-container custom-input-field" style="min-height: 120px; max-height: 250px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+                      <label v-for="mandate in GADMandates" :key="mandate.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
+                        <input type="checkbox" v-model="form.gad_mandate_id" :value="mandate.id" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
+                        <span style="font-size: 14px; line-height: 1.4;">{{ mandate.code }} - {{ mandate.title }}</span>
+                      </label>
+                      <label class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
+                        <input type="checkbox" v-model="form.gad_mandate_id" value="Other" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
+                        <span style="font-size: 14px; line-height: 1.4; font-style: italic;">+ New Mandate</span>
+                      </label>
+                    </div>
+                    <input v-if="form.gad_mandate_id && form.gad_mandate_id.includes('Other')" 
                           v-model="customMandate" 
                           type="text" 
                           placeholder="Enter new mandate name..." 
@@ -80,16 +83,18 @@
 
                   <div class="input-group">
                     <label class="form-label">Gender Issues *</label>
-                    <select v-model="form.gender_issue_id" required class="custom-input-field select-arrow-fix">
-                      <option value="" disabled class="dark-option">
-                        {{ form.gad_mandate_id ? 'Select Gender Issue' : 'Select Mandate first' }}
-                      </option>
-                      <option v-for="issue in genderIssues" :key="issue.id" :value="issue.id" class="dark-option">
-                        {{ issue.title }}
-                      </option>
-                      <option value="Other" class="dark-option">+ New Gender Issue</option>
-                    </select>
-                    <input v-if="form.gender_issue_id === 'Other'" 
+                    <div class="checkbox-group-container custom-input-field" style="min-height: 120px; max-height: 250px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+                      <label v-for="issue in genderIssues" :key="issue.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
+                        <input type="checkbox" v-model="form.gender_issue_id" :value="issue.id" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
+                        <span style="font-size: 14px; line-height: 1.4;">{{ issue.title }}</span>
+                      </label>
+                      <label class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
+                        <input type="checkbox" v-model="form.gender_issue_id" value="Other" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
+                        <span style="font-size: 14px; line-height: 1.4; font-style: italic;">+ New Gender Issue</span>
+                      </label>
+                      <p v-if="!form.gad_mandate_id || form.gad_mandate_id.length === 0" style="color: #94a3b8; font-size: 13px; font-style: italic; margin: 0;">Select a mandate first to see gender issues.</p>
+                    </div>
+                    <input v-if="form.gender_issue_id && form.gender_issue_id.includes('Other')" 
                           v-model="customGenderIssue" 
                           type="text" 
                           placeholder="Enter new gender issue..." 
@@ -138,7 +143,7 @@
                           </button>
                           <transition name="fade-pop">
                             <div v-if="helpState.startDate" class="simple-popup">
-                              Must be scheduled on working days from Monday to Thursday.
+                              Must be scheduled at least 3 days in advance. Submissions ideally require a 14-day lead time.
                             </div>
                           </transition>
                         </div>
@@ -146,7 +151,7 @@
                       <input 
                         type="date" 
                         v-model="form.start_date" 
-                        :min="todayDate"
+                        :min="minStartDate"
                         required 
                         class="custom-input-field code-icon-calendar"
                       >
@@ -160,7 +165,7 @@
                           </button>
                           <transition name="fade-pop">
                             <div v-if="helpState.endDate" class="simple-popup">
-                              Date must not exceed a week.
+                              The end date of your activity. Durations exceeding 31 days will trigger a warning.
                             </div>
                           </transition>
                         </div>
@@ -168,7 +173,7 @@
                       <input 
                         type="date" 
                         v-model="form.end_date" 
-                        :min="todayDate"
+                        :min="form.start_date || minStartDate"
                         required 
                         class="custom-input-field code-icon-calendar"
                       >
@@ -233,7 +238,7 @@
                         </button>
                         <transition name="fade-pop">
                           <div v-if="helpState.targetParticipants" class="simple-popup">
-                            Participants must be 50 and above for approval of activity design.
+                            Minimum of 1 participant. If participants are below 50, catering and hospitality budgets will not be funded.
                           </div>
                         </transition>
                       </div>
@@ -245,7 +250,7 @@
                       required
                       class="custom-input-field"
                       placeholder="Enter total participants"
-                      min="50"
+                      min="1"
                     >
                   </div>
 
@@ -255,17 +260,22 @@
                     <div class="attachment-display-grid">
                       <div class="attachment-upload-column">
                         <div class="upload-dropzone" @click="$refs.fileInput.click()">
-                          <input ref="fileInput" type="file" @change="handleFileUpload" accept=".pdf" required class="file-input-hidden" />
+                          <input ref="fileInput" type="file" @change="handleFileUpload" accept=".pdf" style="display: none;" />
                           <span class="upload-icon">📤</span>
                           <p class="upload-text">Upload Activity Design Document</p>
                           <p class="upload-hint">PDF format (Max 10MB)</p>
                         </div>
                       </div>
                       <div class="attachment-preview-column">
-                        <div v-if="designFile" class="uploaded-file-display">
-                          <div class="uploaded-file-tag">
+                        <div v-if="designFile" class="uploaded-file-display" style="flex-direction: column; align-items: flex-start;">
+                          <div class="uploaded-file-tag" style="width: 100%;">
                             <span class="uploaded-file-name">📄 {{ designFile.name }}</span>
                             <button type="button" @click="removeFile" class="remove-file-btn">Remove</button>
+                          </div>
+                          <!-- Document Previews -->
+                          <div class="document-previews" style="margin-top: 15px; width: 100%;" v-if="designFile.previewUrl">
+                            <p style="color: #b979cc; font-size: 13px; font-weight: bold; margin-bottom: 8px;">Document Preview:</p>
+                            <iframe :src="designFile.previewUrl" width="100%" height="400px" style="border: 1px solid #b979cc; border-radius: 8px;"></iframe>
                           </div>
                         </div>
                         <p v-else class="no-file-uploaded-text">No file uploaded yet.</p>
@@ -597,6 +607,12 @@ const getTodayDate = () => {
 };
 const todayDate = ref(getTodayDate());
 
+const minStartDate = computed(() => {
+  const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" }));
+  d.setDate(d.getDate() + 3);
+  return d.toISOString().split('T')[0];
+});
+
 const helpState = ref({
   startDate: false,
   endDate: false,
@@ -646,43 +662,51 @@ const isHoliday = (dateString) => {
 
 const isCurrentYear = (dateString) => {
   const date = new Date(dateString + 'T00:00:00');
-  const currentYear = new Date().getFullYear();
+  const manilaTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" });
+  const currentYear = new Date(manilaTime).getFullYear();
   return date.getFullYear() === currentYear;
 };
 
-const isValidActivityDate = (dateString) => {
+const isValidActivityDate = (dateString, checkLeadTime = false) => {
   if (!isCurrentYear(dateString)) {
     const currentYear = new Date().getFullYear();
     return { valid: false, reason: `Activities can only be scheduled in ${currentYear}. Please select a date within the current year.` };
   }
-  if (isWeekend(dateString)) {
-    return { valid: false, reason: 'Activities cannot be scheduled on Friday, Saturday, or Sunday.' };
-  }
-  if (isHoliday(dateString)) {
-    return { valid: false, reason: 'This date is a holiday. Please select another date.' };
+  if (checkLeadTime) {
+    const targetDate = new Date(dateString + 'T00:00:00');
+    const today = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" }));
+    today.setHours(0, 0, 0, 0);
+    const diffTime = targetDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 3) {
+       return { valid: false, reason: `Activities must be scheduled at least 3 days in advance.` };
+    } else if (diffDays < 14) {
+       return { valid: true, reason: `Activities should ideally be scheduled at least 14 days in advance.`, isWarning: true };
+    }
   }
   return { valid: true, reason: '' };
 };
 
 const isValidActivityDuration = (startDateString, endDateString) => {
   if (!startDateString || !endDateString) {
-    return { valid: true, reason: '' };
+    return { valid: true, reason: '', isWarning: false };
   }
   const startDate = new Date(startDateString + 'T00:00:00');
   const endDate = new Date(endDateString + 'T00:00:00');
   
   if (endDate < startDate) {
-    return { valid: false, reason: 'End date cannot be before start date.' };
+    return { valid: false, reason: 'End date cannot be before start date.', isWarning: false };
   }
   
   const diffTime = endDate - startDate;
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   
-  if (diffDays > 7) {
-    return { valid: false, reason: 'The duration of the activity must not exceed a week (maximum of 7 calendar days).' };
+  if (diffDays > 31) {
+    return { valid: true, reason: 'Are you sure if the activity is more than 1 month?', isWarning: true };
   }
   
-  return { valid: true, reason: '' };
+  return { valid: true, reason: '', isWarning: false };
 };
 
 const venues = ref([]);
@@ -698,8 +722,8 @@ const form = ref({
   form_type: '',
   nature: '',
   activity_classification_id: '',
-  gad_mandate_id: '',
-  gender_issue_id: '',
+  gad_mandate_id: [],
+  gender_issue_id: [],
   activity_title: '',
   start_date: '',
   end_date: '',
@@ -727,7 +751,32 @@ const fileInput = ref(null);
 
 const handleFileUpload = (event) => {
   if (event.target.files.length > 0) {
-    designFile.value = event.target.files[0];
+    const file = event.target.files[0];
+    
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid File Type',
+        text: 'Only PDF files are allowed.',
+        confirmButtonColor: '#b979cc'
+      });
+      removeFile();
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      Swal.fire({
+        icon: 'error',
+        title: 'File Too Large',
+        text: 'The file size must not exceed 10 MB.',
+        confirmButtonColor: '#b979cc'
+      });
+      removeFile();
+      return;
+    }
+
+    designFile.value = file;
+    file.previewUrl = URL.createObjectURL(file);
   }
 };
 
@@ -743,7 +792,7 @@ const formatBudgetName = (name) => {
 
 const fetchVenues = async () => {
   try {
-    const response = await api.get('get-venues');
+    const response = await api.get('venues');
     if (response.data && response.data.success) {
       venues.value = response.data.data || [];
     }
@@ -779,21 +828,28 @@ const fetchGADMandates = async () => {
   }
 };
 
-const fetchGenderIssues = async (mandateId) => {
-  if (!mandateId || mandateId === 'Other') {
+const fetchGenderIssues = async (mandateIds) => {
+  const ids = mandateIds || form.value?.gad_mandate_id || gad_mandate_id?.value;
+  if (!ids || !Array.isArray(ids) || ids.length === 0 || ids.includes('Other')) {
     genderIssues.value = [];
     return;
   }
   try {
-    const res = await api.get(`get-gender-issues/${mandateId}`);
-    genderIssues.value = res.data;
+    const allIssues = [];
+    for (const mandateId of ids) {
+       if (mandateId !== 'Other') {
+           const res = await api.get(`get-gender-issues/${mandateId}`);
+           allIssues.push(...res.data);
+       }
+    }
+    genderIssues.value = allIssues;
   } catch (error) {
     console.error('Error fetching gender issues:', error);
   }
 };
 
 watch(() => form.value.gad_mandate_id, (newVal) => {
-  form.value.gender_issue_id = '';
+  form.value.gender_issue_id = [];
   fetchGenderIssues(newVal);
 });
 
@@ -804,8 +860,9 @@ watch(() => form.value.budget_items, (newItems) => {
 
 watch(() => form.value.start_date, (newDate) => {
   if (newDate) {
-    const validation = isValidActivityDate(newDate);
+    const validation = isValidActivityDate(newDate, true);
     if (!validation.valid) {
+      document.activeElement?.blur();
       Swal.fire({
         icon: 'warning',
         title: 'Invalid Date',
@@ -814,10 +871,19 @@ watch(() => form.value.start_date, (newDate) => {
       });
       form.value.start_date = '';
       return;
+    } else if (validation.isWarning) {
+      document.activeElement?.blur();
+      Swal.fire({
+        icon: 'info',
+        title: 'Lead Time Warning',
+        text: validation.reason,
+        confirmButtonColor: '#b979cc'
+      });
     }
     if (form.value.end_date) {
       const durationValidation = isValidActivityDuration(newDate, form.value.end_date);
       if (!durationValidation.valid) {
+        document.activeElement?.blur();
         Swal.fire({
           icon: 'warning',
           title: 'Invalid Duration',
@@ -825,6 +891,14 @@ watch(() => form.value.start_date, (newDate) => {
           confirmButtonColor: '#b979cc'
         });
         form.value.start_date = '';
+      } else if (durationValidation.isWarning) {
+        document.activeElement?.blur();
+        Swal.fire({
+          icon: 'info',
+          title: 'Long Duration',
+          text: durationValidation.reason,
+          confirmButtonColor: '#b979cc'
+        });
       }
     }
   }
@@ -832,8 +906,9 @@ watch(() => form.value.start_date, (newDate) => {
 
 watch(() => form.value.end_date, (newDate) => {
   if (newDate) {
-    const validation = isValidActivityDate(newDate);
+    const validation = isValidActivityDate(newDate, false);
     if (!validation.valid) {
+      document.activeElement?.blur();
       Swal.fire({
         icon: 'warning',
         title: 'Invalid Date',
@@ -846,6 +921,7 @@ watch(() => form.value.end_date, (newDate) => {
     if (form.value.start_date) {
       const durationValidation = isValidActivityDuration(form.value.start_date, newDate);
       if (!durationValidation.valid) {
+        document.activeElement?.blur();
         Swal.fire({
           icon: 'warning',
           title: 'Invalid Duration',
@@ -853,7 +929,61 @@ watch(() => form.value.end_date, (newDate) => {
           confirmButtonColor: '#b979cc'
         });
         form.value.end_date = '';
+      } else if (durationValidation.isWarning) {
+        document.activeElement?.blur();
+        Swal.fire({
+          icon: 'info',
+          title: 'Long Duration',
+          text: durationValidation.reason,
+          confirmButtonColor: '#b979cc'
+        });
       }
+    }
+  }
+});
+
+const isValidTime = (timeStr) => {
+  if (!timeStr) return true;
+  return timeStr >= "04:00" && timeStr <= "20:00";
+};
+
+watch(() => form.value.start_time, (newTime) => {
+  if (newTime && !isValidTime(newTime)) {
+    document.activeElement?.blur();
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Time',
+      text: 'Must be set between 04:00 AM and 08:00 PM.',
+      confirmButtonColor: '#b979cc'
+    });
+    form.value.start_time = '';
+  }
+});
+
+watch(() => form.value.end_time, (newTime) => {
+  if (newTime && !isValidTime(newTime)) {
+    document.activeElement?.blur();
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Time',
+      text: 'Must be set between 04:00 AM and 08:00 PM.',
+      confirmButtonColor: '#b979cc'
+    });
+    form.value.end_time = '';
+  }
+});
+
+watch([() => form.value.start_time, () => form.value.end_time], ([newStart, newEnd]) => {
+  if (newStart && newEnd) {
+    if (newStart >= newEnd) {
+      document.activeElement?.blur();
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Time Range',
+        text: 'End time must be after start time.',
+        confirmButtonColor: '#b979cc'
+      });
+      form.value.end_time = '';
     }
   }
 });
@@ -953,8 +1083,20 @@ watch(
 );
 
 const submitActivityDesign = async () => {
+  // Check if today is a weekday
+  const currentDay = new Date().getDay();
+  if (currentDay === 0 || currentDay === 6) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Submission Not Allowed',
+      text: 'Submissions are only allowed from Monday to Friday.',
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+
   // Validate start date
-  const startValidation = isValidActivityDate(form.value.start_date);
+  const startValidation = isValidActivityDate(form.value.start_date, true);
   if (!startValidation.valid) {
     Swal.fire({
       icon: 'warning',
@@ -966,7 +1108,7 @@ const submitActivityDesign = async () => {
   }
 
   // Validate end date
-  const endValidation = isValidActivityDate(form.value.end_date);
+  const endValidation = isValidActivityDate(form.value.end_date, false);
   if (!endValidation.valid) {
     Swal.fire({
       icon: 'warning',
@@ -977,7 +1119,7 @@ const submitActivityDesign = async () => {
     return;
   }
 
-  // Validate activity duration (max 7 days)
+  // Validate activity duration
   const durationValidation = isValidActivityDuration(form.value.start_date, form.value.end_date);
   if (!durationValidation.valid) {
     Swal.fire({
@@ -986,6 +1128,66 @@ const submitActivityDesign = async () => {
       text: durationValidation.reason,
       confirmButtonColor: '#b979cc'
     });
+    return;
+  }
+  if (durationValidation.isWarning) {
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: 'Long Duration',
+      text: durationValidation.reason,
+      showCancelButton: true,
+      confirmButtonText: 'Yes, proceed',
+      cancelButtonText: 'No, cancel',
+      confirmButtonColor: '#b979cc'
+    });
+    if (!result.isConfirmed) {
+      return;
+    }
+  }
+
+  // Validate start time and end time
+  if (!isValidTime(form.value.start_time) || !isValidTime(form.value.end_time)) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Time',
+      text: 'Must be set between 04:00 AM and 08:00 PM.',
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+  if (form.value.start_time && form.value.end_time && (!form.value.start_date || !form.value.end_date || form.value.start_date === form.value.end_date)) {
+    if (form.value.start_time >= form.value.end_time) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Time Range',
+        text: 'End time must be after start time on the same day.',
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
+  }
+
+
+  if (!designFile.value) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Missing Document',
+      text: 'Please upload the Activity Design PDF document.',
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+
+  const submitConfirm = await Swal.fire({
+    title: 'Confirm Submission',
+    text: 'Are you sure you want to submit this Activity Design?',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, Submit',
+    cancelButtonText: 'Cancel',
+    confirmButtonColor: '#b979cc'
+  });
+  if (!submitConfirm.isConfirmed) {
     return;
   }
 
@@ -997,10 +1199,10 @@ const submitActivityDesign = async () => {
     formData.append('gad_mandate_id', form.value.gad_mandate_id);
     formData.append('gender_issue_id', form.value.gender_issue_id);
     
-    if (form.value.gad_mandate_id === 'Other') {
+    if (form.value.gad_mandate_id && form.value.gad_mandate_id.includes('Other')) {
       formData.append('custom_gad_mandate', customMandate.value);
     }
-    if (form.value.gender_issue_id === 'Other') {
+    if (form.value.gender_issue_id && form.value.gender_issue_id.includes('Other')) {
       formData.append('custom_gender_issue', customGenderIssue.value);
     }
 
@@ -1010,16 +1212,12 @@ const submitActivityDesign = async () => {
     formData.append('start_time', form.value.start_time);
     formData.append('end_time', form.value.end_time);
     formData.append('user_id', user.value.id || user.value.user_id);
-    
-    if (form.value.venue && form.value.venue !== 'Other') {
-      formData.append('venue_id', form.value.venue); 
-      const selectedVenue = venues.value.find(v => v.venue_id == form.value.venue);
-      formData.append('venue_name', selectedVenue ? selectedVenue.venue_name : '');
-    } else if (form.value.venue === 'Other') {
+    if (form.value.venue === 'Other') {
       formData.append('venue_id', 'Other');
       formData.append('custom_venue', customVenue.value);
+    } else {
+      formData.append('venue_id', form.value.venue);
     }
-    
     formData.append('target_participants', form.value.target_participants);
     formData.append('proposed_budget', form.value.proposed_budget);
     
@@ -1034,116 +1232,21 @@ const submitActivityDesign = async () => {
       return;
     }
 
-    // Construct normalized budget rows
-    const finalBudgetItems = [];
-
-    const categoryMapping = {
-      'Meals': 'Catering & Hospitality',
-      'Snacks': 'Catering & Hospitality',
-      'Function Room/Venue': 'Venue & Logistics',
-      'Accommodation': 'Venue & Logistics',
-      'Equipment Rental': 'Venue & Logistics',
-      'Professional Fee/Honoria': 'Program & Speakers',
-      'Token/s': 'Program & Speakers',
-      'Materials and Supplies': 'Materials & Miscellaneous',
-      'Transportation': 'Venue & Logistics',
-      'Others': 'Materials & Miscellaneous'
+    const budgetObj = {
+      meals_and_snacks: (Number(form.value.budget_items.find(i => i.name === 'Meals')?.total || 0) + Number(form.value.budget_items.find(i => i.name === 'Snacks')?.total || 0)),
+      function_room_venue: Number(form.value.budget_items.find(i => i.name === 'Function Room/Venue')?.total || 0),
+      accommodation: Number(form.value.budget_items.find(i => i.name === 'Accommodation')?.total || 0),
+      equipment_rental: Number(form.value.budget_items.find(i => i.name === 'Equipment Rental')?.total || 0),
+      professional_fee_honoria: Number(form.value.budget_items.find(i => i.name === 'Professional Fee/Honoria')?.total || 0),
+      tokens: Number(form.value.budget_items.find(i => i.name === 'Token/s')?.total || 0),
+      materials_and_supplies: Number(form.value.budget_items.find(i => i.name === 'Materials and Supplies')?.total || 0) + Number(form.value.budget_items.find(i => i.name === 'Others')?.total || 0),
+      transportation: Number(form.value.budget_items.find(i => i.name === 'Transportation')?.total || 0)
     };
 
-    // Meals
-    const mealsSelectedKeys = Object.keys(mealsSelected.value).filter(k => mealsSelected.value[k]);
-    if (mealsSelectedKeys.length > 0) {
-      const baseMeals = form.value.budget_items.find(i => i.name === 'Meals');
-      const baseMealsTotal = Number(baseMeals?.total) || 0;
-      if (baseMealsTotal > 0) {
-        const amountPerMeal = baseMealsTotal / mealsSelectedKeys.length;
-        mealsSelectedKeys.forEach(key => {
-          const capitalized = key.charAt(0).toUpperCase() + key.slice(1);
-          finalBudgetItems.push({
-            category: 'Catering & Hospitality',
-            name: 'Meals',
-            sub_item: capitalized,
-            amount: amountPerMeal
-          });
-        });
-      }
-    }
-
-    // Snacks
-    const snacksSelectedKeys = Object.keys(snacksSelected.value).filter(k => snacksSelected.value[k]);
-    if (snacksSelectedKeys.length > 0) {
-      const baseSnacks = form.value.budget_items.find(i => i.name === 'Snacks');
-      const baseSnacksTotal = Number(baseSnacks?.total) || 0;
-      if (baseSnacksTotal > 0) {
-        const amountPerSnack = baseSnacksTotal / snacksSelectedKeys.length;
-        snacksSelectedKeys.forEach(key => {
-          const capitalized = key === 'am' ? 'AM Snack' : 'PM Snack';
-          finalBudgetItems.push({
-            category: 'Catering & Hospitality',
-            name: 'Snacks',
-            sub_item: capitalized,
-            amount: amountPerSnack
-          });
-        });
-      }
-    }
-
-    form.value.budget_items.forEach(item => {
-      if (item.name === 'Meals' || item.name === 'Snacks') return;
-
-      const category = categoryMapping[item.name] || 'Miscellaneous';
-      const totalAmt = Number(item.total) || 0;
-
-      if (item.name === 'Professional Fee/Honoria') {
-        finalBudgetItems.push({
-          category,
-          name: item.name,
-          sub_item: null,
-          pax: Number(pfPax.value) || null,
-          amount: totalAmt
-        });
-      } else if (item.name === 'Token/s') {
-        finalBudgetItems.push({
-          category,
-          name: item.name,
-          sub_item: null,
-          pax: Number(tokensPax.value) || null,
-          amount: totalAmt
-        });
-      } else if (item.name === 'Others') {
-        if (othersList.value && othersList.value.length > 0) {
-          othersList.value.forEach(other => {
-            if (Number(other.amount) > 0) {
-              finalBudgetItems.push({
-                category,
-                name: 'Others',
-                sub_item: other.name || 'Other Item',
-                amount: Number(other.amount)
-              });
-            }
-          });
-        } else if (totalAmt > 0) {
-          finalBudgetItems.push({
-            category,
-            name: 'Others',
-            sub_item: 'Other Item',
-            amount: totalAmt
-          });
-        }
-      } else {
-        finalBudgetItems.push({
-          category,
-          name: item.name,
-          sub_item: null,
-          amount: totalAmt
-        });
-      }
-    });
-
-    formData.append('budget_items', JSON.stringify(finalBudgetItems));
+    formData.append('budget_items', JSON.stringify(budgetObj));
 
     if (designFile.value) {
-      formData.append('attachment', designFile.value);
+      formData.append('design_file', designFile.value);
     }
 
     const response = await api.post('submit-activity-design', formData, {

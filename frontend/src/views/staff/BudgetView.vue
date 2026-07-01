@@ -313,19 +313,21 @@ const confirmModalAction = async () => {
     updateRowCalculations(target);
     
     try {
-      const postData = new FormData();
-      postData.append('id', pendingUpdate.value.rowId);
-      postData.append('field', pendingUpdate.value.field);
-      postData.append('new_value', pendingUpdate.value.value);
-
-      await api.post('staff/budget-monitoring/update', postData);
-      console.log('Budget update committed successfully');
-      fetchBudgetData(); // Refresh data to ensure alignment
+      // TODO: Connect to actual API endpoint
+      // await api.post('staff/budget-monitoring/update', {
+      //   id: pendingUpdate.value.rowId,
+      //   field: pendingUpdate.value.field,
+      //   old_value: oldValue,
+      //   new_value: pendingUpdate.value.value
+      // });
+      console.log('Budget update prepared:', {
+        id: pendingUpdate.value.rowId,
+        field: pendingUpdate.value.field,
+        old_value: oldValue,
+        new_value: pendingUpdate.value.value
+      });
     } catch (err) { 
       console.error('Error saving budget update:', err); 
-      // Rollback on error
-      target[pendingUpdate.value.field] = oldValue;
-      updateRowCalculations(target);
     }
   }
 };
@@ -337,16 +339,14 @@ const cancelModalAction = () => {
 const fetchBudgetData = async () => {
   try {
     const response = await api.get('staff/budget-monitoring');
-    if (response.data) {
-      budgetRows.value = response.data;
-      
-      // Ensure calculations are correct for each row
+    if (response.data && response.data.success) {
+      budgetRows.value = response.data.data;
       budgetRows.value.forEach(row => {
         updateRowCalculations(row);
       });
     }
-  } catch (err) { 
-    console.error('Error fetching budget data:', err); 
+  } catch (err) {
+    console.error('Error fetching budget data:', err);
   }
 };
 
@@ -592,7 +592,7 @@ onMounted(() => {
 
 .table-body {
   display: table-row-group;
-  background: transparent;
+  background: #cbd5e1;
 }
 
 .empty-state {

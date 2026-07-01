@@ -35,18 +35,6 @@
 
       <div class="stat-card">
         <div class="stat-card-inner">
-          <div class="stat-icon bg-amber">
-            <span class="material-symbols-outlined text-amber">hourglass_empty</span>
-          </div>
-          <div class="stat-info">
-            <h3 class="stat-value">{{ pendingApproved }}</h3>
-            <p class="stat-label">Pending Approved Budget</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-card-inner">
           <div class="stat-icon bg-pink">
             <span class="material-symbols-outlined text-pink">account_balance_wallet</span>
           </div>
@@ -144,13 +132,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import api from '../../api';
+import { ref } from 'vue';
 
 // Metric Aggregates (Staged to bind directly to database totals later)
 const totalBudget = ref('₱0');
 const totalUtilized = ref('₱0');
-const pendingApproved = ref('₱0');
 const remainingBalance = ref('₱0');
 const utilizationRate = ref('0.00%');
 
@@ -158,56 +144,9 @@ const utilizationRate = ref('0.00%');
 const mandates = ref([]);
 
 // Sidebar Dynamic Context Parameters
-const currentFrameworkStatus = ref('Active');
-const statusDescription = ref('The university GAD plan is currently being executed for the current fiscal year.');
-const systemNoticeText = ref('Budget balances are synchronized in real-time with submitted activity designs and accomplishment reports.');
-
-const fetchBudgetData = async () => {
-  try {
-    const [summaryRes, planRes, archivesRes] = await Promise.all([
-      api.get('budget/summary'),
-      api.get('budget/gad-plan'),
-      api.get('archives')
-    ]);
-
-    if (summaryRes.data.success) {
-      const b = summaryRes.data.data;
-      totalBudget.value = '₱' + Number(b.total_budget).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      totalUtilized.value = '₱' + Number(b.total_utilized).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      pendingApproved.value = '₱' + Number(b.total_pending_approved).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      remainingBalance.value = '₱' + Number(b.remaining_balance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      utilizationRate.value = Number(b.utilization_rate).toFixed(2) + '%';
-    }
-
-    if (planRes.data.success) {
-      const approvedDesigns = archivesRes.data.success ? (archivesRes.data.data || []).filter(item => item.type === 'design') : [];
-      
-      mandates.value = planRes.data.data.map(item => {
-        const utilizedForThisGpb = approvedDesigns
-          .filter(d => Number(d.gpb_id) === Number(item.gpb_id))
-          .reduce((sum, d) => sum + (Number(d.proposed_budget) || 0), 0);
-
-        const allocated = Number(item.gad_budget) || 0;
-        const rate = allocated > 0 ? (utilizedForThisGpb / allocated) * 100 : 0;
-
-        return {
-          id: item.gpb_id,
-          title: item.gender_issue_mandate || 'No Mandate Title',
-          desc: item.gad_activity || 'No Activity Description',
-          utilized: '₱' + utilizedForThisGpb.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-          total: '₱' + allocated.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-          percent: rate.toFixed(2) + '%'
-        };
-      });
-    }
-  } catch (err) {
-    console.error('Error fetching budget data:', err);
-  }
-};
-
-onMounted(() => {
-  fetchBudgetData();
-});
+const currentFrameworkStatus = ref('');
+const statusDescription = ref('');
+const systemNoticeText = ref('');
 </script>
 
 <style scoped>
@@ -247,7 +186,7 @@ onMounted(() => {
 /* Master Stats Grid Setup */
 .stats-section {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
 }
 
@@ -293,13 +232,11 @@ onMounted(() => {
 .text-blue { color: #60a5fa; }
 .text-emerald { color: #34d399; }
 .text-pink { color: #f472b6; }
-.text-amber { color: #fbbf24; }
 
 .bg-purple { background: rgba(168, 85, 247, 0.1); }
 .bg-blue { background: rgba(59, 130, 246, 0.1); }
 .bg-emerald { background: rgba(16, 185, 129, 0.1); }
 .bg-pink { background: rgba(244, 114, 182, 0.1); }
-.bg-amber { background: rgba(245, 158, 11, 0.1); }
 
 .stat-info {
   min-width: 0;

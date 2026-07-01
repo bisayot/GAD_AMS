@@ -20,7 +20,7 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
           <div class="bg-gradient-to-br from-primary to-primary-container p-6 rounded-2xl shadow-lg text-white">
             <p class="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-2">Total GAD Budget</p>
-            <h3 class="text-2xl font-headline font-extrabold">₱{{ formatCurrency(totalBudget) }}</h3>
+            <h3 class="text-2xl font-headline font-extrabold">₱243,541,950.62</h3>
           </div>
           <div class="bg-white p-6 rounded-2xl shadow-sm border border-outline-variant/15">
             <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Total Beneficiaries</p>
@@ -107,27 +107,9 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
-import api from '../api';
-
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 const selectedYear = ref(2026);
-const totalBudget = ref(0);
-
-const fetchBudgetSummary = async () => {
-  try {
-    const res = await api.get('budget/summary');
-    if (res.data.success) {
-      totalBudget.value = res.data.data.total_budget;
-    }
-  } catch (err) {
-    console.error('Error fetching budget summary:', err);
-  }
-};
-
-const formatCurrency = (val) => {
-  return Number(val || 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
-};
 
 const annualReportData = {
   2026: {
@@ -172,7 +154,6 @@ onMounted(() => {
   if (!user.value.id || user.value.role !== 'admin') {
     router.push('/login');
   }
-  fetchBudgetSummary();
 });
 </script>
 

@@ -2,10 +2,6 @@
 node_modules/
 vendor/
 
-# Uploads
-backend/public/uploads/*
-!backend/public/uploads/.gitkeep
-
 # Configuration files
 .env
 config/config.php
@@ -23,13 +19,9 @@ logs/
 Thumbs.db
 
 # Writable directories (CodeIgniter)
-backend/writable/
+backend/writable/*
 !backend/writable/.htaccess
 !backend/writable/.gitkeep
 
 # Production builds
 frontend/dist/
-# Specific Environment Files
-backend/.env
-frontend/.env
-frontend/.env.local

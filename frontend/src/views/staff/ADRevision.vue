@@ -56,73 +56,59 @@
                 <span class="info-label">Form Type</span>
                 <select v-model="formData.form_type" class="modal-input select-input">
                   <option value="" disabled>Select form type...</option>
-                  <option 
-                    v-for="ft in formTypes" 
-                    :key="ft.id" 
-                    :value="ft.id" 
-                    class="dark-option"
-                  >
-                    {{ ft.name }}
-                  </option>
+                  <option v-for="ft in formTypes" :key="ft.id" :value="ft.id" class="dark-option">{{ ft.name }}</option>
                 </select>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Activity Classification</span>
+                <select v-model="formData.activity_classification" class="modal-input select-input">
+                  <option value="" disabled>Select classification...</option>
+                  <option v-for="c in activityClassifications" :key="c.id" :value="c.id" class="dark-option">{{ c.classification_name }}</option>
+                </select>
+              </div>
+              <div class="info-item" style="grid-column: span 2;">
+                <span class="info-label">GAD Mandate *</span>
+                <div class="checkbox-group-container modal-input" style="min-height: 120px; max-height: 250px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+                  <label v-for="mandate in gadMandates" :key="mandate.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
+                    <input type="checkbox" v-model="formData.gad_mandate" :value="mandate.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
+                    <span style="font-size: 14px; line-height: 1.4;">{{ mandate.code }} - {{ mandate.title }}</span>
+                  </label>
+                  <label class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
+                    <input type="checkbox" v-model="formData.gad_mandate" value="Other" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
+                    <span style="font-size: 14px; line-height: 1.4; font-style: italic;">+ New Mandate</span>
+                  </label>
+                </div>
+                <input v-if="formData.gad_mandate && formData.gad_mandate.includes('Other')" 
+                      v-model="customMandate" 
+                      type="text" 
+                      placeholder="Enter new mandate name..." 
+                      class="modal-input" 
+                      style="margin-top: 10px;" />
+              </div>
+              <div class="info-item" style="grid-column: span 2;">
+                <span class="info-label">Gender Issues *</span>
+                <div class="checkbox-group-container modal-input" style="min-height: 120px; max-height: 250px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+                  <label v-for="issue in genderIssues" :key="issue.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
+                    <input type="checkbox" v-model="formData.gender_issue" :value="issue.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
+                    <span style="font-size: 14px; line-height: 1.4;">{{ issue.title }}</span>
+                  </label>
+                  <label class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
+                    <input type="checkbox" v-model="formData.gender_issue" value="Other" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
+                    <span style="font-size: 14px; line-height: 1.4; font-style: italic;">+ New Gender Issue</span>
+                  </label>
+                  <p v-if="!formData.gad_mandate || formData.gad_mandate.length === 0" style="color: #94a3b8; font-size: 13px; font-style: italic; margin: 0;">Select a mandate first to see gender issues.</p>
+                </div>
+                <input v-if="formData.gender_issue && formData.gender_issue.includes('Other')" 
+                      v-model="customGenderIssue" 
+                      type="text" 
+                      placeholder="Enter new gender issue..." 
+                      class="modal-input" 
+                      style="margin-top: 10px;" />
               </div>
             </div>
           </div>
 
           <div class="report-body">
-            <!-- GAD Alignment Section Card -->
-            <div class="section-card">
-              <div class="section-header-row">
-                <span class="material-symbols-outlined icon-pink">gavel</span>
-                <h3 class="section-title">GAD Alignment</h3>
-              </div>
-              <div style="display: flex; flex-direction: column; gap: 16px;">
-                <div class="input-group">
-                  <label class="form-label">Activity Classification *</label>
-                  <select v-model="formData.classification_id" required class="modal-input select-input">
-                    <option value="" disabled>Select Classification</option>
-                    <option v-for="c in ActClassifications" :key="c.id" :value="c.id" class="dark-option">
-                      {{ c.classification_name }}
-                    </option>
-                  </select>
-                </div>
-                <div class="input-group">
-                  <label class="form-label">GAD Mandate *</label>
-                  <select v-model="formData.gad_mandate_id" required class="modal-input select-input">
-                    <option value="" disabled>Select Mandate</option>
-                    <option v-for="m in GADMandates" :key="m.id" :value="m.id" class="dark-option">
-                      {{ m.code }} - {{ m.title }}
-                    </option>
-                    <option value="Other" class="dark-option">+ New Mandate</option>
-                  </select>
-                  <input v-if="formData.gad_mandate_id === 'Other'" 
-                         v-model="customMandate" 
-                         type="text" 
-                         placeholder="Enter new mandate name..." 
-                         class="modal-input" 
-                         style="margin-top: 10px;" />
-                </div>
-                <div class="input-group">
-                  <label class="form-label">Gender Issue *</label>
-                  <select v-model="formData.gender_issue_id" required class="modal-input select-input">
-                    <option value="" disabled>
-                      {{ formData.gad_mandate_id ? 'Select Gender Issue' : 'Select Mandate first' }}
-                    </option>
-                    <option v-for="i in genderIssues" :key="i.id" :value="i.id" class="dark-option">
-                      {{ i.title }}
-                    </option>
-                    <option value="Other" class="dark-option">+ New Gender Issue</option>
-                  </select>
-                  <input v-if="formData.gender_issue_id === 'Other'" 
-                         v-model="customGenderIssue" 
-                         type="text" 
-                         placeholder="Enter new gender issue..." 
-                         class="modal-input" 
-                         style="margin-top: 10px;" />
-                </div>
-              </div>
-            </div>
-
             <div class="section-card">
               <div class="section-header-row">
                 <span class="material-symbols-outlined icon-pink">calendar_month</span>
@@ -479,6 +465,18 @@
                   <input type="file" @change="handleFileChange" class="file-input-hidden" accept=".pdf,.doc,.docx">
                 </label>
               </div>
+
+              <!-- Document Previews -->
+              <div class="document-previews" style="margin-top: 15px;">
+                <div v-if="design.attachment" style="margin-bottom: 20px;">
+                  <p style="color: #cbd5e1; font-size: 13px; font-weight: bold; margin-bottom: 8px;">Previous Document:</p>
+                  <iframe :src="`${api.defaults.baseURL}/files/drafts/${design.attachment}`" width="100%" height="400px" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;"></iframe>
+                </div>
+                <div v-if="newFileURL">
+                  <p style="color: #b979cc; font-size: 13px; font-weight: bold; margin-bottom: 8px;">New Document Preview:</p>
+                  <iframe :src="newFileURL" width="100%" height="400px" style="border: 1px solid #b979cc; border-radius: 8px;"></iframe>
+                </div>
+              </div>
             </div>
         </section>
 
@@ -525,9 +523,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '../../api';
+import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
 import Swal from 'sweetalert2';
 
 const route = useRoute();
@@ -539,23 +538,22 @@ const loading = ref(true);
 const submitting = ref(false);
 const error = ref(null);
 const venues = ref([]);
-const formTypes = ref([]);
-const ActClassifications = ref([]);
-const GADMandates = ref([]);
-const genderIssues = ref([]);
 const customVenue = ref('');
-const customMandate = ref('');
-const customGenderIssue = ref('');
-const isInitialLoad = ref(false);
 const newFile = ref(null);
+const newFileURL = ref(null);
+
+const formTypes = ref([]);
+const activityClassifications = ref([]);
+const gadMandates = ref([]);
+const genderIssues = ref([]);
 
 const formData = ref({
   activity_title: '',
   office: '',
   form_type: '',
-  classification_id: '',
-  gad_mandate_id: '',
-  gender_issue_id: '',
+  activity_classification: '',
+  gad_mandate: '',
+  gender_issue: '',
   start_date: '',
   end_date: '',
   start_time: '',
@@ -604,6 +602,8 @@ const snacksSelected = ref({ am: false, pm: false });
 const pfPax = ref('');
 const tokensPax = ref('');
 const othersList = ref([]);
+const customMandate = ref('');
+const customGenderIssue = ref('');
 
 const addOtherItem = () => {
   othersList.value.push({ name: '', amount: '' });
@@ -679,7 +679,7 @@ watch(
 
 const fetchVenues = async () => {
   try {
-    const response = await api.get('get-venues');
+    const response = await api.get('venues');
     if (response.data && response.data.success) {
       venues.value = response.data.data || [];
     }
@@ -691,42 +691,57 @@ const fetchVenues = async () => {
 const fetchFormTypes = async () => {
   try {
     const response = await api.get('get-form-types');
-    formTypes.value = response.data || [];
-  } catch (err) {
-    console.error('Error fetching form types:', err);
+    if (response.data) formTypes.value = response.data;
+  } catch (error) {
+    console.error('Error fetching form types:', error);
   }
 };
 
 const fetchActivityClassifications = async () => {
   try {
-    const res = await api.get('get-activity-classifications');
-    ActClassifications.value = res.data || [];
+    const response = await api.get('get-activity-classifications');
+    if (response.data) activityClassifications.value = response.data;
   } catch (error) {
-    console.error('Error fetching activity classifications:', error);
+    console.error('Error fetching classifications:', error);
   }
 };
 
 const fetchGADMandates = async () => {
   try {
-    const res = await api.get('get-gad-mandates');
-    GADMandates.value = res.data || [];
+    const response = await api.get('get-gad-mandates');
+    if (response.data) gadMandates.value = response.data;
   } catch (error) {
-    console.error('Error fetching GAD mandates:', error);
+    console.error('Error fetching mandates:', error);
   }
 };
 
-const fetchGenderIssues = async (mandateId) => {
-  if (!mandateId || mandateId === 'Other') {
+const fetchGenderIssues = async (mandateIds) => {
+  if (!mandateIds || !Array.isArray(mandateIds) || mandateIds.length === 0) {
     genderIssues.value = [];
     return;
   }
   try {
-    const res = await api.get(`get-gender-issues/${mandateId}`);
-    genderIssues.value = res.data || [];
+    const allIssues = [];
+    for (const mandateId of mandateIds) {
+       if (mandateId !== 'Other') {
+           const res = await api.get(`get-gender-issues/${mandateId}`);
+           if (res.data) allIssues.push(...res.data);
+       }
+    }
+    genderIssues.value = allIssues;
   } catch (error) {
     console.error('Error fetching gender issues:', error);
   }
 };
+
+watch(() => formData.value.gad_mandate, (newVal) => {
+  if (newVal && newVal.length > 0) {
+    fetchGenderIssues(newVal);
+  } else {
+    genderIssues.value = [];
+    formData.value.gender_issue = [];
+  }
+}, { deep: true });
 
 const fetchDesignDetails = async () => {
   loading.value = true;
@@ -735,6 +750,19 @@ const fetchDesignDetails = async () => {
     const response = await api.get(`activity-design/${id}`);
     if (response.data.success) {
       design.value = response.data.data;
+      
+      if (Number(design.value.user_id) !== Number(user.value.id)) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Access Denied',
+          text: 'You are not authorized to view or edit this document.',
+          confirmButtonColor: '#b979cc'
+        }).then(() => {
+          router.push('/staff/ad-list');
+        });
+        return;
+      }
+
       // Initialize default structures
       mealsSelected.value = { breakfast: false, lunch: false, dinner: false };
       snacksSelected.value = { am: false, pm: false };
@@ -795,15 +823,15 @@ const fetchDesignDetails = async () => {
       formData.value = {
         activity_title: design.value.activity_title,
         office: design.value.office,
-        form_type: String(design.value.form_type || ''),
-        classification_id: String(design.value.classification_id || ''),
-        gad_mandate_id: String(design.value.gad_mandate_id || ''),
-        gender_issue_id: String(design.value.gender_issue_id || ''),
+        form_type: design.value.form_type,
+        activity_classification: design.value.classification_id,
+        gad_mandate: design.value.gad_mandate_ids ? design.value.gad_mandate_ids.split(',').map(s=>s.trim()) : [],
+        gender_issue: design.value.gender_issue_ids ? design.value.gender_issue_ids.split(',').map(s=>s.trim()) : [],
         start_date: design.value.start_date,
         end_date: design.value.end_date,
         start_time: design.value.start_time,
         end_time: design.value.end_time,
-        venue: (design.value.venue_id && design.value.venue_id !== 'Other') ? design.value.venue_id : 'Other',
+        venue: design.value.venue_id || 'Other',
         proposed_budget: design.value.proposed_budget,
         target_participants: design.value.target_participants,
         budget_items: [
@@ -820,17 +848,9 @@ const fetchDesignDetails = async () => {
         ]
       };
 
-      if (!design.value.venue_id || design.value.venue_id === 'Other') {
+      if (!design.value.venue_id) {
         customVenue.value = design.value.venue;
       }
-
-      isInitialLoad.value = true;
-      if (design.value.gad_mandate_id) {
-        await fetchGenderIssues(design.value.gad_mandate_id);
-      }
-      setTimeout(() => {
-        isInitialLoad.value = false;
-      }, 100);
     } else {
       error.value = "Activity design not found.";
     }
@@ -843,6 +863,11 @@ const fetchDesignDetails = async () => {
 
 const handleFileChange = (e) => {
   newFile.value = e.target.files[0];
+  if (newFile.value) {
+    newFileURL.value = URL.createObjectURL(newFile.value);
+  } else {
+    newFileURL.value = null;
+  }
 };
 
 const formatDate = (date) => date ? new Date(date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '---';
@@ -865,13 +890,13 @@ const handleUpdate = async () => {
     // Aligning keys with ActivityDesignController expectations
     submitData.append('activity_title', formData.value.activity_title);
     submitData.append('form_type', formData.value.form_type);
-    submitData.append('activity_classification_id', formData.value.classification_id);
-    submitData.append('gad_mandate_id', formData.value.gad_mandate_id);
-    submitData.append('gender_issue_id', formData.value.gender_issue_id);
-    if (formData.value.gad_mandate_id === 'Other') {
+    submitData.append('activity_classification_id', formData.value.activity_classification);
+    submitData.append('gad_mandate_id', Array.isArray(formData.value.gad_mandate) ? formData.value.gad_mandate.join(',') : formData.value.gad_mandate);
+    if (Array.isArray(formData.value.gad_mandate) && formData.value.gad_mandate.includes('Other')) {
       submitData.append('custom_gad_mandate', customMandate.value);
     }
-    if (formData.value.gender_issue_id === 'Other') {
+    submitData.append('gender_issue_id', Array.isArray(formData.value.gender_issue) ? formData.value.gender_issue.join(',') : formData.value.gender_issue);
+    if (Array.isArray(formData.value.gender_issue) && formData.value.gender_issue.includes('Other')) {
       submitData.append('custom_gender_issue', customGenderIssue.value);
     }
     submitData.append('start_date', formData.value.start_date);
@@ -883,13 +908,9 @@ const handleUpdate = async () => {
 
     // Venue Logic
     if (formData.value.venue && formData.value.venue !== 'Other') {
-      submitData.append('venue_id', formData.value.venue);
-      // Use the venue name from the venues array or fall back to the existing design name
-      const v = venues.value.find(v => v.venue_id == formData.value.venue);
-      submitData.append('venue_name', v ? v.venue_name : formData.value.venue);
+      submitData.append('venue', formData.value.venue);
     } else if (formData.value.venue === 'Other') {
-      submitData.append('venue_id', '');
-      submitData.append('venue_name', customVenue.value || '');
+      submitData.append('venue', customVenue.value || '');
     }
 
     const transItem = formData.value.budget_items.find(i => i.name === 'Transportation');
@@ -903,113 +924,18 @@ const handleUpdate = async () => {
       return;
     }
 
-    // Construct normalized budget rows
-    const finalBudgetItems = [];
-
-    const categoryMapping = {
-      'Meals': 'Catering & Hospitality',
-      'Snacks': 'Catering & Hospitality',
-      'Function Room/Venue': 'Venue & Logistics',
-      'Accommodation': 'Venue & Logistics',
-      'Equipment Rental': 'Venue & Logistics',
-      'Professional Fee/Honoria': 'Program & Speakers',
-      'Token/s': 'Program & Speakers',
-      'Materials and Supplies': 'Materials & Miscellaneous',
-      'Transportation': 'Venue & Logistics',
-      'Others': 'Materials & Miscellaneous'
+    const budgetObj = {
+      meals_and_snacks: (Number(formData.value.budget_items.find(i => i.name === 'Meals')?.total || 0) + Number(formData.value.budget_items.find(i => i.name === 'Snacks')?.total || 0)),
+      function_room_venue: Number(formData.value.budget_items.find(i => i.name === 'Function Room/Venue')?.total || 0),
+      accommodation: Number(formData.value.budget_items.find(i => i.name === 'Accommodation')?.total || 0),
+      equipment_rental: Number(formData.value.budget_items.find(i => i.name === 'Equipment Rental')?.total || 0),
+      professional_fee_honoria: Number(formData.value.budget_items.find(i => i.name === 'Professional Fee/Honoria')?.total || 0),
+      tokens: Number(formData.value.budget_items.find(i => i.name === 'Token/s')?.total || 0),
+      materials_and_supplies: Number(formData.value.budget_items.find(i => i.name === 'Materials and Supplies')?.total || 0) + Number(formData.value.budget_items.find(i => i.name === 'Others')?.total || 0),
+      transportation: Number(formData.value.budget_items.find(i => i.name === 'Transportation')?.total || 0)
     };
 
-    // Meals
-    const mealsSelectedKeys = Object.keys(mealsSelected.value).filter(k => mealsSelected.value[k]);
-    if (mealsSelectedKeys.length > 0) {
-      const baseMeals = formData.value.budget_items.find(i => i.name === 'Meals');
-      const baseMealsTotal = Number(baseMeals?.total) || 0;
-      if (baseMealsTotal > 0) {
-        const amountPerMeal = baseMealsTotal / mealsSelectedKeys.length;
-        mealsSelectedKeys.forEach(key => {
-          const capitalized = key.charAt(0).toUpperCase() + key.slice(1);
-          finalBudgetItems.push({
-            category: 'Catering & Hospitality',
-            name: 'Meals',
-            sub_item: capitalized,
-            amount: amountPerMeal
-          });
-        });
-      }
-    }
-
-    // Snacks
-    const snacksSelectedKeys = Object.keys(snacksSelected.value).filter(k => snacksSelected.value[k]);
-    if (snacksSelectedKeys.length > 0) {
-      const baseSnacks = formData.value.budget_items.find(i => i.name === 'Snacks');
-      const baseSnacksTotal = Number(baseSnacks?.total) || 0;
-      if (baseSnacksTotal > 0) {
-        const amountPerSnack = baseSnacksTotal / snacksSelectedKeys.length;
-        snacksSelectedKeys.forEach(key => {
-          const capitalized = key === 'am' ? 'AM Snack' : 'PM Snack';
-          finalBudgetItems.push({
-            category: 'Catering & Hospitality',
-            name: 'Snacks',
-            sub_item: capitalized,
-            amount: amountPerSnack
-          });
-        });
-      }
-    }
-
-    formData.value.budget_items.forEach(item => {
-      if (item.name === 'Meals' || item.name === 'Snacks') return;
-
-      const category = categoryMapping[item.name] || 'Miscellaneous';
-      const totalAmt = Number(item.total) || 0;
-
-      if (item.name === 'Professional Fee/Honoria') {
-        finalBudgetItems.push({
-          category,
-          name: item.name,
-          sub_item: null,
-          pax: Number(pfPax.value) || null,
-          amount: totalAmt
-        });
-      } else if (item.name === 'Token/s') {
-        finalBudgetItems.push({
-          category,
-          name: item.name,
-          sub_item: null,
-          pax: Number(tokensPax.value) || null,
-          amount: totalAmt
-        });
-      } else if (item.name === 'Others') {
-        if (othersList.value && othersList.value.length > 0) {
-          othersList.value.forEach(other => {
-            if (Number(other.amount) > 0) {
-              finalBudgetItems.push({
-                category,
-                name: 'Others',
-                sub_item: other.name || 'Other Item',
-                amount: Number(other.amount)
-              });
-            }
-          });
-        } else if (totalAmt > 0) {
-          finalBudgetItems.push({
-            category,
-            name: 'Others',
-            sub_item: 'Other Item',
-            amount: totalAmt
-          });
-        }
-      } else {
-        finalBudgetItems.push({
-          category,
-          name: item.name,
-          sub_item: null,
-          amount: totalAmt
-        });
-      }
-    });
-
-    submitData.append('budget_items', JSON.stringify(finalBudgetItems));
+    submitData.append('budget_items', JSON.stringify(budgetObj));
 
     submitData.append('status', 'Pending'); // Reset status so admin can review again
     
@@ -1037,26 +963,15 @@ const handleUpdate = async () => {
   }
 };
 
-watch(() => formData.value.gad_mandate_id, (newVal) => {
-  if (!isInitialLoad.value) {
-    formData.value.gender_issue_id = '';
-  }
-  fetchGenderIssues(newVal);
-});
-
-onMounted(async () => {
+onMounted(() => {
   if (!user.value.id || user.value.role !== 'gad_staff') {
     router.push('/login');
   } else {
-    try {
-      await fetchFormTypes();
-      await fetchActivityClassifications();
-      await fetchGADMandates();
-      await fetchVenues();
-      await fetchDesignDetails();
-    } catch (err) {
-      console.error(err);
-    }
+    fetchVenues();
+    fetchFormTypes();
+    fetchActivityClassifications();
+    fetchGADMandates();
+    fetchDesignDetails();
   }
 });
 </script>

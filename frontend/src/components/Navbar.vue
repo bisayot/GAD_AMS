@@ -47,10 +47,10 @@ const navItems = [
 <style scoped>
 .navbar { position: fixed; top: 0; width: 100%; z-index: 50; background: #1a1a2e; backdrop-filter: blur(12px); box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-bottom: 1px solid rgba(139, 92, 246, 0.08); }
 .navbar-inner { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 16px 32px; max-width: 1400px; margin: 0 auto; gap: 32px; }
-.navbar-brand { font-size: 20px; font-weight: 900; letter-spacing: -0.03em; color: #990dd1; text-transform: uppercase; white-space: nowrap; }
+.navbar-brand { font-size: 24px; font-weight: 900; letter-spacing: -0.03em; color: #990dd1; text-transform: uppercase; white-space: nowrap; }
 .navbar-brand a { color: inherit; text-decoration: none; }
 .navbar-links { display: flex; align-items: center; gap: 32px; font-weight: 600; letter-spacing: -0.01em; }
-.nav-link { text-decoration: none; transition: color 0.2s; font-size: 16px; }
+.nav-link { text-decoration: none; transition: color 0.2s; font-size: 18px; }
 .nav-link-active { color: #fff; font-weight: 700; border-bottom: 2px solid #9333ea; padding-bottom: 4px; }
 .nav-link-inactive { color: #475569; }
 .nav-link-inactive:hover { color: #fff; }

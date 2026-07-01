@@ -3,9 +3,6 @@
     <div class="flex flex-col md:flex-row justify-between items-center w-full px-12 py-10 gap-6 max-w-screen-2xl mx-auto">
       <div class="flex flex-col gap-2">
         <span class="font-headline font-extrabold text-purple-900 dark:text-purple-100 text-lg uppercase tracking-wider">BSU GAD Office</span>
-        <p class="font-body text-sm leading-relaxed text-slate-500 dark:text-slate-400 max-w-md">
-          © 2024 Benguet State University Gender and Development Office. All rights reserved.
-        </p>
       </div>
       <div class="flex flex-wrap justify-center gap-8 font-body text-sm leading-relaxed">
         <a class="text-slate-500 dark:text-slate-400 hover:text-purple-700 dark:hover:text-purple-400 underline transition-all opacity-80 hover:opacity-100" href="#">Privacy Policy</a>

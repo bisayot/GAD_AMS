@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\ApprovedControlModel;
+use App\Models\ActivityBudgetItemsModel;
 use CodeIgniter\API\ResponseTrait;
 use CodeIgniter\Controller;
 
@@ -31,7 +32,7 @@ class ApprovedControlsController extends Controller
 
         $allBudgetItems = [];
         if (!empty($designIds)) {
-            $budgetModel = new \App\Models\ActivityBudgetItemsModel();
+            $budgetModel = new ActivityBudgetItemsModel();
             $budgetResults = $budgetModel->whereIn('act_design_id', array_unique($designIds))->findAll();
             
             // Group them by act_design_id
