@@ -106,11 +106,40 @@ class AccomplishmentReportController extends BaseController
                 if ($this->request->getPost('activity_classification_id')) {
                     $adUpdateData['classification_id'] = $this->request->getPost('activity_classification_id');
                 }
-                if ($this->request->getPost('gad_mandate_id')) {
-                    $adUpdateData['gad_mandate_id'] = $this->request->getPost('gad_mandate_id');
+                if ($this->request->getPost('form_type')) {
+                    $adUpdateData['form_type'] = $this->request->getPost('form_type');
                 }
-                if ($this->request->getPost('gender_issue_id')) {
-                    $adUpdateData['gender_issue_id'] = $this->request->getPost('gender_issue_id');
+                
+                $db = \Config\Database::connect();
+                
+                $customMandate = $this->request->getPost('custom_gad_mandate');
+                $mandateIdStr = $this->request->getPost('gad_mandate_id');
+                if ($customMandate && $customMandate !== 'undefined') {
+                    $db->table('gad_mandates')->insert(['title' => $customMandate]);
+                    $newId = $db->insertID();
+                    if ($mandateIdStr) {
+                        $mandateIdStr = str_replace('Other', $newId, $mandateIdStr);
+                    } else {
+                        $mandateIdStr = $newId;
+                    }
+                }
+                if ($mandateIdStr) {
+                    $adUpdateData['gad_mandate_id'] = $mandateIdStr;
+                }
+                
+                $customIssue = $this->request->getPost('custom_gender_issue');
+                $issueIdStr = $this->request->getPost('gender_issue_id');
+                if ($customIssue && $customIssue !== 'undefined') {
+                    $db->table('gender_issues')->insert(['title' => $customIssue]);
+                    $newId = $db->insertID();
+                    if ($issueIdStr) {
+                        $issueIdStr = str_replace('Other', $newId, $issueIdStr);
+                    } else {
+                        $issueIdStr = $newId;
+                    }
+                }
+                if ($issueIdStr) {
+                    $adUpdateData['gender_issue_id'] = $issueIdStr;
                 }
 
                 if (!empty($adUpdateData) && !empty($actDesignId)) {
@@ -175,23 +204,23 @@ class AccomplishmentReportController extends BaseController
         $db = \Config\Database::connect();
 
         $active = $db->table('accomplishment_report as ar')
-            ->select('ar.id, ar.status, cn.control_number as control, ar.activity_title as title, DATE(ar.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, form_types.name as formLabel')
+            ->select('ar.id, ar.status, cn.control_number as control, ar.activity_title as title, DATE(ar.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, COALESCE(form_types.name, ad.form_type) as formLabel')
             ->join('users', 'users.id = ar.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->join('control_number as cn', 'cn.control_number = ar.control_number', 'left')
             ->join('archived_activity_designs as ad', 'ad.original_act_design_id = cn.act_design_id', 'left')
-            ->join('form_types', 'form_types.id = ad.form_type', 'left')
+            ->join('form_types', 'form_types.id = ad.form_type OR form_types.name = ad.form_type', 'left')
             ->where('ar.status !=', 'Verified')
             ->where('ar.deleted_at', null)
             ->get()->getResultArray();
 
         $archived = $db->table('archived_accomplishment_reports as aar')
-            ->select('aar.original_report_id as id, aar.status, cn.control_number as control, aar.activity_title as title, DATE(aar.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, form_types.name as formLabel')
+            ->select('aar.original_report_id as id, aar.status, cn.control_number as control, aar.activity_title as title, DATE(aar.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, COALESCE(form_types.name, ad.form_type) as formLabel')
             ->join('users', 'users.id = aar.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->join('control_number as cn', 'cn.control_number = aar.control_number', 'left')
             ->join('archived_activity_designs as ad', 'ad.original_act_design_id = cn.act_design_id', 'left')
-            ->join('form_types', 'form_types.id = ad.form_type', 'left')
+            ->join('form_types', 'form_types.id = ad.form_type OR form_types.name = ad.form_type', 'left')
             ->where('aar.status !=', 'Verified')
             ->get()->getResultArray();
 
@@ -255,12 +284,17 @@ class AccomplishmentReportController extends BaseController
                 $db = \Config\Database::connect();
                 $ad = $db->table('archived_activity_designs as aad')
                     ->select('aad.*, venues.venue_name, activity_classifications.classification_name as activity_classification, form_types.name as form_type_name')
-                    ->select('(SELECT GROUP_CONCAT(gm.title SEPARATOR ", ") FROM archived_activity_design_mandates adm JOIN gad_mandates gm ON gm.id = adm.mandate_id WHERE adm.archive_id = aad.archive_id) as gad_mandate')
-                    ->select('(SELECT GROUP_CONCAT(gi.title SEPARATOR ", ") FROM archived_activity_design_issues adi JOIN gender_issues gi ON gi.id = adi.issue_id WHERE adi.archive_id = aad.archive_id) as gender_issue')
+                    ->select('DATE(aad.archived_at) as date, office_units.office_name as office')
+                                        ->select('(SELECT GROUP_CONCAT(CONCAT(gm.code, " - ", gm.title) SEPARATOR ";;; ") FROM archived_activity_design_mandates adm JOIN gad_mandates gm ON gm.id = adm.mandate_id WHERE adm.archive_id = aad.archive_id) as gad_mandate')
+                    ->select('(SELECT GROUP_CONCAT(adm.mandate_id SEPARATOR ",") FROM archived_activity_design_mandates adm WHERE adm.archive_id = aad.archive_id) as gad_mandate_id')
+                    ->select('(SELECT GROUP_CONCAT(gi.title SEPARATOR ";;; ") FROM archived_activity_design_issues adi JOIN gender_issues gi ON gi.id = adi.issue_id WHERE adi.archive_id = aad.archive_id) as gender_issue')
+                    ->select('(SELECT GROUP_CONCAT(adi.issue_id SEPARATOR ",") FROM archived_activity_design_issues adi WHERE adi.archive_id = aad.archive_id) as gender_issue_id')
                     ->join('control_number as cn', 'cn.act_design_id = aad.original_act_design_id', 'left')
                     ->join('venues', 'venues.venue_id = aad.venue_id', 'left')
                     ->join('activity_classifications', 'activity_classifications.id = aad.classification_id', 'left')
                     ->join('form_types', 'form_types.id = aad.form_type', 'left')
+                    ->join('users', 'users.id = aad.user_id', 'left')
+                    ->join('office_units', 'office_units.office_id = users.office_id', 'left')
                     ->where('cn.control_number', $controlNumber)
                     ->get()->getRowArray();
                 
@@ -285,24 +319,24 @@ class AccomplishmentReportController extends BaseController
         $db = \Config\Database::connect();
 
         $active = $db->table('accomplishment_report as ar')
-            ->select('ar.id, ar.status, cn.control_number as control, ar.activity_title as title, DATE(ar.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, form_types.name as formLabel')
+            ->select('ar.id, ar.status, cn.control_number as control, ar.activity_title as title, DATE(ar.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, COALESCE(form_types.name, ad.form_type) as formLabel')
             ->join('users', 'users.id = ar.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->join('control_number as cn', 'cn.control_number = ar.control_number', 'left')
             ->join('archived_activity_designs as ad', 'ad.original_act_design_id = cn.act_design_id', 'left')
-            ->join('form_types', 'form_types.id = ad.form_type', 'left')
+            ->join('form_types', 'form_types.id = ad.form_type OR form_types.name = ad.form_type', 'left')
             ->where('ar.user_id', $userId)
             ->where('ar.status !=', 'Verified')
             ->where('ar.deleted_at', null)
             ->get()->getResultArray();
 
         $archived = $db->table('archived_accomplishment_reports as aar')
-            ->select('aar.original_report_id as id, aar.status, cn.control_number as control, aar.activity_title as title, DATE(aar.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, form_types.name as formLabel')
+            ->select('aar.original_report_id as id, aar.status, cn.control_number as control, aar.activity_title as title, DATE(aar.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, COALESCE(form_types.name, ad.form_type) as formLabel')
             ->join('users', 'users.id = aar.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->join('control_number as cn', 'cn.control_number = aar.control_number', 'left')
             ->join('archived_activity_designs as ad', 'ad.original_act_design_id = cn.act_design_id', 'left')
-            ->join('form_types', 'form_types.id = ad.form_type', 'left')
+            ->join('form_types', 'form_types.id = ad.form_type OR form_types.name = ad.form_type', 'left')
             ->where('aar.user_id', $userId)
             ->where('aar.status !=', 'Verified')
             ->get()->getResultArray();
@@ -433,11 +467,40 @@ class AccomplishmentReportController extends BaseController
                 if ($this->request->getPost('activity_classification_id')) {
                     $adUpdateData['classification_id'] = $this->request->getPost('activity_classification_id');
                 }
-                if ($this->request->getPost('gad_mandate_id')) {
-                    $adUpdateData['gad_mandate_id'] = $this->request->getPost('gad_mandate_id');
+                if ($this->request->getPost('form_type')) {
+                    $adUpdateData['form_type'] = $this->request->getPost('form_type');
                 }
-                if ($this->request->getPost('gender_issue_id')) {
-                    $adUpdateData['gender_issue_id'] = $this->request->getPost('gender_issue_id');
+                
+                $db = \Config\Database::connect();
+                
+                $customMandate = $this->request->getPost('custom_gad_mandate');
+                $mandateIdStr = $this->request->getPost('gad_mandate_id');
+                if ($customMandate && $customMandate !== 'undefined') {
+                    $db->table('gad_mandates')->insert(['title' => $customMandate]);
+                    $newId = $db->insertID();
+                    if ($mandateIdStr) {
+                        $mandateIdStr = str_replace('Other', $newId, $mandateIdStr);
+                    } else {
+                        $mandateIdStr = $newId;
+                    }
+                }
+                if ($mandateIdStr) {
+                    $adUpdateData['gad_mandate_id'] = $mandateIdStr;
+                }
+                
+                $customIssue = $this->request->getPost('custom_gender_issue');
+                $issueIdStr = $this->request->getPost('gender_issue_id');
+                if ($customIssue && $customIssue !== 'undefined') {
+                    $db->table('gender_issues')->insert(['title' => $customIssue]);
+                    $newId = $db->insertID();
+                    if ($issueIdStr) {
+                        $issueIdStr = str_replace('Other', $newId, $issueIdStr);
+                    } else {
+                        $issueIdStr = $newId;
+                    }
+                }
+                if ($issueIdStr) {
+                    $adUpdateData['gender_issue_id'] = $issueIdStr;
                 }
 
                 if (!empty($adUpdateData) && !empty($report['control_number'])) {

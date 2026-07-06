@@ -17,6 +17,16 @@ class ActivityBudgetItemsModel extends Model
         'professional_fee_honoria',
         'tokens',
         'materials_and_supplies',
-        'transportation'
+        'transportation',
+        'meals_total',
+        'snacks_total',
+        'materials_total',
+        'others_total',
+        'breakfast_selected',
+        'lunch_selected',
+        'dinner_selected',
+        'am_snack_selected',
+        'pm_snack_selected',
+        'materials_others_breakdown'
     ];
 }

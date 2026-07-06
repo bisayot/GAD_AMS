@@ -39,22 +39,40 @@
 
                   <div class="input-group-ar">
                     <label class="form-label-ar">Form Type *</label>
-                    <input
-                      type="text"
-                      v-model="form.form_type"
-                      class="custom-input-field"
-                      placeholder="Form Type"
+                    <select 
+                      v-model="form.form_type" 
+                      required 
+                      class="custom-input-field select-arrow-fix"
                     >
+                      <option value="" disabled class="dark-option">Select form type...</option>
+                      <option 
+                        v-for="ft in formTypes" 
+                        :key="ft.id" 
+                        :value="ft.name" 
+                        class="dark-option"
+                      >
+                        {{ ft.name }}
+                      </option>
+                    </select>
                   </div>
 
                   <div class="input-group-ar">
                     <label class="form-label-ar">Activity Classification *</label>
-                    <input
-                      type="text"
+                    <select
                       v-model="form.activity_classification"
-                      class="custom-input-field"
-                      placeholder="Activity Classification"
+                      required
+                      class="custom-input-field select-arrow-fix"
                     >
+                      <option value="" disabled class="dark-option">Select Classification...</option>
+                      <option
+                        v-for="classification in ActClassification"
+                        :key="classification.id"
+                        :value="classification.classification_name"
+                        class="dark-option"
+                      >
+                        {{ classification.classification_name }}
+                      </option>
+                    </select>
                   </div>
 
                   <div class="input-group-ar">
@@ -204,12 +222,32 @@
 
                   <div class="input-group-ar">
                     <label class="form-label-ar">Venue *</label>
-                    <input 
-                      type="text" 
+                    <select 
                       v-model="form.venue" 
                       required 
+                      class="custom-input-field select-arrow-fix"
+                    >
+                      <option value="" disabled class="dark-option">Select venue...</option>
+                      <option 
+                        v-for="v in venues" 
+                        :key="v.venue_id" 
+                        :value="v.venue_name" 
+                        class="dark-option"
+                      >
+                        {{ v.venue_name }}
+                      </option>
+                      <option value="Other" class="dark-option">Other</option>
+                    </select>
+                  </div>
+
+                  <div v-if="form.venue === 'Other'" class="input-group-ar">
+                    <label class="form-label-ar">Specify Other Venue *</label>
+                    <input 
+                      type="text" 
+                      v-model="customVenue" 
+                      required 
                       class="custom-input-field"
-                      placeholder="e.g., Convention Center, Main Hall"
+                      placeholder="Enter the complete venue name"
                     >
                   </div>
 
@@ -256,7 +294,7 @@
 
                 <div class="form-column-right-ar">
                   <div class="budget-section">
-                    <label class="form-label-ar">Actual Budgetary Requirements *</label>
+                    <label class="form-label-ar">Actual Budgetary Expenditure *</label>
                     <!-- Grouped Budget Divisions -->
                     <div class="budget-groups-container">
                       
@@ -271,6 +309,17 @@
                           <div class="budget-row-item">
                             <div class="budget-item-info">
                               <div class="budget-item-title">Meals</div>
+                              <div class="budget-sub-controls">
+                                <label class="budget-checkbox-label">
+                                  <input type="checkbox" v-model="mealsSelected.breakfast" class="budget-checkbox" /> Breakfast
+                                </label>
+                                <label class="budget-checkbox-label">
+                                  <input type="checkbox" v-model="mealsSelected.lunch" class="budget-checkbox" /> Lunch
+                                </label>
+                                <label class="budget-checkbox-label">
+                                  <input type="checkbox" v-model="mealsSelected.dinner" class="budget-checkbox" /> Dinner
+                                </label>
+                              </div>
                             </div>
                             <div class="budget-item-value">
                               <span class="budget-currency-symbol">₱</span>
@@ -289,6 +338,14 @@
                           <div class="budget-row-item">
                             <div class="budget-item-info">
                               <div class="budget-item-title">Snacks</div>
+                              <div class="budget-sub-controls">
+                                <label class="budget-checkbox-label">
+                                  <input type="checkbox" v-model="snacksSelected.am" class="budget-checkbox" /> AM Snack
+                                </label>
+                                <label class="budget-checkbox-label">
+                                  <input type="checkbox" v-model="snacksSelected.pm" class="budget-checkbox" /> PM Snack
+                                </label>
+                              </div>
                             </div>
                             <div class="budget-item-value">
                               <span class="budget-currency-symbol">₱</span>
@@ -397,6 +454,12 @@
                           <div class="budget-row-item">
                             <div class="budget-item-info">
                               <div class="budget-item-title">Professional Fee/Honoraria</div>
+                              <div class="budget-sub-controls">
+                                <label class="budget-number-input-label">
+                                  Number of Speakers:
+                                  <input type="number" v-model.number="pfPax" min="0" class="budget-sub-number-input" placeholder="0" />
+                                </label>
+                              </div>
                             </div>
                             <div class="budget-item-value">
                               <span class="budget-currency-symbol">₱</span>
@@ -415,6 +478,12 @@
                           <div class="budget-row-item">
                             <div class="budget-item-info">
                               <div class="budget-item-title">Token/s</div>
+                              <div class="budget-sub-controls">
+                                <label class="budget-number-input-label">
+                                  Number of Recipients:
+                                  <input type="number" v-model.number="tokensPax" min="0" class="budget-sub-number-input" placeholder="0" />
+                                </label>
+                              </div>
                             </div>
                             <div class="budget-item-value">
                               <span class="budget-currency-symbol">₱</span>
@@ -591,7 +660,7 @@
                 <div class="warning-content">
                   <h4 class="warning-title">Budget Limit Exceeded</h4>
                   <p class="warning-desc">
-                    The actual spending grand total of <strong>₱{{ Number(form.proposed_budget || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</strong> exceeds the approved proposed budget of <strong>₱{{ Number(selectedProposedBudget || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</strong>.
+                    The actual spending grand total of <strong>₱{{ Number(form.proposed_budget || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</strong> exceeds the approved proposed budget of <strong>₱{{ Number(selectedProposedBudget || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</strong>. This will be flagged for the Director/Admin to review.
                   </p>
                   <p class="warning-instruction">
                     Please file an Activity Design Revision to increase the budget before submitting this report, or adjust the actual spending inputs.
@@ -603,8 +672,8 @@
                 <button 
                   type="submit" 
                   class="submit-action-btn"
-                  :disabled="isExceedingLimit"
-                  :class="{ 'btn-disabled': isExceedingLimit }"
+                  
+                  
                 >
                   Submit Report →
                 </button>
@@ -685,6 +754,11 @@ const isHoliday = (dateString) => {
 };
 
 // Validations are minimal since AD is already approved
+const pfPax = ref('');
+const tokensPax = ref('');
+const mealsSelected = ref({ breakfast: false, lunch: false, dinner: false });
+const snacksSelected = ref({ am: false, pm: false });
+
 const form = ref({
   activity_title: '',
   control_number: '',
@@ -731,6 +805,40 @@ const genderIssues = ref([]);
 const customMandate = ref('');
 const customGenderIssue = ref('');
 
+const venues = ref([]);
+const customVenue = ref('');
+const formTypes = ref([]);
+const ActClassification = ref([]);
+
+const fetchVenues = async () => {
+  try {
+    const response = await api.get('venues');
+    if (response.data && response.data.success) {
+      venues.value = response.data.data || [];
+    }
+  } catch (error) {
+    console.error('Error fetching venues:', error);
+  }
+};
+
+const fetchFormTypes = async () => {
+  try {
+    const res = await api.get('get-form-types');
+    formTypes.value = res.data;
+  } catch (error) {
+    console.error('Error fetching form types:', error);
+  }
+};
+
+const fetchActivityClassifications = async () => {
+  try {
+    const res = await api.get('get-activity-classifications');
+    ActClassification.value = res.data;
+  } catch (error) {
+    console.error('Error fetching activity classifications:', error);
+  }
+};
+
 const fetchMandates = async () => {
   try {
     const res = await api.get('get-gad-mandates');
@@ -742,7 +850,7 @@ const fetchMandates = async () => {
 
 const fetchGenderIssues = async (mandateIds) => {
   const ids = mandateIds || form.value?.gad_mandate_id;
-  if (!ids || !Array.isArray(ids) || ids.length === 0 || ids.includes('Other')) {
+  if (!ids || !Array.isArray(ids) || ids.length === 0 ) {
     genderIssues.value = [];
     return;
   }
@@ -837,16 +945,57 @@ watch(() => form.value.control_number, async (newVal) => {
 
     if (selected.budget_items && selected.budget_items.length > 0) {
       const dbBudget = selected.budget_items[0];
+      
+      const dbMeals = Number(dbBudget.meals_total || 0);
+      const dbSnacks = Number(dbBudget.snacks_total || 0);
+      const legacyMealsSnacks = Number(dbBudget.meals_and_snacks || 0);
+      let mealsTotal = (dbMeals === 0 && dbSnacks === 0 && legacyMealsSnacks > 0) ? legacyMealsSnacks : dbMeals;
+      let snacksTotal = dbSnacks || '';
+      
+      const dbMat = Number(dbBudget.materials_total || 0);
+      let ob = [];
+      if (dbBudget.materials_others_breakdown) {
+        try { ob = JSON.parse(dbBudget.materials_others_breakdown); } catch(e){}
+      }
+      const dbOthers = Number(dbBudget.others_total) || ob.reduce((s, o) => s + Number(o.amount || 0), 0);
+      const legacyMatOthers = Number(dbBudget.materials_and_supplies || 0);
+      let materialsSupplies = (dbMat === 0 && dbOthers === 0 && legacyMatOthers > 0) ? legacyMatOthers : dbMat;
+      let othersTotal = dbOthers || '';
+
+      if (dbBudget.materials_others_breakdown) {
+        try {
+          const parsedOthers = JSON.parse(dbBudget.materials_others_breakdown);
+          othersList.value = Array.isArray(parsedOthers) ? parsedOthers : [];
+        } catch (e) {
+          othersList.value = [];
+        }
+      } else {
+        othersList.value = [];
+      }
+
+      mealsSelected.value = {
+        breakfast: !!Number(dbBudget.breakfast_selected),
+        lunch: !!Number(dbBudget.lunch_selected),
+        dinner: !!Number(dbBudget.dinner_selected)
+      };
+            pfPax.value = Number(dbBudget.professional_fee_honoria) > 0 ? Math.floor(Number(dbBudget.professional_fee_honoria) / 2258.25) : '';
+      tokensPax.value = Number(dbBudget.tokens) > 0 ? Math.floor(Number(dbBudget.tokens) / 1000) : '';
+snacksSelected.value = {
+        am: !!Number(dbBudget.am_snack_selected),
+        pm: !!Number(dbBudget.pm_snack_selected)
+      };
+
       form.value.budget_items.forEach(item => {
         switch (item.name) {
-          case 'Meals': item.total = Number(dbBudget.meals_and_snacks) || ''; break;
-          case 'Snacks': item.total = ''; break;
+          case 'Meals': item.total = mealsTotal || ''; break;
+          case 'Snacks': item.total = snacksTotal || ''; break;
           case 'Function Room/Venue': item.total = Number(dbBudget.function_room_venue) || ''; break;
           case 'Accommodation': item.total = Number(dbBudget.accommodation) || ''; break;
           case 'Equipment Rental': item.total = Number(dbBudget.equipment_rental) || ''; break;
           case 'Professional Fee/Honoraria': item.total = Number(dbBudget.professional_fee_honoria) || ''; break;
           case 'Token/s': item.total = Number(dbBudget.tokens) || ''; break;
-          case 'Materials and Supplies': item.total = Number(dbBudget.materials_and_supplies) || ''; break;
+          case 'Materials and Supplies': item.total = materialsSupplies || ''; break;
+          case 'Others': item.total = othersTotal || ''; break;
           case 'Transportation': item.total = Number(dbBudget.transportation) || ''; break;
         }
       });
@@ -858,6 +1007,7 @@ watch(() => form.value.control_number, async (newVal) => {
     form.value.activity_classification = '';
     form.value.gad_mandate_id = [];
     form.value.gender_issue_id = [];
+    othersList.value = [];
   }
 });
 
@@ -866,6 +1016,15 @@ const formatBudgetName = (name) => {
   return name.replace(/(\(.*\))/g, '<span class="budget-item-subtext">$1</span>');
 };
 
+
+watch(pfPax, (newPax) => {
+  const item = form.value.budget_items.find(i => i.name === 'Professional Fee/Honoraria');
+  if (item) item.total = (Number(newPax) * 2258.25) || '';
+});
+watch(tokensPax, (newPax) => {
+  const item = form.value.budget_items.find(i => i.name === 'Token/s');
+  if (item) item.total = (Number(newPax) * 1000) || '';
+});
 watch(() => form.value.gad_mandate_id, (newVal) => {
   form.value.gender_issue_id = [];
   fetchGenderIssues(newVal);
@@ -1019,12 +1178,22 @@ const submitReport = async () => {
     
     const budgetObj = {
       meals_and_snacks: (Number(form.value.budget_items.find(i => i.name === 'Meals')?.total || 0) + Number(form.value.budget_items.find(i => i.name === 'Snacks')?.total || 0)),
+      meals_total: Number(form.value.budget_items.find(i => i.name === 'Meals')?.total || 0),
+      snacks_total: Number(form.value.budget_items.find(i => i.name === 'Snacks')?.total || 0),
+      materials_total: Number(form.value.budget_items.find(i => i.name === 'Materials and Supplies')?.total || 0),
+      others_total: Number(form.value.budget_items.find(i => i.name === 'Others')?.total || 0),
+      materials_others_breakdown: JSON.stringify(othersList.value),
+      breakfast_selected: mealsSelected.value.breakfast ? 1 : 0,
+      lunch_selected: mealsSelected.value.lunch ? 1 : 0,
+      dinner_selected: mealsSelected.value.dinner ? 1 : 0,
+      am_snack_selected: snacksSelected.value.am ? 1 : 0,
+      pm_snack_selected: snacksSelected.value.pm ? 1 : 0,
       function_room_venue: Number(form.value.budget_items.find(i => i.name === 'Function Room/Venue')?.total || 0),
       accommodation: Number(form.value.budget_items.find(i => i.name === 'Accommodation')?.total || 0),
       equipment_rental: Number(form.value.budget_items.find(i => i.name === 'Equipment Rental')?.total || 0),
       professional_fee_honoria: Number(form.value.budget_items.find(i => i.name === 'Professional Fee/Honoraria')?.total || 0),
       tokens: Number(form.value.budget_items.find(i => i.name === 'Token/s')?.total || 0),
-      materials_and_supplies: Number(form.value.budget_items.find(i => i.name === 'Materials and Supplies')?.total || 0) + Number(form.value.budget_items.find(i => i.name === 'Others')?.total || 0),
+      materials_and_supplies: (Number(form.value.budget_items.find(i => i.name === 'Materials and Supplies')?.total || 0) + Number(form.value.budget_items.find(i => i.name === 'Others')?.total || 0)),
       transportation: Number(form.value.budget_items.find(i => i.name === 'Transportation')?.total || 0)
     };
     formData.append('budget_items', JSON.stringify(budgetObj));
@@ -1049,7 +1218,16 @@ const submitReport = async () => {
       }
     });
 
-    formData.append('venue', form.value.venue);
+    if (form.value.venue === 'Other') {
+      formData.append('venue', customVenue.value);
+    } else {
+      formData.append('venue', form.value.venue);
+    }
+
+    const selectedClassification = ActClassification.value.find(c => c.classification_name === form.value.activity_classification);
+    if (selectedClassification) {
+        formData.append('activity_classification_id', selectedClassification.id);
+    }
     formData.append('attendees', form.value.attendees);
     formData.append('male', form.value.male);
     formData.append('female', form.value.female);
@@ -1147,6 +1325,9 @@ onMounted(() => {
     fetchApprovedControls();
     fetchHolidays();
     fetchMandates();
+    fetchFormTypes();
+    fetchActivityClassifications();
+    fetchVenues();
   }
   document.addEventListener('click', closeAllHelp);
 });
@@ -1991,5 +2172,56 @@ onUnmounted(() => {
 .fade-pop-leave-from {
   opacity: 1;
   transform: translate(-50%, 0) scale(1);
+}
+
+.select-arrow-fix {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23cbd5e1' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 18px center;
+  padding-right: 40px;
+}
+
+.budget-sub-controls {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+}
+.budget-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #cbd5e1;
+  cursor: pointer;
+}
+.budget-checkbox {
+  accent-color: #b979cc;
+  cursor: pointer;
+  width: 14px;
+  height: 14px;
+}
+
+.budget-number-input-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #cbd5e1;
+}
+.budget-sub-number-input {
+  width: 60px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 13px;
+  text-align: center;
+}
+.budget-sub-number-input:focus {
+  outline: none;
+  border-color: #b979cc;
 }
 </style>

@@ -72,7 +72,7 @@
               <div class="info-item" style="grid-column: span 2;">
                 <span class="info-label">GAD Mandate</span>
                 <div v-if="design.gad_mandate" class="mandate-boxes">
-                  <span v-for="(mandate, index) in design.gad_mandate.split(',')" :key="'m'+index" class="mandate-box">
+                  <span v-for="(mandate, index) in design.gad_mandate.split(';;;')" :key="'m'+index" class="mandate-box">
                     {{ mandate.trim() }}
                   </span>
                 </div>
@@ -81,7 +81,7 @@
               <div class="info-item" style="grid-column: span 2;">
                 <span class="info-label">Gender Issues</span>
                 <div v-if="design.gender_issue" class="mandate-boxes">
-                  <span v-for="(issue, index) in design.gender_issue.split(',')" :key="'i'+index" class="mandate-box">
+                  <span v-for="(issue, index) in design.gender_issue.split(';;;')" :key="'i'+index" class="mandate-box">
                     {{ issue.trim() }}
                   </span>
                 </div>
@@ -129,30 +129,44 @@
                 <span class="material-symbols-outlined icon-pink">payments</span>
                 <h3 class="section-title">Proposed Budgetary Requirements</h3>
               </div>
-              <div v-if="parsedBudget.length" class="budget-content">
-                <div class="budget-table-wrapper">
-                  <table class="budget-table">
-                    <thead class="budget-table-header">
-                      <tr>
-                        <th class="table-header-cell">Budget Item</th>
-                        <th class="table-header-cell budget-total-header">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody class="budget-table-body">
-                      <tr v-for="(item, idx) in parsedBudget" :key="idx" class="budget-table-row">
-                        <td class="budget-item-name" v-html="formatBudgetName(item.name)"></td>
-                        <td class="budget-item-value-cell budget-value-right">
-                          <span class="budget-item-value">₱{{ formatCurrency(item.total) }}</span>
-                        </td>
-                      </tr>
-                    </tbody>
-                    <tfoot class="budget-table-footer">
-                      <tr>
-                        <td class="grand-total-label">Grand Total (PHP)</td>
-                        <td class="grand-total-value-white budget-value-right">₱{{ formatCurrency(design.proposed_budget) }}</td>
-                      </tr>
-                    </tfoot>
-                  </table>
+              <div v-if="parsedBudget.length" class="budget-groups-container">
+                <div v-for="(group, gIdx) in parsedBudget" :key="gIdx" class="budget-group-card">
+                  <div class="budget-group-header">
+                    <span class="budget-group-icon">{{ group.icon }}</span>
+                    <span class="budget-group-title">{{ group.name }}</span>
+                  </div>
+                  <div class="budget-group-content">
+                    <div v-for="(child, cIdx) in group.children" :key="cIdx" class="budget-row-item" :class="{'has-sub-options': child.subOptions}">
+                      <div class="budget-row-header">
+                        <div class="budget-item-info">
+                          <div class="budget-item-title" v-html="formatBudgetName(child.name)"></div>
+                        </div>
+                        <div class="budget-item-value">
+                          <span class="budget-currency-symbol">₱</span>
+                          <div class="budget-card-input-readonly">{{ formatCurrency(child.value) }}</div>
+                        </div>
+                      </div>
+                      <div v-if="child.subOptions" class="budget-sub-options-container">
+                        <label v-for="(opt, oIdx) in child.subOptions" :key="oIdx" class="budget-read-only-checkbox">
+                          <input type="checkbox" :checked="opt.checked" disabled class="budget-checkbox-disabled" />
+                          <span class="budget-checkbox-label-text">{{ opt.label }}</span>
+                        </label>
+                      </div>
+                      <div v-if="child.othersBreakdown && child.othersBreakdown.length" class="budget-others-breakdown-container mt-2">
+                        <div v-for="(o, oIdx) in child.othersBreakdown" :key="oIdx" class="budget-others-breakdown-row" style="display: flex; justify-content: space-between; padding: 4px 12px; background: rgba(0,0,0,0.1); border-radius: 4px; margin-bottom: 4px; font-size: 13px;">
+                          <span style="color: #cbd5e1;">{{ o.name || 'Unnamed Item' }}</span>
+                          <span style="color: #f1f5f9; font-weight: 500;">₱{{ formatCurrency(o.amount) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grand-total-banner-card mt-4">
+                  <div class="grand-total-label-banner">Grand Total (PHP)</div>
+                  <div class="grand-total-value-banner">
+                    ₱{{ formatCurrency(grandTotal) }}
+                  </div>
                 </div>
               </div>
               <div v-else class="empty-budget-notice">
@@ -199,7 +213,7 @@
               </div>
 
               <div>
-                <label class="form-label">End Date of Assessment</label>
+                <label class="form-label">Assessment Date</label>
                 <input 
                   v-model="assessmentDate"
                   type="date" 
@@ -214,7 +228,7 @@
                   v-model="accomplishmentDeadline"
                   type="date" 
                   class="modal-input"
-                  :min="assessmentDate"
+                  :min="design.end_date"
                 >
               </div>
 
@@ -331,6 +345,10 @@ import { useRoute, useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import api from '../../api';
 
+const grandTotal = computed(() => {
+  return parsedBudget.value.reduce((sum, cat) => sum + (Number(cat.total) || 0), 0);
+});
+
 const parseAttachments = (attachmentString) => {
   if (!attachmentString) return [];
   if (Array.isArray(attachmentString)) return attachmentString;
@@ -381,8 +399,8 @@ const getTodayDate = () => {
 const todayDate = ref(getTodayDate());
 
 const maxAccomplishmentDeadline = computed(() => {
-  if (!assessmentDate.value) return todayDate.value;
-  const targetDate = new Date(assessmentDate.value);
+  if (!design.value.end_date) return todayDate.value;
+  const targetDate = new Date(design.value.end_date);
   targetDate.setDate(targetDate.getDate() + 14); // Exactly 14 days (2 weeks)
   return targetDate.toISOString().split('T')[0];
 });
@@ -430,11 +448,7 @@ const fetchDesignDetails = async () => {
         }
       }
       
-      if (design.value.end_date) {
-        assessmentDate.value = design.value.end_date.split(' ')[0];
-      } else {
-        assessmentDate.value = todayDate.value;
-      }
+      assessmentDate.value = todayDate.value;
       
       // Auto-set accomplishment deadline to 2 weeks after
       if (!accomplishmentDeadline.value) {
@@ -470,16 +484,34 @@ const handleApprove = async () => {
     return;
   }
   
-  const assess = new Date(assessmentDate.value);
+  const activityEnd = new Date(design.value.end_date);
   const deadline = new Date(accomplishmentDeadline.value);
-  const diffTime = deadline - assess;
+  const diffTime = deadline - activityEnd;
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Invalid Deadline',
+      text: 'The Accomplishment Deadline cannot be the exact same date as the Activity End Date.',
+      confirmButtonColor: '#ef4444'
+    });
+    return;
+  } else if (diffDays < 0) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Invalid Deadline',
+      text: 'The Accomplishment Deadline cannot be before the Activity End Date.',
+      confirmButtonColor: '#ef4444'
+    });
+    return;
+  }
 
   if (diffDays !== 14) {
     const isMore = diffDays > 14;
     const confirmDeadline = await Swal.fire({
       title: 'Deadline Validation',
-      text: `The selected accomplishment deadline is ${isMore ? 'more' : 'less'} than 2 weeks from the assessment date. Do you want to proceed?`,
+      text: `The selected accomplishment deadline is ${isMore ? 'more' : 'less'} than 2 weeks from the activity end date. Do you want to proceed?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#22c55e',
@@ -693,19 +725,96 @@ const parsedBudget = computed(() => {
   const d = design.value;
   if (!d || !d.act_design_id) return [];
 
-  const catering = Number(d.meals_and_snacks || 0) + Number(d.accommodation || 0);
-  const venue = Number(d.function_room_venue || 0) + Number(d.equipment_rental || 0) + Number(d.transportation || 0);
-  const program = Number(d.professional_fee_honoria || 0) + Number(d.tokens || 0);
-  const materials = Number(d.materials_and_supplies || 0);
+  const dbMeals = Number(d.meals_total || 0);
+  const dbSnacks = Number(d.snacks_total || 0);
+  const legacyMealsSnacks = Number(d.meals_and_snacks || 0);
+
+  let mealsVal = 0;
+  let snacksVal = 0;
+  
+  if (dbMeals === 0 && dbSnacks === 0 && legacyMealsSnacks > 0) {
+      // Fallback for older records
+      mealsVal = legacyMealsSnacks;
+  } else {
+      mealsVal = dbMeals;
+      snacksVal = dbSnacks;
+  }
+
+  const dbMat = Number(d.materials_total || 0);
+  let ob = [];
+  if (d.materials_others_breakdown) {
+    try { ob = JSON.parse(d.materials_others_breakdown); } catch(e){}
+  }
+  const dbOthers = Number(d.others_total) || ob.reduce((s, o) => s + Number(o.amount || 0), 0);
+  const legacyMatOthers = Number(d.materials_and_supplies || 0);
+
+  let matVal = 0;
+  let othersVal = 0;
+
+  if (dbMat === 0 && dbOthers === 0 && legacyMatOthers > 0) {
+      // Fallback for older records
+      matVal = legacyMatOthers;
+  } else {
+      matVal = dbMat;
+      othersVal = dbOthers;
+  }
 
   const items = [
-    { name: 'Catering & Hospitality', total: catering },
-    { name: 'Venue & Logistics', total: venue },
-    { name: 'Program & Speakers', total: program },
-    { name: 'Materials & Miscellaneous', total: materials }
+    {
+      name: 'Catering & Hospitality',
+      icon: '🍽️',
+      total: mealsVal + snacksVal,
+      children: [
+        { 
+          name: 'Meals', 
+          value: mealsVal,
+          subOptions: [
+            { label: 'Breakfast', checked: Number(d.breakfast_selected) === 1 },
+            { label: 'Lunch', checked: Number(d.lunch_selected) === 1 },
+            { label: 'Dinner', checked: Number(d.dinner_selected) === 1 }
+          ]
+        },
+        { 
+          name: 'Snacks', 
+          value: snacksVal,
+          subOptions: [
+            { label: 'AM Snack', checked: Number(d.am_snack_selected) === 1 },
+            { label: 'PM Snack', checked: Number(d.pm_snack_selected) === 1 }
+          ]
+        }
+      ]
+    },
+    {
+      name: 'Venue & Logistics',
+      icon: '🏛️',
+      total: Number(d.function_room_venue || 0) + Number(d.accommodation || 0) + Number(d.equipment_rental || 0) + Number(d.transportation || 0),
+      children: [
+        { name: 'Function Room/Venue', value: Number(d.function_room_venue || 0) },
+        { name: 'Accommodation', value: Number(d.accommodation || 0) },
+        { name: 'Equipment Rental', value: Number(d.equipment_rental || 0) },
+        { name: 'Transportation', value: Number(d.transportation || 0) }
+      ]
+    },
+    {
+      name: 'Program & Speakers',
+      icon: '🎤',
+      total: Number(d.professional_fee_honoria || 0) + Number(d.tokens || 0),
+      children: [
+        { name: `Professional Fee/Honoraria ${Number(d.professional_fee_honoria || 0) > 0 ? `(Number of Speakers: ${Math.floor(Number(d.professional_fee_honoria || 0) / 2258.25)})` : ''}`, value: Number(d.professional_fee_honoria || 0) },
+        { name: `Token/s ${Number(d.tokens || 0) > 0 ? `(Number of Recipients: ${Math.floor(Number(d.tokens || 0) / 1000)})` : ''}`, value: Number(d.tokens || 0) }
+      ]
+    },
+    {
+      name: 'Materials & Miscellaneous',
+      icon: '📦',
+      total: matVal + othersVal,
+      children: [
+        { name: 'Materials and Supplies', value: matVal },
+        { name: 'Others', value: othersVal, othersBreakdown: ob }
+      ]
+    }
   ];
-
-  return items.filter(item => Number(item.total) > 0);
+  return items;
 });
 
 const formatCurrency = (amount) => {
@@ -1113,4 +1222,141 @@ button { transition: all 0.2s ease-in-out; cursor: pointer; }
   line-height: 1.4;
 }
 
+
+/* GAD Grouped Budget Styles */
+.budget-groups-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+.budget-group-card {
+  background: rgba(30, 41, 59, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+.budget-group-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+.budget-group-icon { font-size: 18px; }
+.budget-group-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #b979cc;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.budget-group-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.budget-row-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.budget-row-item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+.budget-row-item.has-sub-options {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+.budget-row-header {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
+}
+.budget-sub-options-container {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-left: 8px;
+  margin-top: -4px;
+}
+.budget-read-only-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: not-allowed;
+  opacity: 0.9;
+}
+.budget-checkbox-disabled {
+  accent-color: #b979cc;
+  width: 15px;
+  height: 15px;
+}
+.budget-checkbox-label-text {
+  font-size: 13px;
+  color: #cbd5e1;
+}
+.budget-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-grow: 1;
+}
+.budget-item-title {
+  font-weight: 600;
+  color: #f1f5f9;
+  font-size: 14px;
+}
+.budget-item-value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 160px;
+  flex-shrink: 0;
+  justify-content: flex-end;
+}
+.budget-currency-symbol {
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 600;
+}
+.budget-card-input-readonly {
+  color: #ffffff;
+  font-size: 14px;
+  padding: 8px 12px;
+  width: 100%;
+  text-align: right;
+  font-weight: 600;
+}
+.grand-total-banner-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, rgba(185, 121, 204, 0.1) 0%, rgba(153, 13, 209, 0.1) 100%);
+  border: 1px solid rgba(185, 121, 204, 0.3);
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 4px 15px -3px rgba(185, 121, 204, 0.1);
+}
+.grand-total-label-banner {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.grand-total-value-banner {
+  font-size: 20px;
+  font-weight: 800;
+  color: #b979cc;
+  text-shadow: 0 0 10px rgba(185, 121, 204, 0.2);
+}
 </style>

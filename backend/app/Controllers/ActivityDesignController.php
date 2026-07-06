@@ -250,8 +250,8 @@ class ActivityDesignController extends BaseController
         $activityDesignModel = new ActivityDesignModel();
         $design = $activityDesignModel
             ->select('activity_design.*, control_number.control_number as control, office_units.office_name as office, users.full_name as submitter_name, activity_design.start_date as date, venues.venue_name as venue, activity_classifications.classification_name as activity_classification, form_types.name as form_type_name')
-            ->select('(SELECT GROUP_CONCAT(gm.title SEPARATOR ", ") FROM activity_design_mandates adm JOIN gad_mandates gm ON gm.id = adm.mandate_id WHERE adm.act_design_id = activity_design.act_design_id) as gad_mandate')
-            ->select('(SELECT GROUP_CONCAT(gi.title SEPARATOR ", ") FROM activity_design_issues adi JOIN gender_issues gi ON gi.id = adi.issue_id WHERE adi.act_design_id = activity_design.act_design_id) as gender_issue')
+            ->select('(SELECT GROUP_CONCAT(CONCAT(gm.code, " - ", gm.title) SEPARATOR ";;; ") FROM activity_design_mandates adm JOIN gad_mandates gm ON gm.id = adm.mandate_id WHERE adm.act_design_id = activity_design.act_design_id) as gad_mandate')
+            ->select('(SELECT GROUP_CONCAT(gi.title SEPARATOR ";;; ") FROM activity_design_issues adi JOIN gender_issues gi ON gi.id = adi.issue_id WHERE adi.act_design_id = activity_design.act_design_id) as gender_issue')
             ->select('(SELECT GROUP_CONCAT(adm.mandate_id SEPARATOR ",") FROM activity_design_mandates adm WHERE adm.act_design_id = activity_design.act_design_id) as gad_mandate_ids')
             ->select('(SELECT GROUP_CONCAT(adi.issue_id SEPARATOR ",") FROM activity_design_issues adi WHERE adi.act_design_id = activity_design.act_design_id) as gender_issue_ids')
             ->join('users', 'users.id = activity_design.user_id', 'left')
@@ -268,8 +268,8 @@ class ActivityDesignController extends BaseController
             $db = \Config\Database::connect();
             $design = $db->table('archived_activity_designs as aad')
                 ->select('aad.*, aad.original_act_design_id as act_design_id, aad.activity_title as title, form_types.name as formLabel, office_units.office_name as office, users.full_name as submitter_name, aad.start_date as date, venues.venue_name as venue, activity_classifications.classification_name as activity_classification, form_types.name as form_type_name')
-                ->select('COALESCE((SELECT GROUP_CONCAT(gm.title SEPARATOR ", ") FROM archived_activity_design_mandates adm JOIN gad_mandates gm ON gm.id = adm.mandate_id WHERE adm.archive_id = aad.archive_id), (SELECT title FROM gad_mandates WHERE id = aad.gad_mandate_id)) as gad_mandate')
-                ->select('COALESCE((SELECT GROUP_CONCAT(gi.title SEPARATOR ", ") FROM archived_activity_design_issues adi JOIN gender_issues gi ON gi.id = adi.issue_id WHERE adi.archive_id = aad.archive_id), (SELECT title FROM gender_issues WHERE id = aad.gender_issue_id)) as gender_issue')
+                ->select('COALESCE((SELECT GROUP_CONCAT(CONCAT(gm.code, " - ", gm.title) SEPARATOR ";;; ") FROM archived_activity_design_mandates adm JOIN gad_mandates gm ON gm.id = adm.mandate_id WHERE adm.archive_id = aad.archive_id), (SELECT CONCAT(code, " - ", title) FROM gad_mandates WHERE id = aad.gad_mandate_id)) as gad_mandate')
+                ->select('COALESCE((SELECT GROUP_CONCAT(gi.title SEPARATOR ";;; ") FROM archived_activity_design_issues adi JOIN gender_issues gi ON gi.id = adi.issue_id WHERE adi.archive_id = aad.archive_id), (SELECT title FROM gender_issues WHERE id = aad.gender_issue_id)) as gender_issue')
                 ->select('(SELECT GROUP_CONCAT(adm.mandate_id SEPARATOR ",") FROM archived_activity_design_mandates adm WHERE adm.archive_id = aad.archive_id) as gad_mandate_ids')
                 ->select('(SELECT GROUP_CONCAT(adi.issue_id SEPARATOR ",") FROM archived_activity_design_issues adi WHERE adi.archive_id = aad.archive_id) as gender_issue_ids')
                 ->join('users', 'users.id = aad.user_id', 'left')

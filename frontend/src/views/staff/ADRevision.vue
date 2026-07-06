@@ -604,6 +604,7 @@ const tokensPax = ref('');
 const othersList = ref([]);
 const customMandate = ref('');
 const customGenderIssue = ref('');
+const loadingData = ref(false);
 
 const addOtherItem = () => {
   othersList.value.push({ name: '', amount: '' });
@@ -617,6 +618,7 @@ const removeOtherItem = (index) => {
 watch(
   [mealsSelected, () => formData.value.target_participants, computedDays, isOutsideBsu],
   () => {
+    if (loadingData.value) return;
     const item = formData.value.budget_items.find(i => i.name === 'Meals');
     if (item) {
       const mealsCount = (mealsSelected.value.breakfast ? 1 : 0) + (mealsSelected.value.lunch ? 1 : 0) + (mealsSelected.value.dinner ? 1 : 0);
@@ -632,6 +634,7 @@ watch(
 watch(
   [snacksSelected, () => formData.value.target_participants, computedDays, isOutsideBsu],
   () => {
+    if (loadingData.value) return;
     const item = formData.value.budget_items.find(i => i.name === 'Snacks');
     if (item) {
       const snacksCount = (snacksSelected.value.am ? 1 : 0) + (snacksSelected.value.pm ? 1 : 0);
@@ -645,6 +648,7 @@ watch(
 );
 
 watch(pfPax, (newPax) => {
+  if (loadingData.value) return;
   const item = formData.value.budget_items.find(i => i.name === 'Professional Fee/Honoria');
   if (item) {
     item.total = (Number(newPax) * 2258.25) || '';
@@ -652,6 +656,7 @@ watch(pfPax, (newPax) => {
 });
 
 watch(tokensPax, (newPax) => {
+  if (loadingData.value) return;
   const item = formData.value.budget_items.find(i => i.name === 'Token/s');
   if (item) {
     item.total = (Number(newPax) * 1000) || '';
@@ -659,6 +664,7 @@ watch(tokensPax, (newPax) => {
 });
 
 watch(() => formData.value.target_participants, (newPax) => {
+  if (loadingData.value) return;
   const item = formData.value.budget_items.find(i => i.name === 'Materials and Supplies');
   if (item) {
     item.total = (Number(newPax) * 1000) || '';
@@ -668,6 +674,7 @@ watch(() => formData.value.target_participants, (newPax) => {
 watch(
   othersList,
   (newList) => {
+    if (loadingData.value) return;
     const item = formData.value.budget_items.find(i => i.name === 'Others');
     if (item) {
       const sum = newList.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
@@ -745,6 +752,7 @@ watch(() => formData.value.gad_mandate, (newVal) => {
 
 const fetchDesignDetails = async () => {
   loading.value = true;
+  loadingData.value = true;
   try {
     const id = route.params.id;
     const response = await api.get(`activity-design/${id}`);
@@ -764,61 +772,49 @@ const fetchDesignDetails = async () => {
       }
 
       // Initialize default structures
-      mealsSelected.value = { breakfast: false, lunch: false, dinner: false };
-      snacksSelected.value = { am: false, pm: false };
-      pfPax.value = '';
-      tokensPax.value = '';
-      othersList.value = [];
-
-      let mealsTotal = 0;
-      let snacksTotal = 0;
-      let functionRoomVenue = '';
-      let accommodation = '';
-      let equipmentRental = '';
-      let professionalFee = '';
-      let tokensVal = '';
-      let materialsSupplies = '';
-      let transportation = '';
-      let othersTotal = 0;
-
-      if (design.value.budget_items && design.value.budget_items.length > 0) {
-        design.value.budget_items.forEach(bi => {
-          const amt = Number(bi.amount) || 0;
-          if (bi.item_name === 'Meals') {
-            mealsTotal += amt;
-            if (bi.sub_item) {
-              mealsSelected.value[bi.sub_item.toLowerCase()] = true;
-            }
-          } else if (bi.item_name === 'Snacks') {
-            snacksTotal += amt;
-            if (bi.sub_item) {
-              const subKey = bi.sub_item.startsWith('AM') ? 'am' : 'pm';
-              snacksSelected.value[subKey] = true;
-            }
-          } else if (bi.item_name === 'Function Room/Venue') {
-            functionRoomVenue = amt || '';
-          } else if (bi.item_name === 'Accommodation') {
-            accommodation = amt || '';
-          } else if (bi.item_name === 'Equipment Rental') {
-            equipmentRental = amt || '';
-          } else if (bi.item_name === 'Professional Fee/Honoria') {
-            professionalFee = amt || '';
-            if (bi.pax) pfPax.value = bi.pax;
-          } else if (bi.item_name === 'Token/s') {
-            tokensVal = amt || '';
-            if (bi.pax) tokensPax.value = bi.pax;
-          } else if (bi.item_name === 'Materials and Supplies') {
-            materialsSupplies = amt || '';
-          } else if (bi.item_name === 'Transportation') {
-            transportation = amt || '';
-          } else if (bi.item_name === 'Others') {
-            othersTotal += amt;
-            if (bi.sub_item) {
-              othersList.value.push({ name: bi.sub_item, amount: amt });
-            }
-          }
-        });
+      mealsSelected.value = { 
+        breakfast: !!Number(design.value.breakfast_selected), 
+        lunch: !!Number(design.value.lunch_selected), 
+        dinner: !!Number(design.value.dinner_selected) 
+      };
+      snacksSelected.value = { 
+        am: !!Number(design.value.am_snack_selected), 
+        pm: !!Number(design.value.pm_snack_selected) 
+      };
+      pfPax.value = Number(design.value.professional_fee_honoria) > 0 ? Math.floor(Number(design.value.professional_fee_honoria) / 2258.25) : '';
+      tokensPax.value = Number(design.value.tokens) > 0 ? Math.floor(Number(design.value.tokens) / 1000) : '';
+      if (design.value.materials_others_breakdown) {
+        try {
+          othersList.value = JSON.parse(design.value.materials_others_breakdown);
+        } catch(e) {
+          othersList.value = [];
+        }
+      } else {
+        othersList.value = [];
       }
+
+      const dbMeals = Number(design.value.meals_total || 0);
+      const dbSnacks = Number(design.value.snacks_total || 0);
+      const legacyMealsSnacks = Number(design.value.meals_and_snacks || 0);
+      let mealsTotal = (dbMeals === 0 && dbSnacks === 0 && legacyMealsSnacks > 0) ? legacyMealsSnacks : dbMeals;
+      let snacksTotal = dbSnacks || '';
+
+      const dbMat = Number(design.value.materials_total || 0);
+      let ob = [];
+      if (design.value.materials_others_breakdown) {
+        try { ob = JSON.parse(design.value.materials_others_breakdown); } catch(e){}
+      }
+      const dbOthers = Number(design.value.others_total) || ob.reduce((s, o) => s + Number(o.amount || 0), 0);
+      const legacyMatOthers = Number(design.value.materials_and_supplies || 0);
+      let materialsSupplies = (dbMat === 0 && dbOthers === 0 && legacyMatOthers > 0) ? legacyMatOthers : dbMat;
+      let othersTotal = dbOthers || '';
+
+      let functionRoomVenue = Number(design.value.function_room_venue) || '';
+      let accommodation = Number(design.value.accommodation) || '';
+      let equipmentRental = Number(design.value.equipment_rental) || '';
+      let professionalFee = Number(design.value.professional_fee_honoria) || '';
+      let tokensVal = Number(design.value.tokens) || '';
+      let transportation = Number(design.value.transportation) || '';
 
       formData.value = {
         activity_title: design.value.activity_title,
@@ -858,6 +854,10 @@ const fetchDesignDetails = async () => {
     error.value = "Failed to load activity design details.";
   } finally {
     loading.value = false;
+    // We add a tiny delay to allow Vue to process reactive updates before enabling watchers
+    setTimeout(() => {
+      loadingData.value = false;
+    }, 100);
   }
 };
 
@@ -926,6 +926,16 @@ const handleUpdate = async () => {
 
     const budgetObj = {
       meals_and_snacks: (Number(formData.value.budget_items.find(i => i.name === 'Meals')?.total || 0) + Number(formData.value.budget_items.find(i => i.name === 'Snacks')?.total || 0)),
+      meals_total: Number(formData.value.budget_items.find(i => i.name === 'Meals')?.total || 0),
+      snacks_total: Number(formData.value.budget_items.find(i => i.name === 'Snacks')?.total || 0),
+      materials_total: Number(formData.value.budget_items.find(i => i.name === 'Materials and Supplies')?.total || 0),
+      others_total: Number(formData.value.budget_items.find(i => i.name === 'Others')?.total || 0),
+      materials_others_breakdown: JSON.stringify(othersList.value),
+      breakfast_selected: mealsSelected.value.breakfast ? 1 : 0,
+      lunch_selected: mealsSelected.value.lunch ? 1 : 0,
+      dinner_selected: mealsSelected.value.dinner ? 1 : 0,
+      am_snack_selected: snacksSelected.value.am ? 1 : 0,
+      pm_snack_selected: snacksSelected.value.pm ? 1 : 0,
       function_room_venue: Number(formData.value.budget_items.find(i => i.name === 'Function Room/Venue')?.total || 0),
       accommodation: Number(formData.value.budget_items.find(i => i.name === 'Accommodation')?.total || 0),
       equipment_rental: Number(formData.value.budget_items.find(i => i.name === 'Equipment Rental')?.total || 0),

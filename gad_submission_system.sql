@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 01, 2026 at 07:23 AM
+-- Generation Time: Jul 06, 2026 at 03:23 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -31,13 +31,22 @@ CREATE TABLE `accomplishment_budget_items` (
   `item_id` int(11) NOT NULL,
   `accomplishment_report_id` int(11) NOT NULL,
   `meals_and_snacks` decimal(15,2) DEFAULT 0.00,
+  `meals_total` decimal(15,2) DEFAULT 0.00,
+  `snacks_total` decimal(15,2) DEFAULT 0.00,
+  `breakfast_selected` tinyint(1) DEFAULT 0,
+  `lunch_selected` tinyint(1) DEFAULT 0,
+  `dinner_selected` tinyint(1) DEFAULT 0,
+  `am_snack_selected` tinyint(1) DEFAULT 0,
+  `pm_snack_selected` tinyint(1) DEFAULT 0,
   `function_room_venue` decimal(15,2) DEFAULT 0.00,
   `accommodation` decimal(15,2) DEFAULT 0.00,
   `equipment_rental` decimal(15,2) DEFAULT 0.00,
   `professional_fee_honoria` decimal(15,2) DEFAULT 0.00,
   `tokens` decimal(15,2) DEFAULT 0.00,
   `materials_and_supplies` decimal(15,2) DEFAULT 0.00,
-  `transportation` decimal(15,2) DEFAULT 0.00
+  `others_total` decimal(15,2) DEFAULT 0.00,
+  `transportation` decimal(15,2) DEFAULT 0.00,
+  `materials_others_breakdown` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -105,7 +114,17 @@ CREATE TABLE `activity_budget_items` (
   `professional_fee_honoria` decimal(15,2) DEFAULT 0.00,
   `tokens` decimal(15,2) DEFAULT 0.00,
   `materials_and_supplies` decimal(15,2) DEFAULT 0.00,
-  `transportation` decimal(15,2) DEFAULT 0.00
+  `transportation` decimal(15,2) DEFAULT 0.00,
+  `meals_total` decimal(10,2) DEFAULT 0.00,
+  `snacks_total` decimal(10,2) DEFAULT 0.00,
+  `materials_total` decimal(10,2) DEFAULT 0.00,
+  `others_total` decimal(10,2) DEFAULT 0.00,
+  `breakfast_selected` tinyint(1) DEFAULT 0,
+  `lunch_selected` tinyint(1) DEFAULT 0,
+  `dinner_selected` tinyint(1) DEFAULT 0,
+  `am_snack_selected` tinyint(1) DEFAULT 0,
+  `pm_snack_selected` tinyint(1) DEFAULT 0,
+  `materials_others_breakdown` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -147,7 +166,7 @@ CREATE TABLE `activity_design` (
   `gpb_id` int(11) DEFAULT NULL,
   `venue` varchar(255) DEFAULT NULL,
   `target_participants` int(11) DEFAULT NULL,
-  `proposed_budget` int(8) DEFAULT NULL,
+  `proposed_budget` decimal(15,2) DEFAULT NULL,
   `form_type` varchar(255) NOT NULL,
   `remarks` text DEFAULT NULL,
   `accomplishment_deadline` date DEFAULT NULL,
@@ -282,7 +301,7 @@ CREATE TABLE `archived_activity_designs` (
   `gpb_id` int(11) DEFAULT NULL,
   `venue` varchar(255) DEFAULT NULL,
   `target_participants` int(11) DEFAULT NULL,
-  `proposed_budget` int(8) DEFAULT NULL,
+  `proposed_budget` decimal(15,2) DEFAULT NULL,
   `form_type` varchar(255) NOT NULL,
   `assessment_date` date DEFAULT NULL,
   `accomplishment_deadline` date DEFAULT NULL,
@@ -417,9 +436,8 @@ INSERT INTO `gad_mandates` (`id`, `code`, `title`, `status`, `budget`, `responsi
 (27, 'RMOBS', 'Repair and Maintenance Office Building and other Structures', 'active', '₱12,285,000.00', 'OSS'),
 (28, 'BIDEC', 'Bamboo Industry Development for Environment Conservation and Countryside', 'active', '₱12,285,000.00', 'OSS'),
 (29, 'SIAS', 'Benguet State University Student Information and Accounting System (SIAS)', 'active', '₱12,285,000.00', 'OSS'),
-(30, 'CUSTOM', 'new 1', 'active', '₱0.00', 'OSS'),
-(31, 'CUSTOM', 'dcsdcs123', 'active', '₱0.00', 'OSS'),
-(32, 'CUSTOM', 'reteewwerw123', 'active', '₱0.00', 'OSS');
+(33, 'CUSTOM', 'Test 1', 'active', '₱0.00', 'OSS'),
+(34, 'CUSTOM', 'Test 2', 'active', '₱0.00', 'OSS');
 
 -- --------------------------------------------------------
 
@@ -527,7 +545,8 @@ INSERT INTO `gender_issues` (`id`, `mandate_id`, `title`, `gad_objective`, `stat
 (27, 25, 'Sustained operations of the existing GAD Office-Provision of administrative, logistical, and financial support for the day-to-day functioning of the GAD Office maintenance of GAD database and documentation systems coordination of GFPS and GAD-related acti', 'To ensure the continuous and efficient operation of a functional, gender-responsive GAD Office that leads, monitors, and evaluates GAD mainstreaming efforts in the university.', 'active'),
 (28, 30, 'new 1', NULL, 'active'),
 (29, 31, 'sdcsdcs123', NULL, 'active'),
-(30, 32, 'fcwedcwe123', NULL, 'active');
+(30, 32, 'fcwedcwe123', NULL, 'active'),
+(31, 1, 'Test 1', NULL, 'active');
 
 -- --------------------------------------------------------
 
@@ -798,8 +817,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `email`, `email_verified_at`, `password`, `reset_token`, `reset_token_expires_at`, `role`, `full_name`, `student_id`, `office_id`, `year_level`, `user_acronym`, `remember_token`, `deleted_at`, `created_at`, `updated_at`, `last_login`) VALUES
-(1, 'Gender and Development Office', 'gad.office@bsu.edu.ph', NULL, '$2y$10$a9XVQgTdygySA0E7XCNf4euNdZmuXjqGxSvUbQEzd5X7qiFmPNae6', NULL, NULL, 'admin', 'Jude Tayaben', NULL, 1, NULL, 'GAD', NULL, NULL, '2026-05-25 11:58:10', '2026-07-01 02:33:49', '2026-07-01 02:33:49'),
-(2, 'College of Agriculture', 'ca@bsu.edu.ph', NULL, '$2y$10$CKShTYh97GNm4C1Y20XFneDWhDBXhvtNyUwftPM9aDAbz4u9mz6Jy', NULL, NULL, 'twg', 'CA TWG', NULL, 2, NULL, 'CA', NULL, NULL, '2026-05-25 11:58:10', '2026-07-01 02:34:06', '2026-07-01 02:34:06'),
+(1, 'Gender and Development Office', 'gad.office@bsu.edu.ph', NULL, '$2y$10$a9XVQgTdygySA0E7XCNf4euNdZmuXjqGxSvUbQEzd5X7qiFmPNae6', NULL, NULL, 'admin', 'Jude Tayaben', NULL, 1, NULL, 'GAD', NULL, NULL, '2026-05-25 11:58:10', '2026-07-06 11:57:45', '2026-07-06 11:57:45'),
+(2, 'College of Agriculture', 'ca@bsu.edu.ph', NULL, '$2y$10$CKShTYh97GNm4C1Y20XFneDWhDBXhvtNyUwftPM9aDAbz4u9mz6Jy', NULL, NULL, 'twg', 'CA TWG', NULL, 2, NULL, 'CA', NULL, NULL, '2026-05-25 11:58:10', '2026-07-06 11:58:08', '2026-07-06 11:58:08'),
 (3, 'Registrar\'s Office BSU Buguias Campus', 'buguias.registrar@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'twg', NULL, NULL, 3, NULL, 'Buguias-RO', NULL, NULL, '2026-05-25 11:58:10', '2026-06-29 11:52:25', '2026-06-29 04:00:21'),
 (4, 'Human Resources and Management Office BSU Bokod Campus', 'bokod.hrmo@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'twg', NULL, NULL, 4, NULL, NULL, 'Bokod-HRMO', NULL, '2026-05-25 11:58:10', '2026-06-29 11:52:25', NULL),
 (5, 'International Relations Office', 'iro@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'twg', NULL, NULL, 5, NULL, 'IRO', NULL, NULL, '2026-05-25 11:58:10', '2026-06-29 11:52:25', NULL),
@@ -844,7 +863,7 @@ INSERT INTO `users` (`id`, `username`, `email`, `email_verified_at`, `password`,
 (44, 'Open University', 'ou@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'twg', NULL, NULL, 44, NULL, 'OU', NULL, NULL, '2026-05-25 11:58:10', '2026-06-29 11:52:25', NULL),
 (45, 'College of Education BSU Bokod Campus', 'bokod.ce@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'twg', NULL, NULL, 45, NULL, 'Bokod-CE', NULL, NULL, '2026-05-25 11:58:10', '2026-06-29 11:52:25', NULL),
 (46, 'College of Forestry', 'cf@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'twg', NULL, NULL, 46, NULL, 'CF', NULL, NULL, '2026-05-25 11:58:10', '2026-06-29 11:52:25', NULL),
-(47, 'gad.staff', 'gad.staff@bsu.edu.ph', NULL, '$2y$12$fbD/jvk.znEQnBmKq4.ebOojmijHJO/zU7.P7Tzo.zV3FgvP8PzNe', NULL, NULL, 'gad_staff', 'GAD Staff', NULL, 1, NULL, 'GAD-STAFF', NULL, NULL, '2026-03-26 15:53:56', '2026-07-01 02:33:55', '2026-07-01 02:33:55'),
+(47, 'gad.staff', 'gad.staff@bsu.edu.ph', NULL, '$2y$12$fbD/jvk.znEQnBmKq4.ebOojmijHJO/zU7.P7Tzo.zV3FgvP8PzNe', NULL, NULL, 'gad_staff', 'GAD Staff', NULL, 1, NULL, 'GAD-STAFF', NULL, NULL, '2026-03-26 15:53:56', '2026-07-06 11:57:43', '2026-07-06 11:57:43'),
 (51, 'marksantos', 'marksantos@gmail.com', NULL, '$2y$10$vEdSBaP5YNzsdUal1Ajwhuk/4moO5JVDu.I6VpCEG3N85F3KEimXe', NULL, NULL, 'non-twg', 'Mark Santos', NULL, 32, NULL, NULL, NULL, NULL, '2026-06-17 12:57:12', '2026-06-30 01:05:39', '2026-06-30 01:05:39'),
 (52, 'bisayotduligas', 'bisayotduligas@gmail.com', NULL, '$2y$10$YgMBMgszFRJ2dJBHbSAu.uFj1D9jXSQgs.Z8gMg0MSZ6C4Kd.FIF.', NULL, NULL, 'non-twg', 'Joshua Duligas', NULL, 32, NULL, NULL, NULL, NULL, '2026-06-25 02:46:48', '2026-06-29 11:52:25', '2026-06-25 07:39:59');
 
@@ -1167,25 +1186,25 @@ ALTER TABLE `venues`
 -- AUTO_INCREMENT for table `accomplishment_budget_items`
 --
 ALTER TABLE `accomplishment_budget_items`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `accomplishment_evaluation_results`
 --
 ALTER TABLE `accomplishment_evaluation_results`
-  MODIFY `evaluation_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `evaluation_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `accomplishment_report`
 --
 ALTER TABLE `accomplishment_report`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `activity_budget_items`
 --
 ALTER TABLE `activity_budget_items`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT for table `activity_classifications`
@@ -1197,25 +1216,25 @@ ALTER TABLE `activity_classifications`
 -- AUTO_INCREMENT for table `activity_design`
 --
 ALTER TABLE `activity_design`
-  MODIFY `act_design_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `act_design_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
 
 --
 -- AUTO_INCREMENT for table `activity_design_issues`
 --
 ALTER TABLE `activity_design_issues`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=96;
 
 --
 -- AUTO_INCREMENT for table `activity_design_mandates`
 --
 ALTER TABLE `activity_design_mandates`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=97;
 
 --
 -- AUTO_INCREMENT for table `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=193;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=253;
 
 --
 -- AUTO_INCREMENT for table `archived_accomplishment_budget_items`
@@ -1239,19 +1258,19 @@ ALTER TABLE `archived_activity_budget_items`
 -- AUTO_INCREMENT for table `archived_activity_designs`
 --
 ALTER TABLE `archived_activity_designs`
-  MODIFY `archive_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `archive_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- AUTO_INCREMENT for table `archived_activity_design_issues`
 --
 ALTER TABLE `archived_activity_design_issues`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
 
 --
 -- AUTO_INCREMENT for table `archived_activity_design_mandates`
 --
 ALTER TABLE `archived_activity_design_mandates`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
 
 --
 -- AUTO_INCREMENT for table `budget_realignment_logs`
@@ -1263,7 +1282,7 @@ ALTER TABLE `budget_realignment_logs`
 -- AUTO_INCREMENT for table `control_number`
 --
 ALTER TABLE `control_number`
-  MODIFY `control_number_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `control_number_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
 
 --
 -- AUTO_INCREMENT for table `form_types`
@@ -1275,7 +1294,7 @@ ALTER TABLE `form_types`
 -- AUTO_INCREMENT for table `gad_mandates`
 --
 ALTER TABLE `gad_mandates`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT for table `gad_plan_budget`
@@ -1287,7 +1306,7 @@ ALTER TABLE `gad_plan_budget`
 -- AUTO_INCREMENT for table `gender_issues`
 --
 ALTER TABLE `gender_issues`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT for table `gpb_budget_breakdown`

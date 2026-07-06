@@ -828,7 +828,7 @@ const fetchGADMandates = async () => {
 
 const fetchGenderIssues = async (mandateIds) => {
   const ids = mandateIds || form.value?.gad_mandate_id || gad_mandate_id?.value;
-  if (!ids || !Array.isArray(ids) || ids.length === 0 || ids.includes('Other')) {
+  if (!ids || !Array.isArray(ids) || ids.length === 0 ) {
     genderIssues.value = [];
     return;
   }
@@ -1232,6 +1232,16 @@ const submitActivityDesign = async () => {
 
     const budgetObj = {
       meals_and_snacks: (Number(form.value.budget_items.find(i => i.name === 'Meals')?.total || 0) + Number(form.value.budget_items.find(i => i.name === 'Snacks')?.total || 0)),
+      meals_total: Number(form.value.budget_items.find(i => i.name === 'Meals')?.total || 0),
+      snacks_total: Number(form.value.budget_items.find(i => i.name === 'Snacks')?.total || 0),
+      materials_total: Number(form.value.budget_items.find(i => i.name === 'Materials and Supplies')?.total || 0),
+      others_total: Number(form.value.budget_items.find(i => i.name === 'Others')?.total || 0),
+      materials_others_breakdown: JSON.stringify(othersList.value),
+      breakfast_selected: mealsSelected.value.breakfast ? 1 : 0,
+      lunch_selected: mealsSelected.value.lunch ? 1 : 0,
+      dinner_selected: mealsSelected.value.dinner ? 1 : 0,
+      am_snack_selected: snacksSelected.value.am ? 1 : 0,
+      pm_snack_selected: snacksSelected.value.pm ? 1 : 0,
       function_room_venue: Number(form.value.budget_items.find(i => i.name === 'Function Room/Venue')?.total || 0),
       accommodation: Number(form.value.budget_items.find(i => i.name === 'Accommodation')?.total || 0),
       equipment_rental: Number(form.value.budget_items.find(i => i.name === 'Equipment Rental')?.total || 0),
