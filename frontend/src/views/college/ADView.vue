@@ -322,8 +322,8 @@ const parsedBudget = computed(() => {
       icon: '🎤',
       total: Number(d.professional_fee_honoria || 0) + Number(d.tokens || 0),
       children: [
-        { name: `Professional Fee/Honoraria ${Number(d.professional_fee_honoria || 0) > 0 ? `(Number of Speakers: ${Math.floor(Number(d.professional_fee_honoria || 0) / 2258.25)})` : ''}`, value: Number(d.professional_fee_honoria || 0) },
-        { name: `Token/s ${Number(d.tokens || 0) > 0 ? `(Number of Recipients: ${Math.floor(Number(d.tokens || 0) / 1000)})` : ''}`, value: Number(d.tokens || 0) }
+        { name: `Professional Fee/Honoraria ${Number(d.professional_fee_honoria || 0) > 0 ? `(Number of Speakers: ${d.pf_pax || 0})` : ''}`, value: Number(d.professional_fee_honoria || 0) },
+        { name: `Token/s ${Number(d.tokens || 0) > 0 ? `(Number of Recipients: ${d.tokens_pax || 0})` : ''}`, value: Number(d.tokens || 0) }
       ]
     },
     {
@@ -459,7 +459,7 @@ const pdfFileUrl = ref('');
 const previewFile = (fileName) => {
   if (!fileName) return;
   const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api/', '') : 'https://gad-ams-2-1.onrender.com');
-  const folder = design.value.is_archived ? 'archived' : 'drafts';
+  const folder = Number(design.value.is_archived) === 1 ? 'archived' : 'drafts';
   pdfFileUrl.value = `${base}/api/files/${folder}/${fileName}`;
   isPdfModalOpen.value = true;
 };

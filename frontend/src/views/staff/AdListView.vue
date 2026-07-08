@@ -67,6 +67,21 @@
                 </select>
                 <span class="select-arrow">▼</span>
               </div>
+
+              <div class="select-wrapper">
+                <select 
+                  v-model="filters.sort"
+                  class="filter-select"
+                >
+                  <option value="oldest_submission">Oldest Submission</option>
+                  <option value="newest_submission">Newest Submission</option>
+                  <option value="earliest_implementation">Earliest Implementation Date</option>
+                  <option value="latest_implementation">Furthest Implementation Date</option>
+                  <option value="title_asc">Title (A-Z)</option>
+                  <option value="title_desc">Title (Z-A)</option>
+                </select>
+                <span class="select-arrow">▼</span>
+              </div>
             </div>
 
             <div class="per-page-controls">
@@ -110,7 +125,10 @@
                     class="table-row"
                   >
                     <td class="table-cell title-cell">
-                      {{ item.title }}
+                      <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        {{ item.title }}
+                        <span v-if="isRush(item)" class="rush-badge">RUSH</span>
+                      </div>
                     </td>
                     <td class="table-cell office-cell">
                       {{ item.office }}
@@ -183,7 +201,8 @@ const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 const filters = ref({
   search: '',
   office: 'all',
-  status: 'all'
+  status: 'all',
+  sort: 'oldest_submission'
 });
 
 const officeOptions = ref([]);
@@ -203,10 +222,10 @@ const metricsStats = ref([
 ]);
 
 const filteredDesigns = computed(() => {
-  let records = activityDesigns.value;
+  let records = [...activityDesigns.value];
   if (filters.value.search) {
     const q = filters.value.search.toLowerCase();
-    records = records.filter(i => i.control.toLowerCase().includes(q) || i.title.toLowerCase().includes(q));
+    records = records.filter(i => (i.control && i.control.toLowerCase().includes(q)) || (i.title && i.title.toLowerCase().includes(q)));
   }
   if (filters.value.office !== 'all') {
     records = records.filter(i => i.office === filters.value.office);
@@ -214,6 +233,26 @@ const filteredDesigns = computed(() => {
   if (filters.value.status !== 'all') {
     records = records.filter(i => i.status === filters.value.status);
   }
+
+  records.sort((a, b) => {
+    switch (filters.value.sort) {
+      case 'newest_submission':
+        return b.act_design_id - a.act_design_id;
+      case 'oldest_submission':
+        return a.act_design_id - b.act_design_id;
+      case 'earliest_implementation':
+        return new Date(a.date) - new Date(b.date);
+      case 'latest_implementation':
+        return new Date(b.date) - new Date(a.date);
+      case 'title_asc':
+        return (a.title || '').localeCompare(b.title || '');
+      case 'title_desc':
+        return (b.title || '').localeCompare(a.title || '');
+      default:
+        return 0;
+    }
+  });
+
   return records;
 });
 
@@ -222,6 +261,17 @@ const statusBadgeClass = (status) => {
   if (status === 'Revision Required') return 'status-badge-revision';
   if (status === 'Disapproved') return 'status-badge-disapproved';
   return 'status-badge-pending';
+};
+
+const isRush = (item) => {
+  if (item.status !== 'Pending') return false;
+  const startDate = new Date(item.date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  startDate.setHours(0, 0, 0, 0);
+  const diffTime = startDate - today;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays >= 3 && diffDays < 14;
 };
 
 const viewDetails = (id, status) => {
@@ -522,12 +572,12 @@ onMounted(() => {
 
 .select-wrapper {
   position: relative;
-  width: 176px;
+  width: 240px;
 }
 
 .filter-select {
   width: 100%;
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
   border-radius: 0.75rem;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(185, 121, 204, 0.2);
@@ -546,12 +596,17 @@ onMounted(() => {
 
 .select-arrow {
   position: absolute;
-  right: 12px;
+  right: 16px;
   top: 50%;
   transform: translateY(-50%);
-  color: #94a3b8;
+  color: #b979cc;
   font-size: 0.85rem;
   pointer-events: none;
+}
+
+.filter-select option {
+  background-color: #1a1a2e;
+  color: #ffffff;
 }
 
 .per-page-controls {
@@ -713,6 +768,18 @@ onMounted(() => {
   background: rgba(220, 38, 38, 0.2);
   color: #ef4444;
   border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+.rush-badge {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .pagination-container {

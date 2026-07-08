@@ -600,15 +600,24 @@ const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 
 const getTodayDate = () => {
   const d = new Date();
-  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-  return d.toISOString().split('T')[0];
+  const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+  const phDate = new Date(utc + (3600000 * 8));
+  const year = phDate.getUTCFullYear();
+  const month = String(phDate.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(phDate.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 const todayDate = ref(getTodayDate());
 
 const minStartDate = computed(() => {
-  const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" }));
-  d.setDate(d.getDate() + 3);
-  return d.toISOString().split('T')[0];
+  const d = new Date();
+  const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+  const phDate = new Date(utc + (3600000 * 8));
+  phDate.setUTCDate(phDate.getUTCDate() + 3);
+  const year = phDate.getUTCFullYear();
+  const month = String(phDate.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(phDate.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 });
 
 const helpState = ref({
@@ -736,7 +745,7 @@ const form = ref({
     { name: 'Function Room/Venue', total: '' },
     { name: 'Accommodation', total: '' },
     { name: 'Equipment Rental', total: '' },
-    { name: 'Professional Fee/Honoria', total: '' },
+    { name: 'Professional Fee/Honoraria', total: '' },
     { name: 'Token/s', total: '' },
     { name: 'Materials and Supplies', total: '' },
     { name: 'Transportation', total: '' },
@@ -1048,7 +1057,7 @@ watch(
 );
 
 watch(pfPax, (newPax) => {
-  const item = form.value.budget_items.find(i => i.name === 'Professional Fee/Honoria');
+  const item = form.value.budget_items.find(i => i.name === 'Professional Fee/Honoraria');
   if (item) {
     item.total = (Number(newPax) * 2258.25) || '';
   }
@@ -1230,28 +1239,56 @@ const submitActivityDesign = async () => {
       return;
     }
 
-    const budgetObj = {
-      meals_and_snacks: (Number(form.value.budget_items.find(i => i.name === 'Meals')?.total || 0) + Number(form.value.budget_items.find(i => i.name === 'Snacks')?.total || 0)),
-      meals_total: Number(form.value.budget_items.find(i => i.name === 'Meals')?.total || 0),
-      snacks_total: Number(form.value.budget_items.find(i => i.name === 'Snacks')?.total || 0),
-      materials_total: Number(form.value.budget_items.find(i => i.name === 'Materials and Supplies')?.total || 0),
-      others_total: Number(form.value.budget_items.find(i => i.name === 'Others')?.total || 0),
-      materials_others_breakdown: JSON.stringify(othersList.value),
-      breakfast_selected: mealsSelected.value.breakfast ? 1 : 0,
-      lunch_selected: mealsSelected.value.lunch ? 1 : 0,
-      dinner_selected: mealsSelected.value.dinner ? 1 : 0,
-      am_snack_selected: snacksSelected.value.am ? 1 : 0,
-      pm_snack_selected: snacksSelected.value.pm ? 1 : 0,
-      function_room_venue: Number(form.value.budget_items.find(i => i.name === 'Function Room/Venue')?.total || 0),
-      accommodation: Number(form.value.budget_items.find(i => i.name === 'Accommodation')?.total || 0),
-      equipment_rental: Number(form.value.budget_items.find(i => i.name === 'Equipment Rental')?.total || 0),
-      professional_fee_honoria: Number(form.value.budget_items.find(i => i.name === 'Professional Fee/Honoria')?.total || 0),
-      tokens: Number(form.value.budget_items.find(i => i.name === 'Token/s')?.total || 0),
-      materials_and_supplies: Number(form.value.budget_items.find(i => i.name === 'Materials and Supplies')?.total || 0) + Number(form.value.budget_items.find(i => i.name === 'Others')?.total || 0),
-      transportation: Number(form.value.budget_items.find(i => i.name === 'Transportation')?.total || 0)
-    };
+        const normalizedBudgetItems = [];
 
-    formData.append('budget_items', JSON.stringify(budgetObj));
+    form.value.budget_items.forEach(item => {
+      if (item.name !== 'Others') {
+        normalizedBudgetItems.push({
+          category_id: null,
+          item_name: item.name,
+          sub_item: null,
+          pax: (item.name === 'Professional Fee/Honoraria') ? (typeof pfPax !== 'undefined' ? pfPax?.value : null) : (item.name === 'Token/s') ? (typeof tokensPax !== 'undefined' ? tokensPax?.value : null) : null,
+          amount: Number(item.total) || 0
+        });
+      }
+    });
+
+    if (typeof othersList !== 'undefined') {
+      othersList.value.forEach(o => {
+        if (o.name && Number(o.amount) > 0) {
+          normalizedBudgetItems.push({
+            category_id: null,
+            item_name: 'Others',
+            sub_item: o.name,
+            pax: null,
+            amount: Number(o.amount) || 0
+          });
+        }
+      });
+    }
+
+    if (typeof mealsSelected !== 'undefined') {
+        if (mealsSelected.value.breakfast || mealsSelected.value.lunch || mealsSelected.value.dinner) {
+          const selected = [];
+          if (mealsSelected.value.breakfast) selected.push('Breakfast');
+          if (mealsSelected.value.lunch) selected.push('Lunch');
+          if (mealsSelected.value.dinner) selected.push('Dinner');
+          const mealsItem = normalizedBudgetItems.find(i => i.item_name === 'Meals');
+          if (mealsItem) mealsItem.sub_item = selected.join(', ');
+        }
+    }
+
+    if (typeof snacksSelected !== 'undefined') {
+        if (snacksSelected.value.am || snacksSelected.value.pm) {
+          const selected = [];
+          if (snacksSelected.value.am) selected.push('AM');
+          if (snacksSelected.value.pm) selected.push('PM');
+          const snacksItem = normalizedBudgetItems.find(i => i.item_name === 'Snacks');
+          if (snacksItem) snacksItem.sub_item = selected.join(', ');
+        }
+    }
+
+    formData.append('budget_items', JSON.stringify(normalizedBudgetItems));
 
     if (designFile.value) {
       formData.append('design_file', designFile.value);

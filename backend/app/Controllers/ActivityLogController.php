@@ -18,9 +18,8 @@ class ActivityLogController extends ResourceController
 
         $db = \Config\Database::connect();
         $builder = $db->table('activity_logs')
-            ->select('activity_logs.*, users.full_name, users.email, users.role as system_role, user_profiles.user_role as custom_role, office_units.office_name')
+            ->select('activity_logs.*, users.full_name, users.email, users.role as system_role, users.profile_role as custom_role, office_units.office_name')
             ->join('users', 'users.id = activity_logs.user_id', 'left')
-            ->join('user_profiles', 'user_profiles.user_id = users.id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->orderBy('activity_logs.created_at', 'DESC');
 
@@ -28,7 +27,7 @@ class ActivityLogController extends ResourceController
             if (strtolower($roleFilter) === 'admin') {
                 $builder->where('users.role', 'admin');
             } else {
-                $builder->where('user_profiles.user_role', $roleFilter);
+                $builder->where('users.profile_role', $roleFilter);
             }
         }
 

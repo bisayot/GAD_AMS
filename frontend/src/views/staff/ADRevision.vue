@@ -567,7 +567,7 @@ const formData = ref({
     { name: 'Function Room/Venue', total: 0 },
     { name: 'Accommodation', total: 0 },
     { name: 'Equipment Rental', total: 0 },
-    { name: 'Professional Fee/Honoria', total: 0 },
+    { name: 'Professional Fee/Honoraria', total: 0 },
     { name: 'Token/s', total: 0 },
     { name: 'Materials and Supplies', total: 0 },
     { name: 'Transportation', total: 0 },
@@ -649,7 +649,7 @@ watch(
 
 watch(pfPax, (newPax) => {
   if (loadingData.value) return;
-  const item = formData.value.budget_items.find(i => i.name === 'Professional Fee/Honoria');
+  const item = formData.value.budget_items.find(i => i.name === 'Professional Fee/Honoraria');
   if (item) {
     item.total = (Number(newPax) * 2258.25) || '';
   }
@@ -781,8 +781,8 @@ const fetchDesignDetails = async () => {
         am: !!Number(design.value.am_snack_selected), 
         pm: !!Number(design.value.pm_snack_selected) 
       };
-      pfPax.value = Number(design.value.professional_fee_honoria) > 0 ? Math.floor(Number(design.value.professional_fee_honoria) / 2258.25) : '';
-      tokensPax.value = Number(design.value.tokens) > 0 ? Math.floor(Number(design.value.tokens) / 1000) : '';
+      pfPax.value = Number(design.value.pf_pax) || '';
+      tokensPax.value = Number(design.value.tokens_pax) || '';
       if (design.value.materials_others_breakdown) {
         try {
           othersList.value = JSON.parse(design.value.materials_others_breakdown);
@@ -821,8 +821,8 @@ const fetchDesignDetails = async () => {
         office: design.value.office,
         form_type: design.value.form_type,
         activity_classification: design.value.classification_id,
-        gad_mandate: design.value.gad_mandate_ids ? design.value.gad_mandate_ids.split(',').map(s=>s.trim()) : [],
-        gender_issue: design.value.gender_issue_ids ? design.value.gender_issue_ids.split(',').map(s=>s.trim()) : [],
+        gad_mandate: design.value.gad_mandate_ids ? String(design.value.gad_mandate_ids).split(',').map(s=>s.trim()) : [],
+        gender_issue: design.value.gender_issue_ids ? String(design.value.gender_issue_ids).split(',').map(s=>s.trim()) : [],
         start_date: design.value.start_date,
         end_date: design.value.end_date,
         start_time: design.value.start_time,
@@ -836,7 +836,7 @@ const fetchDesignDetails = async () => {
           { name: 'Function Room/Venue', total: functionRoomVenue },
           { name: 'Accommodation', total: accommodation },
           { name: 'Equipment Rental', total: equipmentRental },
-          { name: 'Professional Fee/Honoria', total: professionalFee },
+          { name: 'Professional Fee/Honoraria', total: professionalFee },
           { name: 'Token/s', total: tokensVal },
           { name: 'Materials and Supplies', total: materialsSupplies },
           { name: 'Transportation', total: transportation },
@@ -939,7 +939,7 @@ const handleUpdate = async () => {
       function_room_venue: Number(formData.value.budget_items.find(i => i.name === 'Function Room/Venue')?.total || 0),
       accommodation: Number(formData.value.budget_items.find(i => i.name === 'Accommodation')?.total || 0),
       equipment_rental: Number(formData.value.budget_items.find(i => i.name === 'Equipment Rental')?.total || 0),
-      professional_fee_honoria: Number(formData.value.budget_items.find(i => i.name === 'Professional Fee/Honoria')?.total || 0),
+      professional_fee_honoria: Number(formData.value.budget_items.find(i => i.name === 'Professional Fee/Honoraria')?.total || 0),
       tokens: Number(formData.value.budget_items.find(i => i.name === 'Token/s')?.total || 0),
       materials_and_supplies: Number(formData.value.budget_items.find(i => i.name === 'Materials and Supplies')?.total || 0) + Number(formData.value.budget_items.find(i => i.name === 'Others')?.total || 0),
       transportation: Number(formData.value.budget_items.find(i => i.name === 'Transportation')?.total || 0)

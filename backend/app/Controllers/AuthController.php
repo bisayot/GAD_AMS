@@ -59,9 +59,7 @@ class AuthController extends ResourceController
         // For this demo, we'll just return user info.
         $userModel->update($user['id'], ['last_login' => date('Y-m-d H:i:s')]);
         
-        $db = \Config\Database::connect();
-        $userProfile = $db->table('user_profiles')->where('user_id', $user['id'])->get()->getRowArray();
-        $userRole = $userProfile ? ($userProfile['user_role'] ?? 'Non-TWG') : 'Non-TWG';
+        $userRole = $user['profile_role'] ?? 'Non-TWG';
 
         \App\Models\ActivityLogModel::log($user['id'], 'Login', $user['full_name'] . " logged in");
 
@@ -152,22 +150,16 @@ class AuthController extends ResourceController
             'password' => password_hash($data['password'], PASSWORD_DEFAULT),
             'role' => $role,
             'full_name' => $data['fullname'],
+            'first_name' => $data['first_name'] ?? '',
+            'middle_name' => $data['middle_name'] ?? null,
+            'last_name' => $data['last_name'] ?? '',
+            'profile_role' => $data['user_role'] ?? 'Non-TWG',
             'student_id' => $data['university_id'] ?? null,
             'office_id' => $officeId
         ];
 
         if ($userModel->insert($userData)) {
             $newUserId = $userModel->insertID();
-
-            // Save detailed information to user_profiles table
-            $db->table('user_profiles')->insert([
-                'user_id' => $newUserId,
-                'first_name' => $data['first_name'] ?? '',
-                'middle_name' => $data['middle_name'] ?? null,
-                'last_name' => $data['last_name'] ?? '',
-                'user_role' => $data['user_role'] ?? 'Non-TWG',
-                'office_unit_id' => $officeId
-            ]);
 
             $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $newUserId;
             \App\Models\ActivityLogModel::log($actionUserId, 'Register User', 'registered a new user: ' . $data['fullname']);
@@ -347,10 +339,9 @@ class AuthController extends ResourceController
     public function getAllUsers() {
         $db = \Config\Database::connect();
         $users = $db->table('users')
-            ->select('users.id, users.email, users.full_name, users.role, users.office_id, users.deleted_at, users.created_at, users.last_login, user_profiles.user_role, office_units.office_name')
+            ->select('users.id, users.email, users.full_name, users.role, users.office_id, users.deleted_at, users.created_at, users.last_login, users.profile_role as user_role, office_units.office_name')
             ->select('(SELECT COUNT(*) FROM activity_design WHERE activity_design.user_id = users.id) as ad_count')
             ->select('(SELECT COUNT(*) FROM accomplishment_report WHERE accomplishment_report.user_id = users.id) as ar_count')
-            ->join('user_profiles', 'user_profiles.user_id = users.id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->get()
             ->getResultArray();

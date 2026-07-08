@@ -567,7 +567,7 @@ const formData = ref({
     { name: 'Function Room/Venue', total: 0 },
     { name: 'Accommodation', total: 0 },
     { name: 'Equipment Rental', total: 0 },
-    { name: 'Professional Fee/Honoria', total: 0 },
+    { name: 'Professional Fee/Honoraria', total: 0 },
     { name: 'Token/s', total: 0 },
     { name: 'Materials and Supplies', total: 0 },
     { name: 'Transportation', total: 0 },
@@ -649,7 +649,7 @@ watch(
 
 watch(pfPax, (newPax) => {
   if (loadingData.value) return;
-  const item = formData.value.budget_items.find(i => i.name === 'Professional Fee/Honoria');
+  const item = formData.value.budget_items.find(i => i.name === 'Professional Fee/Honoraria');
   if (item) {
     item.total = (Number(newPax) * 2258.25) || '';
   }
@@ -780,8 +780,8 @@ const fetchDesignDetails = async () => {
         am: !!Number(design.value.am_snack_selected), 
         pm: !!Number(design.value.pm_snack_selected) 
       };
-      pfPax.value = Number(design.value.professional_fee_honoria) > 0 ? Math.floor(Number(design.value.professional_fee_honoria) / 2258.25) : '';
-      tokensPax.value = Number(design.value.tokens) > 0 ? Math.floor(Number(design.value.tokens) / 1000) : '';
+      pfPax.value = Number(design.value.pf_pax) || '';
+      tokensPax.value = Number(design.value.tokens_pax) || '';
       if (design.value.materials_others_breakdown) {
         try {
           othersList.value = JSON.parse(design.value.materials_others_breakdown);
@@ -820,8 +820,8 @@ const fetchDesignDetails = async () => {
         office: design.value.office,
         form_type: design.value.form_type,
         activity_classification: design.value.classification_id,
-        gad_mandate: design.value.gad_mandate_ids ? design.value.gad_mandate_ids.split(',').map(s=>s.trim()) : [],
-        gender_issue: design.value.gender_issue_ids ? design.value.gender_issue_ids.split(',').map(s=>s.trim()) : [],
+        gad_mandate: design.value.gad_mandate_ids ? String(design.value.gad_mandate_ids).split(',').map(s=>s.trim()) : [],
+        gender_issue: design.value.gender_issue_ids ? String(design.value.gender_issue_ids).split(',').map(s=>s.trim()) : [],
         start_date: design.value.start_date,
         end_date: design.value.end_date,
         start_time: design.value.start_time,
@@ -835,7 +835,7 @@ const fetchDesignDetails = async () => {
           { name: 'Function Room/Venue', total: functionRoomVenue },
           { name: 'Accommodation', total: accommodation },
           { name: 'Equipment Rental', total: equipmentRental },
-          { name: 'Professional Fee/Honoria', total: professionalFee },
+          { name: 'Professional Fee/Honoraria', total: professionalFee },
           { name: 'Token/s', total: tokensVal },
           { name: 'Materials and Supplies', total: materialsSupplies },
           { name: 'Transportation', total: transportation },
@@ -922,28 +922,56 @@ const handleUpdate = async () => {
       return;
     }
 
-    const budgetObj = {
-      meals_and_snacks: (Number(formData.value.budget_items.find(i => i.name === 'Meals')?.total || 0) + Number(formData.value.budget_items.find(i => i.name === 'Snacks')?.total || 0)),
-      meals_total: Number(formData.value.budget_items.find(i => i.name === 'Meals')?.total || 0),
-      snacks_total: Number(formData.value.budget_items.find(i => i.name === 'Snacks')?.total || 0),
-      materials_total: Number(formData.value.budget_items.find(i => i.name === 'Materials and Supplies')?.total || 0),
-      others_total: Number(formData.value.budget_items.find(i => i.name === 'Others')?.total || 0),
-      materials_others_breakdown: JSON.stringify(othersList.value),
-      breakfast_selected: mealsSelected.value.breakfast ? 1 : 0,
-      lunch_selected: mealsSelected.value.lunch ? 1 : 0,
-      dinner_selected: mealsSelected.value.dinner ? 1 : 0,
-      am_snack_selected: snacksSelected.value.am ? 1 : 0,
-      pm_snack_selected: snacksSelected.value.pm ? 1 : 0,
-      function_room_venue: Number(formData.value.budget_items.find(i => i.name === 'Function Room/Venue')?.total || 0),
-      accommodation: Number(formData.value.budget_items.find(i => i.name === 'Accommodation')?.total || 0),
-      equipment_rental: Number(formData.value.budget_items.find(i => i.name === 'Equipment Rental')?.total || 0),
-      professional_fee_honoria: Number(formData.value.budget_items.find(i => i.name === 'Professional Fee/Honoria')?.total || 0),
-      tokens: Number(formData.value.budget_items.find(i => i.name === 'Token/s')?.total || 0),
-      materials_and_supplies: Number(formData.value.budget_items.find(i => i.name === 'Materials and Supplies')?.total || 0) + Number(formData.value.budget_items.find(i => i.name === 'Others')?.total || 0),
-      transportation: Number(formData.value.budget_items.find(i => i.name === 'Transportation')?.total || 0)
-    };
+    const normalizedBudgetItems = [];
 
-    submitData.append('budget_items', JSON.stringify(budgetObj));
+      formData.value.budget_items.forEach(item => {
+        if (item.name !== 'Others') {
+          normalizedBudgetItems.push({
+            category_id: null,
+            item_name: item.name,
+            sub_item: null,
+            pax: (item.name === 'Professional Fee/Honoraria') ? (typeof pfPax !== 'undefined' ? pfPax?.value : null) : (item.name === 'Token/s') ? (typeof tokensPax !== 'undefined' ? tokensPax?.value : null) : null,
+            amount: Number(item.total) || 0
+          });
+        }
+      });
+
+      if (typeof othersList !== 'undefined') {
+        othersList.value.forEach(o => {
+          if (o.name && Number(o.amount) > 0) {
+            normalizedBudgetItems.push({
+              category_id: null,
+              item_name: 'Others',
+              sub_item: o.name,
+              pax: null,
+              amount: Number(o.amount) || 0
+            });
+          }
+        });
+      }
+
+      if (typeof mealsSelected !== 'undefined') {
+          if (mealsSelected.value.breakfast || mealsSelected.value.lunch || mealsSelected.value.dinner) {
+            const selected = [];
+            if (mealsSelected.value.breakfast) selected.push('Breakfast');
+            if (mealsSelected.value.lunch) selected.push('Lunch');
+            if (mealsSelected.value.dinner) selected.push('Dinner');
+            const mealsItem = normalizedBudgetItems.find(i => i.item_name === 'Meals');
+            if (mealsItem) mealsItem.sub_item = selected.join(', ');
+          }
+      }
+
+      if (typeof snacksSelected !== 'undefined') {
+          if (snacksSelected.value.am || snacksSelected.value.pm) {
+            const selected = [];
+            if (snacksSelected.value.am) selected.push('AM');
+            if (snacksSelected.value.pm) selected.push('PM');
+            const snacksItem = normalizedBudgetItems.find(i => i.item_name === 'Snacks');
+            if (snacksItem) snacksItem.sub_item = selected.join(', ');
+          }
+      }
+
+      submitData.append('budget_items', JSON.stringify(normalizedBudgetItems));
 
     submitData.append('status', 'Pending'); // Reset status so admin can review again
     

@@ -111,25 +111,44 @@ class DocumentTrashController extends BaseController
                 $reportIds[] = $item->id;
             }
         }
+        
+        $actionUserId = $this->request->getHeaderLine('X-User-Id');
+        $userModel = new \App\Models\UserModel();
+        $actionUser = $userModel->find($actionUserId);
+        $isAdmin = $actionUser && $actionUser['role'] === 'admin';
 
         if (!empty($designIds)) {
-            $records = $adModel->onlyDeleted()->whereIn('act_design_id', $designIds)->findAll();
+            $query = $adModel->onlyDeleted()->whereIn('act_design_id', $designIds);
+            if (!$isAdmin) {
+                $query->where('user_id', $actionUserId);
+            }
+            $records = $query->findAll();
+            $validDesignIds = array_column($records, 'act_design_id');
             foreach ($records as $record) {
                 if (!empty($record['attachment'])) {
                     FileStorage::deleteFromDrafts($record['attachment']);
                 }
             }
-            $adModel->delete($designIds, true); // true = purge
+            if (!empty($validDesignIds)) {
+                $adModel->delete($validDesignIds, true); // true = purge
+            }
         }
 
         if (!empty($reportIds)) {
-            $records = $arModel->onlyDeleted()->whereIn('id', $reportIds)->findAll();
+            $query = $arModel->onlyDeleted()->whereIn('id', $reportIds);
+            if (!$isAdmin) {
+                $query->where('user_id', $actionUserId);
+            }
+            $records = $query->findAll();
+            $validReportIds = array_column($records, 'id');
             foreach ($records as $record) {
                 if (!empty($record['attachment'])) {
                     FileStorage::deleteFromDrafts($record['attachment']);
                 }
             }
-            $arModel->delete($reportIds, true);
+            if (!empty($validReportIds)) {
+                $arModel->delete($validReportIds, true);
+            }
         }
 
         return $this->response->setJSON(['success' => true, 'message' => 'Permanently deleted selected items']);
@@ -157,13 +176,25 @@ class DocumentTrashController extends BaseController
             }
         }
 
+        $actionUserId = $this->request->getHeaderLine('X-User-Id');
+        $userModel = new \App\Models\UserModel();
+        $actionUser = $userModel->find($actionUserId);
+        $isAdmin = $actionUser && $actionUser['role'] === 'admin';
+
         if (!empty($designIds)) {
-            // To restore, we set deleted_at back to null
-            $adModel->builder()->whereIn('act_design_id', $designIds)->update(['deleted_at' => null, 'deleted_by' => null]);
+            $builder = $adModel->builder()->whereIn('act_design_id', $designIds);
+            if (!$isAdmin) {
+                $builder->where('user_id', $actionUserId);
+            }
+            $builder->update(['deleted_at' => null, 'deleted_by' => null]);
         }
         
         if (!empty($reportIds)) {
-            $arModel->builder()->whereIn('id', $reportIds)->update(['deleted_at' => null, 'deleted_by' => null]);
+            $builder = $arModel->builder()->whereIn('id', $reportIds);
+            if (!$isAdmin) {
+                $builder->where('user_id', $actionUserId);
+            }
+            $builder->update(['deleted_at' => null, 'deleted_by' => null]);
         }
 
         return $this->response->setJSON(['success' => true, 'message' => 'Restored selected items']);

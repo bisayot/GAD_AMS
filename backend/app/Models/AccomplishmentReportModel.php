@@ -35,7 +35,8 @@ class AccomplishmentReportModel extends Model // No change needed here, class na
         "status",
         "is_viewed_by_admin",
         "deleted_at",
-        "deleted_by"
+        "deleted_by",
+        "is_archived"
     ];
 
 	// Dates

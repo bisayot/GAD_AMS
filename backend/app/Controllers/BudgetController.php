@@ -22,8 +22,9 @@ class BudgetController extends Controller
             ->selectSum('gad_budget')
             ->get()->getRow()->gad_budget ?? 0.0;
 
-        $archivedDesigns = $db->table('archived_activity_designs')
+        $archivedDesigns = $db->table('activity_design')
             ->where('status', 'Approved')
+            ->where('is_archived', 1)
             ->get()
             ->getResultArray();
 
@@ -31,27 +32,18 @@ class BudgetController extends Controller
         $pendingApproved = 0.0;
 
         foreach ($archivedDesigns as $design) {
-            $designId = $design['original_act_design_id'];
+            $designId = $design['act_design_id'];
 
             // Check for completed/verified accomplishment report (active or archived)
             $report = $db->table('accomplishment_report')
-                ->where('act_design_id', $designId)
+                ->where('control_number', $design['control_number'])
                 ->whereIn('status', ['Completed', 'Verified'])
                 ->get()
                 ->getRowArray();
 
-            if (!$report) {
-                $report = $db->table('archived_accomplishment_reports')
-                    ->where('act_design_id', $designId)
-                    ->whereIn('status', ['Completed', 'Verified'])
-                    ->get()
-                    ->getRowArray();
-            }
-
             if ($report) {
-                $reportId = $report['id'] ?? $report['original_report_id'];
-                $isActiveReport = isset($report['id']) && empty($report['original_report_id']);
-                $table = $isActiveReport ? 'accomplishment_budget_items' : 'archived_accomplishment_budget_items';
+                $reportId = $report['id'];
+                $table = 'accomplishment_budget_items';
 
                 $sum = $db->table($table)
                     ->selectSum('amount')
@@ -136,35 +128,27 @@ class BudgetController extends Controller
             $pendingApproved = 0.0;
             if (!empty($userIds)) {
                 // Get approved activity designs
-                $archivedDesigns = $db->table('archived_activity_designs')
+                $archivedDesigns = $db->table('activity_design')
                     ->whereIn('user_id', $userIds)
                     ->where('status', 'Approved')
+                    ->where('is_archived', 1)
                     ->get()
                     ->getResultArray();
 
                 foreach ($archivedDesigns as $design) {
-                    $designId = $design['original_act_design_id'];
+                    $designId = $design['act_design_id'];
 
                     // Check for a completed accomplishment report (active or archived)
                     $report = $db->table('accomplishment_report')
-                        ->where('act_design_id', $designId)
+                        ->where('control_number', $design['control_number'])
                         ->whereIn('status', ['Completed', 'Verified'])
                         ->get()
                         ->getRowArray();
 
-                    if (!$report) {
-                        $report = $db->table('archived_accomplishment_reports')
-                            ->where('act_design_id', $designId)
-                            ->whereIn('status', ['Completed', 'Verified'])
-                            ->get()
-                            ->getRowArray();
-                    }
-
                     if ($report) {
                         // Use actual spending total from accomplishment_budget_items
-                        $reportId = $report['id'] ?? $report['original_report_id'];
-                        $isActiveReport = isset($report['id']) && empty($report['original_report_id']);
-                        $table = $isActiveReport ? 'accomplishment_budget_items' : 'archived_accomplishment_budget_items';
+                        $reportId = $report['id'];
+                        $table = 'accomplishment_budget_items';
                         
                         $actualTotalRow = $db->table($table)
                             ->select('SUM(amount) as total')
@@ -282,9 +266,10 @@ class BudgetController extends Controller
                 ->where('gpb_id', $gpbId)
                 ->get()->getRow()->proposed_budget ?? 0.0;
 
-            $proposedArchived = $db->table('archived_activity_designs')
+            $proposedArchived = $db->table('activity_design')
                 ->selectSum('proposed_budget')
                 ->where('gpb_id', $gpbId)
+                ->where('is_archived', 1)
                 ->get()->getRow()->proposed_budget ?? 0.0;
 
             $utilized = (float) $proposedActive + (float) $proposedArchived;
@@ -350,8 +335,9 @@ class BudgetController extends Controller
             ->selectSum('proposed_budget')
             ->get()->getRow()->proposed_budget ?? 0.0;
 
-        $totalUtilizedArchived = $db->table('archived_activity_designs')
+        $totalUtilizedArchived = $db->table('activity_design')
             ->selectSum('proposed_budget')
+            ->where('is_archived', 1)
             ->get()->getRow()->proposed_budget ?? 0.0;
 
         $totalBudget = (float) $totalBudget;

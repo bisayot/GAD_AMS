@@ -90,22 +90,30 @@
             <div class="filter-inline">
               <div class="filter-item">
                 <label class="filter-label">STATUS</label>
-                <select v-model="filters.status" class="filter-select-custom" @change="applyFilters">
-                  <option value="all">All Status</option>
-                  <option value="pending">Pending Review</option>
-                  <option value="revision">For Revision</option>
-                  <option value="disapproved">Disapproved</option>
-                </select>
+                <div class="select-wrapper">
+                  <select v-model="filters.status" class="filter-select-custom" @change="applyFilters">
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending Review</option>
+                    <option value="revision">For Revision</option>
+                    <option value="disapproved">Disapproved</option>
+                  </select>
+                  <span class="select-arrow">▼</span>
+                </div>
               </div>
 
               <div class="filter-item">
                 <label class="filter-label">SORT BY</label>
-                <select v-model="filters.sort" class="filter-select-custom" @change="applyFilters">
-                  <option value="date_desc">Newest First</option>
-                  <option value="date_asc">Oldest First</option>
-                  <option value="control_asc">Control A-Z</option>
-                  <option value="control_desc">Control Z-A</option>
-                </select>
+                <div class="select-wrapper">
+                  <select v-model="filters.sort" class="filter-select-custom" @change="applyFilters">
+                    <option value="oldest_submission">Oldest Submission</option>
+                    <option value="newest_submission">Newest Submission</option>
+                    <option value="earliest_implementation">Earliest Implementation Date</option>
+                    <option value="latest_implementation">Furthest Implementation Date</option>
+                    <option value="title_asc">Title (A-Z)</option>
+                    <option value="title_desc">Title (Z-A)</option>
+                  </select>
+                  <span class="select-arrow">▼</span>
+                </div>
               </div>
 
               <div class="filter-search">
@@ -178,7 +186,10 @@
                       <div class="item-date">{{ item.date }}</div>
                     </td>
                     <td class="table-cell">
-                      <div class="item-title">{{ item.title }}</div>
+                      <div class="item-title" style="display: flex; align-items: center; gap: 0.5rem;">
+                        {{ item.title }}
+                        <span v-if="isRush(item)" class="rush-badge">RUSH</span>
+                      </div>
                     </td>
                     <td class="table-cell">
                       <span class="form-badge" :class="item.formClass">
@@ -236,7 +247,7 @@ const activeTab = ref('design');
 
 const filters = ref({
   status: 'all',
-  sort: 'date_asc',
+  sort: 'oldest_submission',
   search: ''
 });
 
@@ -259,34 +270,29 @@ const filteredItems = computed(() => {
   }
   
   const sorted = [...items];
-  const sortByDateAsc = (a, b) => {
-    if (activeTab.value === 'design') {
-      return a.id - b.id;
+  
+  sorted.sort((a, b) => {
+    switch (filters.value.sort) {
+      case 'newest_submission':
+        return b.id - a.id;
+      case 'oldest_submission':
+        return a.id - b.id;
+      case 'earliest_implementation': {
+        const byDate = new Date(a.dateRaw) - new Date(b.dateRaw);
+        return byDate !== 0 ? byDate : a.id - b.id;
+      }
+      case 'latest_implementation': {
+        const byDate = new Date(b.dateRaw) - new Date(a.dateRaw);
+        return byDate !== 0 ? byDate : b.id - a.id;
+      }
+      case 'title_asc':
+        return (a.title || '').localeCompare(b.title || '');
+      case 'title_desc':
+        return (b.title || '').localeCompare(a.title || '');
+      default:
+        return a.id - b.id;
     }
-    const byDate = new Date(a.dateRaw) - new Date(b.dateRaw);
-    return byDate !== 0 ? byDate : a.id - b.id;
-  };
-  const sortByDateDesc = (a, b) => {
-    if (activeTab.value === 'design') {
-      return b.id - a.id;
-    }
-    const byDate = new Date(b.dateRaw) - new Date(a.dateRaw);
-    return byDate !== 0 ? byDate : b.id - a.id;
-  };
-
-  switch (filters.value.sort) {
-    case 'control_asc':
-      sorted.sort((a, b) => a.control.localeCompare(b.control));
-      break;
-    case 'control_desc':
-      sorted.sort((a, b) => b.control.localeCompare(a.control));
-      break;
-    case 'date_asc':
-      sorted.sort(sortByDateAsc);
-      break;
-    default:
-      sorted.sort(sortByDateDesc);
-  }
+  });
   
   return sorted;
 });
@@ -400,10 +406,21 @@ const applyFilters = () => {
 const resetFilters = () => {
   filters.value = {
     status: 'all',
-    sort: 'date_asc',
+    sort: 'oldest_submission',
     search: ''
   };
   currentPage.value = 1;
+};
+
+const isRush = (item) => {
+  if (item.type !== 'design' || item.status !== 'pending') return false;
+  const startDate = new Date(item.dateRaw);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  startDate.setHours(0, 0, 0, 0);
+  const diffTime = startDate - today;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays >= 3 && diffDays < 14;
 };
 
 const changePage = (page) => {
@@ -653,7 +670,7 @@ onMounted(() => {
 
 .filter-item {
   flex: 1;
-  min-width: 140px;
+  min-width: 240px;
 }
 
 .filter-search {
@@ -671,21 +688,50 @@ onMounted(() => {
   margin-bottom: 0.375rem;
 }
 
+.select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
 .filter-select-custom {
   width: 100%;
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
   border-radius: 0.75rem;
   border: 1px solid rgba(185, 121, 204, 0.15);
   background:  #16213e;
   font-size: 0.8rem;
   color: #ffffff;
   cursor: pointer;
+  appearance: none;
+}
+
+.select-arrow {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 0.85rem;
+  pointer-events: none;
 }
 
 .filter-select-custom:focus {
   outline: none;
   border-color: #990dd1;
   box-shadow: 0 0 0 2px rgba(153, 13, 209, 0.1);
+}
+
+.rush-badge {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-block;
 }
 
 .search-box-wrapper {

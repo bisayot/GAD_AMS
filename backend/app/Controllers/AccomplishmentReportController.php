@@ -48,9 +48,7 @@ class AccomplishmentReportController extends BaseController
             }
 
             $db = \Config\Database::connect();
-            $controlRecord = $db->table('control_number')
-                                ->where('control_number', $this->request->getPost("control_number"))
-                                ->get()->getRowArray();
+            $controlRecord = $db->table('activity_design')->select('act_design_id')->where('control_number', $this->request->getPost("control_number"))->get()->getRowArray();
             $actDesignId = $controlRecord ? $controlRecord['act_design_id'] : null;
 
             $data = [
@@ -83,10 +81,17 @@ class AccomplishmentReportController extends BaseController
                 $budgetItemsJson = $this->request->getPost('budget_items');
                 if (!empty($budgetItemsJson)) {
                     $budgetData = json_decode($budgetItemsJson, true);
-                    if (is_array($budgetData)) {
-                        $budgetData['accomplishment_report_id'] = $reportId;
+                    if (is_array($budgetData) && count($budgetData) > 0) {
                         $budgetModel = new \App\Models\AccomplishmentBudgetItemsModel();
-                        $budgetModel->insert($budgetData);
+                        if (isset($budgetData[0])) {
+                            foreach ($budgetData as &$item) {
+                                $item['accomplishment_report_id'] = $reportId;
+                            }
+                            $budgetModel->insertBatch($budgetData);
+                        } else {
+                            $budgetData['accomplishment_report_id'] = $reportId;
+                            $budgetModel->insert($budgetData);
+                        }
                     }
                 }
 
@@ -95,9 +100,19 @@ class AccomplishmentReportController extends BaseController
                 if (!empty($evalItemsJson)) {
                     $evalData = json_decode($evalItemsJson, true);
                     if (is_array($evalData)) {
-                        $evalData['accomplishment_report_id'] = $reportId;
                         $evalModel = new \App\Models\AccomplishmentEvaluationResultsModel();
-                        $evalModel->insert($evalData);
+                        $evalModel->where('accomplishment_report_id', $reportId)->delete();
+                        $inserts = [];
+                        foreach ($evalData as $key => $score) {
+                            $inserts[] = [
+                                'accomplishment_report_id' => $reportId,
+                                'question_key' => $key,
+                                'score' => $score
+                            ];
+                        }
+                        if (!empty($inserts)) {
+                            $evalModel->insertBatch($inserts);
+                        }
                     }
                 }
 
@@ -113,68 +128,77 @@ class AccomplishmentReportController extends BaseController
                 $db = \Config\Database::connect();
                 
                 $customMandate = $this->request->getPost('custom_gad_mandate');
-                $mandateIdStr = $this->request->getPost('gad_mandate_id');
-                if ($customMandate && $customMandate !== 'undefined') {
-                    $db->table('gad_mandates')->insert(['title' => $customMandate]);
-                    $newId = $db->insertID();
-                    if ($mandateIdStr) {
-                        $mandateIdStr = str_replace('Other', $newId, $mandateIdStr);
-                    } else {
-                        $mandateIdStr = $newId;
-                    }
-                }
-                if ($mandateIdStr) {
-                    $adUpdateData['gad_mandate_id'] = $mandateIdStr;
-                }
-                
-                $customIssue = $this->request->getPost('custom_gender_issue');
-                $issueIdStr = $this->request->getPost('gender_issue_id');
-                if ($customIssue && $customIssue !== 'undefined') {
-                    $db->table('gender_issues')->insert(['title' => $customIssue]);
-                    $newId = $db->insertID();
-                    if ($issueIdStr) {
-                        $issueIdStr = str_replace('Other', $newId, $issueIdStr);
-                    } else {
-                        $issueIdStr = $newId;
-                    }
-                }
-                if ($issueIdStr) {
-                    $adUpdateData['gender_issue_id'] = $issueIdStr;
-                }
+                  $mandateIdStr = $this->request->getPost('gad_mandate_id');
+                  $finalMandates = [];
+                  if ($mandateIdStr) {
+                      $mandatesArr = explode(',', $mandateIdStr);
+                      foreach ($mandatesArr as $m) {
+                          if ($m === 'Other' || $m === 'new') {
+                              if ($customMandate && $customMandate !== 'undefined') {
+                                  $db->table('gad_mandates')->insert(['code' => 'CUSTOM', 'title' => $customMandate]);
+                                  $finalMandates[] = $db->insertID();
+                              }
+                          } else {
+                              $finalMandates[] = trim($m);
+                          }
+                      }
+                  }
+                  if (!empty($finalMandates)) {
+                      $adUpdateData['gad_mandate_id'] = $finalMandates[0];
+                  }
+                  
+                  $customIssue = $this->request->getPost('custom_gender_issue');
+                  $issueIdStr = $this->request->getPost('gender_issue_id');
+                  $finalIssues = [];
+                  if ($issueIdStr) {
+                      $issuesArr = explode(',', $issueIdStr);
+                      foreach ($issuesArr as $i) {
+                          if ($i === 'Other' || $i === 'new') {
+                              if ($customIssue && $customIssue !== 'undefined') {
+                                  $db->table('gender_issues')->insert([
+                                      'mandate_id' => !empty($finalMandates) ? $finalMandates[0] : null,
+                                      'title' => $customIssue
+                                  ]);
+                                  $finalIssues[] = $db->insertID();
+                              }
+                          } else {
+                              $finalIssues[] = trim($i);
+                          }
+                      }
+                  }
+                  if (!empty($finalIssues)) {
+                      $adUpdateData['gender_issue_id'] = $finalIssues[0];
+                  }
 
-                if (!empty($adUpdateData) && !empty($actDesignId)) {
-                    $db->table('archived_activity_designs')
-                       ->where('original_act_design_id', $actDesignId)
+                  // Junction table update logic will be injected below by another regex
+                  if (!empty($adUpdateData) && !empty($actDesignId)) {
+                    $db->table('activity_design')
+                       ->where('act_design_id', $actDesignId)
                        ->update($adUpdateData);
-                       
-                    // Also update junction tables if we are saving multiple mandates/issues
-                    if (isset($adUpdateData['gad_mandate_id'])) {
-                        $mandatesArr = explode(',', $adUpdateData['gad_mandate_id']);
-                        $archiveRecord = $db->table('archived_activity_designs')->where('original_act_design_id', $actDesignId)->get()->getRowArray();
-                        if ($archiveRecord) {
-                            $db->table('archived_activity_design_mandates')->where('archive_id', $archiveRecord['archive_id'])->delete();
-                            $insertMandates = array_map(function($mId) use ($archiveRecord) {
-                                return ['archive_id' => $archiveRecord['archive_id'], 'mandate_id' => trim($mId)];
-                            }, array_filter($mandatesArr));
-                            if (!empty($insertMandates)) {
-                                $db->table('archived_activity_design_mandates')->insertBatch($insertMandates);
-                            }
-                        }
-                    }
-                    if (isset($adUpdateData['gender_issue_id'])) {
-                        $issuesArr = explode(',', $adUpdateData['gender_issue_id']);
-                        $archiveRecord = $db->table('archived_activity_designs')->where('original_act_design_id', $actDesignId)->get()->getRowArray();
-                        if ($archiveRecord) {
-                            $db->table('archived_activity_design_issues')->where('archive_id', $archiveRecord['archive_id'])->delete();
-                            $insertIssues = array_map(function($iId) use ($archiveRecord) {
-                                return ['archive_id' => $archiveRecord['archive_id'], 'issue_id' => trim($iId)];
-                            }, array_filter($issuesArr));
-                            if (!empty($insertIssues)) {
-                                $db->table('archived_activity_design_issues')->insertBatch($insertIssues);
-                            }
-                        }
-                    }
-                }
+                      
+                      // Update junction tables
+                      $designIdToUpdate = $actDesignId ?? $controlRecord['act_design_id'] ?? null;
+                      if ($designIdToUpdate) {
+                          if (isset($finalMandates) && !empty($finalMandates)) {
+                              $db->table('activity_design_mandates')->where('act_design_id', $designIdToUpdate)->delete();
+                              foreach ($finalMandates as $mId) {
+                                  $db->table('activity_design_mandates')->insert([
+                                      'act_design_id' => $designIdToUpdate,
+                                      'mandate_id' => $mId
+                                  ]);
+                              }
+                          }
+                          if (isset($finalIssues) && !empty($finalIssues)) {
+                              $db->table('activity_design_issues')->where('act_design_id', $designIdToUpdate)->delete();
+                              foreach ($finalIssues as $iId) {
+                                  $db->table('activity_design_issues')->insert([
+                                      'act_design_id' => $designIdToUpdate,
+                                      'issue_id' => $iId
+                                  ]);
+                              }
+                          }
+                      }
+                  }
 
                 \App\Models\ActivityLogModel::log($data['user_id'], 'Submit Document', 'submitted Accomplishment Report: ' . $data['activity_title']);
 
@@ -202,29 +226,18 @@ class AccomplishmentReportController extends BaseController
     public function index()
     {
         $db = \Config\Database::connect();
-
-        $active = $db->table('accomplishment_report as ar')
-            ->select('ar.id, ar.status, cn.control_number as control, ar.activity_title as title, DATE(ar.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, COALESCE(form_types.name, ad.form_type) as formLabel')
+        
+        $reports = $db->table('accomplishment_report as ar')
+            ->select('ar.id, ar.status, ar.control_number as control, ar.activity_title as title, DATE(ar.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, COALESCE(form_types.name, ad.form_type) as formLabel')
             ->join('users', 'users.id = ar.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
-            ->join('control_number as cn', 'cn.control_number = ar.control_number', 'left')
-            ->join('archived_activity_designs as ad', 'ad.original_act_design_id = cn.act_design_id', 'left')
+            ->join('activity_design as ad', 'ad.control_number = ar.control_number', 'left')
             ->join('form_types', 'form_types.id = ad.form_type OR form_types.name = ad.form_type', 'left')
             ->where('ar.status !=', 'Verified')
             ->where('ar.deleted_at', null)
+            ->where('ar.is_archived', 0)
             ->get()->getResultArray();
 
-        $archived = $db->table('archived_accomplishment_reports as aar')
-            ->select('aar.original_report_id as id, aar.status, cn.control_number as control, aar.activity_title as title, DATE(aar.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, COALESCE(form_types.name, ad.form_type) as formLabel')
-            ->join('users', 'users.id = aar.user_id', 'left')
-            ->join('office_units', 'office_units.office_id = users.office_id', 'left')
-            ->join('control_number as cn', 'cn.control_number = aar.control_number', 'left')
-            ->join('archived_activity_designs as ad', 'ad.original_act_design_id = cn.act_design_id', 'left')
-            ->join('form_types', 'form_types.id = ad.form_type OR form_types.name = ad.form_type', 'left')
-            ->where('aar.status !=', 'Verified')
-            ->get()->getResultArray();
-
-        $reports = array_merge($active, $archived);
         usort($reports, function($a, $b) {
             $dateCompare = strcmp($a['date'] ?? '', $b['date'] ?? '');
             return $dateCompare !== 0 ? $dateCompare : ($a['id'] <=> $b['id']);
@@ -244,63 +257,172 @@ class AccomplishmentReportController extends BaseController
 
         $accomplishmentReportModel = new AccomplishmentReportModel();
         $report = $accomplishmentReportModel
-            ->select('accomplishment_report.*, control_number.control_number as control, DATE(accomplishment_report.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, activity_design.form_type as formLabel')
+            ->select('accomplishment_report.*, accomplishment_report.control_number as control, DATE(accomplishment_report.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, activity_design.form_type as formLabel')
             ->join('users', 'users.id = accomplishment_report.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
-            ->join('control_number', 'control_number.control_number = accomplishment_report.control_number', 'left')
-            ->join('activity_design', 'activity_design.act_design_id = control_number.act_design_id', 'left')
+            ->join('activity_design', 'activity_design.control_number = accomplishment_report.control_number', 'left')
             ->where('accomplishment_report.id', $id)
             ->first();
 
         if (!$report) {
-            $db = \Config\Database::connect();
-            $report = $db->table('archived_accomplishment_reports as aar')
-                ->select('aar.*, aar.original_report_id as id, aar.activity_title as title, DATE(aar.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, aar.control_number as control')
-                ->join('users', 'users.id = aar.user_id', 'left')
-                ->join('office_units', 'office_units.office_id = users.office_id', 'left')
-                ->where('aar.original_report_id', $id)
-                ->get()->getRowArray();
-
-            if (!$report) {
-                return $this->response->setJSON(['success' => false, 'message' => 'Report not found'])->setStatusCode(404);
-            }
-            $report['is_archived'] = true;
-        } else {
-            $report['is_archived'] = false;
+            return $this->response->setJSON(['success' => false, 'message' => 'Report not found'])->setStatusCode(404);
         }
 
 
         if ($report) {
             $budgetModel = new \App\Models\AccomplishmentBudgetItemsModel();
-            $report['budget_items'] = $budgetModel->where('accomplishment_report_id', $id)->findAll();
+            $budgetItems = $budgetModel->where('accomplishment_report_id', $id)->findAll();
+            if ($budgetItems) {
+                $budgetMap = [
+                    'Meals' => 'meals_total',
+                    'Snacks' => 'snacks_total',
+                    'Function Room/Venue' => 'function_room_venue',
+                    'Accommodation' => 'accommodation',
+                    'Equipment Rental' => 'equipment_rental',
+                    'Professional Fee/Honoria' => 'professional_fee_honoria',
+                    'Professional Fee/Honoraria' => 'professional_fee_honoria',
+                    'Token/s' => 'tokens',
+                    'Materials and Supplies' => 'materials_and_supplies',
+                    'Transportation' => 'transportation',
+                    
+                ];
+                $flatBudget = [];
+                foreach ($budgetItems as $item) {
+                    $name = $item['item_name'];
+                    if (isset($budgetMap[$name])) {
+                        $flatBudget[$budgetMap[$name]] = $item['amount'];
+                        if ($budgetMap[$name] === 'professional_fee_honoria') {
+                            $flatBudget['pf_pax'] = $item['pax'];
+                        }
+                        if ($budgetMap[$name] === 'tokens') {
+                            $flatBudget['tokens_pax'] = $item['pax'];
+                        }
+                        if ($name === 'Meals' && !empty($item['sub_item'])) {
+                            $flatBudget['breakfast_selected'] = strpos(strtolower($item['sub_item']), 'breakfast') !== false ? 1 : 0;
+                            $flatBudget['lunch_selected'] = strpos(strtolower($item['sub_item']), 'lunch') !== false ? 1 : 0;
+                            $flatBudget['dinner_selected'] = strpos(strtolower($item['sub_item']), 'dinner') !== false ? 1 : 0;
+                        }
+                        if ($name === 'Snacks' && !empty($item['sub_item'])) {
+                            $flatBudget['am_snack_selected'] = strpos(strtolower($item['sub_item']), 'am') !== false ? 1 : 0;
+                            $flatBudget['pm_snack_selected'] = strpos(strtolower($item['sub_item']), 'pm') !== false ? 1 : 0;
+                        }
+                    } elseif ($name === 'Others') {
+                        if (!isset($flatBudget['others_total'])) {
+                            $flatBudget['others_total'] = 0;
+                            $flatBudget['materials_others_breakdown'] = [];
+                        }
+                        $flatBudget['others_total'] += $item['amount'];
+                        if (!empty($item['sub_item'])) {
+                            $flatBudget['materials_others_breakdown'][] = [
+                                'name' => $item['sub_item'],
+                                'amount' => $item['amount']
+                            ];
+                        }
+                    }
+                }
+                if (isset($flatBudget['materials_others_breakdown']) && is_array($flatBudget['materials_others_breakdown'])) {
+                    $flatBudget['materials_others_breakdown'] = json_encode($flatBudget['materials_others_breakdown']);
+                }
+                $report['budget_items'] = [$flatBudget];
+            } else {
+                $report['budget_items'] = [];
+            }
             
 
 
             $evalModel = new \App\Models\AccomplishmentEvaluationResultsModel();
-            $report['evaluation_results'] = $evalModel->where('accomplishment_report_id', $id)->findAll();
+            $evalRows = $evalModel->where('accomplishment_report_id', $id)->findAll();
+            $flatEval = [];
+            foreach ($evalRows as $row) {
+                $flatEval[$row['question_key']] = $row['score'];
+            }
+            $report['evaluation_results'] = empty($flatEval) ? [] : [$flatEval];
 
             $controlNumber = $report['control'] ?? $report['control_number'] ?? null;
             if ($controlNumber) {
                 $db = \Config\Database::connect();
-                $ad = $db->table('archived_activity_designs as aad')
-                    ->select('aad.*, venues.venue_name, activity_classifications.classification_name as activity_classification, form_types.name as form_type_name')
-                    ->select('DATE(aad.archived_at) as date, office_units.office_name as office')
-                                        ->select('(SELECT GROUP_CONCAT(CONCAT(gm.code, " - ", gm.title) SEPARATOR ";;; ") FROM archived_activity_design_mandates adm JOIN gad_mandates gm ON gm.id = adm.mandate_id WHERE adm.archive_id = aad.archive_id) as gad_mandate')
-                    ->select('(SELECT GROUP_CONCAT(adm.mandate_id SEPARATOR ",") FROM archived_activity_design_mandates adm WHERE adm.archive_id = aad.archive_id) as gad_mandate_id')
-                    ->select('(SELECT GROUP_CONCAT(gi.title SEPARATOR ";;; ") FROM archived_activity_design_issues adi JOIN gender_issues gi ON gi.id = adi.issue_id WHERE adi.archive_id = aad.archive_id) as gender_issue')
-                    ->select('(SELECT GROUP_CONCAT(adi.issue_id SEPARATOR ",") FROM archived_activity_design_issues adi WHERE adi.archive_id = aad.archive_id) as gender_issue_id')
-                    ->join('control_number as cn', 'cn.act_design_id = aad.original_act_design_id', 'left')
-                    ->join('venues', 'venues.venue_id = aad.venue_id', 'left')
-                    ->join('activity_classifications', 'activity_classifications.id = aad.classification_id', 'left')
-                    ->join('form_types', 'form_types.id = aad.form_type', 'left')
-                    ->join('users', 'users.id = aad.user_id', 'left')
-                    ->join('office_units', 'office_units.office_id = users.office_id', 'left')
-                    ->where('cn.control_number', $controlNumber)
-                    ->get()->getRowArray();
+                $ad = $db->table('activity_design as aad')
+                      ->select('aad.*, venues.venue_name, activity_classifications.classification_name as activity_classification, form_types.name as form_type_name')
+                      ->select('aad.start_date as date, office_units.office_name as office')
+                      ->join('venues', 'venues.venue_id = aad.venue_id', 'left')
+                      ->join('activity_classifications', 'activity_classifications.id = aad.classification_id', 'left')
+                      ->join('form_types', 'form_types.id = aad.form_type', 'left')
+                      ->join('users', 'users.id = aad.user_id', 'left')
+                      ->join('office_units', 'office_units.office_id = users.office_id', 'left')
+                      ->select('(SELECT GROUP_CONCAT(adm.mandate_id SEPARATOR ",") FROM activity_design_mandates adm WHERE adm.act_design_id = aad.act_design_id) as gad_mandate_ids')
+                        ->select('(SELECT GROUP_CONCAT(adi.issue_id SEPARATOR ",") FROM activity_design_issues adi WHERE adi.act_design_id = aad.act_design_id) as gender_issue_ids')
+                        ->where('aad.control_number', $controlNumber)
+                        ->get()->getRowArray();
+                      
+                  if ($ad) {
+                      $mandates = [];
+                      if (!empty($ad['gad_mandate_ids'])) {
+                            $mandateIds = array_map('trim', explode(',', $ad['gad_mandate_ids']));
+                          $mandatesData = $db->table('gad_mandates')->whereIn('id', $mandateIds)->get()->getResultArray();
+                          foreach ($mandatesData as $m) {
+                              $mandates[] = $m['code'] ? ($m['code'] . ' - ' . $m['title']) : $m['title'];
+                          }
+                      }
+                      $ad['gad_mandate'] = implode(';;; ', $mandates);
+                      $ad['gad_mandate_id'] = $ad['gad_mandate_ids'];
+                      
+                      $issues = [];
+                      if (!empty($ad['gender_issue_ids'])) {
+                            $issueIds = array_map('trim', explode(',', $ad['gender_issue_ids']));
+                          $issuesData = $db->table('gender_issues')->whereIn('id', $issueIds)->get()->getResultArray();
+                          foreach ($issuesData as $i) {
+                              $issues[] = $i['title'];
+                          }
+                      }
+                      $ad['gender_issue'] = implode(';;; ', $issues);
+                      $ad['gender_issue_id'] = $ad['gender_issue_ids'];
+                  }
                 
                 if ($ad) {
                     $adBudgetModel = new \App\Models\ActivityBudgetItemsModel();
-                    $ad['budget_items'] = $adBudgetModel->where('act_design_id', $ad['original_act_design_id'])->findAll();
+                    $adBudgetItems = $adBudgetModel->where('act_design_id', $ad['act_design_id'])->findAll();
+                    if ($adBudgetItems) {
+                        $adFlatBudget = [];
+                        foreach ($adBudgetItems as $item) {
+                            $name = $item['item_name'];
+                            if (isset($budgetMap[$name])) {
+                                $adFlatBudget[$budgetMap[$name]] = $item['amount'];
+                                if ($budgetMap[$name] === 'professional_fee_honoria') {
+                                    $adFlatBudget['pf_pax'] = $item['pax'];
+                                }
+                                if ($budgetMap[$name] === 'tokens') {
+                                    $adFlatBudget['tokens_pax'] = $item['pax'];
+                                }
+                                if ($name === 'Meals' && !empty($item['sub_item'])) {
+                                    $adFlatBudget['breakfast_selected'] = strpos(strtolower($item['sub_item']), 'breakfast') !== false ? 1 : 0;
+                                    $adFlatBudget['lunch_selected'] = strpos(strtolower($item['sub_item']), 'lunch') !== false ? 1 : 0;
+                                    $adFlatBudget['dinner_selected'] = strpos(strtolower($item['sub_item']), 'dinner') !== false ? 1 : 0;
+                                }
+                                if ($name === 'Snacks' && !empty($item['sub_item'])) {
+                                    $adFlatBudget['am_snack_selected'] = strpos(strtolower($item['sub_item']), 'am') !== false ? 1 : 0;
+                                    $adFlatBudget['pm_snack_selected'] = strpos(strtolower($item['sub_item']), 'pm') !== false ? 1 : 0;
+                                }
+                            } elseif ($name === 'Others') {
+                                if (!isset($adFlatBudget['others_total'])) {
+                                    $adFlatBudget['others_total'] = 0;
+                                    $adFlatBudget['materials_others_breakdown'] = [];
+                                }
+                                $adFlatBudget['others_total'] += $item['amount'];
+                                if (!empty($item['sub_item'])) {
+                                    $adFlatBudget['materials_others_breakdown'][] = [
+                                        'name' => $item['sub_item'],
+                                        'amount' => $item['amount']
+                                    ];
+                                }
+                            }
+                        }
+                        if (isset($adFlatBudget['materials_others_breakdown']) && is_array($adFlatBudget['materials_others_breakdown'])) {
+                            $adFlatBudget['materials_others_breakdown'] = json_encode($adFlatBudget['materials_others_breakdown']);
+                        }
+                        $ad['budget_items'] = [$adFlatBudget];
+                    } else {
+                        $ad['budget_items'] = [];
+                    }
                     $report['activity_design'] = $ad;
                 }
             }
@@ -318,30 +440,18 @@ class AccomplishmentReportController extends BaseController
 
         $db = \Config\Database::connect();
 
-        $active = $db->table('accomplishment_report as ar')
-            ->select('ar.id, ar.status, cn.control_number as control, ar.activity_title as title, DATE(ar.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, COALESCE(form_types.name, ad.form_type) as formLabel')
+        $reports = $db->table('accomplishment_report as ar')
+            ->select('ar.id, ar.status, ar.control_number as control, ar.activity_title as title, DATE(ar.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, COALESCE(form_types.name, ad.form_type) as formLabel')
             ->join('users', 'users.id = ar.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
-            ->join('control_number as cn', 'cn.control_number = ar.control_number', 'left')
-            ->join('archived_activity_designs as ad', 'ad.original_act_design_id = cn.act_design_id', 'left')
+            ->join('activity_design as ad', 'ad.control_number = ar.control_number', 'left')
             ->join('form_types', 'form_types.id = ad.form_type OR form_types.name = ad.form_type', 'left')
             ->where('ar.user_id', $userId)
             ->where('ar.status !=', 'Verified')
             ->where('ar.deleted_at', null)
+            ->where('ar.is_archived', 0)
             ->get()->getResultArray();
 
-        $archived = $db->table('archived_accomplishment_reports as aar')
-            ->select('aar.original_report_id as id, aar.status, cn.control_number as control, aar.activity_title as title, DATE(aar.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, COALESCE(form_types.name, ad.form_type) as formLabel')
-            ->join('users', 'users.id = aar.user_id', 'left')
-            ->join('office_units', 'office_units.office_id = users.office_id', 'left')
-            ->join('control_number as cn', 'cn.control_number = aar.control_number', 'left')
-            ->join('archived_activity_designs as ad', 'ad.original_act_design_id = cn.act_design_id', 'left')
-            ->join('form_types', 'form_types.id = ad.form_type OR form_types.name = ad.form_type', 'left')
-            ->where('aar.user_id', $userId)
-            ->where('aar.status !=', 'Verified')
-            ->get()->getResultArray();
-
-        $reports = array_merge($active, $archived);
         usort($reports, function($a, $b) {
             $dateCompare = strcmp($a['date'] ?? '', $b['date'] ?? '');
             return $dateCompare !== 0 ? $dateCompare : ($a['id'] <=> $b['id']);
@@ -355,17 +465,17 @@ class AccomplishmentReportController extends BaseController
 
     public function getArchivedReports()
     {
-        $accomplishmentReportModel = new AccomplishmentReportModel();
+        $db = \Config\Database::connect();
 
-        $reports = $accomplishmentReportModel
-            ->select('accomplishment_report.*, control_number.control_number as control, accomplishment_report.activity_title as title, DATE(accomplishment_report.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, activity_design.form_type as formLabel')
-            ->join('users', 'users.id = accomplishment_report.user_id', 'left')
+        $reports = $db->table('accomplishment_report as ar')
+            ->select('ar.*, ar.id, ar.control_number as control, ar.activity_title as title, DATE(ar.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, ad.form_type as formLabel')
+            ->join('users', 'users.id = ar.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
-            ->join('control_number', 'control_number.control_number = accomplishment_report.control_number', 'left')
-            ->join('activity_design', 'activity_design.act_design_id = control_number.act_design_id', 'left')
-            ->whereIn('accomplishment_report.status', ['Verified', 'Cancelled'])
-            ->orderBy('accomplishment_report.id', 'DESC')
-            ->findAll();
+            ->join('activity_design as ad', 'ad.control_number = ar.control_number', 'left')
+            ->whereIn('ar.status', ['Verified', 'Cancelled'])
+            ->where('ar.deleted_at', null)
+            ->orderBy('ar.id', 'DESC')
+            ->get()->getResultArray();
 
         return $this->response->setJSON([
             'success' => true,
@@ -434,11 +544,14 @@ class AccomplishmentReportController extends BaseController
                 $budgetItemsJson = $this->request->getPost('budget_items');
                 if (!empty($budgetItemsJson)) {
                     $budgetData = json_decode($budgetItemsJson, true);
-                    if (is_array($budgetData)) {
+                    if (is_array($budgetData) && count($budgetData) > 0) {
                         $budgetModel = new \App\Models\AccomplishmentBudgetItemsModel();
-                        $existingBudget = $budgetModel->where('accomplishment_report_id', $id)->first();
-                        if ($existingBudget) {
-                            $budgetModel->update($existingBudget['item_id'], $budgetData);
+                        $budgetModel->where('accomplishment_report_id', $id)->delete();
+                        if (isset($budgetData[0])) {
+                            foreach ($budgetData as &$item) {
+                                $item['accomplishment_report_id'] = $id;
+                            }
+                            $budgetModel->insertBatch($budgetData);
                         } else {
                             $budgetData['accomplishment_report_id'] = $id;
                             $budgetModel->insert($budgetData);
@@ -452,12 +565,17 @@ class AccomplishmentReportController extends BaseController
                     $evalData = json_decode($evalItemsJson, true);
                     if (is_array($evalData)) {
                         $evalModel = new \App\Models\AccomplishmentEvaluationResultsModel();
-                        $existingEval = $evalModel->where('accomplishment_report_id', $id)->first();
-                        if ($existingEval) {
-                            $evalModel->update($existingEval['evaluation_id'], $evalData);
-                        } else {
-                            $evalData['accomplishment_report_id'] = $id;
-                            $evalModel->insert($evalData);
+                        $evalModel->where('accomplishment_report_id', $id)->delete();
+                        $inserts = [];
+                        foreach ($evalData as $key => $score) {
+                            $inserts[] = [
+                                'accomplishment_report_id' => $id,
+                                'question_key' => $key,
+                                'score' => $score
+                            ];
+                        }
+                        if (!empty($inserts)) {
+                            $evalModel->insertBatch($inserts);
                         }
                     }
                 }
@@ -474,71 +592,80 @@ class AccomplishmentReportController extends BaseController
                 $db = \Config\Database::connect();
                 
                 $customMandate = $this->request->getPost('custom_gad_mandate');
-                $mandateIdStr = $this->request->getPost('gad_mandate_id');
-                if ($customMandate && $customMandate !== 'undefined') {
-                    $db->table('gad_mandates')->insert(['title' => $customMandate]);
-                    $newId = $db->insertID();
-                    if ($mandateIdStr) {
-                        $mandateIdStr = str_replace('Other', $newId, $mandateIdStr);
-                    } else {
-                        $mandateIdStr = $newId;
-                    }
-                }
-                if ($mandateIdStr) {
-                    $adUpdateData['gad_mandate_id'] = $mandateIdStr;
-                }
-                
-                $customIssue = $this->request->getPost('custom_gender_issue');
-                $issueIdStr = $this->request->getPost('gender_issue_id');
-                if ($customIssue && $customIssue !== 'undefined') {
-                    $db->table('gender_issues')->insert(['title' => $customIssue]);
-                    $newId = $db->insertID();
-                    if ($issueIdStr) {
-                        $issueIdStr = str_replace('Other', $newId, $issueIdStr);
-                    } else {
-                        $issueIdStr = $newId;
-                    }
-                }
-                if ($issueIdStr) {
-                    $adUpdateData['gender_issue_id'] = $issueIdStr;
-                }
+                  $mandateIdStr = $this->request->getPost('gad_mandate_id');
+                  $finalMandates = [];
+                  if ($mandateIdStr) {
+                      $mandatesArr = explode(',', $mandateIdStr);
+                      foreach ($mandatesArr as $m) {
+                          if ($m === 'Other' || $m === 'new') {
+                              if ($customMandate && $customMandate !== 'undefined') {
+                                  $db->table('gad_mandates')->insert(['code' => 'CUSTOM', 'title' => $customMandate]);
+                                  $finalMandates[] = $db->insertID();
+                              }
+                          } else {
+                              $finalMandates[] = trim($m);
+                          }
+                      }
+                  }
+                  if (!empty($finalMandates)) {
+                      $adUpdateData['gad_mandate_id'] = $finalMandates[0];
+                  }
+                  
+                  $customIssue = $this->request->getPost('custom_gender_issue');
+                  $issueIdStr = $this->request->getPost('gender_issue_id');
+                  $finalIssues = [];
+                  if ($issueIdStr) {
+                      $issuesArr = explode(',', $issueIdStr);
+                      foreach ($issuesArr as $i) {
+                          if ($i === 'Other' || $i === 'new') {
+                              if ($customIssue && $customIssue !== 'undefined') {
+                                  $db->table('gender_issues')->insert([
+                                      'mandate_id' => !empty($finalMandates) ? $finalMandates[0] : null,
+                                      'title' => $customIssue
+                                  ]);
+                                  $finalIssues[] = $db->insertID();
+                              }
+                          } else {
+                              $finalIssues[] = trim($i);
+                          }
+                      }
+                  }
+                  if (!empty($finalIssues)) {
+                      $adUpdateData['gender_issue_id'] = $finalIssues[0];
+                  }
 
-                if (!empty($adUpdateData) && !empty($report['control_number'])) {
+                  // Junction table update logic will be injected below by another regex
+                  if (!empty($adUpdateData) && !empty($report['control_number'])) {
                     $db = \Config\Database::connect();
-                    $controlRecord = $db->table('control_number')->where('control_number', $report['control_number'])->get()->getRowArray();
+                    $controlRecord = $db->table('activity_design')->select('act_design_id')->where('control_number', $report['control_number'])->get()->getRowArray();
                     if ($controlRecord && !empty($controlRecord['act_design_id'])) {
-                        $db->table('archived_activity_designs')
-                           ->where('original_act_design_id', $controlRecord['act_design_id'])
-                           ->update($adUpdateData);
-                           
-                        // Also update junction tables if we are saving multiple mandates/issues
-                        if (isset($adUpdateData['gad_mandate_id'])) {
-                            $mandatesArr = explode(',', $adUpdateData['gad_mandate_id']);
-                            $archiveRecord = $db->table('archived_activity_designs')->where('original_act_design_id', $controlRecord['act_design_id'])->get()->getRowArray();
-                            if ($archiveRecord) {
-                                $db->table('archived_activity_design_mandates')->where('archive_id', $archiveRecord['archive_id'])->delete();
-                                $insertMandates = array_map(function($mId) use ($archiveRecord) {
-                                    return ['archive_id' => $archiveRecord['archive_id'], 'mandate_id' => trim($mId)];
-                                }, array_filter($mandatesArr));
-                                if (!empty($insertMandates)) {
-                                    $db->table('archived_activity_design_mandates')->insertBatch($insertMandates);
-                                }
-                            }
-                        }
-                        if (isset($adUpdateData['gender_issue_id'])) {
-                            $issuesArr = explode(',', $adUpdateData['gender_issue_id']);
-                            $archiveRecord = $db->table('archived_activity_designs')->where('original_act_design_id', $controlRecord['act_design_id'])->get()->getRowArray();
-                            if ($archiveRecord) {
-                                $db->table('archived_activity_design_issues')->where('archive_id', $archiveRecord['archive_id'])->delete();
-                                $insertIssues = array_map(function($iId) use ($archiveRecord) {
-                                    return ['archive_id' => $archiveRecord['archive_id'], 'issue_id' => trim($iId)];
-                                }, array_filter($issuesArr));
-                                if (!empty($insertIssues)) {
-                                    $db->table('archived_activity_design_issues')->insertBatch($insertIssues);
-                                }
-                            }
-                        }
-                    }
+                        $db->table('activity_design')
+                       ->where('act_design_id', $controlRecord['act_design_id'])
+                       ->update($adUpdateData);
+                      
+                      // Update junction tables
+                      $designIdToUpdate = $actDesignId ?? $controlRecord['act_design_id'] ?? null;
+                      if ($designIdToUpdate) {
+                          if (isset($finalMandates) && !empty($finalMandates)) {
+                              $db->table('activity_design_mandates')->where('act_design_id', $designIdToUpdate)->delete();
+                              foreach ($finalMandates as $mId) {
+                                  $db->table('activity_design_mandates')->insert([
+                                      'act_design_id' => $designIdToUpdate,
+                                      'mandate_id' => $mId
+                                  ]);
+                              }
+                          }
+                          if (isset($finalIssues) && !empty($finalIssues)) {
+                              $db->table('activity_design_issues')->where('act_design_id', $designIdToUpdate)->delete();
+                              foreach ($finalIssues as $iId) {
+                                  $db->table('activity_design_issues')->insert([
+                                      'act_design_id' => $designIdToUpdate,
+                                      'issue_id' => $iId
+                                  ]);
+                              }
+                          }
+                      }
+                  }
                 }
 
                 return $this->response->setJSON([
@@ -718,11 +845,21 @@ class AccomplishmentReportController extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'Accomplishment report not found'])->setStatusCode(404);
         }
 
-        if ($report['status'] !== 'Pending' || $report['is_viewed_by_admin'] == 1) {
+        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $report['user_id'];
+        
+        $userModel = new \App\Models\UserModel();
+        $actionUser = $userModel->find($actionUserId);
+        $isAdmin = $actionUser && $actionUser['role'] === 'admin';
+        $isOwner = ($actionUserId == $report['user_id']);
+
+        if (!$isAdmin && !$isOwner) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Unauthorized: You can only delete documents you submitted.'])->setStatusCode(403);
+        }
+
+        if (!$isAdmin && ($report['status'] !== 'Pending' || $report['is_viewed_by_admin'] == 1)) {
             return $this->response->setJSON(['success' => false, 'message' => 'Cannot trash this document as it is already being processed or viewed by admin.'])->setStatusCode(400);
         }
 
-        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $report['user_id'];
         $model->update($id, ['deleted_by' => $actionUserId]);
 
         if ($model->delete($id)) {

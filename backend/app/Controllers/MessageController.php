@@ -132,10 +132,9 @@ class MessageController extends ResourceController
             ->where('users.id !=', $senderId);
 
         if ($targetType === 'role') {
-            $builder->join('user_profiles', 'user_profiles.user_id = users.id', 'left');
             $builder->groupStart()
                 ->where('users.role', $targetValue)
-                ->orWhere('user_profiles.user_role', $targetValue)
+                ->orWhere('users.profile_role', $targetValue)
             ->groupEnd();
         } else if ($targetType === 'office') {
             $builder->where('users.office_id', $targetValue);
@@ -231,7 +230,7 @@ class MessageController extends ResourceController
         // Fetch messages where recipient_id = $userId, grouped by thread
         $db = \Config\Database::connect();
         $sql = "
-            SELECT messages.*, users.full_name, users.username, users.email, COALESCE(user_profiles.user_role, users.role) as role, users.office_id
+            SELECT messages.*, users.full_name, users.username, users.email, COALESCE(users.profile_role, users.role) as role, users.office_id
             FROM messages
             INNER JOIN (
                 SELECT MAX(id) as max_id
@@ -240,7 +239,6 @@ class MessageController extends ResourceController
                 GROUP BY IFNULL(parent_id, id)
             ) latest ON messages.id = latest.max_id
             JOIN users ON users.id = messages.sender_id
-            LEFT JOIN user_profiles ON user_profiles.user_id = users.id
             ORDER BY messages.created_at DESC
         ";
         $messages = $db->query($sql, [$userId])->getResultArray();
@@ -288,7 +286,7 @@ class MessageController extends ResourceController
         // Fetch messages where sender_id = $userId, grouped by thread
         $db = \Config\Database::connect();
         $sql = "
-            SELECT messages.*, users.full_name, users.username, users.email, COALESCE(user_profiles.user_role, users.role) as role, users.office_id
+            SELECT messages.*, users.full_name, users.username, users.email, COALESCE(users.profile_role, users.role) as role, users.office_id
             FROM messages
             INNER JOIN (
                 SELECT MAX(id) as max_id
@@ -297,7 +295,6 @@ class MessageController extends ResourceController
                 GROUP BY IFNULL(parent_id, id)
             ) latest ON messages.id = latest.max_id
             LEFT JOIN users ON users.id = messages.recipient_id
-            LEFT JOIN user_profiles ON user_profiles.user_id = users.id
             ORDER BY messages.created_at DESC
         ";
         $messages = $db->query($sql, [$userId])->getResultArray();
@@ -355,7 +352,7 @@ class MessageController extends ResourceController
         $db->query("DELETE FROM messages WHERE (deleted_by_sender_at IS NOT NULL AND deleted_by_sender_at < DATE_SUB(NOW(), INTERVAL 30 DAY)) OR (deleted_by_recipient_at IS NOT NULL AND deleted_by_recipient_at < DATE_SUB(NOW(), INTERVAL 30 DAY))");
 
         $sql = "
-            SELECT messages.*, users.full_name, users.username, users.email, COALESCE(user_profiles.user_role, users.role) as role, users.office_id, IF(messages.sender_id = ?, 'sent', 'received') as direction
+            SELECT messages.*, users.full_name, users.username, users.email, COALESCE(users.profile_role, users.role) as role, users.office_id, IF(messages.sender_id = ?, 'sent', 'received') as direction
             FROM messages
             INNER JOIN (
                 SELECT MAX(id) as max_id
@@ -365,7 +362,6 @@ class MessageController extends ResourceController
                 GROUP BY IFNULL(parent_id, id)
             ) latest ON messages.id = latest.max_id
             LEFT JOIN users ON users.id = IF(messages.sender_id = ?, messages.recipient_id, messages.sender_id)
-            LEFT JOIN user_profiles ON user_profiles.user_id = users.id
             ORDER BY messages.created_at DESC
         ";
         
@@ -557,9 +553,8 @@ class MessageController extends ResourceController
         
         // Fetch root and all its direct descendants
         $builder = $db->table('messages');
-        $builder->select('messages.*, users.full_name as sender_name, COALESCE(user_profiles.user_role, users.role) as sender_role');
+        $builder->select('messages.*, users.full_name as sender_name, COALESCE(users.profile_role, users.role) as sender_role');
         $builder->join('users', 'users.id = messages.sender_id');
-        $builder->join('user_profiles', 'user_profiles.user_id = users.id', 'left');
         $builder->groupStart()
                     ->where('messages.id', $rootId)
                     ->orWhere('messages.parent_id', $rootId)

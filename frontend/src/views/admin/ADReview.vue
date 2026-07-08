@@ -224,12 +224,7 @@
 
               <div>
                 <label class="form-label">Accomplishment Deadline</label>
-                <input 
-                  v-model="accomplishmentDeadline"
-                  type="date" 
-                  class="modal-input"
-                  :min="design.end_date"
-                >
+                <input v-model="accomplishmentDeadline" type="date" class="modal-input" :min="minAccomplishmentDeadline" @change="validateDeadlineWeekend">
               </div>
 
               <div>
@@ -256,7 +251,7 @@
                 <button v-if="design && design.status === 'Disapproved'" @click="handleRevertDecision" class="btn-cancel-req" style="background: #f59e0b;">
                   <span class="material-symbols-outlined">undo</span> REVERT DECISION
                 </button>
-                <button @click="handleTrash" class="btn-trash" :disabled="design && design.status === 'Pending'">
+                <button @click="handleTrash" class="btn-trash" >
                   <span class="material-symbols-outlined">delete</span> MOVE TO TRASH
                 </button>
                 <button @click="router.back()" class="btn-back">
@@ -393,8 +388,12 @@ const cancelReason = ref('');
 
 const getTodayDate = () => {
   const d = new Date();
-  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-  return d.toISOString().split('T')[0];
+  const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+  const phDate = new Date(utc + (3600000 * 8));
+  const year = phDate.getUTCFullYear();
+  const month = String(phDate.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(phDate.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 const todayDate = ref(getTodayDate());
 
@@ -402,8 +401,38 @@ const maxAccomplishmentDeadline = computed(() => {
   if (!design.value.end_date) return todayDate.value;
   const targetDate = new Date(design.value.end_date);
   targetDate.setDate(targetDate.getDate() + 14); // Exactly 14 days (2 weeks)
-  return targetDate.toISOString().split('T')[0];
+  const year = targetDate.getFullYear();
+  const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+  const day = String(targetDate.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 });
+
+const minAccomplishmentDeadline = computed(() => {
+  if (!design.value.end_date) return todayDate.value;
+  const [ey, em, ed] = design.value.end_date.split('-');
+  const targetDate = new Date(Date.UTC(ey, em - 1, ed));
+  targetDate.setUTCDate(targetDate.getUTCDate() + 1);
+  const year = targetDate.getUTCFullYear();
+  const month = String(targetDate.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(targetDate.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+});
+
+const validateDeadlineWeekend = () => {
+  if (accomplishmentDeadline.value) {
+    const deadline = new Date(accomplishmentDeadline.value);
+    const dayOfWeek = deadline.getUTCDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Weekend Selected',
+        text: 'Please select a weekday. Weekends (Saturday and Sunday) are not allowed for the Accomplishment Deadline.',
+        confirmButtonColor: '#f59e0b'
+      });
+      accomplishmentDeadline.value = ''; // clear it
+    }
+  }
+};
 
 const handleBeforeUnload = () => {
   if (design.value && design.value.act_design_id && design.value.status === 'Pending') {
@@ -647,7 +676,7 @@ const handleRevertDecision = async () => {
 };
 
 const handleTrash = async () => {
-  if (design.value.status === 'Pending') return;
+  // Admin can trash anytime
   const result = await Swal.fire({
     title: 'Move to Trash?',
     text: 'This activity design will be moved to the trash bin.',
@@ -800,8 +829,8 @@ const parsedBudget = computed(() => {
       icon: '🎤',
       total: Number(d.professional_fee_honoria || 0) + Number(d.tokens || 0),
       children: [
-        { name: `Professional Fee/Honoraria ${Number(d.professional_fee_honoria || 0) > 0 ? `(Number of Speakers: ${Math.floor(Number(d.professional_fee_honoria || 0) / 2258.25)})` : ''}`, value: Number(d.professional_fee_honoria || 0) },
-        { name: `Token/s ${Number(d.tokens || 0) > 0 ? `(Number of Recipients: ${Math.floor(Number(d.tokens || 0) / 1000)})` : ''}`, value: Number(d.tokens || 0) }
+        { name: `Professional Fee/Honoraria ${Number(d.professional_fee_honoria || 0) > 0 ? `(Number of Speakers: ${d.pf_pax || 0})` : ''}`, value: Number(d.professional_fee_honoria || 0) },
+        { name: `Token/s ${Number(d.tokens || 0) > 0 ? `(Number of Recipients: ${d.tokens_pax || 0})` : ''}`, value: Number(d.tokens || 0) }
       ]
     },
     {

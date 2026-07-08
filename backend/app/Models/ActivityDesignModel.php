@@ -35,7 +35,9 @@ class ActivityDesignModel extends Model // No change needed here, class name is 
         "status",
         "is_viewed_by_admin",
         "deleted_at",
-        "deleted_by"
+        "deleted_by",
+        "is_archived",
+        "control_number"
     ];
 
 	// Dates

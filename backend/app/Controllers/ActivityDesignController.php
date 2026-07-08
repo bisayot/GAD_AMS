@@ -160,10 +160,17 @@ class ActivityDesignController extends BaseController
                 $budgetItemsStr = $this->request->getPost("budget_items");
                 if ($budgetItemsStr) {
                     $budgetItems = json_decode($budgetItemsStr, true);
-                    if (is_array($budgetItems)) {
+                    if (is_array($budgetItems) && count($budgetItems) > 0) {
                         $budgetItemsModel = new \App\Models\ActivityBudgetItemsModel();
-                        $budgetItems['act_design_id'] = $actDesignId;
-                        $budgetItemsModel->insert($budgetItems);
+                        if (isset($budgetItems[0])) {
+                            foreach ($budgetItems as &$item) {
+                                $item['act_design_id'] = $actDesignId;
+                            }
+                            $budgetItemsModel->insertBatch($budgetItems);
+                        } else {
+                            $budgetItems['act_design_id'] = $actDesignId;
+                            $budgetItemsModel->insert($budgetItems);
+                        }
                     }
                 }
 
@@ -194,12 +201,12 @@ class ActivityDesignController extends BaseController
         $db = \Config\Database::connect();
         
         $active = $db->table('activity_design as ad')
-            ->select('ad.act_design_id, ad.status, cn.control_number as control, office_units.office_name as office, users.full_name as submitter_name, ad.activity_title as title, form_types.name as formLabel, ad.start_date as date, ad.end_date')
+            ->select('ad.act_design_id, ad.status, ad.control_number as control, office_units.office_name as office, users.full_name as submitter_name, ad.activity_title as title, form_types.name as formLabel, ad.start_date as date, ad.end_date')
             ->join('users', 'users.id = ad.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
-            ->join('control_number as cn', 'cn.act_design_id = ad.act_design_id', 'left')
             ->join('form_types', 'form_types.id = ad.form_type', 'left')
             ->where('ad.deleted_at', null)
+            ->where('ad.is_archived', 0)
             ->get()->getResultArray();
 
         usort($active, function($a, $b) {
@@ -222,13 +229,13 @@ class ActivityDesignController extends BaseController
         $db = \Config\Database::connect();
         
         $active = $db->table('activity_design as ad')
-            ->select('ad.act_design_id, ad.status, cn.control_number as control, office_units.office_name as office, users.full_name as submitter_name, ad.activity_title as title, form_types.name as formLabel, ad.start_date as date, ad.end_date')
+            ->select('ad.act_design_id, ad.status, ad.control_number as control, office_units.office_name as office, users.full_name as submitter_name, ad.activity_title as title, form_types.name as formLabel, ad.start_date as date, ad.end_date')
             ->join('users', 'users.id = ad.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
-            ->join('control_number as cn', 'cn.act_design_id = ad.act_design_id', 'left')
             ->join('form_types', 'form_types.id = ad.form_type', 'left')
             ->where('ad.user_id', $userId)
             ->where('ad.deleted_at', null)
+            ->where('ad.is_archived', 0)
             ->get()->getResultArray();
 
         usort($active, function($a, $b) {
@@ -248,15 +255,15 @@ class ActivityDesignController extends BaseController
         }
 
         $activityDesignModel = new ActivityDesignModel();
+
         $design = $activityDesignModel
-            ->select('activity_design.*, control_number.control_number as control, office_units.office_name as office, users.full_name as submitter_name, activity_design.start_date as date, venues.venue_name as venue, activity_classifications.classification_name as activity_classification, form_types.name as form_type_name')
+            ->select('activity_design.*, office_units.office_name as office, users.full_name as submitter_name, activity_design.start_date as date, venues.venue_name as venue, activity_classifications.classification_name as activity_classification, form_types.name as form_type_name')
             ->select('(SELECT GROUP_CONCAT(CONCAT(gm.code, " - ", gm.title) SEPARATOR ";;; ") FROM activity_design_mandates adm JOIN gad_mandates gm ON gm.id = adm.mandate_id WHERE adm.act_design_id = activity_design.act_design_id) as gad_mandate')
             ->select('(SELECT GROUP_CONCAT(gi.title SEPARATOR ";;; ") FROM activity_design_issues adi JOIN gender_issues gi ON gi.id = adi.issue_id WHERE adi.act_design_id = activity_design.act_design_id) as gender_issue')
             ->select('(SELECT GROUP_CONCAT(adm.mandate_id SEPARATOR ",") FROM activity_design_mandates adm WHERE adm.act_design_id = activity_design.act_design_id) as gad_mandate_ids')
             ->select('(SELECT GROUP_CONCAT(adi.issue_id SEPARATOR ",") FROM activity_design_issues adi WHERE adi.act_design_id = activity_design.act_design_id) as gender_issue_ids')
             ->join('users', 'users.id = activity_design.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
-            ->join('control_number', 'control_number.act_design_id = activity_design.act_design_id', 'left')
             ->join('venues', 'venues.venue_id = activity_design.venue_id', 'left')
             ->join('activity_classifications', 'activity_classifications.id = activity_design.classification_id', 'left')
             ->join('form_types', 'form_types.id = activity_design.form_type', 'left')
@@ -264,43 +271,70 @@ class ActivityDesignController extends BaseController
             ->first();
 
         if (!$design) {
-            // Try searching in archive fallback
-            $db = \Config\Database::connect();
-            $design = $db->table('archived_activity_designs as aad')
-                ->select('aad.*, aad.original_act_design_id as act_design_id, aad.activity_title as title, form_types.name as formLabel, office_units.office_name as office, users.full_name as submitter_name, aad.start_date as date, venues.venue_name as venue, activity_classifications.classification_name as activity_classification, form_types.name as form_type_name')
-                ->select('COALESCE((SELECT GROUP_CONCAT(CONCAT(gm.code, " - ", gm.title) SEPARATOR ";;; ") FROM archived_activity_design_mandates adm JOIN gad_mandates gm ON gm.id = adm.mandate_id WHERE adm.archive_id = aad.archive_id), (SELECT CONCAT(code, " - ", title) FROM gad_mandates WHERE id = aad.gad_mandate_id)) as gad_mandate')
-                ->select('COALESCE((SELECT GROUP_CONCAT(gi.title SEPARATOR ";;; ") FROM archived_activity_design_issues adi JOIN gender_issues gi ON gi.id = adi.issue_id WHERE adi.archive_id = aad.archive_id), (SELECT title FROM gender_issues WHERE id = aad.gender_issue_id)) as gender_issue')
-                ->select('(SELECT GROUP_CONCAT(adm.mandate_id SEPARATOR ",") FROM archived_activity_design_mandates adm WHERE adm.archive_id = aad.archive_id) as gad_mandate_ids')
-                ->select('(SELECT GROUP_CONCAT(adi.issue_id SEPARATOR ",") FROM archived_activity_design_issues adi WHERE adi.archive_id = aad.archive_id) as gender_issue_ids')
-                ->join('users', 'users.id = aad.user_id', 'left')
-                ->join('office_units', 'office_units.office_id = users.office_id', 'left')
-                ->join('control_number as cn', 'cn.act_design_id = aad.original_act_design_id', 'left')
-                ->join('venues', 'venues.venue_id = aad.venue_id', 'left')
-                ->join('form_types', 'form_types.id = aad.form_type', 'left')
-                ->join('activity_classifications', 'activity_classifications.id = aad.classification_id', 'left')
-                ->select('COALESCE(cn.control_number, "N/A") as control')
-                ->where('aad.original_act_design_id', $id)
-                ->get()->getRowArray();
-
-        if (!$design) {
-                return $this->response->setJSON(['success' => false, 'message' => 'Activity design not found'])->setStatusCode(404);
-            }
-            $design['is_archived'] = true;
-            $db = \Config\Database::connect();
-            $design['gad_mandate_id'] = array_column($db->table('archived_activity_design_mandates')->where('archive_id', $design['archive_id'])->select('mandate_id')->get()->getResultArray(), 'mandate_id');
-            $design['gender_issue_id'] = array_column($db->table('archived_activity_design_issues')->where('archive_id', $design['archive_id'])->select('issue_id')->get()->getResultArray(), 'issue_id');
-        } else {
-            $design['is_archived'] = false;
-            $db = \Config\Database::connect();
-            $design['gad_mandate_id'] = array_column($db->table('activity_design_mandates')->where('act_design_id', $design['act_design_id'])->select('mandate_id')->get()->getResultArray(), 'mandate_id');
-            $design['gender_issue_id'] = array_column($db->table('activity_design_issues')->where('act_design_id', $design['act_design_id'])->select('issue_id')->get()->getResultArray(), 'issue_id');
+            return $this->response->setJSON(['success' => false, 'message' => 'Activity design not found'])->setStatusCode(404);
         }
+
+        $design['is_archived'] = $design['is_archived'] == 1;
+        $design['control'] = $design['control_number'];
+
+        $db = \Config\Database::connect();
+        $design['gad_mandate_id'] = array_column($db->table('activity_design_mandates')->where('act_design_id', $design['act_design_id'])->select('mandate_id')->get()->getResultArray(), 'mandate_id');
+        $design['gender_issue_id'] = array_column($db->table('activity_design_issues')->where('act_design_id', $design['act_design_id'])->select('issue_id')->get()->getResultArray(), 'issue_id');
 
         // Fetch budget items
         $budgetModel = new \App\Models\ActivityBudgetItemsModel();
-        $budget = $budgetModel->where('act_design_id', $design['act_design_id'])->first();
-        if ($budget) {
-            $design = array_merge($design, $budget);
+        $budgetItems = $budgetModel->where('act_design_id', $design['act_design_id'])->findAll();
+        if ($budgetItems) {
+            $budgetMap = [
+                'Meals' => 'meals_total',
+                'Snacks' => 'snacks_total',
+                'Function Room/Venue' => 'function_room_venue',
+                'Accommodation' => 'accommodation',
+                'Equipment Rental' => 'equipment_rental',
+                'Professional Fee/Honoria' => 'professional_fee_honoria',
+                  'Professional Fee/Honoraria' => 'professional_fee_honoria',
+                'Token/s' => 'tokens',
+                'Materials and Supplies' => 'materials_total',
+                'Transportation' => 'transportation',
+            ];
+            foreach ($budgetItems as $item) {
+                $name = $item['item_name'];
+                if (isset($budgetMap[$name])) {
+                    $design[$budgetMap[$name]] = $item['amount'];
+                      if ($budgetMap[$name] === 'professional_fee_honoria') {
+                          $design['pf_pax'] = $item['pax'];
+                      }
+                      if ($budgetMap[$name] === 'tokens') {
+                          $design['tokens_pax'] = $item['pax'];
+                      }
+                    
+                    if ($name === 'Meals' && !empty($item['sub_item'])) {
+                        $design['breakfast_selected'] = strpos(strtolower($item['sub_item']), 'breakfast') !== false ? 1 : 0;
+                        $design['lunch_selected'] = strpos(strtolower($item['sub_item']), 'lunch') !== false ? 1 : 0;
+                        $design['dinner_selected'] = strpos(strtolower($item['sub_item']), 'dinner') !== false ? 1 : 0;
+                    }
+                    if ($name === 'Snacks' && !empty($item['sub_item'])) {
+                        $design['am_snack_selected'] = strpos(strtolower($item['sub_item']), 'am') !== false ? 1 : 0;
+                        $design['pm_snack_selected'] = strpos(strtolower($item['sub_item']), 'pm') !== false ? 1 : 0;
+                    }
+                } elseif ($name === 'Others') {
+                    if (!isset($design['others_total'])) {
+                        $design['others_total'] = 0;
+                        $design['materials_others_breakdown'] = [];
+                    }
+                    $design['others_total'] += $item['amount'];
+                    if (!empty($item['sub_item'])) {
+                        $design['materials_others_breakdown'][] = [
+                            'name' => $item['sub_item'],
+                            'amount' => $item['amount']
+                        ];
+                    }
+                }
+            }
+            if (isset($design['materials_others_breakdown']) && is_array($design['materials_others_breakdown'])) {
+                $design['materials_others_breakdown'] = json_encode($design['materials_others_breakdown']);
+            }
+            $design['budget_items'] = $budgetItems;
         }
 
         return $this->response->setJSON(['success' => true, 'data' => $design]);
@@ -321,10 +355,9 @@ class ActivityDesignController extends BaseController
             ->getResultArray();
 
         $users = $db->table('users')
-            ->select('users.office_id, COALESCE(user_profiles.user_role, "Non-TWG") as user_role')
-            ->join('user_profiles', 'user_profiles.user_id = users.id', 'left')
-            ->select('( (SELECT COUNT(*) FROM activity_design WHERE activity_design.user_id = users.id) + (SELECT COUNT(*) FROM archived_activity_designs WHERE archived_activity_designs.user_id = users.id) ) as activity_designs_count')
-            ->select('( (SELECT COUNT(*) FROM accomplishment_report WHERE accomplishment_report.user_id = users.id) + (SELECT COUNT(*) FROM archived_accomplishment_reports WHERE archived_accomplishment_reports.user_id = users.id) ) as accomplishment_reports_count')
+            ->select('users.office_id, COALESCE(users.profile_role, "Non-TWG") as user_role')
+            ->select('(SELECT COUNT(*) FROM activity_design WHERE activity_design.user_id = users.id AND activity_design.deleted_at IS NULL AND activity_design.is_archived = 0) as activity_designs_count')
+            ->select('(SELECT COUNT(*) FROM accomplishment_report WHERE accomplishment_report.user_id = users.id AND accomplishment_report.deleted_at IS NULL AND accomplishment_report.is_archived = 0) as accomplishment_reports_count')
             ->where('users.role !=', 'admin')
             ->get()
             ->getResultArray();
@@ -420,10 +453,9 @@ class ActivityDesignController extends BaseController
 
         // Fetch designs that are 'Approved' or 'Cancelled'
         $designs = $activityDesignModel
-            ->select('activity_design.*, control_number.control_number as control, office_units.office_name as office, users.full_name as submitter_name, activity_design.activity_title as title, form_types.name as formLabel, activity_design.start_date as date')
+            ->select('activity_design.*, activity_design.control_number as control, office_units.office_name as office, users.full_name as submitter_name, activity_design.activity_title as title, form_types.name as formLabel, activity_design.start_date as date')
             ->join('users', 'users.id = activity_design.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
-            ->join('control_number', 'control_number.act_design_id = activity_design.act_design_id', 'left')
             ->join('form_types', 'form_types.id = activity_design.form_type', 'left')
             ->whereIn('activity_design.status', ['Approved', 'Cancelled'])
             ->orderBy('activity_design.act_design_id', 'DESC')
@@ -548,14 +580,14 @@ class ActivityDesignController extends BaseController
                 $budgetItemsStr = $this->request->getPost("budget_items");
                 if ($budgetItemsStr) {
                     $budgetItems = json_decode($budgetItemsStr, true);
-                    if (is_array($budgetItems)) {
+                    if (is_array($budgetItems) && count($budgetItems) > 0) {
                         $budgetItemsModel = new \App\Models\ActivityBudgetItemsModel();
-                        $existingBudget = $budgetItemsModel->where('act_design_id', $id)->first();
-                        
-                        // We use the primary key if it exists, otherwise insert
-                        if ($existingBudget) {
-                            $primaryKey = $budgetItemsModel->primaryKey;
-                            $budgetItemsModel->update($existingBudget[$primaryKey], $budgetItems);
+                        $budgetItemsModel->where('act_design_id', $id)->delete();
+                        if (isset($budgetItems[0])) {
+                            foreach ($budgetItems as &$item) {
+                                $item['act_design_id'] = $id;
+                            }
+                            $budgetItemsModel->insertBatch($budgetItems);
                         } else {
                             $budgetItems['act_design_id'] = $id;
                             $budgetItemsModel->insert($budgetItems);
@@ -614,87 +646,31 @@ class ActivityDesignController extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'Activity design not found'])->setStatusCode(404);
         }
 
-        // 1. Save control number record
-        $existingControl = $db->table('control_number')->where('act_design_id', $id)->get()->getRowArray();
-        if ($existingControl) {
-            $db->table('control_number')->where('act_design_id', $id)->update(['control_number' => $controlNumber]);
-        } else {
-            $db->table('control_number')->insert([
-                'act_design_id'  => $id,
-                'control_number' => $controlNumber
-            ]);
-        }
-
-        // 2. Insert into archived_activity_designs
-        $archiveData = [
-            'original_act_design_id'   => $item['act_design_id'],
-            'activity_title'           => $item['activity_title'],
-            'start_date'               => $item['start_date'],
-            'end_date'                 => $item['end_date'],
-            'start_time'               => $item['start_time'],
-            'end_time'                 => $item['end_time'],
+        $updateData = [
             'status'                   => 'Approved',
-            'attachment'               => $item['attachment'],
-            'user_id'                  => $item['user_id'],
-            'gpb_id'                   => $item['gpb_id'] ?? null,
-            'venue_id'                 => $item['venue_id'],
-            'target_participants'      => $item['target_participants'],
-            'proposed_budget'          => $item['proposed_budget'],
-            'form_type'                => $item['form_type'],
             'assessment_date'          => $assessmentDate,
             'accomplishment_deadline'  => $accomplishmentDeadline,
             'remarks'                  => $remarks,
-            'classification_id'        => $item['classification_id'] ?? null,
-            'gad_mandate_id'           => $item['gad_mandate_id'] ?? null,
-            'gender_issue_id'          => $item['gender_issue_id'] ?? null,
+            'control_number'           => $controlNumber,
+            'is_archived'              => 1
         ];
-        $db->table('archived_activity_designs')->insert($archiveData);
-        $archiveId = $db->insertID();
 
-        // Copy mandates
-        $mandates = $db->table('activity_design_mandates')->where('act_design_id', $id)->get()->getResultArray();
-        if (!empty($mandates)) {
-            $archivedMandates = array_map(function($m) use ($archiveId) {
-                return [
-                    'archive_id' => $archiveId,
-                    'mandate_id' => $m['mandate_id']
-                ];
-            }, $mandates);
-            $db->table('archived_activity_design_mandates')->insertBatch($archivedMandates);
-        }
-
-        // Copy issues
-        $issues = $db->table('activity_design_issues')->where('act_design_id', $id)->get()->getResultArray();
-        if (!empty($issues)) {
-            $archivedIssues = array_map(function($i) use ($archiveId) {
-                return [
-                    'archive_id' => $archiveId,
-                    'issue_id' => $i['issue_id']
-                ];
-            }, $issues);
-            $db->table('archived_activity_design_issues')->insertBatch($archivedIssues);
-        }
-
-        // 3. Delete from active table
-        $db->table('activity_design_mandates')->where('act_design_id', $id)->delete();
-        $db->table('activity_design_issues')->where('act_design_id', $id)->delete();
-        $db->table('activity_design')->where('act_design_id', $id)->delete();
+        $db->table('activity_design')->where('act_design_id', $id)->update($updateData);
 
         $db->transComplete();
 
         if ($db->transStatus() === false) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Failed to approve and archive design'])->setStatusCode(500);
+            return $this->response->setJSON(['success' => false, 'message' => 'Failed to approve design'])->setStatusCode(500);
         }
 
         $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
         \App\Models\ActivityLogModel::log($actionUserId, 'Approve Document', 'approved Activity Design: ' . $item['activity_title']);
 
-        // 4. Move PDF from drafts → archived (outside transaction)
-        FileStorage::moveToArchived($item['attachment']);
+        \App\Libraries\FileStorage::moveToArchived($item['attachment']);
 
         return $this->response->setJSON([
             'success' => true,
-            'message' => 'Activity Design approved and archived successfully.'
+            'message' => 'Activity Design approved successfully.'
         ]);
     }
 
@@ -942,11 +918,21 @@ class ActivityDesignController extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'Activity design not found'])->setStatusCode(404);
         }
 
-        if ($design['status'] !== 'Pending' || $design['is_viewed_by_admin'] == 1) {
+        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
+        
+        $userModel = new \App\Models\UserModel();
+        $actionUser = $userModel->find($actionUserId);
+        $isAdmin = $actionUser && $actionUser['role'] === 'admin';
+        $isOwner = ($actionUserId == $design['user_id']);
+
+        if (!$isAdmin && !$isOwner) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Unauthorized: You can only delete documents you submitted.'])->setStatusCode(403);
+        }
+
+        if (!$isAdmin && ($design['status'] !== 'Pending' || $design['is_viewed_by_admin'] == 1)) {
             return $this->response->setJSON(['success' => false, 'message' => 'Cannot trash this document as it is already being processed or viewed by admin.'])->setStatusCode(400);
         }
 
-        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
         $model->update($id, ['deleted_by' => $actionUserId]);
 
         if ($model->delete($id)) {
@@ -999,7 +985,7 @@ class ActivityDesignController extends BaseController
         $db = \Config\Database::connect();
         $yearMonth = date('Y-m'); // e.g., 2026-06
         
-        $result = $db->table('control_number')
+        $result = $db->table('activity_design')
             ->select('control_number')
             ->like('control_number', $yearMonth . '-', 'after')
             ->orderBy('control_number', 'DESC')
