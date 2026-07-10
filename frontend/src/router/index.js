@@ -32,6 +32,7 @@ const routes = [
       { path: 'ar-view/:id', name: 'admin-ar-view', component: () => import('../views/admin/ARView.vue') },
       { path: 'ar-review/:id', name: 'admin-ar-review', component: () => import('../views/admin/ARReview.vue') },
       { path: 'ad-review/:id', name: 'admin-ad-review', component: () => import('../views/admin/ADReview.vue') },
+      { path: 'ad-revision/:id', name: 'admin-ad-revision', component: () => import('../views/admin/ADRevision.vue') },
       { path: 'archive', name: 'admin-archive', component: () => import('../views/admin/ArchiveView.vue') },
       { path: 'trash-bin', name: 'admin-trash-bin', component: () => import('../views/admin/DocumentTrashBin.vue') },
       { path: 'mandates', name: 'admin-mandates', component: () => import('../views/admin/MandatesView.vue') },

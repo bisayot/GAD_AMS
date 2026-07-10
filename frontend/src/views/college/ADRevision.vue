@@ -27,7 +27,7 @@
     <div v-else class="page-container">
       <div class="layout-grid">
         <!-- LEFT SECTION - Edit Form -->
-        <section class="flex-06 glass-card">
+        <section :class="design.status === 'Approved' ? 'flex-100' : 'flex-06'" class="glass-card">
           <div class="report-header">
             <div class="meta-header">
               <div class="status-badge-revision">
@@ -470,7 +470,7 @@
               <div class="document-previews" style="margin-top: 15px;">
                 <div v-if="design.attachment" style="margin-bottom: 20px;">
                   <p style="color: #cbd5e1; font-size: 13px; font-weight: bold; margin-bottom: 8px;">Previous Document:</p>
-                  <iframe :src="`${api.defaults.baseURL}/files/drafts/${design.attachment}`" width="100%" height="400px" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;"></iframe>
+                  <iframe :src="`${api.defaults.baseURL}/files/${Number(design.is_archived) === 1 ? 'archived' : 'drafts'}/${design.attachment}`" width="100%" height="400px" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;"></iframe>
                 </div>
                 <div v-if="newFileURL">
                   <p style="color: #b979cc; font-size: 13px; font-weight: bold; margin-bottom: 8px;">New Document Preview:</p>
@@ -478,9 +478,27 @@
                 </div>
               </div>
             </div>
+            
+            <div v-if="design.status === 'Approved'" class="assessment-card-custom" style="margin-top: 24px;">
+              <div class="assessment-header">
+                <div class="assessment-icon">📋</div>
+                <div class="assessment-title">Modification Actions</div>
+              </div>
+              <div class="assessment-form">
+                <div class="action-buttons" style="margin-top: 0; padding-top: 0; border-top: none;">
+                  <button @click="handleUpdate" class="btn-approve" :disabled="submitting">
+                    <span class="material-symbols-outlined">send</span> 
+                    {{ submitting ? 'Updating...' : 'Save and Update Document' }}
+                  </button>
+                  <button @click="router.back()" class="btn-back">
+                    Cancel Changes
+                  </button>
+                </div>
+              </div>
+            </div>
         </section>
 
-        <section class="flex-04-sidebar">
+        <section v-if="design.status !== 'Approved'" class="flex-04-sidebar">
           <div class="assessment-card-custom">
             <div class="assessment-header">
               <div class="assessment-icon">📋</div>
@@ -1026,6 +1044,7 @@ onMounted(() => {
 .page-container { min-height: 100vh; }
 .layout-grid { display: flex; gap: 15px; max-width: 80rem; margin: 0 auto; }
 .flex-06 { flex: 0.65; display: flex; flex-direction: column; overflow: hidden; }
+.flex-100 { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 .flex-04-sidebar { flex: 0.35; position: sticky; top: 120px; align-self: flex-start; }
 
 .glass-card { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); backdrop-filter: blur(24px); border-radius: 1.5rem; border: 1px solid rgba(185, 121, 204, 0.2); }

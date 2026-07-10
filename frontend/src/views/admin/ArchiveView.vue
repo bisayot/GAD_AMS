@@ -152,7 +152,10 @@
                       <div class="item-date">{{ item.dateArchived }}</div>
                     </td>
                     <td class="table-cell">
-                      <div class="item-title">{{ item.title }}</div>
+                      <div class="item-title">
+                        {{ item.title }}
+                        <span v-if="item.is_modified == 1" class="status-badge" style="background: #7c3aed; color: #ffffff; border: 1px solid #6d28d9; margin-left: 8px; font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: 700;">MODIFIED</span>
+                      </div>
                     </td>
                     <td class="table-cell">
                       <div class="item-date">{{ item.dateArchived }}</div>
@@ -197,6 +200,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import Swal from 'sweetalert2';
 import api from '../../api';
 
 const router = useRouter();
@@ -343,6 +347,32 @@ const viewItem = (item) => {
     router.push(`/admin/ad-view/${item.id}`);
   } else {
     router.push(`/admin/ar-view/${item.id}`);
+  }
+};
+
+const handleTrash = async (item) => {
+  const result = await Swal.fire({
+    title: 'Move to Trash?',
+    text: `"${item.title}" will be moved to trash. You can restore it within 30 days.`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: 'Yes, move to trash'
+  });
+  if (!result.isConfirmed) return;
+  try {
+    const res = await api.delete(`activity-designs/trash/${item.id}`, {
+      headers: { 'X-User-Id': user.value.id }
+    });
+    if (res.data.success) {
+      Swal.fire({ icon: 'success', title: 'Moved to Trash', timer: 1500, showConfirmButton: false });
+      fetchArchives();
+    } else {
+      Swal.fire({ icon: 'error', title: 'Error', text: res.data.message || 'Failed to trash.' });
+    }
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Server error.' });
   }
 };
 

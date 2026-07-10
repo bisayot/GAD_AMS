@@ -23,7 +23,28 @@
               <span class="control-number">{{ report.control || 'NO CONTROL NUMBER' }}</span>
             </div>
 
-            <h2 class="report-title">{{ report.activity_title }}</h2>
+            <div class="report-title-row">
+              <h2 class="report-title">{{ report.activity_title }}</h2>
+
+              <div v-if="aRBudget && aRBudget.grand_total > Number(aDBudget?.grand_total || 0)" class="budget-status-banner budget-exceeded-banner">
+                <h4 class="budget-status-title">
+                  <span class="material-symbols-outlined">warning</span>
+                  Budget Limit Exceeded
+                </h4>
+                <p class="budget-status-text">
+                  The actual spending grand total (<strong>₱{{ Number(aRBudget.grand_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</strong>) exceeds the originally approved proposed budget (<strong>₱{{ Number(aDBudget?.grand_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</strong>).
+                </p>
+              </div>
+              <div v-else-if="report.activity_design && aRBudget && aRBudget.grand_total < Number(aDBudget?.grand_total || 0)" class="budget-status-banner budget-underutilized-banner">
+                <h4 class="budget-status-title">
+                  <span class="material-symbols-outlined">savings</span>
+                  Budget Underutilized
+                </h4>
+                <p class="budget-status-text">
+                  The actual spending grand total (<strong>₱{{ Number(aRBudget.grand_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</strong>) is lower than the originally approved proposed budget (<strong>₱{{ Number(aDBudget?.grand_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</strong>).
+                </p>
+              </div>
+            </div>
 
             <div class="info-grid">
               <div class="info-item">
@@ -217,26 +238,6 @@
                 </div>
             </div>
 
-            
-            <!-- Budget Exceeded Banner -->
-            <div v-if="aRBudget && aRBudget.grand_total > Number(aDBudget?.grand_total || 0)" class="budget-exceeded-banner mt-4 mb-4" style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 16px; border-radius: 8px;">
-              <h4 style="color: #ef4444; margin: 0 0 8px 0; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 6px;">
-                <span class="material-symbols-outlined" style="font-size: 18px;">warning</span>
-                Budget Limit Exceeded
-              </h4>
-              <p style="margin: 0; color: #cbd5e1; font-size: 13px;">
-                The actual spending grand total (<strong>₱{{ Number(aRBudget.grand_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</strong>) exceeds the originally approved proposed budget (<strong>₱{{ Number(aDBudget?.grand_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</strong>).
-              </p>
-            </div>
-              <div v-else-if="report.activity_design && aRBudget && aRBudget.grand_total < Number(aDBudget?.grand_total || 0)" class="budget-underutilized-banner mt-4 mb-4" style="background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 16px; border-radius: 8px;">
-              <h4 style="color: #3b82f6; margin: 0 0 8px 0; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 6px;">
-                <span class="material-symbols-outlined" style="font-size: 18px;">savings</span>
-                Budget Underutilized
-              </h4>
-              <p style="margin: 0; color: #cbd5e1; font-size: 13px;">
-                The actual spending grand total (<strong>₱{{ Number(aRBudget.grand_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</strong>) is lower than the originally approved proposed budget (<strong>₱{{ Number(aDBudget?.grand_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</strong>).
-              </p>
-            </div>
             
             <!-- Actual Accomplishment Details -->
             <div class="section-card">
@@ -978,13 +979,66 @@ button { transition: all 0.2s ease-in-out; cursor: pointer; }
   font-family: monospace;
 }
 
-.report-title {
+.report-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 16px 0;
+}
 
+.report-title {
+  flex: 1;
+  min-width: 0;
   font-size: 26px;
   color: white;
   line-height: 1.25;
-  margin-bottom: 16px;
-  margin-top: 16px;
+  margin: 0;
+}
+
+.budget-status-banner {
+  flex: 0 0 360px;
+  max-width: 42%;
+  padding: 14px 16px;
+  border-radius: 8px;
+}
+
+.budget-exceeded-banner {
+  background: rgba(239, 68, 68, 0.1);
+  border-left: 4px solid #ef4444;
+}
+
+.budget-underutilized-banner {
+  background: rgba(59, 130, 246, 0.1);
+  border-left: 4px solid #3b82f6;
+}
+
+.budget-status-title {
+  margin: 0 0 8px 0;
+  font-weight: bold;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.budget-exceeded-banner .budget-status-title {
+  color: #ef4444;
+}
+
+.budget-underutilized-banner .budget-status-title {
+  color: #3b82f6;
+}
+
+.budget-status-title .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.budget-status-text {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .info-grid {
@@ -1155,6 +1209,8 @@ button { transition: all 0.2s ease-in-out; cursor: pointer; }
 @media (max-width: 768px) {
   .grid-2, .grid-3 { grid-template-columns: 1fr !important; }
   .info-grid { flex-direction: column !important; gap: 12px !important; }
+  .report-title-row { flex-direction: column; gap: 16px; }
+  .budget-status-banner { flex: 1 1 auto; max-width: 100%; width: 100%; }
 }
 
 .mt-1 { margin-top: 0.25rem; }

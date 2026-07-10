@@ -785,7 +785,7 @@ const fetchDesignDetails = async () => {
               text: 'You are not authorized to revise this document.',
               confirmButtonColor: '#b979cc'
             }).then(() => {
-              router.push('/staff/ad-list');
+              router.push('/admin/ad-list');
             });
             return;
           }
@@ -979,7 +979,7 @@ const handleUpdate = async () => {
 
     if (response.data.success) {
       Swal.fire({ icon: 'success', title: 'Resubmitted!', text: 'Activity Design updated and resubmitted successfully.', confirmButtonColor: '#b979cc' }).then(() => {
-        router.push('/staff/ad-list');
+        router.push('/admin/ad-list');
       });
     } else {
       Swal.fire({ icon: 'error', title: 'Update Failed', text: response.data.message || 'Failed to update activity design.', confirmButtonColor: '#b979cc' });
@@ -994,7 +994,7 @@ const handleUpdate = async () => {
 };
 
 onMounted(() => {
-  if (!user.value.id || user.value.role !== 'gad_staff') {
+  if (!user.value.id || user.value.role !== 'admin') {
     router.push('/login');
   } else {
     fetchVenues();
@@ -1026,7 +1026,7 @@ onMounted(() => {
 .flex-06 { flex: 0 0 60%; max-width: 60%; }
 .flex-100 { flex: 0 0 100%; max-width: 100%; }
 .flex-04-sidebar { flex: 0 0 calc(40% - 2rem); max-width: calc(40% - 2rem); }
-.flex-04-sidebar.approved-hidden { display: none; }
+.flex-04-sidebar { flex: 0.35; position: sticky; top: 120px; align-self: flex-start; }
 
 .glass-card { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); backdrop-filter: blur(24px); border-radius: 1.5rem; border: 1px solid rgba(185, 121, 204, 0.2); }
 .report-header { padding: 2rem; border-bottom: 1px solid rgba(185, 121, 204, 0.15); background: rgba(0, 0, 0, 0.2); }

@@ -218,6 +218,18 @@
               </div>
 
               <div class="action-buttons">
+                <!-- Add Modification Request logic here -->
+                <!-- Add Modification Request logic here -->
+                <button v-if="design.status === 'Approved' && (!design.modification_request_status || design.modification_request_status === 'none' || design.modification_request_status === 'rejected')" @click="openModModal" class="btn-approve" style="margin-bottom: 10px; width: 100%;">
+                  <span class="material-symbols-outlined" style="font-size: 1.2rem; margin-right: 4px;">edit_note</span> Request Modification
+                </button>
+                <div v-else-if="design.status === 'Approved' && design.modification_request_status === 'pending'" class="status-badge" style="background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); text-align: center; margin-bottom: 10px; display: block; padding: 0.75rem; border-radius: 12px;">
+                  Modification Requested
+                </div>
+                <button v-else-if="design.status === 'Approved' && design.modification_request_status === 'approved'" @click="router.push(`/college/ad-revision/${design.act_design_id}`)" class="btn-approve" style="margin-bottom: 10px; width: 100%;">
+                  <span class="material-symbols-outlined" style="font-size: 1.2rem; margin-right: 4px;">edit</span> Modify Design
+                </button>
+
                 <button @click="handleTrash" class="btn-trash">
                   <span class="material-symbols-outlined">delete</span> MOVE TO TRASH
                 </button>
@@ -233,6 +245,19 @@
 
     <!-- PDF Preview Modal -->
     <PdfPreviewModal :isOpen="isPdfModalOpen" :fileUrl="pdfFileUrl" @close="closePdfModal" />
+
+    <!-- Modification Request Modal -->
+    <div v-if="isModModalOpen" class="modal-overlay">
+      <div class="modal-content">
+        <h3 class="modal-title">Request Modification</h3>
+        <p class="modal-desc">Please provide a reason for requesting a modification to this approved design.</p>
+        <textarea v-model="modRemarks" class="modal-input" rows="4" placeholder="Enter remarks..."></textarea>
+        <div class="modal-actions">
+          <button @click="closeModModal" class="btn-cancel">Cancel</button>
+          <button @click="submitModRequest" class="btn-submit">Submit Request</button>
+        </div>
+      </div>
+    </div>
   </main>
 </template>
 
@@ -356,8 +381,50 @@ const design = ref({});
 const loading = ref(true);
 const error = ref(null);
 
+const isModModalOpen = ref(false);
+const modRemarks = ref('');
+
+const openModModal = () => {
+  isModModalOpen.value = true;
+  modRemarks.value = '';
+};
+
+const closeModModal = () => {
+  isModModalOpen.value = false;
+};
+
+const submitModRequest = async () => {
+  try {
+    const res = await api.post(`activity-designs/${route.params.id}/request-modification`, { remarks: modRemarks.value });
+    if (res.data.success) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Modification requested successfully.',
+        timer: 1500,
+        showConfirmButton: false
+      });
+      closeModModal();
+      fetchDesignDetails();
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to request modification: ' + res.data.message
+      });
+    }
+  } catch (err) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Error submitting modification request.'
+    });
+  }
+};
+
 const handleTrash = async () => {
-  if (design.value.status !== 'Pending' || design.value.is_viewed_by_admin == 1) {
+  const isArchived = design.value.is_archived == 1;
+  if (!isArchived && (design.value.status !== 'Pending' || design.value.is_viewed_by_admin == 1)) {
     Swal.fire({
       icon: 'error',
       title: 'Action Denied',
@@ -387,7 +454,7 @@ const handleTrash = async () => {
           timer: 1500,
           showConfirmButton: false
         });
-        router.push('/college/mandates');
+        router.push(design.value.is_archived == 1 ? '/college/archive' : '/college/mandates');
       } else {
         throw new Error(response.data.message || 'Failed to move to trash');
       }
@@ -549,9 +616,94 @@ onMounted(() => {
   line-height: 1.5;
 }
 
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.modal-content {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 1px solid rgba(185, 121, 204, 0.2);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  padding: 2rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+.modal-title {
+  color: #e2e8f0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  margin-top: 0;
+}
+.modal-desc {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+.modal-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(185, 121, 204, 0.2);
+  color: white;
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 0.95rem;
+  resize: vertical;
+  margin-bottom: 1.5rem;
+}
+.modal-input:focus {
+  outline: none;
+  border-color: #b979cc;
+  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.2);
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+.btn-cancel {
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+.btn-submit {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #b979cc 0%, #990dd1 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(185, 121, 204, 0.3);
+}
+
 .action-buttons { margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(185, 121, 204, 0.15); }
 .btn-back { width: 100%; padding: 12px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #cbd5e1; border-radius: 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(185, 121, 204, 0.15); cursor: pointer; transition: all 0.2s; }
 .btn-back:hover { color: white; border-color: #b979cc; background: rgba(185, 121, 204, 0.05); }
+
+.btn-approve { width: 100%; background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%); color: white; border: none; border-radius: 14px; padding: 14px; font-size: 12px; font-weight: 800; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.btn-approve:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-approve:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(153, 13, 209, 0.25); }
 
 .btn-trash {
   width: 100%;

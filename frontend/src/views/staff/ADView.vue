@@ -206,7 +206,12 @@
               </div>
 
               <div class="info-item mb-4">
-                <span class="info-label">Accomplishment Deadline</span>
+                <span class="info-label" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  Accomplishment Deadline
+                  <button @click="editDeadline" class="edit-btn" title="Edit Deadline" style="background: none; border: none; cursor: pointer; color: #b979cc; padding: 0;">
+                    <span class="material-symbols-outlined" style="font-size: 14px;">edit</span>
+                  </button>
+                </span>
                 <span class="info-value-white">{{ formatDate(design.accomplishment_deadline) || '---' }}</span>
               </div>
 
@@ -218,6 +223,16 @@
               </div>
 
               <div class="action-buttons">
+                <div v-if="design.modification_request_status === 'pending'" style="margin-bottom: 1rem; border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 1rem; background: rgba(245,158,11,0.05);">
+                  <div style="color: #fbbf24; font-weight: bold; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;"><span class="material-symbols-outlined">warning</span> Modification Requested</div>
+                  <div style="font-size: 0.85rem; color: #e2e8f0; margin-bottom: 1rem; line-height: 1.4;">{{ design.modification_remarks || 'No reason provided.' }}</div>
+                  <button @click="approveModRequest" class="btn-primary" style="background: #4ade80; color: #064e3b; border: none; width: 100%; margin-bottom: 0.5rem; padding: 0.5rem;">Approve Request</button>
+                  <button @click="openRejectModModal" class="btn-primary" style="background: #f87171; color: #450a0a; border: none; width: 100%; padding: 0.5rem;">Reject Request</button>
+                </div>
+                <button v-if="design.status === 'Approved'" @click="router.push(`/staff/ad-revision/${design.act_design_id}`)" class="btn-primary" style="margin-bottom: 10px; width: 100%;">
+                  <span class="material-symbols-outlined" style="font-size: 1.2rem; margin-right: 4px;">edit</span> Modify Design
+                </button>
+
                 <button @click="handleTrash" class="btn-trash">
                   <span class="material-symbols-outlined">delete</span> MOVE TO TRASH
                 </button>
@@ -233,10 +248,170 @@
 
     <!-- PDF Preview Modal -->
     <PdfPreviewModal :isOpen="isPdfModalOpen" :fileUrl="pdfFileUrl" @close="closePdfModal" />
+
+    <!-- Reject Mod Request Modal -->
+    <div v-if="isRejectModModalOpen" class="modal-overlay">
+      <div class="modal-content">
+        <h3 class="modal-title">Reject Modification</h3>
+        <p class="modal-desc">Please provide a reason for rejecting this modification request.</p>
+        <textarea v-model="rejectModRemarks" class="modal-input" rows="4" placeholder="Enter reason..."></textarea>
+        <div class="modal-actions">
+          <button @click="closeRejectModModal" class="btn-cancel">Cancel</button>
+          <button @click="rejectModRequest" class="btn-submit" style="background: #f87171; color: white;">Reject Request</button>
+        </div>
+      </div>
+    </div>
   </main>
 </template>
 
 <script setup>
+
+const isRejectModModalOpen = ref(false);
+const rejectModRemarks = ref('');
+
+const openRejectModModal = () => {
+  isRejectModModalOpen.value = true;
+  rejectModRemarks.value = '';
+};
+
+const closeRejectModModal = () => {
+  isRejectModModalOpen.value = false;
+};
+
+const approveModRequest = async () => {
+  const result = await Swal.fire({
+    title: 'Approve Modification?',
+    text: 'Are you sure you want to approve this modification request?',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#4ade80',
+    cancelButtonColor: '#334155',
+    confirmButtonText: 'Yes, approve'
+  });
+  if (!result.isConfirmed) return;
+  try {
+    const res = await api.post(`activity-designs/${route.params.id}/approve-modification`);
+    if (res.data.success) {
+      Swal.fire({ icon: 'success', title: 'Approved', text: 'Modification request approved.', timer: 1500, showConfirmButton: false });
+      fetchDesignDetails();
+    } else {
+      Swal.fire({ icon: 'error', title: 'Failed', text: res.data.message });
+    }
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Error approving modification request.' });
+  }
+};
+
+const rejectModRequest = async () => {
+  try {
+    const res = await api.post(`activity-designs/${route.params.id}/reject-modification`, { remarks: rejectModRemarks.value });
+    if (res.data.success) {
+      closeRejectModModal();
+      Swal.fire({ icon: 'success', title: 'Rejected', text: 'Modification request rejected.', timer: 1500, showConfirmButton: false });
+      fetchDesignDetails();
+    } else {
+      Swal.fire({ icon: 'error', title: 'Failed', text: res.data.message });
+    }
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Error rejecting modification request.' });
+  }
+};
+
+const editDeadline = async () => {
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth();
+  const firstDay = new Date(currentYear, currentMonth, 1);
+  const minCurrentMonth = `${firstDay.getFullYear()}-${String(firstDay.getMonth() + 1).padStart(2, '0')}-${String(firstDay.getDate()).padStart(2, '0')}`;
+  const lastDay = new Date(currentYear, 11, 31);
+  const maxYear = `${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`;
+  
+  const endD = design.value.end_date ? design.value.end_date.split(' ')[0] : minCurrentMonth;
+  const finalMin = endD > minCurrentMonth ? endD : minCurrentMonth;
+
+  const { value: formValues } = await Swal.fire({
+    title: 'Edit Accomplishment Deadline',
+    html: `<input type="date" id="swal-input-deadline" class="swal2-input" value="${design.value.accomplishment_deadline || ''}" min="${finalMin}" max="${maxYear}">`,
+    focusConfirm: false,
+    showCancelButton: true,
+    confirmButtonColor: '#9333ea',
+    preConfirm: () => {
+      const val = document.getElementById('swal-input-deadline').value;
+      if (!val) {
+        Swal.showValidationMessage('Please select a date');
+        return false;
+      }
+      const selected = new Date(val);
+      const current = new Date();
+      if (selected.getFullYear() !== current.getFullYear()) {
+        Swal.showValidationMessage('Deadline must be within the current year');
+        return false;
+      }
+      if (selected.getMonth() < current.getMonth() && selected.getFullYear() === current.getFullYear()) {
+        Swal.showValidationMessage('Deadline cannot be in a previous month');
+        return false;
+      }
+      
+      const minDate = design.value.end_date ? new Date(design.value.end_date.split(' ')[0]) : null;
+      if (minDate) {
+        selected.setHours(0,0,0,0);
+        minDate.setHours(0,0,0,0);
+        
+        if (selected.getTime() === minDate.getTime()) {
+          Swal.showValidationMessage('Deadline cannot be the exact same date as the activity end date');
+          return false;
+        } else if (selected.getTime() < minDate.getTime()) {
+          Swal.showValidationMessage('Deadline cannot be before the activity end date');
+          return false;
+        }
+      }
+      return val;
+    }
+  });
+
+  if (formValues) {
+    const endD = design.value.end_date ? new Date(design.value.end_date.split(' ')[0]) : null;
+    if (endD) {
+      const selectedD = new Date(formValues);
+      const diffTime = selectedD - endD;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays !== 14) {
+        const isMore = diffDays > 14;
+        const confirmExtra = await Swal.fire({
+          title: 'Deadline Validation',
+          text: `The selected accomplishment deadline is ${isMore ? 'more' : 'less'} than 2 weeks from the activity end date. Do you want to proceed?`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#9333ea',
+          confirmButtonText: 'Yes, proceed'
+        });
+        if (!confirmExtra.isConfirmed) return;
+      }
+    }
+
+    try {
+      const response = await api.post(`update-deadline/${design.value.act_design_id || route.params.id}`, {
+        deadline: formValues,
+        is_archived: design.value.is_archived
+      });
+      if (response.data.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Accomplishment deadline updated.',
+          confirmButtonColor: '#9333ea',
+          timer: 1500,
+          showConfirmButton: false
+        });
+        fetchDesignDetails();
+      } else {
+        Swal.fire({ icon: 'error', title: 'Error', text: response.data.message });
+      }
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to update deadline.' });
+    }
+  }
+};
 
 const formatBudgetName = (name) => {
   if (!name) return '';
@@ -357,7 +532,8 @@ const loading = ref(true);
 const error = ref(null);
 
 const handleTrash = async () => {
-  if (design.value.status !== 'Pending' || design.value.is_viewed_by_admin == 1) {
+  const isArchived = design.value.is_archived == 1;
+  if (!isArchived && (design.value.status !== 'Pending' || design.value.is_viewed_by_admin == 1)) {
     Swal.fire({
       icon: 'error',
       title: 'Action Denied',
@@ -387,7 +563,7 @@ const handleTrash = async () => {
           timer: 1500,
           showConfirmButton: false
         });
-        router.push('/staff/mandates');
+        router.push(design.value.is_archived == 1 ? '/staff/archive' : '/staff/mandates');
       } else {
         throw new Error(response.data.message || 'Failed to move to trash');
       }
@@ -549,9 +725,113 @@ onMounted(() => {
   line-height: 1.5;
 }
 
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.modal-content {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 1px solid rgba(185, 121, 204, 0.2);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  padding: 2rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+.modal-title {
+  color: #e2e8f0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  margin-top: 0;
+}
+.modal-desc {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+.modal-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(185, 121, 204, 0.2);
+  color: white;
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 0.95rem;
+  resize: vertical;
+  margin-bottom: 1.5rem;
+}
+.modal-input:focus {
+  outline: none;
+  border-color: #b979cc;
+  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.2);
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+.btn-cancel {
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+.btn-submit {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #b979cc 0%, #990dd1 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(185, 121, 204, 0.3);
+}
+
 .action-buttons { margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(185, 121, 204, 0.15); }
 .btn-back { width: 100%; padding: 12px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #cbd5e1; border-radius: 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(185, 121, 204, 0.15); cursor: pointer; transition: all 0.2s; }
 .btn-back:hover { color: white; border-color: #b979cc; background: rgba(185, 121, 204, 0.05); }
+
+.btn-primary {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #b979cc 0%, #990dd1 100%);
+  border: none;
+  color: white;
+  border-radius: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 0.75rem;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(185, 121, 204, 0.4);
+}
 
 .btn-trash {
   width: 100%;

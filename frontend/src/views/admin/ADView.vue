@@ -223,6 +223,18 @@
               </div>
 
               <div class="action-buttons">
+                <div v-if="design.modification_request_status === 'pending'" style="margin-bottom: 1rem; border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 1rem; background: rgba(245,158,11,0.05);">
+                  <div style="color: #fbbf24; font-weight: bold; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;"><span class="material-symbols-outlined">warning</span> Modification Requested</div>
+                  <div style="font-size: 0.85rem; color: #e2e8f0; margin-bottom: 1rem; line-height: 1.4;">{{ design.modification_remarks || 'No reason provided.' }}</div>
+                  <button @click="approveModRequest" class="btn-primary" style="background: #4ade80; color: #064e3b; border: none; width: 100%; margin-bottom: 0.5rem; padding: 0.5rem;">Approve Request</button>
+                  <button @click="openRejectModModal" class="btn-primary" style="background: #f87171; color: #450a0a; border: none; width: 100%; padding: 0.5rem;">Reject Request</button>
+                </div>
+                <button v-if="design.status === 'Approved'" @click="router.push(`/admin/ad-revision/${design.act_design_id}`)" class="btn-primary" style="margin-bottom: 10px; width: 100%;">
+                  <span class="material-symbols-outlined" style="font-size: 1.2rem; margin-right: 4px;">edit</span> Modify Design
+                </button>
+                <button v-if="design.is_archived == 1" @click="handleTrash" class="btn-trash">
+                  <span class="material-symbols-outlined">delete</span> MOVE TO TRASH
+                </button>
                 <button @click="router.back()" class="btn-back">
                   ← Back to Archive
                 </button>
@@ -235,6 +247,19 @@
 
     <!-- PDF Preview Modal -->
     <PdfPreviewModal :isOpen="isPdfModalOpen" :fileUrl="pdfFileUrl" @close="closePdfModal" />
+
+    <!-- Reject Mod Request Modal -->
+    <div v-if="isRejectModModalOpen" class="modal-overlay">
+      <div class="modal-content">
+        <h3 class="modal-title">Reject Modification</h3>
+        <p class="modal-desc">Please provide a reason for rejecting this modification request.</p>
+        <textarea v-model="rejectModRemarks" class="modal-input" rows="4" placeholder="Enter reason..."></textarea>
+        <div class="modal-actions">
+          <button @click="closeRejectModModal" class="btn-cancel">Cancel</button>
+          <button @click="rejectModRequest" class="btn-submit" style="background: #f87171; color: white;">Reject Request</button>
+        </div>
+      </div>
+    </div>
   </main>
 </template>
 
@@ -426,6 +451,57 @@ const closePdfModal = () => {
 
 import Swal from 'sweetalert2';
 
+const isRejectModModalOpen = ref(false);
+const rejectModRemarks = ref('');
+
+const openRejectModModal = () => {
+  isRejectModModalOpen.value = true;
+  rejectModRemarks.value = '';
+};
+
+const closeRejectModModal = () => {
+  isRejectModModalOpen.value = false;
+};
+
+const approveModRequest = async () => {
+  const result = await Swal.fire({
+    title: 'Approve Modification?',
+    text: 'Are you sure you want to approve this modification request?',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#4ade80',
+    cancelButtonColor: '#334155',
+    confirmButtonText: 'Yes, approve'
+  });
+  if (!result.isConfirmed) return;
+  try {
+    const res = await api.post(`activity-designs/${route.params.id}/approve-modification`);
+    if (res.data.success) {
+      Swal.fire({ icon: 'success', title: 'Approved', text: 'Modification request approved.', timer: 1500, showConfirmButton: false });
+      fetchDesignDetails();
+    } else {
+      Swal.fire({ icon: 'error', title: 'Failed', text: res.data.message });
+    }
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Error approving modification request.' });
+  }
+};
+
+const rejectModRequest = async () => {
+  try {
+    const res = await api.post(`activity-designs/${route.params.id}/reject-modification`, { remarks: rejectModRemarks.value });
+    if (res.data.success) {
+      closeRejectModModal();
+      Swal.fire({ icon: 'success', title: 'Rejected', text: 'Modification request rejected.', timer: 1500, showConfirmButton: false });
+      fetchDesignDetails();
+    } else {
+      Swal.fire({ icon: 'error', title: 'Failed', text: res.data.message });
+    }
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Error rejecting modification request.' });
+  }
+};
+
 const editDeadline = async () => {
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth();
@@ -527,6 +603,41 @@ const editDeadline = async () => {
   }
 };
 
+const handleTrash = async () => {
+  const result = await Swal.fire({
+    title: 'Move to Trash?',
+    text: 'This document will be moved to the trash bin. You can restore it within 30 days.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#334155',
+    confirmButtonText: 'Yes, move it'
+  });
+  if (result.isConfirmed) {
+    try {
+      const response = await api.delete(`activity-designs/trash/${route.params.id}`);
+      if (response.data.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Moved to Trash',
+          text: 'Document has been moved to trash.',
+          timer: 1500,
+          showConfirmButton: false
+        });
+        router.push('/admin/archive');
+      } else {
+        throw new Error(response.data.message || 'Failed to move to trash');
+      }
+    } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: err.message || 'An error occurred while moving to trash'
+      });
+    }
+  }
+};
+
 onMounted(() => {
   if (!user.value.id || user.value.role !== 'admin') router.push('/login');
   else fetchDesignDetails();
@@ -609,6 +720,150 @@ onMounted(() => {
 .action-buttons { margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(185, 121, 204, 0.15); }
 .btn-back { width: 100%; padding: 12px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #cbd5e1; border-radius: 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(185, 121, 204, 0.15); cursor: pointer; transition: all 0.2s; }
 .btn-back:hover { color: white; border-color: #b979cc; background: rgba(185, 121, 204, 0.05); }
+
+.btn-primary {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #b979cc 0%, #990dd1 100%);
+  border: none;
+  color: white;
+  border-radius: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 0.75rem;
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(185, 121, 204, 0.4); }
+
+.btn-trash {
+  width: 100%;
+  padding: 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  border-radius: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 0.75rem;
+}
+.btn-trash:hover { background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #fca5a5; }
+
+.btn-primary {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #b979cc 0%, #990dd1 100%);
+  border: none;
+  color: white;
+  border-radius: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 0.75rem;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(185, 121, 204, 0.4);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.modal-content {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 1px solid rgba(185, 121, 204, 0.2);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  padding: 2rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+.modal-title {
+  color: #e2e8f0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  margin-top: 0;
+}
+.modal-desc {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+.modal-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(185, 121, 204, 0.2);
+  color: white;
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 0.95rem;
+  resize: vertical;
+  margin-bottom: 1.5rem;
+}
+.modal-input:focus {
+  outline: none;
+  border-color: #b979cc;
+  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.2);
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+.btn-cancel {
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+.btn-submit {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #b979cc 0%, #990dd1 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(185, 121, 204, 0.3);
+}
 
 @media (max-width: 1024px) {
   .layout-grid { flex-direction: column; padding: 1rem; }

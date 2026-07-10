@@ -114,6 +114,14 @@ $routes->group('api', function($routes) {
     $routes->options('update-design/(:num)', 'ActivityDesignController::updateDesign/$1');
     $routes->post('update-design/(:num)', 'ActivityDesignController::updateDesign/$1');
 
+    // Modification requests
+    $routes->options('activity-designs/(:num)/request-modification', 'AuthController::handleOptions');
+    $routes->post('activity-designs/(:num)/request-modification', 'ActivityDesignController::requestModification/$1');
+    $routes->options('activity-designs/(:num)/approve-modification', 'AuthController::handleOptions');
+    $routes->post('activity-designs/(:num)/approve-modification', 'ActivityDesignController::approveModification/$1');
+    $routes->options('activity-designs/(:num)/reject-modification', 'AuthController::handleOptions');
+    $routes->post('activity-designs/(:num)/reject-modification', 'ActivityDesignController::rejectModification/$1');
+
     // Update deadline
     $routes->options('update-deadline/(:num)', 'AuthController::handleOptions');
     $routes->post('update-deadline/(:num)', 'ActivityDesignController::updateDeadline/$1');

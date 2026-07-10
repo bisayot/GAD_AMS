@@ -201,12 +201,15 @@ class ActivityDesignController extends BaseController
         $db = \Config\Database::connect();
         
         $active = $db->table('activity_design as ad')
-            ->select('ad.act_design_id, ad.status, ad.control_number as control, office_units.office_name as office, users.full_name as submitter_name, ad.activity_title as title, form_types.name as formLabel, ad.start_date as date, ad.end_date')
+            ->select('ad.act_design_id, ad.status, ad.control_number as control, office_units.office_name as office, users.full_name as submitter_name, ad.activity_title as title, form_types.name as formLabel, ad.start_date as date, ad.end_date, ad.modification_request_status, ad.is_modified')
             ->join('users', 'users.id = ad.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->join('form_types', 'form_types.id = ad.form_type', 'left')
             ->where('ad.deleted_at', null)
-            ->where('ad.is_archived', 0)
+            ->groupStart()
+                ->where('ad.is_archived', 0)
+                ->orWhere('ad.modification_request_status', 'pending')
+            ->groupEnd()
             ->get()->getResultArray();
 
         usort($active, function($a, $b) {
@@ -229,7 +232,7 @@ class ActivityDesignController extends BaseController
         $db = \Config\Database::connect();
         
         $active = $db->table('activity_design as ad')
-            ->select('ad.act_design_id, ad.status, ad.control_number as control, office_units.office_name as office, users.full_name as submitter_name, ad.activity_title as title, form_types.name as formLabel, ad.start_date as date, ad.end_date')
+            ->select('ad.act_design_id, ad.status, ad.control_number as control, office_units.office_name as office, users.full_name as submitter_name, ad.activity_title as title, form_types.name as formLabel, ad.start_date as date, ad.end_date, ad.modification_request_status, ad.is_modified')
             ->join('users', 'users.id = ad.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->join('form_types', 'form_types.id = ad.form_type', 'left')
@@ -453,7 +456,7 @@ class ActivityDesignController extends BaseController
 
         // Fetch designs that are 'Approved' or 'Cancelled'
         $designs = $activityDesignModel
-            ->select('activity_design.*, activity_design.control_number as control, office_units.office_name as office, users.full_name as submitter_name, activity_design.activity_title as title, form_types.name as formLabel, activity_design.start_date as date')
+            ->select('activity_design.*, activity_design.control_number as control, office_units.office_name as office, users.full_name as submitter_name, activity_design.activity_title as title, form_types.name as formLabel, activity_design.start_date as date, activity_design.modification_request_status, activity_design.is_modified')
             ->join('users', 'users.id = activity_design.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->join('form_types', 'form_types.id = activity_design.form_type', 'left')
@@ -532,8 +535,15 @@ class ActivityDesignController extends BaseController
             'venue_id'            => $this->request->getPost('venue_id'),
             'proposed_budget'     => $this->request->getPost('proposed_budget'),
             'target_participants' => $this->request->getPost('target_participants'),
-            'status'              => $this->request->getPost('status') ?? 'Pending', // Force back to Pending
         ];
+        
+        $status = $this->request->getPost('status') ?? 'Pending';
+        if ($design['status'] === 'Approved') {
+            $status = 'Approved';
+            $data['modification_request_status'] = 'none';
+            $data['is_modified'] = 1;
+        }
+        $data['status'] = $status;
 
         // Remove null values so we only update what was provided in the form
         $updateData = array_filter($data, function($value) {
@@ -929,7 +939,10 @@ class ActivityDesignController extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'Unauthorized: You can only delete documents you submitted.'])->setStatusCode(403);
         }
 
-        if (!$isAdmin && ($design['status'] !== 'Pending' || $design['is_viewed_by_admin'] == 1)) {
+        // Archived designs (is_archived = 1) can be trashed by owner or admin
+        // Non-archived designs can only be trashed if Pending and not yet viewed by admin
+        $isArchived = $design['is_archived'] == 1;
+        if (!$isAdmin && !$isArchived && ($design['status'] !== 'Pending' || $design['is_viewed_by_admin'] == 1)) {
             return $this->response->setJSON(['success' => false, 'message' => 'Cannot trash this document as it is already being processed or viewed by admin.'])->setStatusCode(400);
         }
 
@@ -1004,5 +1017,62 @@ class ActivityDesignController extends BaseController
             'success' => true,
             'next_control_number' => $yearMonth . '-' . $nextNum
         ]);
+    }
+
+    public function requestModification($id = null)
+    {
+        if (!$id) return $this->response->setJSON(['success' => false, 'message' => 'Design ID required'])->setStatusCode(400);
+        $body = $this->request->getJSON(true) ?? $this->request->getPost();
+        
+        $db = \Config\Database::connect();
+        $design = $db->table('activity_design')->where('act_design_id', $id)->get()->getRowArray();
+        if (!$design) return $this->response->setJSON(['success' => false, 'message' => 'Not found'])->setStatusCode(404);
+
+        $db->table('activity_design')->where('act_design_id', $id)->update([
+            'modification_request_status' => 'pending',
+            'modification_remarks' => $body['remarks'] ?? ''
+        ]);
+
+        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
+        \App\Models\ActivityLogModel::log($actionUserId, 'Request Modification', 'requested modification for Activity Design: ' . $design['activity_title']);
+
+        return $this->response->setJSON(['success' => true, 'message' => 'Modification requested successfully']);
+    }
+
+    public function approveModification($id = null)
+    {
+        if (!$id) return $this->response->setJSON(['success' => false, 'message' => 'Design ID required'])->setStatusCode(400);
+        $db = \Config\Database::connect();
+        $design = $db->table('activity_design')->where('act_design_id', $id)->get()->getRowArray();
+        if (!$design) return $this->response->setJSON(['success' => false, 'message' => 'Not found'])->setStatusCode(404);
+
+        $db->table('activity_design')->where('act_design_id', $id)->update([
+            'modification_request_status' => 'approved'
+        ]);
+
+        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
+        \App\Models\ActivityLogModel::log($actionUserId, 'Approve Modification', 'approved modification request for Activity Design: ' . $design['activity_title']);
+
+        return $this->response->setJSON(['success' => true, 'message' => 'Modification request approved']);
+    }
+
+    public function rejectModification($id = null)
+    {
+        if (!$id) return $this->response->setJSON(['success' => false, 'message' => 'Design ID required'])->setStatusCode(400);
+        $body = $this->request->getJSON(true) ?? $this->request->getPost();
+        
+        $db = \Config\Database::connect();
+        $design = $db->table('activity_design')->where('act_design_id', $id)->get()->getRowArray();
+        if (!$design) return $this->response->setJSON(['success' => false, 'message' => 'Not found'])->setStatusCode(404);
+
+        $db->table('activity_design')->where('act_design_id', $id)->update([
+            'modification_request_status' => 'rejected',
+            'modification_remarks' => $body['remarks'] ?? ''
+        ]);
+
+        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
+        \App\Models\ActivityLogModel::log($actionUserId, 'Reject Modification', 'rejected modification request for Activity Design: ' . $design['activity_title']);
+
+        return $this->response->setJSON(['success' => true, 'message' => 'Modification request rejected']);
     }
 }

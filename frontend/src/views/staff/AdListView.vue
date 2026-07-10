@@ -64,6 +64,7 @@
                   <option value="Approved">Approved</option>
                   <option value="Revision Required">Revision Required</option>
                   <option value="Disapproved">Disapproved</option>
+                  <option value="Mod Requests">Modification Requests</option>
                 </select>
                 <span class="select-arrow">▼</span>
               </div>
@@ -99,7 +100,13 @@
           </section>
 
           <div class="table-container">
-            <div class="table-wrapper">
+            <div v-if="filters.status !== 'Mod Requests'" style="padding: 1.5rem 1.5rem 1rem 1.5rem; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(185,121,204,0.1);">
+              <h2 style="color: #e2e8f0; font-size: 1.1rem; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">
+                <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem; color: #b979cc;">description</span>
+                Submissions
+              </h2>
+            </div>
+            <div v-if="filters.status !== 'Mod Requests'" class="table-wrapper">
               <table class="data-table">
                 <thead>
                   <tr class="table-header-row">
@@ -111,7 +118,7 @@
                   </tr>
                 </thead>
                 <tbody class="table-body">
-                  <tr v-if="filteredDesigns.length === 0">
+                  <tr v-if="regularDesigns.length === 0">
                     <td colspan="5" class="empty-state">
                       No matching activity design submissions found in the repository index.
                     </td>
@@ -119,7 +126,7 @@
                   
                   <tr 
                     v-else
-                    v-for="item in filteredDesigns" 
+                    v-for="item in regularDesigns" 
                     :key="item.act_design_id"
                     @click="viewDetails(item.act_design_id, item.status)"
                     class="table-row"
@@ -148,6 +155,64 @@
                       >
                         {{ item.status }}
                       </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div v-if="filters.status === 'all' || filters.status === 'Mod Requests'" style="padding: 1.5rem 1.5rem 1rem 1.5rem; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(185,121,204,0.1); border-top: 1px solid rgba(185,121,204,0.1);">
+              <h2 style="color: #e2e8f0; font-size: 1.1rem; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">
+                <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem; color: #fbbf24;">edit_note</span>
+                Modification Requests
+              </h2>
+            </div>
+            <div v-if="filters.status === 'all' || filters.status === 'Mod Requests'" class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr class="table-header-row">
+                    <th class="table-header-cell">Activity Title</th>
+                    <th class="table-header-cell">Office / Unit</th>
+                    <th class="table-header-cell">Form Type</th>
+                    <th class="table-header-cell">Date Submitted</th>
+                    <th class="table-header-cell">Action</th>
+                  </tr>
+                </thead>
+                <tbody class="table-body">
+                  <tr v-if="modRequestDesigns.length === 0">
+                    <td colspan="5" class="empty-state">
+                      No modification requests found.
+                    </td>
+                  </tr>
+                  
+                  <tr 
+                    v-else
+                    v-for="item in modRequestDesigns" 
+                    :key="item.act_design_id"
+                    @click="viewDetails(item.act_design_id, item.status)"
+                    class="table-row"
+                  >
+                    <td class="table-cell title-cell">
+                      <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        {{ item.title }}
+                        <span class="status-badge" style="background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 4px;">MOD REQ</span>
+                      </div>
+                    </td>
+                    <td class="table-cell office-cell">
+                      {{ item.office }}
+                    </td>
+                    <td class="table-cell">
+                      <span class="mandate-badge">
+                        {{ item.formLabel }}
+                      </span>
+                    </td>
+                    <td class="table-cell date-cell">
+                      {{ item.date }}
+                    </td>
+                    <td class="table-cell">
+                      <button @click.stop="approveModRequest(item.act_design_id)" class="btn-primary" style="background: #4ade80; color: #064e3b; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; transition: all 0.2s;">
+                        Approve Request
+                      </button>
                     </td>
                   </tr>
                 </tbody>
@@ -191,8 +256,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import Swal from 'sweetalert2';
 import api from '../../api';
 
 const router = useRouter();
@@ -231,7 +297,11 @@ const filteredDesigns = computed(() => {
     records = records.filter(i => i.office === filters.value.office);
   }
   if (filters.value.status !== 'all') {
-    records = records.filter(i => i.status === filters.value.status);
+    if (filters.value.status === 'Mod Requests') {
+      records = records.filter(i => i.modification_request_status === 'pending');
+    } else {
+      records = records.filter(i => i.status === filters.value.status);
+    }
   }
 
   records.sort((a, b) => {
@@ -254,6 +324,14 @@ const filteredDesigns = computed(() => {
   });
 
   return records;
+});
+
+const regularDesigns = computed(() => {
+  return filteredDesigns.value.filter(i => i.modification_request_status !== 'pending');
+});
+
+const modRequestDesigns = computed(() => {
+  return filteredDesigns.value.filter(i => i.modification_request_status === 'pending');
 });
 
 const statusBadgeClass = (status) => {
@@ -313,11 +391,40 @@ const fetchDesigns = async () => {
 const handleLogout = async () => {
   try {
     await api.get('logout');
+    localStorage.removeItem('token');
     localStorage.removeItem('user');
+    delete api.defaults.headers.common['Authorization'];
     router.push('/login');
+  } catch (error) {
+    console.error('Logout error:', error);
+  }
+};
+
+const approveModRequest = async (id) => {
+  try {
+    const res = await api.post(`activity-designs/${id}/approve-modification`);
+    if (res.data.success) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Modification request approved successfully.',
+        timer: 1500,
+        showConfirmButton: false
+      });
+      fetchDesigns();
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: res.data.message || 'Failed to approve.'
+      });
+    }
   } catch (err) {
-    localStorage.removeItem('user');
-    router.push('/login');
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Server error while approving.'
+    });
   }
 };
 
