@@ -18,13 +18,29 @@ class BudgetController extends Controller
     {
         $db = \Config\Database::connect();
         
-        $totalBudget = $db->table('gad_plan_budget')
-            ->selectSum('gad_budget')
-            ->get()->getRow()->gad_budget ?? 0.0;
+        $items = $db->table('gpb_items')->get()->getResultArray();
+        $totalBudget = 0.0;
+        foreach ($items as $item) {
+            $budgetLines = isset($item['budget_lines']) ? json_decode($item['budget_lines'], true) : [];
+            if (is_array($budgetLines)) {
+                foreach ($budgetLines as $line) {
+                    $totalBudget += (float) ($line['amount'] ?? 0);
+                }
+            }
+        }
+
+        $settingModel = new \App\Models\SettingModel();
+        $latestItem = $db->table('gpb_items')->select('fiscal_year')->orderBy('id', 'DESC')->get()->getRowArray();
+        $latestYear = $latestItem ? $latestItem['fiscal_year'] : date('Y');
+        $settings = $settingModel->getByFiscalYear($latestYear);
+        $otherSources = isset($settings['otherSources']) ? (float) $settings['otherSources'] : 0.0;
+        
+        $totalBudget += $otherSources;
 
         $archivedDesigns = $db->table('activity_design')
             ->where('status', 'Approved')
             ->where('is_archived', 1)
+            ->where('deleted_at', null)
             ->get()
             ->getResultArray();
 
@@ -37,7 +53,8 @@ class BudgetController extends Controller
             // Check for completed/verified accomplishment report (active or archived)
             $report = $db->table('accomplishment_report')
                 ->where('control_number', $design['control_number'])
-                ->whereIn('status', ['Completed', 'Verified'])
+                ->whereIn('status', ['Completed', 'Verified', 'Approved'])
+                ->where('deleted_at', null)
                 ->get()
                 ->getRowArray();
 
@@ -132,6 +149,7 @@ class BudgetController extends Controller
                     ->whereIn('user_id', $userIds)
                     ->where('status', 'Approved')
                     ->where('is_archived', 1)
+                    ->where('deleted_at', null)
                     ->get()
                     ->getResultArray();
 
@@ -141,7 +159,8 @@ class BudgetController extends Controller
                     // Check for a completed accomplishment report (active or archived)
                     $report = $db->table('accomplishment_report')
                         ->where('control_number', $design['control_number'])
-                        ->whereIn('status', ['Completed', 'Verified'])
+                        ->whereIn('status', ['Completed', 'Verified', 'Approved'])
+                        ->where('deleted_at', null)
                         ->get()
                         ->getRowArray();
 

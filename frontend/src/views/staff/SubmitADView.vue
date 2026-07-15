@@ -62,36 +62,25 @@
                   </div>
 
                   <div class="input-group">
-                    <label class="form-label">GAD Mandate *</label>
+                    <label class="form-label">Gender Issue / GAD Mandate *</label>
                     <div class="checkbox-group-container custom-input-field" style="min-height: 120px; max-height: 250px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
                       <label v-for="mandate in GADMandates" :key="mandate.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
                         <input type="checkbox" v-model="form.gad_mandate_id" :value="mandate.id" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
                         <span style="font-size: 14px; line-height: 1.4;">{{ mandate.code }} - {{ mandate.title }}</span>
                       </label>
-                      <label class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
-                        <input type="checkbox" v-model="form.gad_mandate_id" value="Other" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
-                        <span style="font-size: 14px; line-height: 1.4; font-style: italic;">+ New Mandate</span>
-                      </label>
+                      
                     </div>
-                    <input v-if="form.gad_mandate_id && form.gad_mandate_id.includes('Other')" 
-                          v-model="customMandate" 
-                          type="text" 
-                          placeholder="Enter new mandate name..." 
-                          class="custom-input-field" 
-                          style="margin-top: 10px;" />
+                    
                   </div>
 
                   <div class="input-group">
-                    <label class="form-label">Gender Issues *</label>
+                    <label class="form-label">Cause of Gender Issue *</label>
                     <div class="checkbox-group-container custom-input-field" style="min-height: 120px; max-height: 250px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
                       <label v-for="issue in genderIssues" :key="issue.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
                         <input type="checkbox" v-model="form.gender_issue_id" :value="issue.id" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
                         <span style="font-size: 14px; line-height: 1.4;">{{ issue.title }}</span>
                       </label>
-                      <label class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
-                        <input type="checkbox" v-model="form.gender_issue_id" value="Other" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
-                        <span style="font-size: 14px; line-height: 1.4; font-style: italic;">+ New Gender Issue</span>
-                      </label>
+                      
                       <p v-if="!form.gad_mandate_id || form.gad_mandate_id.length === 0" style="color: #94a3b8; font-size: 13px; font-style: italic; margin: 0;">Select a mandate first to see gender issues.</p>
                     </div>
                     <input v-if="form.gender_issue_id && form.gender_issue_id.includes('Other')" 
@@ -238,7 +227,7 @@
                         </button>
                         <transition name="fade-pop">
                           <div v-if="helpState.targetParticipants" class="simple-popup">
-                            Minimum of 1 participant. If participants are below 50, catering and hospitality budgets will not be funded.
+                            Minimum of 1 participant
                           </div>
                         </transition>
                       </div>
@@ -312,9 +301,7 @@
                                   <input type="checkbox" v-model="mealsSelected.dinner" class="budget-checkbox" /> Dinner
                                 </label>
                               </div>
-                              <div v-if="form.target_participants < 50 && form.target_participants !== ''" class="budget-warning-inline">
-                                ⚠️ Participants &lt; 50. GAD cannot fund meals.
-                              </div>
+                              
                             </div>
                             <div class="budget-item-value">
                               <span class="budget-currency-symbol">₱</span>
@@ -341,9 +328,7 @@
                                   <input type="checkbox" v-model="snacksSelected.pm" class="budget-checkbox" /> PM Snack
                                 </label>
                               </div>
-                              <div v-if="form.target_participants < 50 && form.target_participants !== ''" class="budget-warning-inline">
-                                ⚠️ Participants &lt; 50. GAD cannot fund snacks.
-                              </div>
+                              
                             </div>
                             <div class="budget-item-value">
                               <span class="budget-currency-symbol">₱</span>
@@ -575,13 +560,13 @@
                   @click="goBack" 
                   class="back-button"
                 >
-                  ← Back
+                  &#8592; Back
                 </button>
                 <button 
                   type="submit" 
                   class="submit-action-btn"
                 >
-                  Submit Design →
+                  Submit Design &#8594;
                 </button>
               </div>
             </form>
@@ -829,8 +814,12 @@ const fetchActivityClassifications = async () => {
 };
 
 const fetchGADMandates = async () => {
-  try {
-    const res = await api.get('get-gad-mandates');
+    try {
+      let url = 'get-gad-mandates';
+        if (form.value && form.value.activity_classification_id) {
+            url += '?classification=' + form.value.activity_classification_id;
+        }
+      const res = await api.get(url);
     GADMandates.value = res.data;
   } catch (error) {
     console.error('Error fetching GAD mandates:', error);
@@ -847,7 +836,11 @@ const fetchGenderIssues = async (mandateIds) => {
     const allIssues = [];
     for (const mandateId of ids) {
        if (mandateId !== 'Other') {
-           const res = await api.get(`get-gender-issues/${mandateId}`);
+           let url = `get-gender-issues?mandates=${mandateId}`;
+             if (form.value && form.value.activity_classification_id) {
+                 url += '&classification=' + form.value.activity_classification_id;
+             }
+             const res = await api.get(url);
            allIssues.push(...res.data);
        }
     }
@@ -857,7 +850,13 @@ const fetchGenderIssues = async (mandateIds) => {
   }
 };
 
-watch(() => form.value.gad_mandate_id, (newVal) => {
+watch(() => form.value.activity_classification_id, (newVal) => {
+    form.value.gad_mandate_id = [];
+    form.value.gender_issue_id = [];
+    fetchGADMandates();
+  });
+
+  watch(() => form.value.gad_mandate_id, (newVal) => {
   form.value.gender_issue_id = [];
   fetchGenderIssues(newVal);
 });
@@ -1036,7 +1035,7 @@ watch(
       const mealsCount = (mealsSelected.value.breakfast ? 1 : 0) + (mealsSelected.value.lunch ? 1 : 0) + (mealsSelected.value.dinner ? 1 : 0);
       const mealsRate = isOutsideBsu.value ? 350 : 220;
       const pax = Number(form.value.target_participants) || 0;
-      const calculated = pax >= 50 ? (mealsCount * mealsRate * pax * computedDays.value) : 0;
+      const calculated = (mealsCount * mealsRate * pax * computedDays.value);
       item.total = calculated || '';
     }
   },
@@ -1051,7 +1050,7 @@ watch(
       const snacksCount = (snacksSelected.value.am ? 1 : 0) + (snacksSelected.value.pm ? 1 : 0);
       const snacksRate = isOutsideBsu.value ? 150 : 80;
       const pax = Number(form.value.target_participants) || 0;
-      const calculated = pax >= 50 ? (snacksCount * snacksRate * pax * computedDays.value) : 0;
+      const calculated = (snacksCount * snacksRate * pax * computedDays.value);
       item.total = calculated || '';
     }
   },

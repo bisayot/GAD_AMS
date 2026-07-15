@@ -46,8 +46,8 @@
               <thead>
                 <tr class="bg-gradient-to-r from-primary to-primary-container text-white text-[10px] font-bold uppercase tracking-widest">
                   <th class="p-4 border-r border-white/10 text-center">#</th>
-                  <th class="p-4 border-r border-white/10">Gender Issue / Mandate</th>
-                  <th class="p-4 border-r border-white/10">Cause of Issue</th>
+                  <th class="p-4 border-r border-white/10">Cause of Gender Issue/ Mandate</th>
+                  <th class="p-4 border-r border-white/10">Cause of Gender Issue</th>
                   <th class="p-4 border-r border-white/10">GAD Objective</th>
                   <th class="p-4 border-r border-white/10">Activity</th>
                   <th class="p-4 border-r border-white/10">Performance Indicators</th>

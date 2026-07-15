@@ -32,7 +32,7 @@
         </div>
       </header>
 
-      <main class="flex-grow p-4 md:p-10 w-full overflow-x-hidden">
+      <main :class="['flex-grow w-full overflow-x-hidden', $route.path.includes('/plan-and-budget') ? 'p-0' : 'p-4 md:p-10']">
         <router-view />
       </main>
     </div>
@@ -68,15 +68,25 @@ const adminMenu = ref([
   { label: 'Activity Design List', icon: 'description', href: '/admin/ad-list' },
   { label: 'Accomplishment Report List', icon: 'description', href: '/admin/ar-list' },
   { label: 'Archives', icon: 'archive', href: '/admin/archive' },
-  { label: 'Document Trash Bin', icon: 'delete', href: '/admin/trash-bin' },
-  { label: 'Mandates Management', icon: 'account_balance', href: '/admin/mandates' },
+  { label: 'Plan and Budget', icon: 'account_balance', href: '/admin/plan-and-budget' },
   { label: 'Report Monitoring', icon: 'bar_chart', href: '/admin/reports' },
   { label: 'Budget Monitoring', icon: 'account_balance_wallet', href: '/admin/budget' },
-  { label: 'Office/Unit Management', icon: 'domain', href: '/admin/office-management' },
-  { label: 'User Management', icon: 'manage_accounts', href: '/admin/user-management' },
-  { label: 'Activity Logs', icon: 'history', href: '/admin/activity-logs' },
-  { label: 'User Manual', icon: 'help', href: '/admin/user-manual' },
-  { label: 'Data Privacy Policy', icon: 'privacy_tip', href: '/admin/data-privacy-policy' }
+  {
+    label: 'System Controls', icon: 'admin_panel_settings',
+    children: [
+      { label: 'Office/Unit Management', icon: 'domain', href: '/admin/office-management' },
+      { label: 'User Management', icon: 'manage_accounts', href: '/admin/user-management' },
+      { label: 'Activity Logs', icon: 'history', href: '/admin/activity-logs' },
+      { label: 'Document Trash Bin', icon: 'delete', href: '/admin/trash-bin' }
+    ]
+  },
+  {
+    label: 'Legal and Guides', icon: 'policy',
+    children: [
+      { label: 'User Manual', icon: 'help', href: '/admin/user-manual' },
+      { label: 'Data Privacy Policy', icon: 'privacy_tip', href: '/admin/data-privacy-policy' }
+    ]
+  }
 ]);
 
 const fetchUnreadCount = async () => {

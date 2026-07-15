@@ -40,8 +40,8 @@
                 <thead>
                   <tr class="table-header-main">
                     <th rowspan="2" class="table-header-cell col-number">#</th>
-                    <th rowspan="2" class="table-header-cell col-mandate">GENDER ISSUE / GAD MANDATE</th>
-                    <th rowspan="2" class="table-header-cell col-cause">CAUSE OF GENDER ISSUE</th>
+                    <th rowspan="2" class="table-header-cell col-mandate">Gender Issue / GAD Mandate</th>
+                    <th rowspan="2" class="table-header-cell col-cause">Cause of Gender Issue</th>
                     <th rowspan="2" class="table-header-cell col-objective">GAD RESULT STATEMENT / OBJECTIVE</th>
                     <th rowspan="2" class="table-header-cell col-activity">GAD ACTIVITY</th>
                     <th rowspan="2" class="table-header-cell col-indicators">PERFORMANCE INDICATORS / TARGETS</th>

@@ -20,20 +20,56 @@
     </div>
 
     <nav class="flex-grow space-y-1 overflow-y-auto custom-scrollbar mt-4">
-      <router-link 
-        v-for="item in menuItems" 
-        :key="item.label"
-        :to="item.href"
-        @click="$emit('close')"
-        class="flex items-center justify-between p-3 rounded-xl transition-all duration-200"
-        :class="$route.path === item.href ? 'bg-primary/20 text-white font-bold' : 'text-slate-400 hover:bg-white/5 hover:text-white'"
-      >
-        <div class="flex items-center gap-3">
-          <span class="material-symbols-outlined text-xl">{{ item.icon }}</span>
-          <span class="text-sm">{{ item.label }}</span>
+      <template v-for="item in menuItems" :key="item.label">
+        <!-- Render normal link if no children -->
+        <router-link 
+          v-if="!item.children"
+          :to="item.href"
+          @click="$emit('close')"
+          class="flex items-center justify-between p-3 rounded-xl transition-all duration-200"
+          :class="$route.path === item.href ? 'bg-primary/20 text-white font-bold' : 'text-slate-400 hover:bg-white/5 hover:text-white'"
+        >
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-xl">{{ item.icon }}</span>
+            <span class="text-sm">{{ item.label }}</span>
+          </div>
+          <span v-if="item.badge && item.badge > 0" class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{{ item.badge }}</span>
+        </router-link>
+
+        <!-- Render dropdown if has children -->
+        <div v-else class="flex flex-col">
+          <button 
+            @click="toggleExpand(item.label)"
+            class="flex items-center justify-between p-3 rounded-xl transition-all duration-200 w-full text-left"
+            :class="isChildActive(item) ? 'bg-primary/10 text-white font-bold' : 'text-slate-400 hover:bg-white/5 hover:text-white'"
+          >
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-xl">{{ item.icon }}</span>
+              <span class="text-sm">{{ item.label }}</span>
+            </div>
+            <span class="material-symbols-outlined text-sm transition-transform duration-200" :class="{ 'rotate-180': expandedState[item.label] }">
+              expand_more
+            </span>
+          </button>
+          
+          <!-- Dropdown items -->
+          <div v-show="expandedState[item.label]" class="flex flex-col gap-1">
+            <router-link 
+              v-for="child in item.children" 
+              :key="child.label"
+              :to="child.href"
+              @click="$emit('close')"
+              class="flex items-center justify-between p-3 rounded-xl transition-all duration-200"
+              :class="$route.path === child.href ? 'bg-primary/20 text-white font-bold' : 'text-slate-400 hover:bg-white/5 hover:text-white'"
+            >
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-xl">{{ child.icon }}</span>
+                <span class="text-sm">{{ child.label }}</span>
+              </div>
+            </router-link>
+          </div>
         </div>
-        <span v-if="item.badge && item.badge > 0" class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{{ item.badge }}</span>
-      </router-link>
+      </template>
     </nav>
 
     <div class="mt-auto pt-6 border-t border-white/10 flex flex-col gap-1">
@@ -50,7 +86,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, reactive } from 'vue';
 import { useRoute } from 'vue-router';
 
 defineProps({
@@ -66,6 +102,24 @@ const settingsPath = computed(() => {
   const base = route.path.split('/')[1] || 'dashboard';
   return `/${base}/settings`;
 });
+
+const expandedState = reactive({});
+
+const toggleExpand = (label) => {
+  if (expandedState[label]) {
+    expandedState[label] = false;
+  } else {
+    for (const key in expandedState) {
+      expandedState[key] = false;
+    }
+    expandedState[label] = true;
+  }
+};
+
+const isChildActive = (item) => {
+  if (!item.children) return false;
+  return item.children.some(child => route.path === child.href);
+};
 </script>
 
 <style scoped>

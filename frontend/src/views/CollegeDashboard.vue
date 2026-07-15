@@ -32,7 +32,7 @@
         </div>
       </header>
 
-      <main class="flex-grow p-4 md:p-10 w-full overflow-x-hidden">
+      <main :class="['flex-grow w-full overflow-x-hidden', $route.path.includes('/plan-and-budget') ? 'p-0' : 'p-4 md:p-10']">
         <router-view />
       </main>
     </div>
@@ -67,11 +67,21 @@ const collegeMenu = ref([
   { label: 'Messages', icon: 'mail', href: '/college/messages', badge: 0 },
   { label: 'Submitted List', icon: 'list', href: '/college/submitted-list' },
   { label: 'Archives', icon: 'archive', href: '/college/archive' },
-  { label: 'Document Trash Bin', icon: 'delete', href: '/college/trashbin' },
-  { label: 'Mandates', icon: 'gavel', href: '/college/mandates' },
-  { label: 'User Manual', icon: 'menu_book', href: '/college/user-manual' },
-  { label: 'Data Privacy Policy', icon: 'privacy_tip', href: '/college/data-privacy-policy' },
-  { label: 'Activity Logs', icon: 'history', href: '/college/activity-logs' }
+  { label: 'Plan and Budget', icon: 'gavel', href: '/college/plan-and-budget' },
+  {
+    label: 'System Controls', icon: 'admin_panel_settings',
+    children: [
+      { label: 'Activity Logs', icon: 'history', href: '/college/activity-logs' },
+      { label: 'Document Trash Bin', icon: 'delete', href: '/college/trashbin' }
+    ]
+  },
+  {
+    label: 'Legal and Guides', icon: 'policy',
+    children: [
+      { label: 'User Manual', icon: 'menu_book', href: '/college/user-manual' },
+      { label: 'Data Privacy Policy', icon: 'privacy_tip', href: '/college/data-privacy-policy' }
+    ]
+  }
 ]);
 
 const fetchUnreadCount = async () => {
@@ -105,7 +115,10 @@ const handleLogout = async () => {
 onMounted(() => {
   window.addEventListener('scroll', handleScroll);
   user.value = JSON.parse(localStorage.getItem('user') || '{}');
-  if (!user.value.id || !['twg', 'non-twg'].includes(user.value.role)) {
+  
+  const role = (user.value.role || user.value.user_role || '').toLowerCase();
+  
+  if (!user.value.id || !['twg', 'non-twg'].includes(role)) {
     router.push('/login');
   } else {
     fetchUnreadCount();

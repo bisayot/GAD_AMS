@@ -68,7 +68,7 @@
                 <span class="info-value-white uppercase">{{ design.form_type_name || formatFormType(design.form_type) || '---' }}</span>
               </div>
               <div class="info-item" style="grid-column: span 2;">
-                <span class="info-label">GAD Mandate</span>
+                <span class="info-label">Gender Issue / GAD Mandate</span>
                 <div v-if="design.gad_mandate" class="mandate-boxes">
                   <span v-for="(mandate, index) in design.gad_mandate.split(';;;')" :key="'m'+index" class="mandate-box">
                     {{ mandate.trim() }}
@@ -77,7 +77,7 @@
                 <span v-else class="info-value-white">---</span>
               </div>
               <div class="info-item" style="grid-column: span 2;">
-                <span class="info-label">Gender Issues</span>
+                <span class="info-label">Cause of Gender Issue</span>
                 <div v-if="design.gender_issue" class="mandate-boxes">
                   <span v-for="(issue, index) in design.gender_issue.split(';;;')" :key="'i'+index" class="mandate-box">
                     {{ issue.trim() }}

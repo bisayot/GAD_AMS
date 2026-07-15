@@ -67,43 +67,27 @@
                 </select>
               </div>
               <div class="info-item" style="grid-column: span 2;">
-                <span class="info-label">GAD Mandate *</span>
+                <span class="info-label">Gender Issue / GAD Mandate *</span>
                 <div class="checkbox-group-container modal-input" style="min-height: 120px; max-height: 250px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
                   <label v-for="mandate in gadMandates" :key="mandate.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
                     <input type="checkbox" v-model="formData.gad_mandate" :value="mandate.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
                     <span style="font-size: 14px; line-height: 1.4;">{{ mandate.code }} - {{ mandate.title }}</span>
                   </label>
-                  <label class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
-                    <input type="checkbox" v-model="formData.gad_mandate" value="Other" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
-                    <span style="font-size: 14px; line-height: 1.4; font-style: italic;">+ New Mandate</span>
-                  </label>
+                  
                 </div>
-                <input v-if="formData.gad_mandate && formData.gad_mandate.includes('Other')" 
-                      v-model="customMandate" 
-                      type="text" 
-                      placeholder="Enter new mandate name..." 
-                      class="modal-input" 
-                      style="margin-top: 10px;" />
+                
               </div>
               <div class="info-item" style="grid-column: span 2;">
-                <span class="info-label">Gender Issues *</span>
+                <span class="info-label">Cause of Gender Issue *</span>
                 <div class="checkbox-group-container modal-input" style="min-height: 120px; max-height: 250px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
                   <label v-for="issue in genderIssues" :key="issue.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
                     <input type="checkbox" v-model="formData.gender_issue" :value="issue.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
                     <span style="font-size: 14px; line-height: 1.4;">{{ issue.title }}</span>
                   </label>
-                  <label class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
-                    <input type="checkbox" v-model="formData.gender_issue" value="Other" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
-                    <span style="font-size: 14px; line-height: 1.4; font-style: italic;">+ New Gender Issue</span>
-                  </label>
+                  
                   <p v-if="!formData.gad_mandate || formData.gad_mandate.length === 0" style="color: #94a3b8; font-size: 13px; font-style: italic; margin: 0;">Select a mandate first to see gender issues.</p>
                 </div>
-                <input v-if="formData.gender_issue && formData.gender_issue.includes('Other')" 
-                      v-model="customGenderIssue" 
-                      type="text" 
-                      placeholder="Enter new gender issue..." 
-                      class="modal-input" 
-                      style="margin-top: 10px;" />
+                
               </div>
             </div>
           </div>
@@ -117,11 +101,11 @@
               <div class="grid-2">
                 <div>
                   <label class="form-label">Start Date</label>
-                  <input v-model="formData.start_date" type="date" class="modal-input">
+                  <input v-model="formData.start_date" type="date" class="modal-input" :min="minStartDate">
                 </div>
                 <div>
                   <label class="form-label">End Date</label>
-                  <input v-model="formData.end_date" type="date" class="modal-input">
+                  <input v-model="formData.end_date" type="date" class="modal-input" :min="formData.start_date || minStartDate">
                 </div>
                 <div>
                   <label class="form-label">Start Time</label>
@@ -188,9 +172,7 @@
                               <input type="checkbox" v-model="mealsSelected.dinner" class="budget-checkbox" /> Dinner
                             </label>
                           </div>
-                          <div v-if="formData.target_participants < 50 && formData.target_participants !== ''" class="budget-warning-inline">
-                            ⚠️ Participants &lt; 50. GAD cannot fund meals.
-                          </div>
+                          
                         </div>
                         <div class="budget-item-value">
                           <span class="budget-currency-symbol">₱</span>
@@ -217,9 +199,7 @@
                               <input type="checkbox" v-model="snacksSelected.pm" class="budget-checkbox" /> PM Snack
                             </label>
                           </div>
-                          <div v-if="formData.target_participants < 50 && formData.target_participants !== ''" class="budget-warning-inline">
-                            ⚠️ Participants &lt; 50. GAD cannot fund snacks.
-                          </div>
+                          
                         </div>
                         <div class="budget-item-value">
                           <span class="budget-currency-symbol">₱</span>
@@ -565,6 +545,18 @@ const activityClassifications = ref([]);
 const gadMandates = ref([]);
 const genderIssues = ref([]);
 
+
+const minStartDate = computed(() => {
+  const d = new Date();
+  const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+  const phDate = new Date(utc + (3600000 * 8));
+  phDate.setUTCDate(phDate.getUTCDate() + 3);
+  const year = phDate.getUTCFullYear();
+  const month = String(phDate.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(phDate.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+});
+
 const formData = ref({
   activity_title: '',
   office: '',
@@ -642,7 +634,7 @@ watch(
       const mealsCount = (mealsSelected.value.breakfast ? 1 : 0) + (mealsSelected.value.lunch ? 1 : 0) + (mealsSelected.value.dinner ? 1 : 0);
       const mealsRate = isOutsideBsu.value ? 350 : 220;
       const pax = Number(formData.value.target_participants) || 0;
-      const calculated = pax >= 50 ? (mealsCount * mealsRate * pax * computedDays.value) : 0;
+      const calculated = (mealsCount * mealsRate * pax * computedDays.value);
       item.total = calculated || '';
     }
   },
@@ -658,7 +650,7 @@ watch(
       const snacksCount = (snacksSelected.value.am ? 1 : 0) + (snacksSelected.value.pm ? 1 : 0);
       const snacksRate = isOutsideBsu.value ? 150 : 80;
       const pax = Number(formData.value.target_participants) || 0;
-      const calculated = pax >= 50 ? (snacksCount * snacksRate * pax * computedDays.value) : 0;
+      const calculated = (snacksCount * snacksRate * pax * computedDays.value);
       item.total = calculated || '';
     }
   },
@@ -732,8 +724,12 @@ const fetchActivityClassifications = async () => {
 };
 
 const fetchGADMandates = async () => {
-  try {
-    const response = await api.get('get-gad-mandates');
+    try {
+      let url = 'get-gad-mandates';
+      if (formData.value && formData.value.activity_classification) {
+          url += '?classification=' + formData.value.activity_classification;
+      }
+      const response = await api.get(url);
     if (response.data) gadMandates.value = response.data;
   } catch (error) {
     console.error('Error fetching mandates:', error);
@@ -789,15 +785,20 @@ const fetchDesignDetails = async () => {
         return;
       }
       // Initialize default structures
-      mealsSelected.value = { 
-        breakfast: !!Number(design.value.breakfast_selected), 
-        lunch: !!Number(design.value.lunch_selected), 
-        dinner: !!Number(design.value.dinner_selected) 
-      };
-      snacksSelected.value = { 
-        am: !!Number(design.value.am_snack_selected), 
-        pm: !!Number(design.value.pm_snack_selected) 
-      };
+              const dbMealsItem = design.value.budget_items?.find(i => i.item_name === 'Meals') || {};
+        const dbSnacksItem = design.value.budget_items?.find(i => i.item_name === 'Snacks') || {};
+        const mealsSub = dbMealsItem.sub_item || '';
+        const snacksSub = dbSnacksItem.sub_item || '';
+        
+        mealsSelected.value = { 
+          breakfast: mealsSub.includes('Breakfast'), 
+          lunch: mealsSub.includes('Lunch'), 
+          dinner: mealsSub.includes('Dinner') 
+        };
+        snacksSelected.value = { 
+          am: snacksSub.includes('AM'), 
+          pm: snacksSub.includes('PM') 
+        };
       pfPax.value = Number(design.value.pf_pax) || '';
       tokensPax.value = Number(design.value.tokens_pax) || '';
       if (design.value.materials_others_breakdown) {
@@ -864,8 +865,23 @@ const fetchDesignDetails = async () => {
       if (!design.value.venue_id) {
         customVenue.value = design.value.venue;
       }
-    } else {
-      error.value = "Activity design not found.";
+    
+        await fetchGADMandates();
+        const mapLoadedMandates = () => {
+            if (gadMandates.value.length > 0 && formData.value.gad_mandate.length > 0) {
+                const loadedIds = formData.value.gad_mandate.map(String);
+                const mappedIds = gadMandates.value
+                    .filter(m => loadedIds.some(id => m.id.split(',').includes(id)))
+                    .map(m => m.id.toString());
+                if (mappedIds.length > 0) {
+                    formData.value.gad_mandate = mappedIds;
+                }
+            }
+        };
+        mapLoadedMandates();
+        await fetchGenderIssues(formData.value.gad_mandate);
+      } else {
+        error.value = "Activity design not found.";
     }
   } catch (err) {
     error.value = "Failed to load activity design details.";
@@ -896,7 +912,264 @@ const formatBudgetName = (name) => { // Added formatBudgetName
 
 const formatCurrency = (amt) => amt ? parseFloat(amt).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00'; // Added formatCurrency
 
+const isCurrentYear = (dateString) => {
+  const date = new Date(dateString + 'T00:00:00');
+  const manilaTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" });
+  const currentYear = new Date(manilaTime).getFullYear();
+  return date.getFullYear() === currentYear;
+};
+
+const isValidActivityDate = (dateString, checkLeadTime = false) => {
+  if (!isCurrentYear(dateString)) {
+    const currentYear = new Date().getFullYear();
+    return { valid: false, reason: `Activities can only be scheduled in ${currentYear}. Please select a date within the current year.` };
+  }
+  if (checkLeadTime) {
+    const targetDate = new Date(dateString + 'T00:00:00');
+    const today = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" }));
+    today.setHours(0, 0, 0, 0);
+    const diffTime = targetDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 3) {
+       return { valid: false, reason: `Activities must be scheduled at least 3 days in advance.` };
+    } else if (diffDays < 14) {
+       return { valid: true, reason: `Activities should ideally be scheduled at least 14 days in advance.`, isWarning: true };
+    }
+  }
+  return { valid: true, reason: '' };
+};
+
+const isValidActivityDuration = (startDateString, endDateString) => {
+  if (!startDateString || !endDateString) {
+    return { valid: true, reason: '', isWarning: false };
+  }
+  const startDate = new Date(startDateString + 'T00:00:00');
+  const endDate = new Date(endDateString + 'T00:00:00');
+  
+  if (endDate < startDate) {
+    return { valid: false, reason: 'End date cannot be before start date.', isWarning: false };
+  }
+  
+  const diffTime = endDate - startDate;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays > 31) {
+    return { valid: true, reason: 'Are you sure if the activity is more than 1 month?', isWarning: true };
+  }
+  
+  return { valid: true, reason: '', isWarning: false };
+};
+
+const isValidTime = (timeStr) => {
+  if (!timeStr) return true;
+  return timeStr >= "04:00" && timeStr <= "20:00";
+};
+
+watch(() => formData.value.start_date, (newDate) => {
+  if (loadingData.value) return;
+  if (newDate) {
+    const validation = isValidActivityDate(newDate, true);
+    if (!validation.valid) {
+      document.activeElement?.blur();
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Date',
+        text: validation.reason,
+        confirmButtonColor: '#b979cc'
+      });
+      formData.value.start_date = '';
+      return;
+    } else if (validation.isWarning) {
+      document.activeElement?.blur();
+      Swal.fire({
+        icon: 'info',
+        title: 'Lead Time Warning',
+        text: validation.reason,
+        confirmButtonColor: '#b979cc'
+      });
+    }
+    if (formData.value.end_date) {
+      const durationValidation = isValidActivityDuration(newDate, formData.value.end_date);
+      if (!durationValidation.valid) {
+        document.activeElement?.blur();
+        Swal.fire({
+          icon: 'warning',
+          title: 'Invalid Duration',
+          text: durationValidation.reason,
+          confirmButtonColor: '#b979cc'
+        });
+        formData.value.start_date = '';
+      } else if (durationValidation.isWarning) {
+        document.activeElement?.blur();
+        Swal.fire({
+          icon: 'info',
+          title: 'Long Duration',
+          text: durationValidation.reason,
+          confirmButtonColor: '#b979cc'
+        });
+      }
+    }
+  }
+});
+
+watch(() => formData.value.end_date, (newDate) => {
+  if (loadingData.value) return;
+  if (newDate) {
+    const validation = isValidActivityDate(newDate, false);
+    if (!validation.valid) {
+      document.activeElement?.blur();
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Date',
+        text: validation.reason,
+        confirmButtonColor: '#b979cc'
+      });
+      formData.value.end_date = '';
+      return;
+    }
+    if (formData.value.start_date) {
+      const durationValidation = isValidActivityDuration(formData.value.start_date, newDate);
+      if (!durationValidation.valid) {
+        document.activeElement?.blur();
+        Swal.fire({
+          icon: 'warning',
+          title: 'Invalid Duration',
+          text: durationValidation.reason,
+          confirmButtonColor: '#b979cc'
+        });
+        formData.value.end_date = '';
+      } else if (durationValidation.isWarning) {
+        document.activeElement?.blur();
+        Swal.fire({
+          icon: 'info',
+          title: 'Long Duration',
+          text: durationValidation.reason,
+          confirmButtonColor: '#b979cc'
+        });
+      }
+    }
+  }
+});
+
+watch(() => formData.value.start_time, (newTime) => {
+  if (loadingData.value) return;
+  if (newTime && !isValidTime(newTime)) {
+    document.activeElement?.blur();
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Time',
+      text: 'Must be set between 04:00 AM and 08:00 PM.',
+      confirmButtonColor: '#b979cc'
+    });
+    formData.value.start_time = '';
+  }
+});
+
+watch(() => formData.value.end_time, (newTime) => {
+  if (loadingData.value) return;
+  if (newTime && !isValidTime(newTime)) {
+    document.activeElement?.blur();
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Time',
+      text: 'Must be set between 04:00 AM and 08:00 PM.',
+      confirmButtonColor: '#b979cc'
+    });
+    formData.value.end_time = '';
+  }
+});
+
+watch([() => formData.value.start_time, () => formData.value.end_time], ([newStart, newEnd]) => {
+  if (loadingData.value) return;
+  if (newStart && newEnd) {
+    if (newStart >= newEnd) {
+      document.activeElement?.blur();
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Time Range',
+        text: 'End time must be after start time on the same day.',
+        confirmButtonColor: '#b979cc'
+      });
+      formData.value.end_time = '';
+    }
+  }
+});
+
 const handleUpdate = async () => {
+
+  // Validate start date
+  const startValidation = isValidActivityDate(formData.value.start_date, true);
+  if (!startValidation.valid) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Start Date',
+      text: startValidation.reason,
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+
+  // Validate end date
+  const endValidation = isValidActivityDate(formData.value.end_date, false);
+  if (!endValidation.valid) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid End Date',
+      text: endValidation.reason,
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+
+  // Validate activity duration
+  const durationValidation = isValidActivityDuration(formData.value.start_date, formData.value.end_date);
+  if (!durationValidation.valid) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Duration',
+      text: durationValidation.reason,
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+  if (durationValidation.isWarning) {
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: 'Long Duration',
+      text: durationValidation.reason,
+      showCancelButton: true,
+      confirmButtonText: 'Yes, proceed',
+      cancelButtonText: 'No, cancel',
+      confirmButtonColor: '#b979cc'
+    });
+    if (!result.isConfirmed) {
+      return;
+    }
+  }
+
+  // Validate start time and end time
+  if (!isValidTime(formData.value.start_time) || !isValidTime(formData.value.end_time)) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Time',
+      text: 'Must be set between 04:00 AM and 08:00 PM.',
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+  if (formData.value.start_time && formData.value.end_time && (!formData.value.start_date || !formData.value.end_date || formData.value.start_date === formData.value.end_date)) {
+    if (formData.value.start_time >= formData.value.end_time) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Time Range',
+        text: 'End time must be after start time on the same day.',
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
+  }
+
   submitting.value = true;
   try {
     const id = route.params.id;
@@ -1017,11 +1290,24 @@ const handleUpdate = async () => {
   }
 };
 
-onMounted(() => {
+
+  watch(() => formData.value.activity_classification, (newVal) => {
+      if (typeof loadingData !== 'undefined' && loadingData.value) return;
+      formData.value.gad_mandate = [];
+      formData.value.gender_issue = [];
+      fetchGADMandates();
+  });
+  
+  watch(() => formData.value.gad_mandate, (newVal) => {
+      if (typeof loadingData !== 'undefined' && loadingData.value) return;
+      formData.value.gender_issue = [];
+      fetchGenderIssues(newVal);
+  });
+  
+  onMounted(() => {
   fetchVenues();
   fetchFormTypes();
   fetchActivityClassifications();
-  fetchGADMandates();
   fetchDesignDetails();
 });
 </script>

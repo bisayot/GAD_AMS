@@ -17,14 +17,14 @@ class ArchiveController extends Controller
         $role = $this->request->getGet('role');
 
         $designsQuery = $db->table('activity_design as aad')
-            ->select('aad.*, aad.act_design_id as original_id, "design" as type, aad.activity_title as title, aad.form_type as form_label, users.username as office, aad.start_date as date, aad.end_date as dateRaw')
+            ->select('aad.*, aad.act_design_id as original_id, "design" as type, aad.activity_title as title, aad.form_type as form_label, users.username as office, aad.start_date as date, COALESCE(aad.archived_at, aad.end_date) as dateRaw')
             ->join('users', 'users.id = aad.user_id', 'left')
             ->select('COALESCE(aad.control_number, "N/A") as control')
             ->where('aad.is_archived', 1)
             ->where('aad.deleted_at IS NULL', null, false);
 
         $reportsQuery = $db->table('accomplishment_report as aar')
-            ->select('aar.*, aar.id as original_id, "report" as type, aar.activity_title as title, "N/A" as form_label, users.username as office, aar.start_date as date, aar.control_number as control, aar.start_date as dateRaw')
+            ->select('aar.*, aar.id as original_id, "report" as type, aar.activity_title as title, "N/A" as form_label, users.username as office, aar.start_date as date, aar.control_number as control, COALESCE(aar.archived_at, aar.start_date) as dateRaw')
             ->join('users', 'users.id = aar.user_id', 'left')
             ->where('aar.is_archived', 1)
             ->where('aar.deleted_at IS NULL', null, false);

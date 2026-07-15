@@ -58,9 +58,7 @@
 
                   <div class="input-group-ar">
                     <label class="form-label-ar">Activity Classification *</label>
-                    <select
-                      v-model="form.activity_classification"
-                      required
+                    <select v-model="form.activity_classification" @change="handleClassificationChange" required
                       class="custom-input-field select-arrow-fix"
                     >
                       <option value="" disabled class="dark-option">Select Classification...</option>
@@ -76,36 +74,25 @@
                   </div>
 
                   <div class="input-group-ar">
-                    <label class="form-label-ar">GAD Mandate *</label>
+                    <label class="form-label-ar">Gender Issue / GAD Mandate *</label>
                     <div class="checkbox-group-container custom-input-field" style="min-height: 120px; max-height: 250px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
                       <label v-for="mandate in GADMandates" :key="mandate.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
-                        <input type="checkbox" v-model="form.gad_mandate_id" :value="mandate.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
+                        <input type="checkbox" @change="handleMandateChange" v-model="form.gad_mandate_id" :value="mandate.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
                         <span style="font-size: 14px; line-height: 1.4;">{{ mandate.code }} - {{ mandate.title }}</span>
                       </label>
-                      <label class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
-                        <input type="checkbox" v-model="form.gad_mandate_id" value="Other" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
-                        <span style="font-size: 14px; line-height: 1.4; font-style: italic;">+ New Mandate</span>
-                      </label>
+                      
                     </div>
-                    <input v-if="form.gad_mandate_id && form.gad_mandate_id.includes('Other')" 
-                          v-model="customMandate" 
-                          type="text" 
-                          placeholder="Enter new mandate name..." 
-                          class="custom-input-field" 
-                          style="margin-top: 10px;" />
+                    
                   </div>
 
                   <div class="input-group-ar">
-                    <label class="form-label-ar">Gender Issue *</label>
+                    <label class="form-label-ar">Cause of Gender Issue *</label>
                     <div class="checkbox-group-container custom-input-field" style="min-height: 120px; max-height: 250px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
                       <label v-for="issue in genderIssues" :key="issue.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
                         <input type="checkbox" v-model="form.gender_issue_id" :value="issue.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
                         <span style="font-size: 14px; line-height: 1.4;">{{ issue.title }}</span>
                       </label>
-                      <label class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
-                        <input type="checkbox" v-model="form.gender_issue_id" value="Other" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
-                        <span style="font-size: 14px; line-height: 1.4; font-style: italic;">+ New Gender Issue</span>
-                      </label>
+                      
                       <p v-if="!form.gad_mandate_id || form.gad_mandate_id.length === 0" style="color: #94a3b8; font-size: 13px; font-style: italic; margin: 0;">Select a mandate first to see gender issues.</p>
                     </div>
                     <input v-if="form.gender_issue_id && form.gender_issue_id.includes('Other')" 
@@ -141,11 +128,7 @@
                           </transition>
                         </div>
                       </div>
-                      <input 
-                        type="date" 
-                        v-model="form.start_date" 
-                        required 
-                        class="custom-input-field code-icon-calendar"
+                      <input type="date" v-model="form.start_date" :min="minDate" :max="maxDate" required class="custom-input-field code-icon-calendar"
                       >
                     </div>
                     <div class="input-group-ar">
@@ -162,11 +145,7 @@
                           </transition>
                         </div>
                       </div>
-                      <input 
-                        type="date" 
-                        v-model="form.end_date" 
-                        required 
-                        class="custom-input-field code-icon-calendar"
+                      <input type="date" v-model="form.end_date" :min="minDate" :max="maxDate" required class="custom-input-field code-icon-calendar"
                       >
                     </div>
                   </div>
@@ -186,13 +165,7 @@
                           </transition>
                         </div>
                       </div>
-                      <input 
-                        type="time" 
-                        v-model="form.start_time" 
-                        min="04:00"
-                        max="20:00"
-                        required 
-                        class="custom-input-field code-icon-clock"
+                      <input type="time" v-model="form.start_time" min="04:00" max="20:00" required class="custom-input-field code-icon-clock"
                       >
                     </div>
                     <div class="input-group-ar">
@@ -209,13 +182,7 @@
                           </transition>
                         </div>
                       </div>
-                      <input 
-                        type="time" 
-                        v-model="form.end_time" 
-                        min="04:00"
-                        max="20:00"
-                        required 
-                        class="custom-input-field code-icon-clock"
+                      <input type="time" v-model="form.end_time" min="04:00" max="20:00" required class="custom-input-field code-icon-clock"
                       >
                     </div>
                   </div>
@@ -670,12 +637,17 @@
 
               <div class="form-actions-ar">
                 <button 
+                  type="button"
+                  @click="router.back()" 
+                  class="back-button"
+                >
+                  &#8592; Back
+                </button>
+                <button 
                   type="submit" 
                   class="submit-action-btn"
-                  
-                  
                 >
-                  Submit Report →
+                  Submit Report &#8594;
                 </button>
               </div>
             </form>
@@ -843,13 +815,32 @@ const fetchActivityClassifications = async () => {
   }
 };
 
-const fetchMandates = async () => {
+const fetchGADMandates = async () => {
   try {
-    const res = await api.get('get-gad-mandates');
+    let url = 'get-gad-mandates';
+    if (form.value && form.value.activity_classification) {
+       const classificationObj = ActClassification.value.find(c => c.classification_name === form.value.activity_classification);
+       if (classificationObj) {
+           url += '?classification=' + classificationObj.id;
+       }
+    }
+    const res = await api.get(url);
     GADMandates.value = res.data;
   } catch (error) {
     console.error('Error fetching GAD mandates:', error);
   }
+};
+
+
+const handleClassificationChange = async () => {
+  form.value.gad_mandate_id = [];
+  form.value.gender_issue_id = [];
+  await fetchGADMandates();
+};
+
+const handleMandateChange = async () => {
+  form.value.gender_issue_id = [];
+  await fetchGenderIssues(form.value.gad_mandate_id);
 };
 
 const fetchGenderIssues = async (mandateIds) => {
@@ -862,7 +853,14 @@ const fetchGenderIssues = async (mandateIds) => {
     const allIssues = [];
     for (const mandateId of ids) {
        if (mandateId !== 'Other') {
-           const res = await api.get(`get-gender-issues/${mandateId}`);
+           let url = `get-gender-issues?mandates=${mandateId}`;
+             if (form.value && form.value.activity_classification) {
+                 const classificationObj = ActClassification.value.find(c => c.classification_name === form.value.activity_classification);
+                 if (classificationObj) {
+                     url += '&classification=' + classificationObj.id;
+                 }
+             }
+             const res = await api.get(url);
            allIssues.push(...res.data);
        }
     }
@@ -938,13 +936,26 @@ watch(() => form.value.control_number, async (newVal) => {
     form.value.activity_classification = selected.activity_classification || 'N/A';
     form.value.form_type = selected.form_type_name || selected.form_type || 'N/A';
     form.value.target_participants = selected.target_participants || '0';
-    form.value.gad_mandate_id = selected.gad_mandate_ids ? String(selected.gad_mandate_ids).split(',').map(s=>s.trim()) : [];
-    
+    await fetchGADMandates();
+    const savedMandates = selected.gad_mandate_ids ? String(selected.gad_mandate_ids).split(',').map(s=>s.trim()) : [];
+    form.value.gad_mandate_id = GADMandates.value.filter(m => {
+       const mIds = String(m.id).split(',');
+       return mIds.every(id => savedMandates.includes(id));
+    }).map(m => String(m.id));
+    if (savedMandates.includes('Other') && !form.value.gad_mandate_id.includes('Other')) {
+        form.value.gad_mandate_id.push('Other');
+    }
+
     await fetchGenderIssues(form.value.gad_mandate_id);
     
-    setTimeout(() => {
-        setTimeout(() => { form.value.gender_issue_id = selected.gender_issue_ids ? String(selected.gender_issue_ids).split(',').map(s=>s.trim()) : []; }, 100);
-      }, 100);
+    const savedIssues = selected.gender_issue_ids ? String(selected.gender_issue_ids).split(',').map(s=>s.trim()) : [];
+    form.value.gender_issue_id = genderIssues.value.filter(m => {
+       const mIds = String(m.id).split(',');
+       return mIds.every(id => savedIssues.includes(id));
+    }).map(m => String(m.id));
+    if (savedIssues.includes('Other') && !form.value.gender_issue_id.includes('Other')) {
+        form.value.gender_issue_id.push('Other');
+    }
     selectedProposedBudget.value = Number(selected.proposed_budget) || 0;
 
     if (selected) {
@@ -1031,10 +1042,9 @@ watch(tokensPax, (newPax) => {
   const item = form.value.budget_items.find(i => i.name === 'Token/s');
   if (item) item.total = (Number(newPax) * 1000) || '';
 });
-watch(() => form.value.gad_mandate_id, (newVal) => {
-  form.value.gender_issue_id = [];
-  fetchGenderIssues(newVal);
-}, { deep: true });
+
+
+  
 
 watch(() => form.value.budget_items, (newItems) => {
   const total = newItems.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
@@ -1355,13 +1365,121 @@ const handleLogout = async () => {
   }
 };
 
+
+
+const minDate = computed(() => {
+  if (form.value.control_number) {
+    const selected = approvedControls.value.find(c => c.control_number === form.value.control_number);
+    if (selected && selected.start_date) {
+      return selected.start_date;
+    }
+  }
+  const currentYear = new Date().getFullYear();
+  return `${currentYear}-01-01`;
+});
+const maxDate = computed(() => {
+  const currentYear = new Date().getFullYear();
+  return `${currentYear}-12-31`;
+});
+
+const isCurrentYear = (dateString) => {
+  const date = new Date(dateString + 'T00:00:00');
+  const manilaTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" });
+  const currentYear = new Date(manilaTime).getFullYear();
+  return date.getFullYear() === currentYear;
+};
+
+
+
+
+
+const isValidTime = (timeStr) => {
+  if (!timeStr) return true;
+  return timeStr >= "04:00" && timeStr <= "20:00";
+};
+
+watch(() => form.value.start_date, (newDate) => {
+  if (newDate) {
+    if (newDate < minDate.value) {
+      document.activeElement?.blur();
+      Swal.fire({ icon: 'warning', title: 'Invalid Date', text: 'Start date cannot be earlier than the approved Activity Design start date.', confirmButtonColor: '#b979cc' });
+      form.value.start_date = '';
+      return;
+    }
+    if (!isCurrentYear(newDate)) {
+      document.activeElement?.blur();
+      Swal.fire({ icon: 'warning', title: 'Invalid Date', text: 'Activity must be within the current year.', confirmButtonColor: '#b979cc' });
+      form.value.start_date = '';
+      return;
+    }
+    if (form.value.end_date && form.value.end_date < newDate) {
+        document.activeElement?.blur();
+        Swal.fire({ icon: 'warning', title: 'Invalid Duration', text: 'End date cannot be before start date.', confirmButtonColor: '#b979cc' });
+        form.value.start_date = '';
+    }
+  }
+});
+
+watch(() => form.value.end_date, (newDate) => {
+  if (newDate) {
+    if (newDate < minDate.value) {
+      document.activeElement?.blur();
+      Swal.fire({ icon: 'warning', title: 'Invalid Date', text: 'End date cannot be earlier than the approved Activity Design start date.', confirmButtonColor: '#b979cc' });
+      form.value.end_date = '';
+      return;
+    }
+    if (!isCurrentYear(newDate)) {
+      document.activeElement?.blur();
+      Swal.fire({ icon: 'warning', title: 'Invalid Date', text: 'Activity must be within the current year.', confirmButtonColor: '#b979cc' });
+      form.value.end_date = '';
+      return;
+    }
+    if (form.value.start_date && newDate < form.value.start_date) {
+        document.activeElement?.blur();
+        Swal.fire({ icon: 'warning', title: 'Invalid Duration', text: 'End date cannot be before start date.', confirmButtonColor: '#b979cc' });
+        form.value.end_date = '';
+    }
+  }
+});
+
+watch(() => form.value.start_time, (newTime) => {
+  if (newTime && !isValidTime(newTime)) {
+    document.activeElement?.blur();
+    Swal.fire({ icon: 'warning', title: 'Invalid Time', text: 'Must be set between 04:00 AM and 08:00 PM.', confirmButtonColor: '#b979cc' });
+    form.value.start_time = '';
+  }
+  if (form.value.start_time && form.value.end_time && form.value.start_time >= form.value.end_time) {
+      document.activeElement?.blur();
+      Swal.fire({ icon: 'warning', title: 'Invalid Time Range', text: 'End time must be after start time.', confirmButtonColor: '#b979cc' });
+      form.value.start_time = '';
+  }
+});
+
+watch(() => form.value.end_time, (newTime) => {
+  if (newTime && !isValidTime(newTime)) {
+    document.activeElement?.blur();
+    Swal.fire({ icon: 'warning', title: 'Invalid Time', text: 'Must be set between 04:00 AM and 08:00 PM.', confirmButtonColor: '#b979cc' });
+    form.value.end_time = '';
+  }
+  if (form.value.start_time && form.value.end_time && form.value.start_time >= form.value.end_time) {
+      document.activeElement?.blur();
+      Swal.fire({ icon: 'warning', title: 'Invalid Time Range', text: 'End time must be after start time.', confirmButtonColor: '#b979cc' });
+      form.value.end_time = '';
+  }
+});
+
+
+
+
+
+
 onMounted(() => {
   if (!user.value.id) {
     router.push('/login');
   } else {
     fetchApprovedControls();
     fetchHolidays();
-    fetchMandates();
+    fetchGADMandates();
     fetchFormTypes();
     fetchActivityClassifications();
     fetchVenues();
@@ -1806,8 +1924,26 @@ onUnmounted(() => {
 
 .form-actions-ar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   padding-top: 24px;
+}
+
+.back-button {
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #b979cc;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.back-button:hover {
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 /* Budget Limit Warning Card */

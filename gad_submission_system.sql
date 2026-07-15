@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 10, 2026 at 02:53 AM
+-- Generation Time: Jul 15, 2026 at 12:57 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -67,7 +67,8 @@ CREATE TABLE `accomplishment_report` (
   `deleted_at` datetime DEFAULT NULL,
   `deleted_by` int(11) DEFAULT NULL,
   `is_viewed_by_admin` tinyint(1) DEFAULT 0,
-  `is_archived` tinyint(1) DEFAULT 0
+  `is_archived` tinyint(1) DEFAULT 0,
+  `archived_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -141,7 +142,8 @@ CREATE TABLE `activity_design` (
   `control_number` varchar(255) DEFAULT NULL,
   `modification_request_status` enum('none','pending','approved','rejected') NOT NULL DEFAULT 'none',
   `modification_remarks` text DEFAULT NULL,
-  `is_modified` tinyint(1) NOT NULL DEFAULT 0
+  `is_modified` tinyint(1) NOT NULL DEFAULT 0,
+  `archived_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -211,6 +213,22 @@ INSERT INTO `budget_categories` (`id`, `name`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `budget_item_mandate_allocations`
+--
+
+CREATE TABLE `budget_item_mandate_allocations` (
+  `id` int(11) NOT NULL,
+  `budget_item_id` int(11) NOT NULL,
+  `item_type` enum('AD','AR') NOT NULL,
+  `mandate_id` int(11) NOT NULL,
+  `allocated_amount` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `budget_realignment_logs`
 --
 
@@ -257,56 +275,6 @@ INSERT INTO `form_types` (`id`, `name`) VALUES
 (2, 'Employees\' Activity Design'),
 (3, 'Extension Training Design'),
 (4, 'External Training Form');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `gad_mandates`
---
-
-CREATE TABLE `gad_mandates` (
-  `id` int(11) NOT NULL,
-  `code` varchar(100) NOT NULL,
-  `title` text DEFAULT NULL,
-  `status` varchar(50) DEFAULT 'active',
-  `budget` varchar(100) DEFAULT '₱0.00',
-  `responsible_unit` varchar(255) DEFAULT 'OSS'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `gad_mandates`
---
-
-INSERT INTO `gad_mandates` (`id`, `code`, `title`, `status`, `budget`, `responsible_unit`) VALUES
-(1, 'RA10931-AAP', 'Republic Act No. 10931, Universal Access to Quality Tertiary Education Act Section 8 on Affirmative Action Program; CHED Memorandum Orders on GAD Mainstreaming in Higher Education Institutions (HEIs)', 'active', '₱700,000.00', 'OSS'),
-(2, 'CMO1-2015', 'CHED Memorandum Order No. 01 series 2015', 'active', '₱453,363.00', 'OSS'),
-(3, 'CMO1-2015-RE', 'Part VII of CHED Memorandum Order Number 1, series 2015 on Gender-Responsive Research and Extension Program', 'active', '₱3,500,000.00', 'OSS'),
-(4, 'JC2003-01-PWD', 'Limited access of PWDs to gender-responsive programs and services/DBM-DSWD Joint Circular No. 2003-01 provides guidelines for the implementation of Section 29 of the General Appropriations Act (GAA), requiring government agencies to set aside at least 1%', 'active', '₱350,000.00', 'OSS'),
-(5, 'JC2003-01-SC', 'Lack of senior citizens access to gender-responsive programs and services/DBM-DSWD Joint Circular No. 2003-01 provides guidelines for the implementation of Section 29 of the General Appropriations Act (GAA), requiring government agencies to set aside at least 1% of their budget for programs and projects related to senior citizens and persons with disabilities (PWDs)', 'active', '₱250,000.00', 'OSS'),
-(6, 'MCW-IRR-S14', 'Low number of women\'s participation in sports/MCW-IRR Section 14 Develop, establish and strengthen programs for the participation of women in competitive and non-competitive sports as means to achieve excellence, promote physical and social well-being', 'active', '₱160,000.00', 'OSS'),
-(7, 'PRAISE-GFPS', 'Programs on Awards and Incentives for Service Excellence (PRAISE under CSC Res.No.010112 and CSC MC No.1,s. 2001); Memo Circular No.2011-01 (Guidelines for the Creation, Strengthening and Institutionalization of GAD Focal Point System)', 'active', '₱12,285,000.00', 'OSS'),
-(8, 'RA9710-GM', 'Limited application of GAD Mainstreaming (GM) in Instruction, Research, Extension and Production/Magna Carta of Women (RA 9710)', 'active', '₱4,000,000.00', 'OSS'),
-(9, 'MCW-IRR-S37', 'Magna Carta of Women IRR Section 37 Gender Mainstreaming as a Strategy for Implementing the Magna Carta of Women', 'active', '₱120,000.00', 'OSS'),
-(10, 'EO340-1997', 'Executive Order No. 340 s. 1997 Directing National Government Agencies and Government-Owned and-Controlled Corporations to provide Day Care Services for their Employee\'s Children under five years of age', 'active', '₱230,000.00', 'OSS'),
-(11, 'RA9710', 'Magna Carta of Women (RA 9710)', 'active', '₱330,000.00', 'OSS'),
-(12, 'MCW-GFPS', 'Magna Carta of Women IRR Section 37 C. Creation and/or Strengthening of the GAD Focal Points (GFPs)', 'active', '₱396,000.00', 'OSS'),
-(13, 'MCW-S37C2', 'Section 37-C2 Rule VI of the Magna Carta of Women\'s IRR on duties and function of the GAD Focal Point System/Magna Carta of Women (RA 9710)', 'active', '₱211,720.00', 'OSS'),
-(14, 'GFPS-DUTIES', 'Duties and function of the GAD Focal Point System/CHED Memo 2015-1', 'active', '₱550,000.00', 'OSS'),
-(15, 'GM-ORIENT', 'Low level of Awareness on Gender Mainstreaming (GM) in Instruction, Research, Extension and Production among newly hired personnel/Magna Carta of Women (RA 9710), CHED Memo 2015-1', 'active', '₱330,000.00', 'OSS'),
-(16, 'CMO1-2015-S4', 'Part V, Rule II, Section 4 of CHED Memorandum Order No. 1 Series of 2015/CHED Memo 2015-1', 'active', '₱2,600,000.00', 'OSS'),
-(17, 'GAD-IEC', 'Development and Dissemination of Gender and Development (GAD) Information, Education, and Communication (IEC) Materials', 'active', '₱296,000.00', 'OSS'),
-(18, 'SDD-RA9710', 'Institutionalizing GAD database and Sex-Disaggregated Database/Magna Carta of Women (RA 9710), Section 36 on Sex-Disaggregated Database', 'active', '₱500,000.00', 'OSS'),
-(19, 'MCW-RA10121', 'Magna Carta for women, Chapter IV: Section 10 and RA 10121, Section 2 & 9', 'active', '₱211,200.00', 'OSS'),
-(20, 'LEAVE-BEN', 'Compliance to Section 18 of MCW RA 9710: Special Leave Benefits for Women; RA 8187: Paternity Leave; Section 8 of RA 8972: Solo Parents Welfare Act of 2000; Section 43 of RA 9262: Anti-Violence Against Women and Their Children Act of 2004', 'active', '₱12,285,000.00', 'OSS'),
-(21, 'WOMENS-MONTH', 'Compliance to Proclamation 227 on the observance of Women\'s Role in History Month and Proclamation 1172, s. 2006 on the 18-Day Campaign to End Violence Against Women (VAW)', 'active', '₱450,000.00', 'OSS'),
-(22, 'MCW-PROD', 'Productivity of employees affected due to filial obligations, affecting promotion of women to higher positions or from participating in capability enhancement sessions/Magna Carta of Women IRR Section 37 Gender Mainstreaming as a Strategy for Implementing', 'active', '₱220,000.00', 'OSS'),
-(23, 'GESI-CAPDEV', 'Low level of employees understanding of gender issues/concept to promote gender equality and a gender-responsive work environment./RA 9710 (Magna Carta of Women), PCW-NEDA-DBM Joint Circular 2012-01, and CSC MC No. 12 s. 2005', 'active', '₱12,285,000.00', 'OSS'),
-(24, 'GRCP-CMO1', 'Establishment of Gender-Responsive Curricular Programs/Part V of CMO 01, s. 2015/CHED Memo 2015-1', 'active', '₱12,285,000.00', 'OSS'),
-(25, 'GAD-OFFICE', 'Need to sustain a functional and gender-responsive GAD Focal Point System (GFPS) and GAD Office to ensure the effective mainstreaming of gender perspective in BSU academic, research, extension, and administrative programs/Section 37-C2 of the Magna Carta ', 'active', '₱8,052,420.09', 'OSS'),
-(26, 'TEO', 'Transportation Equipment Outlay', 'active', '₱12,285,000.00', 'OSS'),
-(27, 'RMOBS', 'Repair and Maintenance Office Building and other Structures', 'active', '₱12,285,000.00', 'OSS'),
-(28, 'BIDEC', 'Bamboo Industry Development for Environment Conservation and Countryside', 'active', '₱12,285,000.00', 'OSS'),
-(29, 'SIAS', 'Benguet State University Student Information and Accounting System (SIAS)', 'active', '₱12,285,000.00', 'OSS');
 
 -- --------------------------------------------------------
 
@@ -364,53 +332,6 @@ INSERT INTO `gad_plan_budget` (`gpb_id`, `gender_issue_mandate`, `cause_of_gende
 (29, '', '', '', '', 'Repair and Maintenance Office Building and other Structures', '', 6402000.00, 'GAA', 'PU, PMO, SPMO', 'attributed program'),
 (30, '', '', '', '', 'Bamboo Industry Development for Environment Conservation and Countryside', '', 3750000.00, 'GAA', 'PU, PMO, SPMO', 'attributed program'),
 (31, '', '', '', '', 'Benguet State University Student Information and Accounting System (SIAS)', '', 6098183.58, 'GAA', 'ICT, PMO', 'attributed program');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `gender_issues`
---
-
-CREATE TABLE `gender_issues` (
-  `id` int(11) NOT NULL,
-  `mandate_id` int(11) NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `gad_objective` text DEFAULT NULL,
-  `status` varchar(50) DEFAULT 'active'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `gender_issues`
---
-
-INSERT INTO `gender_issues` (`id`, `mandate_id`, `title`, `gad_objective`, `status`) VALUES
-(1, 1, 'Extraordinary life situations due to disasters, calamities, and socio-cultural discrimination', 'Provide educational assistance and support mechanisms to students affected by disasters, calamities, and socio-cultural discrimination.', 'active'),
-(2, 1, 'High tuition and miscellaneous fees, compounded by socio-cultural expectations for women to prioritize domestic roles over education', 'Increase access to tertiary education for financially disadvantaged students.', 'active'),
-(3, 2, 'Limited activities to increase awareness of men and women students to GAD-related information', 'Increase awareness of men and women students on Gender and Development (GAD).', 'active'),
-(4, 2, 'Student leaders have limited understanding on GAD in the University', 'Strengthen the understanding of student leaders on GAD in the University.', 'active'),
-(5, 3, 'Presence of gender inequality, poverty and GAD-related concerns in the community', 'Address gender inequality, poverty, and GAD-related concerns in communities through gender-responsive research and extension.', 'active'),
-(6, 4, 'Limited access of PWDs to gender-responsive programs and services', 'Improve access of persons with disabilities to gender-responsive programs and services.', 'active'),
-(7, 5, 'Absence of sustainable and gender-responsive university programs for senior citizens', 'Provide sustainable and gender-responsive programs and services for senior citizens.', 'active'),
-(8, 6, 'Minimal attendance of female students to competitive and non-competitive sports', 'Increase participation of women in competitive and non-competitive sports.', 'active'),
-(9, 7, 'Low recognition/appreciation on the Gender Mainstreaming in BSU', 'Strengthen recognition and appreciation of gender mainstreaming efforts in BSU.', 'active'),
-(10, 8, 'Low awareness among personnel in the University about GAD mainstreaming', 'Increase awareness and application of gender mainstreaming in instruction, research, extension and production.', 'active'),
-(11, 9, 'Productivity of employees affected due to filial obligations, affecting promotion of women to higher positions or from participating in capability enhancement sessions', 'Improve employee productivity and participation in capability enhancement activities.', 'active'),
-(12, 10, 'Problems of parents and students related to child care', 'Provide support services for employees and students with childcare responsibilities.', 'active'),
-(13, 8, 'Low integration of gender mainstreaming of BSU', 'To strengthen gender mainstreaming in BSU.', 'active'),
-(14, 11, 'Low level of capacity of GFPS to develop and implement GAD programs and activities due to new members', 'To strengthen the capacity of GFPS members in developing and implementing GAD programs and activities.', 'active'),
-(15, 12, 'Compliance to provisions regarding regular monitoring of gender mainstreaming efforts', 'To ensure regular monitoring of gender mainstreaming efforts.', 'active'),
-(16, 13, 'No plantilla personnel assigned to plan, implement and monitor GAD PAPs on a full-time basis', 'Provide dedicated personnel support for planning, implementation and monitoring of GAD PAPs.', 'active'),
-(17, 14, 'Lack of regular orientation and refresher training on gender sensitivity and GAD mandates', 'Improve awareness of newly hired personnel on gender sensitivity and GAD mandates.', 'active'),
-(18, 15, 'Limited number of GAD library and related learning materials across various discipline', 'Increase the availability of GAD library and learning materials across disciplines.', 'active'),
-(19, 16, 'Presence of Gender Based Violence (GBV) issues/reports/cases in the university', 'Prevent and address Gender-Based Violence (GBV) through information, education and communication initiatives.', 'active'),
-(20, 17, 'Minimal awareness and appreciation on the relevance of the centralized Sex-Disaggregated database', 'Strengthen awareness and appreciation of the centralized Sex-Disaggregated Database.', 'active'),
-(21, 18, 'Limited resources of the DSWD and LGU to provide for students who are transient residents and limited appreciation on women\'s role in nation building among employees and students, especially new ones', 'Provide support mechanisms for vulnerable students and strengthen appreciation of women\'s role in nation building.', 'active'),
-(22, 19, 'Employees may require special leaves due to parental obligations, health concerns and other circumstances that may require the need thereof', 'Ensure access to gender-responsive leave benefits and support services for employees.', 'active'),
-(23, 20, 'The need to highlight women\'s rights, their role in national development/nation building and need to provide platform to invoke protection of women\'s rights against VAW, gender-based violence, Safe Spaces Act (RA No. 11313) and concerns that affect women ', 'To strengthen awareness of BSU students/employees on women\'s rights and their role in national development and nation building.', 'active'),
-(24, 21, 'Inadequate support services for personnel/students with young children and breastfeeding mothers', 'Inadequate support services to personnel and students with children', 'active'),
-(25, 23, 'Lack of regular gender-related capacity-building activities and insufficient integration of gender sensitivity in employee development programs', 'To enhance the gender awareness and sensitivity of BSU employees, enabling them to recognize and eliminate gender bias and stereotyping, and to foster a gender-responsive and equitable workplace', 'active'),
-(26, 24, 'Limited subject for GAD Integration of Gender-Responsive Instruction and Curriculum Developmen', 'Integration of gender mainstreaming in curriculum/ subjects in all levels', 'active'),
-(27, 25, 'Sustained operations of the existing GAD Office-Provision of administrative, logistical, and financial support for the day-to-day functioning of the GAD Office maintenance of GAD database and documentation systems coordination of GFPS and GAD-related acti', 'To ensure the continuous and efficient operation of a functional, gender-responsive GAD Office that leads, monitors, and evaluates GAD mainstreaming efforts in the university.', 'active');
 
 -- --------------------------------------------------------
 
@@ -492,6 +413,72 @@ INSERT INTO `gpb_budget_breakdown` (`breakdown_id`, `gpb_id`, `category`, `amoun
 (60, 27, 'PS Attribution: Execom & TWG members', 7219424.00),
 (61, 27, 'Supplies Equipment and Materials', 300000.00),
 (62, 27, 'PS of GAD Director(50%)', 501954.00);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `gpb_items`
+--
+
+CREATE TABLE `gpb_items` (
+  `id` int(11) NOT NULL,
+  `fiscal_year` int(11) NOT NULL,
+  `section` enum('client_focused','organization_focused','attributed_program','client','org','attributed') NOT NULL,
+  `sort_order` int(11) DEFAULT 0,
+  `mandate` text DEFAULT NULL,
+  `cause` text DEFAULT NULL,
+  `objective` text DEFAULT NULL,
+  `result` text DEFAULT NULL,
+  `ppa` text DEFAULT NULL,
+  `mfo` text DEFAULT NULL,
+  `activity` text DEFAULT NULL,
+  `targets` text DEFAULT NULL,
+  `indicators` text DEFAULT NULL,
+  `budget` decimal(15,2) DEFAULT 0.00,
+  `source` varchar(50) DEFAULT NULL,
+  `office` varchar(255) DEFAULT NULL,
+  `responsible` varchar(255) DEFAULT NULL,
+  `budget_lines` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`budget_lines`)),
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `gpb_items`
+--
+
+INSERT INTO `gpb_items` (`id`, `fiscal_year`, `section`, `sort_order`, `mandate`, `cause`, `objective`, `result`, `ppa`, `mfo`, `activity`, `targets`, `indicators`, `budget`, `source`, `office`, `responsible`, `budget_lines`, `created_at`, `updated_at`) VALUES
+(1, 2026, 'client', 1, 'Republic Act No. 10931, Universal Access to Quality Tertiary Education Act Section 8 on Affirmative Action Program; CHED Memorandum Orders on GAD Mainstreaming in Higher Education Institutions (HEIs)', 'Extraordinary life situations due to disasters, calamities, and socio-cultural discrimination', 'To promote equitable access and participation of both women and men from GIDAs in tertiary education through gender-responsive implementation of the Affirmative Action Agenda.', 'To promote equitable access and participation of both women and men from GIDAs in tertiary education through gender-responsive implementation of the Affirmative Action Agenda.', 'Higher Education Program', 'Higher Education Program', 'Implementation of Affirmative Action Agenda', 'Number of served disadvantaged students - 100% disadvantaged students', 'Number of served disadvantaged students - 100% disadvantaged students', 700000.00, 'GAA', 'OSS', 'OSS', '[{\"id\":\"c1-l1\",\"label\":\"PS Attribution\",\"amount\":500000,\"source\":\"GAA\"},{\"id\":\"c1-l2\",\"label\":\"Supplies and Materials\",\"amount\":200000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(2, 2026, 'client', 2, 'Republic Act No. 10931, Universal Access to Quality Tertiary Education Act Section 8 on Affirmative Action Program; CHED Memorandum Orders on GAD Mainstreaming in Higher Education Institutions (HEIs)', 'High tuition and miscellaneous fees, compounded by socio-cultural expectations for women to prioritize domestic roles over education', 'To promote gender equality in access to tertiary education by eliminating financial barriers for both male and female students.', 'To promote gender equality in access to tertiary education by eliminating financial barriers for both male and female students.', 'Higher Education Program', 'Higher Education Program', 'Provision of free tuition fee under RA 10931 to eligible male and female students of the university.', 'Percentage of qualified students granted free tuition - 100% of qualified students granted free tuition.', 'Percentage of qualified students granted free tuition - 100% of qualified students granted free tuition.', 131100000.00, 'GAA', 'OSS, OUR, UHS', 'OSS, OUR, UHS', '[{\"id\":\"c2-l1\",\"label\":\"Tuition Fee\",\"amount\":131100000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(3, 2026, 'client', 3, 'CHED Memorandum Order No. 01 series 2015', 'Limited activities to increase awareness of men and women students to GAD-related information (1st year students, transferees)', 'To increase the students level of awareness and appreciation on GAD', 'To increase the students level of awareness and appreciation on GAD', 'Higher Education Program', 'Higher Education Program', 'Conduct GAD orientation/ forum/ seminar to BSU 1st year/ transferees students (face to face/ online: 14 colleges)', 'No. of students oriented on GAD - 4,000 students oriented on GAD (F:2750 M:1250)', 'No. of students oriented on GAD - 4,000 students oriented on GAD (F:2750 M:1250)', 453363.26, 'GAA', 'OSS, GAD Office, 3 Campuses (La Trinidad, Bokod & Buguias Campus)', 'OSS, GAD Office, 3 Campuses (La Trinidad, Bokod & Buguias Campus)', '[{\"id\":\"c3-l1\",\"label\":\"Meals and Snack\",\"amount\":318800,\"source\":\"GAA\"},{\"id\":\"c3-l2\",\"label\":\"Supplies and Materials\",\"amount\":10000,\"source\":\"GAA\"},{\"id\":\"c3-l3\",\"label\":\"PS Attribution\",\"amount\":124563.26,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(4, 2026, 'client', 4, 'CHED Memorandum Order No. 01 series 2015', 'Student leaders have limited understanding on GAD in the University', 'To empower student leaders regarding GAD responsive leadership (La Trinidad Campus, Bokod Campus and Buguias Campus)', 'To empower student leaders regarding GAD responsive leadership (La Trinidad Campus, Bokod Campus and Buguias Campus)', 'Higher Education Program', 'Higher Education Program', 'Continuous conduct of GAD responsive leadership training for student', 'No. of training conducted to increase GAD awareness and responsiveness of students leaders - 2 training (Female:200 Male:100) (La Trinidad Campus, Bokod Campus and Buguias Campus)', 'No. of training conducted to increase GAD awareness and responsiveness of students leaders - 2 training (Female:200 Male:100) (La Trinidad Campus, Bokod Campus and Buguias Campus)', 150000.00, 'GAA', 'OSS', 'OSS', '[{\"id\":\"c4-l1\",\"label\":\"Supplies and Materials\",\"amount\":30000,\"source\":\"GAA\"},{\"id\":\"c4-l2\",\"label\":\"Snack\",\"amount\":20000,\"source\":\"GAA\"},{\"id\":\"c4-l3\",\"label\":\"PS Attribution\",\"amount\":100000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(5, 2026, 'client', 5, 'Part VII of CHED Memorandum Order Number 1, series 2015 on Gender-Responsive Research and Extension Program', 'Presence of gender inequality, poverty and GAD-related concerns in the community', 'To sustain GAD-related extension activities delivering technology transfer, Livelihood Program, Technical Assistance, and Advocacy to community partners to help promote gender equality, poverty reduction and sustainable development', 'To sustain GAD-related extension activities delivering technology transfer, Livelihood Program, Technical Assistance, and Advocacy to community partners to help promote gender equality, poverty reduction and sustainable development', 'Extension Services / Research Services / Advance Education Services / Higher Education Services', 'Extension Services / Research Services / Advance Education Services / Higher Education Services', 'Conduct of Extension project/ activities to partner organizational/ communities as component of Gender Responsive Extension Program (GREP) to partner organization/ communities', 'No. of extension activities conducted within the year - 24 Extension program/project/ activities conducted within the year (Female:560 Male:500)', 'No. of extension activities conducted within the year - 24 Extension program/project/ activities conducted within the year (Female:560 Male:500)', 3500000.00, 'GAA', 'Research and Extension, various offices/ colleges in the University/ external campuses', 'Research and Extension, various offices/ colleges in the University/ external campuses', '[{\"id\":\"c5-l1\",\"label\":\"Seminar Package \\/ Meals & Snacks \\/ Fuel for Transportation \\/ Vehicle Rental \\/ Other Professional Services\",\"amount\":2500000,\"source\":\"GAA\"},{\"id\":\"c5-l2\",\"label\":\"PS Attribution\",\"amount\":1000000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(6, 2026, 'client', 6, 'Limited access of PWDs to gender-responsive programs and services / DBM-DSWD Joint Circular No. 2003-01 (at least 1% of budget for senior citizen and PWD programs)', 'Limited access of PWDs to gender-responsive programs and services', 'Improved access of PWDs to gender-responsive, inclusive, and empowering programs and services.', 'Improved access of PWDs to gender-responsive, inclusive, and empowering programs and services.', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Awareness of women PWDs who benefited from the program', 'Number of women PWDs who benefited from the program - F/M. No. of GAD program/project/activity provided for PWD - At least 1 program/project/activity', 'Number of women PWDs who benefited from the program - F/M. No. of GAD program/project/activity provided for PWD - At least 1 program/project/activity', 350000.00, 'GAA', 'HRMO, OSS', 'HRMO, OSS', '[{\"id\":\"c6-l1\",\"label\":\"PS Attribution\",\"amount\":100000,\"source\":\"GAA\"},{\"id\":\"c6-l2\",\"label\":\"Supplies & Materials \\/ Meals & Snacks\",\"amount\":250000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(7, 2026, 'client', 7, 'Lack of senior citizens access to gender-responsive programs and services / DBM-DSWD Joint Circular No. 2003-01 (at least 1% of budget for senior citizen and PWD programs)', 'Absence of sustainable and gender-responsive university programs for senior citizens.', 'Improved access of senior citizens to gender-responsive, inclusive, and empowering programs and services', 'Improved access of senior citizens to gender-responsive, inclusive, and empowering programs and services', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Program: BSU Kalinga for women Senior Citizens', 'Number of Programs provided for Senior Citizens - At least 1 program for BSU. Number of women senior citizens who benefited from the program - F21 M23', 'Number of Programs provided for Senior Citizens - At least 1 program for BSU. Number of women senior citizens who benefited from the program - F21 M23', 250000.00, 'GAA', 'GAD Office, Colleges, External Campuses', 'GAD Office, Colleges, External Campuses', '[{\"id\":\"c7-l1\",\"label\":\"Supplies & Materials \\/ Meals & Snacks\",\"amount\":250000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(8, 2026, 'client', 8, 'Low number of women\'s participation in sports / MCW-IRR Section 14', 'Minimal attendance of female students to competitive and non-competitive sports', 'To increase female students level of participation and awareness on Gender in Sports', 'To increase female students level of participation and awareness on Gender in Sports', 'Higher Education Program', 'Higher Education Program', 'Participate in sports activities targeted for female students', 'No. of sports activities supported through allocation of budget for sports and socio-cultural activities/ E-sports (i.e. Annual Women\'s Martial Arts Festival) - 2 sports activities (Female:20)', 'No. of sports activities supported through allocation of budget for sports and socio-cultural activities/ E-sports (i.e. Annual Women\'s Martial Arts Festival) - 2 sports activities (Female:20)', 160000.00, 'GAA', 'CHK', 'CHK', '[{\"id\":\"c8-l1\",\"label\":\"Registration & Travelling Expenses\",\"amount\":80000,\"source\":\"GAA\"},{\"id\":\"c8-l2\",\"label\":\"Meals and Snacks\",\"amount\":60000,\"source\":\"GAA\"},{\"id\":\"c8-l3\",\"label\":\"PS Attribution\",\"amount\":20000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(9, 2026, 'org', 9, 'Programs on Awards and Incentives for Service Excellence (PRAISE, CSC Res. No. 010112 and CSC MC No.1, s.2001); GFPS Memo Circular No. 2011-01; BOR Res. No. 2316, s.2014', 'Low recognition/appreciation on the Gender Mainstreaming in BSU', 'Strengthen Gender Mainstreaming through recognition of GAD implementation in the University', 'Strengthen Gender Mainstreaming through recognition of GAD implementation in the University', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Provide recognition and award to GAD implementer and other GAD-related award (GAD implementer for students and employees, GAD Advocate Award)', 'No. of award will be provided through BSU-PRAISE - At least 1 GAD Advocate award will be provided through BSU-PRAISE', 'No. of award will be provided through BSU-PRAISE - At least 1 GAD Advocate award will be provided through BSU-PRAISE', 205000.00, 'GAA', 'HRDO, HRMO, BSU-PRAISE Committee, GAD Office', 'HRDO, HRMO, BSU-PRAISE Committee, GAD Office', '[{\"id\":\"o9-l1\",\"label\":\"Incentive GAD Advocate Award\",\"amount\":5000,\"source\":\"GAA\"},{\"id\":\"o9-l2\",\"label\":\"PS Attribution\",\"amount\":200000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(10, 2026, 'org', 10, 'Limited application of GAD Mainstreaming (GM) in Instruction, Research, Extension and Production / Magna Carta of Women (RA 9710)', 'Low awareness among personnel in the University about GAD mainstreaming', 'To enhance GAD mainstreaming in Administration, Academic, Research and Extension, Production', 'To enhance GAD mainstreaming in Administration, Academic, Research and Extension, Production', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Conduct GAD related Gender Mainstreaming capability building and competency acquisition', 'No. of training/workshop/seminars conducted - 25 training/workshop/seminars/Learning and Development (F:1500 M:1000)', 'No. of training/workshop/seminars conducted - 25 training/workshop/seminars/Learning and Development (F:1500 M:1000)', 4000000.00, 'GAA', 'GAD Office, HRDO, Research and Extension, OQAA, All Colleges with External Campuses', 'GAD Office, HRDO, Research and Extension, OQAA, All Colleges with External Campuses', '[{\"id\":\"o10-l1\",\"label\":\"Seminar Package \\/ Meals & Snacks \\/ Fuel for Transportation \\/ Vehicle Rental \\/ Professional Services (La Trinidad, Bokod, Buguias)\",\"amount\":3500000,\"source\":\"GAA\"},{\"id\":\"o10-l2\",\"label\":\"PS Attribution\",\"amount\":500000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(11, 2026, 'org', 11, 'Magna Carta of Women IRR Section 37 - Gender Mainstreaming as a Strategy for Implementing the Magna Carta of Women', 'Productivity of employees affected due to filial obligations, affecting promotion of women to higher positions or from participating in capability enhancement sessions', 'Inadequate support services to personnel and students with children', 'Inadequate support services to personnel and students with children', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Operationalize of BSU College of Nursing Reproductive Health Care Center', 'No. of maintained Reproductive Health Care Center - 1 maintained BSU CN Reproductive Health Care Center', 'No. of maintained Reproductive Health Care Center - 1 maintained BSU CN Reproductive Health Care Center', 120000.00, 'GAA', 'College of Nursing', 'College of Nursing', '[{\"id\":\"o11-l1\",\"label\":\"Supplies and Materials\",\"amount\":20000,\"source\":\"GAA\"},{\"id\":\"o11-l2\",\"label\":\"PS Attribution\",\"amount\":100000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(12, 2026, 'org', 12, 'Executive Order No. 340 s.1997 - Directing National Government Agencies and GOCCs to provide Day Care Services for their Employees\' Children under five years of age', 'Problems of parents and students related to child care', 'Ensure opportunities of personnel and students to have access on agency care services to children to avoid absenteeism', 'Ensure opportunities of personnel and students to have access on agency care services to children to avoid absenteeism', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Maintenance of Child Minding Center for working parents in ensuring that they have a safe place to leave their child while they are at their work places', 'No. of established child minding center - Fully maintained new established and existing child minding centers at BSU La Trinidad, Bokod Campus and Buguias Campus', 'No. of established child minding center - Fully maintained new established and existing child minding centers at BSU La Trinidad, Bokod Campus and Buguias Campus', 230000.00, 'GAA', 'GAD Office, External Campuses', 'GAD Office, External Campuses', '[{\"id\":\"o12-l1\",\"label\":\"Supplies and Materials\",\"amount\":130000,\"source\":\"GAA\"},{\"id\":\"o12-l2\",\"label\":\"PS Attribution\",\"amount\":100000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(13, 2026, 'org', 13, 'Magna Carta of Women (RA 9710)', 'Low integration of gender mainstreaming of BSU', 'To strengthen the GAD integration in the operations of BSU', 'To strengthen the GAD integration in the operations of BSU', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Create a Monitoring Team to conduct monitoring and evaluation of the utilization/outcome of GAD PAPs and ensure effectiveness of the GAD PAPs', 'No. of monitoring and assessment meetings with reports conducted - 4 monitoring and assessment meetings with reports conducted', 'No. of monitoring and assessment meetings with reports conducted - 4 monitoring and assessment meetings with reports conducted', 330000.00, 'GAA', 'GAD Office', 'GAD Office', '[{\"id\":\"o13-l1\",\"label\":\"Supplies and Materials\",\"amount\":10000,\"source\":\"GAA\"},{\"id\":\"o13-l2\",\"label\":\"PS Attribution\",\"amount\":320000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(14, 2026, 'org', 14, 'Magna Carta of Women IRR Section 37-C - Creation and/or Strengthening of the GAD Focal Points (GFPs)', 'Low level of capacity of GFPS to develop and implement GAD programs and activities due to new members', 'Capacitated GFPS members in order to implement GAD PAP\'s and advance GAD Mainstreaming (GM) in the University', 'Capacitated GFPS members in order to implement GAD PAP\'s and advance GAD Mainstreaming (GM) in the University', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'For GFPS/Secretariat: GMEF/HGDG/GPB/GAD Agenda/GAD Deepening Session and TOT among other related trainings and capacity building activities (Regional/National GAD-related trainings/seminars/forum/workshop)', 'No. training/seminars/workshop attendance for each GFPS-member on GAD related updates and mandates - At least 1 each (Female:31, Male:15)', 'No. training/seminars/workshop attendance for each GFPS-member on GAD related updates and mandates - At least 1 each (Female:31, Male:15)', 896000.00, 'GAA', 'GAD Office', 'GAD Office', '[{\"id\":\"o14-l1\",\"label\":\"GFPS TWG PAPs\",\"amount\":396000,\"source\":\"GAA\"},{\"id\":\"o14-l2\",\"label\":\"PS Attribution\",\"amount\":500000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(15, 2026, 'org', 15, 'Section 37-C2 Rule VI of the Magna Carta of Women\'s IRR on duties and function of the GAD Focal Point System / Magna Carta of Women (RA 9710)', 'Compliance to provisions regarding regular monitoring of gender mainstreaming efforts', 'To ensure operations of GAD Office as well as monitor and evaluate GM efforts of the University', 'To ensure operations of GAD Office as well as monitor and evaluate GM efforts of the University', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Regular coordination and meetings of GAD-GFPS (Execom, GFPS-TWG members and external campus TWG members) and emergency meeting when necessary', 'No. of reports on regular meetings per campus - At least 6 reports available at year end, plus RGADC quarterly meeting/s', 'No. of reports on regular meetings per campus - At least 6 reports available at year end, plus RGADC quarterly meeting/s', 211720.00, 'GAA', 'GAD Office', 'GAD Office', '[{\"id\":\"o15-l1\",\"label\":\"Meals & Snack\",\"amount\":111720,\"source\":\"GAA\"},{\"id\":\"o15-l2\",\"label\":\"PS Attribution\",\"amount\":100000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(16, 2026, 'org', 16, 'Duties and function of the GAD Focal Point System / CHED Memo 2015-1', 'No plantilla personnel assigned to plan, implement and monitor GAD PAPs on a full-time basis', 'To ensure operations of GAD Office as well as monitor and evaluate GM efforts of the University', 'To ensure operations of GAD Office as well as monitor and evaluate GM efforts of the University', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Engage support staff to assist in the implementation of GFPS PPA\'s and Gender Mainstreaming in the university through rehiring of GAD staff and Student Assistant', 'Salary of GAD Staff: Casual. No. of rehired personnel - At least 2 staff renewed/rehired (Casual) and at least 3 Student Assistant/SPES per semester', 'Salary of GAD Staff: Casual. No. of rehired personnel - At least 2 staff renewed/rehired (Casual) and at least 3 Student Assistant/SPES per semester', 550000.00, 'GAA', 'GAD Office', 'GAD Office', '[{\"id\":\"o16-l1\",\"label\":\"Salary of GAD Staff and SPES \\/ Student Assistant\",\"amount\":550000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(17, 2026, 'org', 17, 'Low level of Awareness on Gender Mainstreaming (GM) among newly hired personnel / Magna Carta of Women (RA 9710), CHED Memo 2015-1', 'Lack of regular orientation and refresher training on gender sensitivity and GAD mandates', 'To enhance awareness and understanding of gender concepts, GAD mandates, and gender-responsive work practices among newly hired and current personnel', 'To enhance awareness and understanding of gender concepts, GAD mandates, and gender-responsive work practices among newly hired and current personnel', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Conduct Gender Sensitivity Training (GST) for newly hired and current personnel (continuing activity)', 'No. of trainings conducted - 1 training for at least 100% of newly hired personnel and 3 refresher trainings for current personnel', 'No. of trainings conducted - 1 training for at least 100% of newly hired personnel and 3 refresher trainings for current personnel', 421728.32, 'GAA', 'GAD Office', 'GAD Office', '[{\"id\":\"o17-l1\",\"label\":\"Meals & Snack\",\"amount\":167200,\"source\":\"GAA\"},{\"id\":\"o17-l2\",\"label\":\"Token\",\"amount\":4000,\"source\":\"GAA\"},{\"id\":\"o17-l3\",\"label\":\"Professional Fee\",\"amount\":144528.32,\"source\":\"GAA\"},{\"id\":\"o17-l4\",\"label\":\"Supplies and Materials\",\"amount\":6000,\"source\":\"GAA\"},{\"id\":\"o17-l5\",\"label\":\"PS Attribution\",\"amount\":100000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(18, 2026, 'org', 18, 'Part V, Rule II, Section 4 of CHED Memorandum Order No. 1 Series of 2015', 'Limited number of GAD library and related learning materials across various disciplines', 'To increase the provision of adequate and accessible library and related learning materials across various disciplines and educational levels', 'To increase the provision of adequate and accessible library and related learning materials across various disciplines and educational levels', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Provision of knowledge products (books, magazines, multi-media) for adequate and accessible library and related learning materials in support to gender-responsive Curriculum Programs', 'No. of procured library and learning materials - 200 books', 'No. of procured library and learning materials - 200 books', 2600000.00, 'GAA', 'ULIS', 'ULIS', '[{\"id\":\"o18-l1\",\"label\":\"Books and Instructional Materials\",\"amount\":2500000,\"source\":\"GAA\"},{\"id\":\"o18-l2\",\"label\":\"PS Attribution\",\"amount\":100000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(19, 2026, 'org', 19, 'Development and Dissemination of Gender and Development (GAD) Information, Education, and Communication (IEC) Materials', 'Presence of Gender Based Violence (GBV) issues/reports/cases in the university', 'Institutionalize GAD mechanisms in the University and sustain awareness campaigns on sexual harassment and gender-based violence', 'Institutionalize GAD mechanisms in the University and sustain awareness campaigns on sexual harassment and gender-based violence', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Development and Dissemination of Gender and Development (GAD) Information, Education, and Communication (IEC) Materials', 'Official Publication with GAD articles/pictures. Maintained GAD Bulletin board - At least 8. Sector-specific downloadable knowledge products - At least 2', 'Official Publication with GAD articles/pictures. Maintained GAD Bulletin board - At least 8. Sector-specific downloadable knowledge products - At least 2', 296000.00, 'GAA', 'UPAO, GAD Office', 'UPAO, GAD Office', '[{\"id\":\"o19-l1\",\"label\":\"Shamag\",\"amount\":96000,\"source\":\"GAA\"},{\"id\":\"o19-l2\",\"label\":\"PS Attribution\",\"amount\":100000,\"source\":\"GAA\"},{\"id\":\"o19-l3\",\"label\":\"Supplies and Materials\",\"amount\":100000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(20, 2026, 'org', 20, 'Institutionalizing GAD database and Sex-Disaggregated Database / Magna Carta of Women (RA 9710) Section 36 on Sex-Disaggregated Database', 'Minimal awareness and appreciation on the relevance of the centralized Sex-Disaggregated database', 'To establish a centralized GAD-related database of the University', 'To establish a centralized GAD-related database of the University', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Updating of Sex-Disaggregated Data (SDD) and other data related to personnel/students/clients for gender analysis and report preparation', '1 well-organized and maintained GAD database. Establishment of GAD-Database system per college/unit.', '1 well-organized and maintained GAD database. Establishment of GAD-Database system per college/unit.', 1100000.00, 'GAA', 'ICT, GAD Office', 'ICT, GAD Office', '[{\"id\":\"o20-l1\",\"label\":\"PS Attribution\",\"amount\":100000,\"source\":\"GAA\"},{\"id\":\"o20-l2\",\"label\":\"Maintenance of SDD \\/ Internet connection\",\"amount\":1000000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(21, 2026, 'org', 21, 'Magna Carta for Women, Chapter IV Section 10 and RA 10121, Section 2 & 9', 'Limited resources of the DSWD and LGU to provide for students who are transient residents and limited appreciation on women\'s role in nation building among employees and students, especially new ones', 'To ensure that disaster assistance provided to distressed students are gender-responsive', 'To ensure that disaster assistance provided to distressed students are gender-responsive', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Provision of gender-responsive services to employees and students who experienced crisis/disaster (e.g. distribution of hygiene kits for both women and men)', 'No. of pax of the most affected employees/students during crises - 1,000', 'No. of pax of the most affected employees/students during crises - 1,000', 210000.00, 'GAA', 'GAD Office, HDRO, NSTP, various offices/all colleges in the University', 'GAD Office, HDRO, NSTP, various offices/all colleges in the University', '[{\"id\":\"o21-l1\",\"label\":\"Crisis pack (\\u20b1200\\/pack x 1,000 pax)\",\"amount\":200000,\"source\":\"GAA\"},{\"id\":\"o21-l2\",\"label\":\"PS TWG Members\",\"amount\":10000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(22, 2026, 'org', 22, 'RA 9710 Sec.18 Special Leave for Women; RA 8187 Paternity Leave; RA 8972 Sec.8 Solo Parents Welfare Act; RA 9262 Sec.43 Anti-VAWC Act', 'Employees may require special leaves due to parental obligations, health concerns and other circumstances', 'Enhanced support services for employees in need of special leaves', 'Enhanced support services for employees in need of special leaves', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Provision of gender leaves and conduct of Seminar on Gender Related Leaves for Newly Hired Employees', 'No. of Maternity, Paternity, Solo parent, gynecological, VAWC leaves availed and 1 Seminar conducted (M:20 F:50) - 100%', 'No. of Maternity, Paternity, Solo parent, gynecological, VAWC leaves availed and 1 Seminar conducted (M:20 F:50) - 100%', 1000000.00, 'GAA', 'HRMO, CBOO, various offices/colleges in the University', 'HRMO, CBOO, various offices/colleges in the University', '[{\"id\":\"o22-l1\",\"label\":\"PS Attribution\",\"amount\":1000000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(23, 2026, 'org', 23, 'Proclamation 227 (Women\'s Role in History Month) and Proclamation 1172, s.2006 (18-Day Campaign to End VAW)', 'The need to highlight women\'s rights, their role in nation building, and to provide a platform against VAW, gender-based violence, Safe Spaces Act (RA 11313)', 'To strengthen awareness of BSU students/employees on women\'s rights and their role in national development and nation building', 'To strengthen awareness of BSU students/employees on women\'s rights and their role in national development and nation building', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Participation to 18-Day Campaign to end VAW and Women\'s Month Celebration/activities and programs organized by PCW and other agency/ies', 'No. of activities conducted per campus - At least 1 per campus', 'No. of activities conducted per campus - At least 1 per campus', 450000.00, 'GAA', 'GAD Office, various offices/colleges in the University/external campus', 'GAD Office, various offices/colleges in the University/external campus', '[{\"id\":\"o23-l1\",\"label\":\"Activities \\/ Programs\",\"amount\":250000,\"source\":\"GAA\"},{\"id\":\"o23-l2\",\"label\":\"PS Attribution\",\"amount\":200000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(24, 2026, 'org', 24, 'Productivity of employees affected due to filial obligations / Magna Carta of Women IRR Section 37', 'Inadequate support services for personnel/students with young children and breastfeeding mothers (RA 10028)', 'Inadequate support services to personnel and students with children', 'Inadequate support services to personnel and students with children', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Establishment/maintenance of breastfeeding station established in the preceding years', 'Fully maintained Lactation rooms - 100% at BSU La Trinidad, Bokod and Buguias Campus', 'Fully maintained Lactation rooms - 100% at BSU La Trinidad, Bokod and Buguias Campus', 220000.00, 'GAA', 'GAD Office, External Campuses', 'GAD Office, External Campuses', '[{\"id\":\"o24-l1\",\"label\":\"Supplies and Materials\",\"amount\":50000,\"source\":\"GAA\"},{\"id\":\"o24-l2\",\"label\":\"PS Attribution\",\"amount\":170000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(25, 2026, 'org', 25, 'RA 9710, PCW-NEDA-DBM Joint Circular 2012-01, CSC MC No.12 s.2005', 'Lack of regular gender-related capacity-building activities and insufficient integration of gender sensitivity in employee development programs', 'To enhance the gender awareness and sensitivity of BSU employees, enabling them to recognize and eliminate gender bias and stereotyping, and to foster a gender-responsive and equitable workplace', 'To enhance the gender awareness and sensitivity of BSU employees, enabling them to recognize and eliminate gender bias and stereotyping, and to foster a gender-responsive and equitable workplace', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Conduct of gender sensitivity orientations for BSU Personnel (continuing activity)', 'No. of trainings conducted for BSU personnel - At least 3', 'No. of trainings conducted for BSU personnel - At least 3', 253796.24, 'GAA', 'GAD Office', 'GAD Office', '[{\"id\":\"o25-l1\",\"label\":\"Supplies and Materials\",\"amount\":10000,\"source\":\"GAA\"},{\"id\":\"o25-l2\",\"label\":\"Meals & Snack \\/ Professional Fee\",\"amount\":233796.24,\"source\":\"GAA\"},{\"id\":\"o25-l3\",\"label\":\"PS\",\"amount\":10000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(26, 2026, 'org', 26, 'Establishment of Gender-Responsive Curricular Programs / Part V of CMO 01, s.2015', 'Limited subject for GAD Integration of Gender-Responsive Instruction and Curriculum Development', 'Integration of gender mainstreaming in curriculum/subjects in all levels', 'Integration of gender mainstreaming in curriculum/subjects in all levels', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Preparation of syllabi and classroom teaching integrating gender perspective', 'Number of faculty members integrating gender perspective in the syllabus - 567 permanent and 125 COS females/males', 'Number of faculty members integrating gender perspective in the syllabus - 567 permanent and 125 COS females/males', 58294972.71, 'GAA', 'GAD Office, GFPS-TWG members, all colleges', 'GAD Office, GFPS-TWG members, all colleges', '[{\"id\":\"o26-l1\",\"label\":\"PS - 567 Teaching employees and COS\",\"amount\":51294972.71,\"source\":\"GAA\"},{\"id\":\"o26-l2\",\"label\":\"Teaching Overload\",\"amount\":7000000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(27, 2026, 'org', 27, 'Section 37-C2 of the Magna Carta of Women (MCW) IRR - mandates establishment of a GAD Focal Point System (GFPS)', 'Sustained operations of the existing GAD Office - administrative, logistical, and financial support for day-to-day functioning; maintenance of GAD database; coordination of GFPS and GAD-related activities across colleges and units', 'To ensure the continuous and efficient operation of a functional, gender-responsive GAD Office that leads, monitors, and evaluates GAD mainstreaming efforts in the university.', 'To ensure the continuous and efficient operation of a functional, gender-responsive GAD Office that leads, monitors, and evaluates GAD mainstreaming efforts in the university.', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Research Services / Extension Services / Advance Education Services / Higher Education Services', 'Sustaining Gender Mainstreaming and Institutional Support in the University', 'Fully maintained GAD Office - 100%', 'Fully maintained GAD Office - 100%', 8052370.09, 'GAA', 'GAD Office', 'GAD Office', '[{\"id\":\"o27-l1\",\"label\":\"PS on Procurement Process\",\"amount\":30992.09,\"source\":\"GAA\"},{\"id\":\"o27-l2\",\"label\":\"PS Attribution: Execom & TWG members\",\"amount\":7219424,\"source\":\"GAA\"},{\"id\":\"o27-l3\",\"label\":\"Supplies, Equipment and Materials\",\"amount\":300000,\"source\":\"GAA\"},{\"id\":\"o27-l4\",\"label\":\"PS of GAD Director (50%)\",\"amount\":501954,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(28, 2026, 'attributed', 28, '', '', '', '', '', '', 'Transportation Equipment Outlay', '', '', 12285000.00, 'GAA', 'TASU, PMO, SPMO', 'TASU, PMO, SPMO', '[{\"id\":\"a28-l1\",\"label\":\"Transportation Equipment Outlay\",\"amount\":12285000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(29, 2026, 'attributed', 29, '', '', '', '', '', '', 'Repair and Maintenance of Office Building and other Structures', '', '', 6402000.00, 'GAA', 'PU, PMO, SPMO', 'PU, PMO, SPMO', '[{\"id\":\"a29-l1\",\"label\":\"Repair and Maintenance - Office Building and other Structures\",\"amount\":6402000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(30, 2026, 'attributed', 30, '', '', '', '', '', '', 'Bamboo Industry Development for Environment Conservation and Countryside', '', '', 3750000.00, 'GAA', 'College of Forestry', 'College of Forestry', '[{\"id\":\"a30-l1\",\"label\":\"Bamboo Industry Development for Environment Conservation and Countryside\",\"amount\":3750000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(31, 2026, 'attributed', 31, '', '', '', '', '', '', 'Benguet State University Student Information and Accounting System (SIAS)', '', '', 5000000.00, 'GAA', 'ICT, PMO', 'ICT, PMO', '[{\"id\":\"a31-l1\",\"label\":\"Student Information and Accounting System (SIAS)\",\"amount\":5000000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30');
 
 -- --------------------------------------------------------
 
@@ -607,7 +594,10 @@ INSERT INTO `migrations` (`id`, `version`, `class`, `group`, `namespace`, `time`
 (16, '2026-07-06-231227', 'App\\Database\\Migrations\\NormalizeGpbBudgetBreakdown', 'default', 'App', 1783379574, 16),
 (17, '2026-07-06-232214', 'App\\Database\\Migrations\\DropGpbBudgetTriggers', 'default', 'App', 1783380163, 17),
 (18, '2026-07-06-233134', 'App\\Database\\Migrations\\DropLegacyMandateTable', 'default', 'App', 1783380715, 18),
-(19, '2026-07-08-025213', 'App\\Database\\Migrations\\AddModificationFieldsToActivityDesign', 'default', 'App', 1783479262, 19);
+(19, '2026-07-08-025213', 'App\\Database\\Migrations\\AddModificationFieldsToActivityDesign', 'default', 'App', 1783479262, 19),
+(20, '2026-07-13-070642', 'App\\Database\\Migrations\\CreateGpbItemsTable', 'default', 'App', 1784032286, 20),
+(21, '2026-07-13-124813', 'App\\Database\\Migrations\\AddArchivedAtToDocuments', 'default', 'App', 1784032286, 20),
+(22, '2026-07-14-122738', 'App\\Database\\Migrations\\CreateBudgetItemMandateAllocationsTable', 'default', 'App', 1784032286, 20);
 
 -- --------------------------------------------------------
 
@@ -675,6 +665,51 @@ INSERT INTO `office_units` (`office_id`, `office_name`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `settings`
+--
+
+CREATE TABLE `settings` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `key` varchar(255) NOT NULL,
+  `value` text DEFAULT NULL,
+  `fiscal_year` int(11) NOT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `settings`
+--
+
+INSERT INTO `settings` (`id`, `key`, `value`, `fiscal_year`, `created_at`, `updated_at`) VALUES
+(1, 'name', 'Benguet State University', 2026, '2026-07-13 06:17:58', '2026-07-13 06:31:30'),
+(2, 'category', 'State Universities and Colleges', 2026, '2026-07-13 06:17:58', '2026-07-13 06:31:30'),
+(3, 'hierarchy', 'Benguet State University', 2026, '2026-07-13 06:17:58', '2026-07-13 06:31:30'),
+(4, 'year', '2026', 2026, '2026-07-13 06:17:58', '2026-07-13 06:31:30'),
+(5, 'totalOrgBudget', '1062488000', 2026, '2026-07-13 06:17:58', '2026-07-13 06:31:30'),
+(6, 'otherSources', '0', 2026, '2026-07-13 06:17:58', '2026-07-13 06:31:30'),
+(7, 'preparedByName', 'Jude Laoagan Tayaben, GAD Director', 2026, '2026-07-13 06:17:58', '2026-07-13 06:31:30'),
+(8, 'approvedByName', 'Kenneth Alip Laruan, President', 2026, '2026-07-13 06:17:58', '2026-07-13 06:31:30'),
+(9, 'name', 'Benguet State University', 2027, '2026-07-13 06:22:47', '2026-07-13 06:22:47'),
+(10, 'category', 'State Universities and Colleges', 2027, '2026-07-13 06:22:47', '2026-07-13 06:22:47'),
+(11, 'hierarchy', 'Benguet State University', 2027, '2026-07-13 06:22:47', '2026-07-13 06:22:47'),
+(12, 'year', '2027', 2027, '2026-07-13 06:22:47', '2026-07-13 06:22:47'),
+(13, 'totalOrgBudget', '1062488000', 2027, '2026-07-13 06:22:47', '2026-07-13 06:22:47'),
+(14, 'otherSources', '0', 2027, '2026-07-13 06:22:47', '2026-07-13 06:22:47'),
+(15, 'preparedByName', 'Jude Laoagan Tayaben, GAD Director', 2027, '2026-07-13 06:22:47', '2026-07-13 06:22:47'),
+(16, 'approvedByName', 'Kenneth Alip Laruan, President', 2027, '2026-07-13 06:22:47', '2026-07-13 06:22:47'),
+(17, 'name', 'Benguet State Universityy', 20264, '2026-07-13 06:29:35', '2026-07-13 06:29:35'),
+(18, 'category', 'State Universities and Collegess', 20264, '2026-07-13 06:29:35', '2026-07-13 06:29:35'),
+(19, 'hierarchy', 'Benguet State Universityy', 20264, '2026-07-13 06:29:35', '2026-07-13 06:29:35'),
+(20, 'year', '20264', 20264, '2026-07-13 06:29:35', '2026-07-13 06:29:35'),
+(21, 'totalOrgBudget', '10624880000', 20264, '2026-07-13 06:29:35', '2026-07-13 06:29:35'),
+(22, 'otherSources', '1', 20264, '2026-07-13 06:29:35', '2026-07-13 06:29:35'),
+(23, 'preparedByName', 'Jude Laoagan Tayaben, GAD Director', 20264, '2026-07-13 06:29:35', '2026-07-13 06:29:35'),
+(24, 'approvedByName', 'Kenneth Alip Laruan, President', 20264, '2026-07-13 06:29:35', '2026-07-13 06:29:35');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `users`
 --
 
@@ -708,8 +743,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `email`, `email_verified_at`, `password`, `reset_token`, `reset_token_expires_at`, `role`, `full_name`, `student_id`, `office_id`, `year_level`, `user_acronym`, `remember_token`, `deleted_at`, `created_at`, `updated_at`, `last_login`, `first_name`, `middle_name`, `last_name`, `profile_role`) VALUES
-(1, 'Gender and Development Office', 'gad.office@bsu.edu.ph', NULL, '$2y$10$a9XVQgTdygySA0E7XCNf4euNdZmuXjqGxSvUbQEzd5X7qiFmPNae6', NULL, NULL, 'admin', 'Jude Tayaben', NULL, 1, NULL, 'GAD', NULL, NULL, '2026-05-25 11:58:10', '2026-07-10 00:29:33', '2026-07-10 00:29:33', '', NULL, '', 'Director'),
-(2, 'College of Agriculture', 'ca@bsu.edu.ph', NULL, '$2y$10$CKShTYh97GNm4C1Y20XFneDWhDBXhvtNyUwftPM9aDAbz4u9mz6Jy', NULL, NULL, 'twg', 'CA TWG', NULL, 2, NULL, 'CA', NULL, NULL, '2026-05-25 11:58:10', '2026-07-10 00:29:54', '2026-07-10 00:29:54', '', NULL, '', 'TWG'),
+(1, 'Gender and Development Office', 'gad.office@bsu.edu.ph', NULL, '$2y$10$a9XVQgTdygySA0E7XCNf4euNdZmuXjqGxSvUbQEzd5X7qiFmPNae6', NULL, NULL, 'admin', 'Jude Tayaben', NULL, 1, NULL, 'GAD', NULL, NULL, '2026-05-25 11:58:10', '2026-07-15 10:25:54', '2026-07-15 10:25:54', '', NULL, '', 'Director'),
+(2, 'College of Agriculture', 'ca@bsu.edu.ph', NULL, '$2y$10$CKShTYh97GNm4C1Y20XFneDWhDBXhvtNyUwftPM9aDAbz4u9mz6Jy', NULL, NULL, 'twg', 'CA TWG', NULL, 2, NULL, 'CA', NULL, NULL, '2026-05-25 11:58:10', '2026-07-15 10:26:14', '2026-07-15 10:26:14', '', NULL, '', 'TWG'),
 (3, 'Registrar\'s Office BSU Buguias Campus', 'buguias.registrar@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'college', 'George Pacyaden', NULL, 3, NULL, 'Buguias-RO', NULL, NULL, '2026-05-25 11:58:10', '2026-07-06 23:38:18', '2026-06-29 04:00:21', '', NULL, '', 'TWG'),
 (4, 'Human Resources and Management Office BSU Bokod Campus', 'bokod.hrmo@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'twg', NULL, NULL, 4, NULL, NULL, 'Bokod-HRMO', NULL, '2026-05-25 11:58:10', '2026-07-06 14:06:16', NULL, '', NULL, '', 'TWG'),
 (5, 'International Relations Office', 'iro@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'twg', NULL, NULL, 5, NULL, 'IRO', NULL, NULL, '2026-05-25 11:58:10', '2026-07-06 14:06:16', NULL, '', NULL, '', 'TWG'),
@@ -754,7 +789,7 @@ INSERT INTO `users` (`id`, `username`, `email`, `email_verified_at`, `password`,
 (44, 'Open University', 'ou@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'twg', NULL, NULL, 44, NULL, 'OU', NULL, NULL, '2026-05-25 11:58:10', '2026-07-06 14:06:16', NULL, '', NULL, '', 'TWG'),
 (45, 'College of Education BSU Bokod Campus', 'bokod.ce@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'twg', NULL, NULL, 45, NULL, 'Bokod-CE', NULL, NULL, '2026-05-25 11:58:10', '2026-07-06 14:06:16', NULL, '', NULL, '', 'TWG'),
 (46, 'College of Forestry', 'cf@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'twg', NULL, NULL, 46, NULL, 'CF', NULL, NULL, '2026-05-25 11:58:10', '2026-07-06 14:06:16', NULL, '', NULL, '', 'TWG'),
-(47, 'gad.staff', 'gad.staff@bsu.edu.ph', NULL, '$2y$12$fbD/jvk.znEQnBmKq4.ebOojmijHJO/zU7.P7Tzo.zV3FgvP8PzNe', NULL, NULL, 'gad_staff', 'GAD Staff', NULL, 1, NULL, 'GAD-STAFF', NULL, NULL, '2026-03-26 15:53:56', '2026-07-10 00:29:43', '2026-07-10 00:29:43', 'GAD', 'Staff', 'User', 'Staff'),
+(47, 'gad.staff', 'gad.staff@bsu.edu.ph', NULL, '$2y$12$fbD/jvk.znEQnBmKq4.ebOojmijHJO/zU7.P7Tzo.zV3FgvP8PzNe', NULL, NULL, 'gad_staff', 'GAD Staff', NULL, 1, NULL, 'GAD-STAFF', NULL, NULL, '2026-03-26 15:53:56', '2026-07-15 10:25:59', '2026-07-15 10:25:59', 'GAD', 'Staff', 'User', 'Staff'),
 (51, 'marksantos', 'marksantos@gmail.com', NULL, '$2y$10$vEdSBaP5YNzsdUal1Ajwhuk/4moO5JVDu.I6VpCEG3N85F3KEimXe', NULL, NULL, 'non-twg', 'Mark Santos', NULL, 32, NULL, NULL, NULL, NULL, '2026-06-17 12:57:12', '2026-07-06 14:06:16', '2026-06-30 01:05:39', 'Mark', '', 'Santos', 'Non-TWG'),
 (52, 'bisayotduligas', 'bisayotduligas@gmail.com', NULL, '$2y$10$YgMBMgszFRJ2dJBHbSAu.uFj1D9jXSQgs.Z8gMg0MSZ6C4Kd.FIF.', NULL, NULL, 'non-twg', 'Joshua Duligas', NULL, 32, NULL, NULL, NULL, NULL, '2026-06-25 02:46:48', '2026-07-06 14:06:16', '2026-06-25 07:39:59', '', NULL, '', 'Non-TWG');
 
@@ -792,7 +827,8 @@ INSERT INTO `venues` (`venue_id`, `venue_name`) VALUES
 (16, 'Dimas Hall, IHFSA'),
 (17, 'OSS Social Hall'),
 (18, 'Main Auditorium'),
-(26, 'Test 1');
+(26, 'Test 1'),
+(27, 'Test 3');
 
 --
 -- Indexes for dumped tables
@@ -860,6 +896,14 @@ ALTER TABLE `budget_categories`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `budget_item_mandate_allocations`
+--
+ALTER TABLE `budget_item_mandate_allocations`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `budget_item_id_item_type` (`budget_item_id`,`item_type`),
+  ADD KEY `mandate_id` (`mandate_id`);
+
+--
 -- Indexes for table `budget_realignment_logs`
 --
 ALTER TABLE `budget_realignment_logs`
@@ -879,22 +923,10 @@ ALTER TABLE `form_types`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `gad_mandates`
---
-ALTER TABLE `gad_mandates`
-  ADD PRIMARY KEY (`id`);
-
---
 -- Indexes for table `gad_plan_budget`
 --
 ALTER TABLE `gad_plan_budget`
   ADD PRIMARY KEY (`gpb_id`);
-
---
--- Indexes for table `gender_issues`
---
-ALTER TABLE `gender_issues`
-  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `gpb_budget_breakdown`
@@ -902,6 +934,12 @@ ALTER TABLE `gender_issues`
 ALTER TABLE `gpb_budget_breakdown`
   ADD PRIMARY KEY (`breakdown_id`),
   ADD KEY `gpb_id` (`gpb_id`);
+
+--
+-- Indexes for table `gpb_items`
+--
+ALTER TABLE `gpb_items`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `gpb_offices_map`
@@ -930,6 +968,13 @@ ALTER TABLE `office_units`
   ADD UNIQUE KEY `office_name` (`office_name`);
 
 --
+-- Indexes for table `settings`
+--
+ALTER TABLE `settings`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `key_fiscal_year` (`key`,`fiscal_year`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -950,19 +995,19 @@ ALTER TABLE `venues`
 -- AUTO_INCREMENT for table `accomplishment_budget_items`
 --
 ALTER TABLE `accomplishment_budget_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=127;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=205;
 
 --
 -- AUTO_INCREMENT for table `accomplishment_report`
 --
 ALTER TABLE `accomplishment_report`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
 
 --
 -- AUTO_INCREMENT for table `activity_budget_items`
 --
 ALTER TABLE `activity_budget_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=272;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=430;
 
 --
 -- AUTO_INCREMENT for table `activity_classifications`
@@ -974,31 +1019,37 @@ ALTER TABLE `activity_classifications`
 -- AUTO_INCREMENT for table `activity_design`
 --
 ALTER TABLE `activity_design`
-  MODIFY `act_design_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=82;
+  MODIFY `act_design_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=90;
 
 --
 -- AUTO_INCREMENT for table `activity_design_issues`
 --
 ALTER TABLE `activity_design_issues`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=211;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=259;
 
 --
 -- AUTO_INCREMENT for table `activity_design_mandates`
 --
 ALTER TABLE `activity_design_mandates`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=210;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=273;
 
 --
 -- AUTO_INCREMENT for table `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=336;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=392;
 
 --
 -- AUTO_INCREMENT for table `budget_categories`
 --
 ALTER TABLE `budget_categories`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+
+--
+-- AUTO_INCREMENT for table `budget_item_mandate_allocations`
+--
+ALTER TABLE `budget_item_mandate_allocations`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `budget_realignment_logs`
@@ -1010,7 +1061,7 @@ ALTER TABLE `budget_realignment_logs`
 -- AUTO_INCREMENT for table `evaluation_results`
 --
 ALTER TABLE `evaluation_results`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=89;
 
 --
 -- AUTO_INCREMENT for table `form_types`
@@ -1019,28 +1070,22 @@ ALTER TABLE `form_types`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- AUTO_INCREMENT for table `gad_mandates`
---
-ALTER TABLE `gad_mandates`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
-
---
 -- AUTO_INCREMENT for table `gad_plan_budget`
 --
 ALTER TABLE `gad_plan_budget`
   MODIFY `gpb_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
 
 --
--- AUTO_INCREMENT for table `gender_issues`
---
-ALTER TABLE `gender_issues`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
-
---
 -- AUTO_INCREMENT for table `gpb_budget_breakdown`
 --
 ALTER TABLE `gpb_budget_breakdown`
   MODIFY `breakdown_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
+
+--
+-- AUTO_INCREMENT for table `gpb_items`
+--
+ALTER TABLE `gpb_items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=130;
 
 --
 -- AUTO_INCREMENT for table `messages`
@@ -1052,13 +1097,19 @@ ALTER TABLE `messages`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `office_units`
 --
 ALTER TABLE `office_units`
   MODIFY `office_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
+
+--
+-- AUTO_INCREMENT for table `settings`
+--
+ALTER TABLE `settings`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -1070,7 +1121,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `venues`
 --
 ALTER TABLE `venues`
-  MODIFY `venue_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `venue_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- Constraints for dumped tables

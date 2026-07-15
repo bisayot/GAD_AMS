@@ -91,8 +91,8 @@ $routes->group('api', function($routes) {
     $routes->options('get-gender-issues', 'AuthController::handleOptions');
     $routes->get('get-gender-issues', 'ActivityDesignController::getGenderIssues');
     
-    $routes->options('get-gender-issues/(:num)', 'AuthController::handleOptions');
-    $routes->get('get-gender-issues/(:num)', 'ActivityDesignController::getGenderIssues/$1');
+    $routes->options('get-gender-issues/(:any)', 'AuthController::handleOptions');
+    $routes->get('get-gender-issues/(:any)', 'ActivityDesignController::getGenderIssues/$1');
     
     $routes->options('get-activity-classifications', 'AuthController::handleOptions');
     $routes->get('get-activity-classifications', 'ActivityDesignController::getActivityClassifications');
@@ -311,4 +311,37 @@ $routes->group('api', function($routes) {
     $routes->post('documents/restore', 'DocumentTrashController::restore');
     $routes->options('documents/permanently-delete', 'AuthController::handleOptions');
     $routes->post('documents/permanently-delete', 'DocumentTrashController::permanentlyDelete');
+});
+$routes->group('api', function($routes) {
+    // ----------------------------------------------------------------
+    // GPB PLAN AND BUDGET ROUTES (new)
+    // ----------------------------------------------------------------
+    $routes->options('plan', 'AuthController::handleOptions');
+    $routes->get('plan', 'PlanController::getPlan');
+    $routes->post('plan', 'PlanController::savePlan');
+    
+    $routes->options('plan/mandate-statistics', 'AuthController::handleOptions');
+    $routes->get('plan/mandate-statistics', 'PlanController::getMandateStatistics');
+
+    $routes->options('plan/mandate-allocations', 'AuthController::handleOptions');
+    $routes->get('plan/mandate-allocations', 'PlanController::getMandateAllocations');
+    $routes->post('plan/mandate-allocations', 'PlanController::saveMandateAllocations');
+    
+    $routes->options('gpb/export/(:num)', 'AuthController::handleOptions');
+    $routes->get('gpb/export/(:num)', 'GpbExportController::export/$1');
+    
+    $routes->options('gpb/export-live', 'AuthController::handleOptions');
+    $routes->post('gpb/export-live', 'GpbLiveExportController::export');
+});
+
+$routes->group('api', function($routes) {
+    $routes->options('gpb/import', 'AuthController::handleOptions');
+    $routes->post('gpb/import', 'GpbController::import');
+    $routes->options('gpb/item', 'AuthController::handleOptions');
+    $routes->get('gpb/item', 'GpbController::index');
+    $routes->post('gpb/item', 'GpbController::create');
+    $routes->options('gpb/item/(:num)', 'AuthController::handleOptions');
+    $routes->get('gpb/item/(:num)', 'GpbController::show/$1');
+    $routes->put('gpb/item/(:num)', 'GpbController::update/$1');
+    $routes->delete('gpb/item/(:num)', 'GpbController::delete/$1');
 });

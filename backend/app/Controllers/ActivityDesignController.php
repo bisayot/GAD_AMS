@@ -80,36 +80,19 @@ class ActivityDesignController extends BaseController
             $gadMandates = $gadMandateStr ? explode(',', $gadMandateStr) : [];
             $finalMandates = [];
             foreach ($gadMandates as $mandate) {
-                if ($mandate === 'Other' || $mandate === 'new') {
-                    $customMandate = $this->request->getPost('custom_gad_mandate');
-                    $db = \Config\Database::connect();
-                    $db->table('gad_mandates')->insert([
-                        'code' => 'CUSTOM',
-                        'title' => $customMandate
-                    ]);
-                    $finalMandates[] = $db->insertID();
-                } else {
-                    $finalMandates[] = $mandate;
-                }
-            }
+              if (is_numeric($mandate)) {
+                  $finalMandates[] = $mandate;
+              }
+          }
 
             $genderIssueStr = $this->request->getPost('gender_issue_id');
             $genderIssues = $genderIssueStr ? explode(',', $genderIssueStr) : [];
             $finalIssues = [];
             foreach ($genderIssues as $issue) {
-                if ($issue === 'Other' || $issue === 'new') {
-                    $customIssue = $this->request->getPost('custom_gender_issue');
-                    $db = \Config\Database::connect();
-                    $db->table('gender_issues')->insert([
-                        'mandate_id' => !empty($finalMandates) ? $finalMandates[0] : null,
-                        'title' => $customIssue,
-                        'gad_objective' => null
-                    ]);
-                    $finalIssues[] = $db->insertID();
-                } else {
-                    $finalIssues[] = $issue;
-                }
-            }
+              if (is_numeric($issue)) {
+                  $finalIssues[] = $issue;
+              }
+          }
 
             // Save uploaded PDF to writable/uploads/drafts/
             $file = $this->request->getFile('design_file');
@@ -261,8 +244,8 @@ class ActivityDesignController extends BaseController
 
         $design = $activityDesignModel
             ->select('activity_design.*, office_units.office_name as office, users.full_name as submitter_name, activity_design.start_date as date, venues.venue_name as venue, activity_classifications.classification_name as activity_classification, form_types.name as form_type_name')
-            ->select('(SELECT GROUP_CONCAT(CONCAT(gm.code, " - ", gm.title) SEPARATOR ";;; ") FROM activity_design_mandates adm JOIN gad_mandates gm ON gm.id = adm.mandate_id WHERE adm.act_design_id = activity_design.act_design_id) as gad_mandate')
-            ->select('(SELECT GROUP_CONCAT(gi.title SEPARATOR ";;; ") FROM activity_design_issues adi JOIN gender_issues gi ON gi.id = adi.issue_id WHERE adi.act_design_id = activity_design.act_design_id) as gender_issue')
+            ->select('(SELECT GROUP_CONCAT(CONCAT("GPB - ", CASE WHEN gm.mandate = "" OR gm.mandate IS NULL THEN CONCAT("N/A (Attributed Program) - ", IFNULL(gm.activity, "")) ELSE gm.mandate END) SEPARATOR ";;; ") FROM activity_design_mandates adm JOIN gpb_items gm ON gm.id = adm.mandate_id WHERE adm.act_design_id = activity_design.act_design_id) as gad_mandate')
+            ->select('(SELECT GROUP_CONCAT(CASE WHEN gi.cause = "" OR gi.cause IS NULL THEN CONCAT("N/A (Attributed Program) - ", IFNULL(gi.activity, "")) ELSE gi.cause END SEPARATOR ";;; ") FROM activity_design_issues adi JOIN gpb_items gi ON gi.id = adi.issue_id WHERE adi.act_design_id = activity_design.act_design_id) as gender_issue')
             ->select('(SELECT GROUP_CONCAT(adm.mandate_id SEPARATOR ",") FROM activity_design_mandates adm WHERE adm.act_design_id = activity_design.act_design_id) as gad_mandate_ids')
             ->select('(SELECT GROUP_CONCAT(adi.issue_id SEPARATOR ",") FROM activity_design_issues adi WHERE adi.act_design_id = activity_design.act_design_id) as gender_issue_ids')
             ->join('users', 'users.id = activity_design.user_id', 'left')
@@ -490,36 +473,19 @@ class ActivityDesignController extends BaseController
         $gadMandates = $gadMandateStr ? explode(',', $gadMandateStr) : [];
         $finalMandates = [];
         foreach ($gadMandates as $mandate) {
-            if ($mandate === 'Other' || $mandate === 'new') {
-                $customMandate = $this->request->getPost('custom_gad_mandate');
-                $db = \Config\Database::connect();
-                $db->table('gad_mandates')->insert([
-                    'code' => 'CUSTOM',
-                    'title' => $customMandate
-                ]);
-                $finalMandates[] = $db->insertID();
-            } else {
-                $finalMandates[] = $mandate;
-            }
-        }
+              if (is_numeric($mandate)) {
+                  $finalMandates[] = $mandate;
+              }
+          }
 
         $genderIssueStr = $this->request->getPost('gender_issue_id');
         $genderIssues = $genderIssueStr ? explode(',', $genderIssueStr) : [];
         $finalIssues = [];
         foreach ($genderIssues as $issue) {
-            if ($issue === 'Other' || $issue === 'new') {
-                $customIssue = $this->request->getPost('custom_gender_issue');
-                $db = \Config\Database::connect();
-                $db->table('gender_issues')->insert([
-                    'mandate_id' => !empty($finalMandates) ? $finalMandates[0] : null,
-                    'title' => $customIssue,
-                    'gad_objective' => null
-                ]);
-                $finalIssues[] = $db->insertID();
-            } else {
-                $finalIssues[] = $issue;
-            }
-        }
+              if (is_numeric($issue)) {
+                  $finalIssues[] = $issue;
+              }
+          }
 
         $data = [
             'activity_title'      => $this->request->getPost('activity_title'),
@@ -662,7 +628,8 @@ class ActivityDesignController extends BaseController
             'accomplishment_deadline'  => $accomplishmentDeadline,
             'remarks'                  => $remarks,
             'control_number'           => $controlNumber,
-            'is_archived'              => 1
+            'is_archived'              => 1,
+            'archived_at'              => date('Y-m-d H:i:s')
         ];
 
         $db->table('activity_design')->where('act_design_id', $id)->update($updateData);
@@ -967,7 +934,31 @@ class ActivityDesignController extends BaseController
     public function getGADMandates()
     {
         $db = \Config\Database::connect();
-        $builder = $db->table('gad_mandates');
+        
+        $classification_id = $this->request->getGet('classification');
+        
+        $builder = $db->table('gpb_items')
+            ->select('GROUP_CONCAT(id) as id, "GPB" as code, CASE WHEN mandate = "" OR mandate IS NULL THEN CONCAT("N/A (Attributed Program) - ", IFNULL(activity, "")) ELSE mandate END as title', false);
+        $builder->groupBy('title');
+
+        if ($classification_id) {
+            $section = '';
+            if ($classification_id == 1) $section = 'client';
+            else if ($classification_id == 2) $section = 'org';
+            else if ($classification_id == 3) $section = 'attributed';
+
+            if ($section) {
+                $builder->where('section', $section);
+            }
+        }
+        
+        // Only filter out empty mandates if it's NOT an attributed program
+        // Because attributed programs specifically need to show N/A
+        if ($classification_id != 3) {
+            $builder->where('mandate !=', '');
+            $builder->where('mandate IS NOT NULL');
+        }
+
         $query = $builder->get();
         return $this->response->setJSON($query->getResult());
     }
@@ -975,10 +966,23 @@ class ActivityDesignController extends BaseController
     public function getGenderIssues($mandate_id = null)
     {
         $db = \Config\Database::connect();
-        $builder = $db->table('gender_issues');
+        $builder = $db->table('gpb_items')->select('GROUP_CONCAT(id) as id, CASE WHEN cause = "" OR cause IS NULL THEN CONCAT("N/A (Attributed Program) - ", IFNULL(activity, "")) ELSE cause END as title', false);
+        $builder->groupBy('title');
+        
+        $classification_id = $this->request->getGet('classification');
 
-        if ($mandate_id) {
-            $builder->where('mandate_id', $mandate_id);
+        if ($classification_id != 3) {
+            $builder->where('cause !=', '');
+            $builder->where('cause IS NOT NULL');
+        }
+
+        $mandates = $this->request->getGet('mandates');
+        if ($mandates) {
+            $mandateIds = explode(',', $mandates);
+            $builder->whereIn('id', $mandateIds);
+        } else if ($mandate_id) {
+            $mandateIds = explode(',', $mandate_id);
+            $builder->whereIn('id', $mandateIds);
         }
 
         $query = $builder->get();
