@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 15, 2026 at 12:57 PM
+-- Generation Time: Jul 18, 2026 at 08:14 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -68,7 +68,8 @@ CREATE TABLE `accomplishment_report` (
   `deleted_by` int(11) DEFAULT NULL,
   `is_viewed_by_admin` tinyint(1) DEFAULT 0,
   `is_archived` tinyint(1) DEFAULT 0,
-  `archived_at` datetime DEFAULT NULL
+  `archived_at` datetime DEFAULT NULL,
+  `is_inside_bsu` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -143,7 +144,8 @@ CREATE TABLE `activity_design` (
   `modification_request_status` enum('none','pending','approved','rejected') NOT NULL DEFAULT 'none',
   `modification_remarks` text DEFAULT NULL,
   `is_modified` tinyint(1) NOT NULL DEFAULT 0,
-  `archived_at` datetime DEFAULT NULL
+  `archived_at` datetime DEFAULT NULL,
+  `is_inside_bsu` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -182,6 +184,21 @@ CREATE TABLE `activity_logs` (
   `action` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
   `created_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `archived_annual_reports`
+--
+
+CREATE TABLE `archived_annual_reports` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `fiscal_year` varchar(4) NOT NULL,
+  `html_content` longtext NOT NULL,
+  `created_by` int(11) UNSIGNED DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -478,7 +495,8 @@ INSERT INTO `gpb_items` (`id`, `fiscal_year`, `section`, `sort_order`, `mandate`
 (28, 2026, 'attributed', 28, '', '', '', '', '', '', 'Transportation Equipment Outlay', '', '', 12285000.00, 'GAA', 'TASU, PMO, SPMO', 'TASU, PMO, SPMO', '[{\"id\":\"a28-l1\",\"label\":\"Transportation Equipment Outlay\",\"amount\":12285000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
 (29, 2026, 'attributed', 29, '', '', '', '', '', '', 'Repair and Maintenance of Office Building and other Structures', '', '', 6402000.00, 'GAA', 'PU, PMO, SPMO', 'PU, PMO, SPMO', '[{\"id\":\"a29-l1\",\"label\":\"Repair and Maintenance - Office Building and other Structures\",\"amount\":6402000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
 (30, 2026, 'attributed', 30, '', '', '', '', '', '', 'Bamboo Industry Development for Environment Conservation and Countryside', '', '', 3750000.00, 'GAA', 'College of Forestry', 'College of Forestry', '[{\"id\":\"a30-l1\",\"label\":\"Bamboo Industry Development for Environment Conservation and Countryside\",\"amount\":3750000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
-(31, 2026, 'attributed', 31, '', '', '', '', '', '', 'Benguet State University Student Information and Accounting System (SIAS)', '', '', 5000000.00, 'GAA', 'ICT, PMO', 'ICT, PMO', '[{\"id\":\"a31-l1\",\"label\":\"Student Information and Accounting System (SIAS)\",\"amount\":5000000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30');
+(31, 2026, 'attributed', 31, '', '', '', '', '', '', 'Benguet State University Student Information and Accounting System (SIAS)', '', '', 5000000.00, 'GAA', 'ICT, PMO', 'ICT, PMO', '[{\"id\":\"a31-l1\",\"label\":\"Student Information and Accounting System (SIAS)\",\"amount\":5000000,\"source\":\"GAA\"}]', '2026-07-13 06:31:30', '2026-07-13 06:31:30'),
+(130, 2026, 'client', 9, 'Test 1', 'Test 1', 'Test 1', 'Test 1', 'Test 1', 'Test 1', 'Test 1', 'Test 1', 'Test 1', 1500000.00, 'GAA', 'Test 1', 'Test 1', '[{\"id\":\"l-mro67pcc-90ctfgfwg\",\"label\":\"Test 1\",\"amount\":1500000,\"source\":\"GAA\"}]', '2026-07-16 23:59:51', '2026-07-17 00:38:54');
 
 -- --------------------------------------------------------
 
@@ -597,7 +615,9 @@ INSERT INTO `migrations` (`id`, `version`, `class`, `group`, `namespace`, `time`
 (19, '2026-07-08-025213', 'App\\Database\\Migrations\\AddModificationFieldsToActivityDesign', 'default', 'App', 1783479262, 19),
 (20, '2026-07-13-070642', 'App\\Database\\Migrations\\CreateGpbItemsTable', 'default', 'App', 1784032286, 20),
 (21, '2026-07-13-124813', 'App\\Database\\Migrations\\AddArchivedAtToDocuments', 'default', 'App', 1784032286, 20),
-(22, '2026-07-14-122738', 'App\\Database\\Migrations\\CreateBudgetItemMandateAllocationsTable', 'default', 'App', 1784032286, 20);
+(22, '2026-07-14-122738', 'App\\Database\\Migrations\\CreateBudgetItemMandateAllocationsTable', 'default', 'App', 1784032286, 20),
+(23, '2026-07-17-001059', 'App\\Database\\Migrations\\CreateArchivedAnnualReportsTable', 'default', 'App', 1784247144, 21),
+(24, '2026-07-17-031815', 'App\\Database\\Migrations\\AddIsInsideBsuToVenuesAndSubmissions', 'default', 'App', 1784258396, 22);
 
 -- --------------------------------------------------------
 
@@ -705,7 +725,8 @@ INSERT INTO `settings` (`id`, `key`, `value`, `fiscal_year`, `created_at`, `upda
 (21, 'totalOrgBudget', '10624880000', 20264, '2026-07-13 06:29:35', '2026-07-13 06:29:35'),
 (22, 'otherSources', '1', 20264, '2026-07-13 06:29:35', '2026-07-13 06:29:35'),
 (23, 'preparedByName', 'Jude Laoagan Tayaben, GAD Director', 20264, '2026-07-13 06:29:35', '2026-07-13 06:29:35'),
-(24, 'approvedByName', 'Kenneth Alip Laruan, President', 20264, '2026-07-13 06:29:35', '2026-07-13 06:29:35');
+(24, 'approvedByName', 'Kenneth Alip Laruan, President', 20264, '2026-07-13 06:29:35', '2026-07-13 06:29:35'),
+(25, 'baseline_amounts', '{\"meals_inside\":220,\"meals_outside\":350,\"snacks_inside\":85,\"snacks_outside\":150,\"pf_honoraria\":2258.25,\"tokens\":1000,\"materials\":1000,\"transportation_limit\":20000}', 0, '2026-07-17 04:01:46', '2026-07-17 04:05:34');
 
 -- --------------------------------------------------------
 
@@ -743,8 +764,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `email`, `email_verified_at`, `password`, `reset_token`, `reset_token_expires_at`, `role`, `full_name`, `student_id`, `office_id`, `year_level`, `user_acronym`, `remember_token`, `deleted_at`, `created_at`, `updated_at`, `last_login`, `first_name`, `middle_name`, `last_name`, `profile_role`) VALUES
-(1, 'Gender and Development Office', 'gad.office@bsu.edu.ph', NULL, '$2y$10$a9XVQgTdygySA0E7XCNf4euNdZmuXjqGxSvUbQEzd5X7qiFmPNae6', NULL, NULL, 'admin', 'Jude Tayaben', NULL, 1, NULL, 'GAD', NULL, NULL, '2026-05-25 11:58:10', '2026-07-15 10:25:54', '2026-07-15 10:25:54', '', NULL, '', 'Director'),
-(2, 'College of Agriculture', 'ca@bsu.edu.ph', NULL, '$2y$10$CKShTYh97GNm4C1Y20XFneDWhDBXhvtNyUwftPM9aDAbz4u9mz6Jy', NULL, NULL, 'twg', 'CA TWG', NULL, 2, NULL, 'CA', NULL, NULL, '2026-05-25 11:58:10', '2026-07-15 10:26:14', '2026-07-15 10:26:14', '', NULL, '', 'TWG'),
+(1, 'Gender and Development Office', 'gad.office@bsu.edu.ph', NULL, '$2y$10$a9XVQgTdygySA0E7XCNf4euNdZmuXjqGxSvUbQEzd5X7qiFmPNae6', NULL, NULL, 'admin', 'Jude Tayaben', NULL, 1, NULL, 'GAD', NULL, NULL, '2026-05-25 11:58:10', '2026-07-18 06:11:40', '2026-07-18 06:11:40', '', NULL, '', 'Director'),
+(2, 'College of Agriculture', 'ca@bsu.edu.ph', NULL, '$2y$10$CKShTYh97GNm4C1Y20XFneDWhDBXhvtNyUwftPM9aDAbz4u9mz6Jy', NULL, NULL, 'twg', 'CA TWG', NULL, 2, NULL, 'CA', NULL, NULL, '2026-05-25 11:58:10', '2026-07-18 06:12:04', '2026-07-18 06:12:04', '', NULL, '', 'TWG'),
 (3, 'Registrar\'s Office BSU Buguias Campus', 'buguias.registrar@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'college', 'George Pacyaden', NULL, 3, NULL, 'Buguias-RO', NULL, NULL, '2026-05-25 11:58:10', '2026-07-06 23:38:18', '2026-06-29 04:00:21', '', NULL, '', 'TWG'),
 (4, 'Human Resources and Management Office BSU Bokod Campus', 'bokod.hrmo@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'twg', NULL, NULL, 4, NULL, NULL, 'Bokod-HRMO', NULL, '2026-05-25 11:58:10', '2026-07-06 14:06:16', NULL, '', NULL, '', 'TWG'),
 (5, 'International Relations Office', 'iro@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'twg', NULL, NULL, 5, NULL, 'IRO', NULL, NULL, '2026-05-25 11:58:10', '2026-07-06 14:06:16', NULL, '', NULL, '', 'TWG'),
@@ -789,7 +810,7 @@ INSERT INTO `users` (`id`, `username`, `email`, `email_verified_at`, `password`,
 (44, 'Open University', 'ou@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'twg', NULL, NULL, 44, NULL, 'OU', NULL, NULL, '2026-05-25 11:58:10', '2026-07-06 14:06:16', NULL, '', NULL, '', 'TWG'),
 (45, 'College of Education BSU Bokod Campus', 'bokod.ce@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'twg', NULL, NULL, 45, NULL, 'Bokod-CE', NULL, NULL, '2026-05-25 11:58:10', '2026-07-06 14:06:16', NULL, '', NULL, '', 'TWG'),
 (46, 'College of Forestry', 'cf@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'twg', NULL, NULL, 46, NULL, 'CF', NULL, NULL, '2026-05-25 11:58:10', '2026-07-06 14:06:16', NULL, '', NULL, '', 'TWG'),
-(47, 'gad.staff', 'gad.staff@bsu.edu.ph', NULL, '$2y$12$fbD/jvk.znEQnBmKq4.ebOojmijHJO/zU7.P7Tzo.zV3FgvP8PzNe', NULL, NULL, 'gad_staff', 'GAD Staff', NULL, 1, NULL, 'GAD-STAFF', NULL, NULL, '2026-03-26 15:53:56', '2026-07-15 10:25:59', '2026-07-15 10:25:59', 'GAD', 'Staff', 'User', 'Staff'),
+(47, 'gad.staff', 'gad.staff@bsu.edu.ph', NULL, '$2y$12$fbD/jvk.znEQnBmKq4.ebOojmijHJO/zU7.P7Tzo.zV3FgvP8PzNe', NULL, NULL, 'gad_staff', 'GAD Staff', NULL, 1, NULL, 'GAD-STAFF', NULL, NULL, '2026-03-26 15:53:56', '2026-07-18 06:12:03', '2026-07-18 06:12:03', 'GAD', 'Staff', 'User', 'Staff'),
 (51, 'marksantos', 'marksantos@gmail.com', NULL, '$2y$10$vEdSBaP5YNzsdUal1Ajwhuk/4moO5JVDu.I6VpCEG3N85F3KEimXe', NULL, NULL, 'non-twg', 'Mark Santos', NULL, 32, NULL, NULL, NULL, NULL, '2026-06-17 12:57:12', '2026-07-06 14:06:16', '2026-06-30 01:05:39', 'Mark', '', 'Santos', 'Non-TWG'),
 (52, 'bisayotduligas', 'bisayotduligas@gmail.com', NULL, '$2y$10$YgMBMgszFRJ2dJBHbSAu.uFj1D9jXSQgs.Z8gMg0MSZ6C4Kd.FIF.', NULL, NULL, 'non-twg', 'Joshua Duligas', NULL, 32, NULL, NULL, NULL, NULL, '2026-06-25 02:46:48', '2026-07-06 14:06:16', '2026-06-25 07:39:59', '', NULL, '', 'Non-TWG');
 
@@ -801,34 +822,33 @@ INSERT INTO `users` (`id`, `username`, `email`, `email_verified_at`, `password`,
 
 CREATE TABLE `venues` (
   `venue_id` int(11) NOT NULL,
-  `venue_name` varchar(255) NOT NULL
+  `venue_name` varchar(255) NOT NULL,
+  `is_inside_bsu` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `venues`
 --
 
-INSERT INTO `venues` (`venue_id`, `venue_name`) VALUES
-(1, 'BSU Gymnasium'),
-(2, 'BSU Covered Court'),
-(3, 'RDC Hall'),
-(4, 'VP AdFin Hall'),
-(5, 'International Dorm Hall'),
-(6, 'IRO Hall'),
-(7, 'Gladiola Center'),
-(8, 'RSDC Executive Hall'),
-(9, 'CTE DSG Hall'),
-(10, 'CHET Hall'),
-(11, 'CHK Function Hall'),
-(12, 'Carnation Hall'),
-(13, 'Everlasting Hall'),
-(14, 'Solibao Hall'),
-(15, 'Igorota Hall'),
-(16, 'Dimas Hall, IHFSA'),
-(17, 'OSS Social Hall'),
-(18, 'Main Auditorium'),
-(26, 'Test 1'),
-(27, 'Test 3');
+INSERT INTO `venues` (`venue_id`, `venue_name`, `is_inside_bsu`) VALUES
+(1, 'BSU Gymnasium', 1),
+(2, 'BSU Covered Court', 1),
+(3, 'RDC Hall', 1),
+(4, 'VP AdFin Hall', 1),
+(5, 'International Dorm Hall', 1),
+(6, 'IRO Hall', 1),
+(7, 'Gladiola Center', 1),
+(8, 'RSDC Executive Hall', 1),
+(9, 'CTE DSG Hall', 1),
+(10, 'CHET Hall', 1),
+(11, 'CHK Function Hall', 1),
+(12, 'Carnation Hall', 1),
+(13, 'Everlasting Hall', 1),
+(14, 'Solibao Hall', 1),
+(15, 'Igorota Hall', 1),
+(16, 'Dimas Hall, IHFSA', 1),
+(17, 'OSS Social Hall', 1),
+(18, 'Main Auditorium', 1);
 
 --
 -- Indexes for dumped tables
@@ -888,6 +908,12 @@ ALTER TABLE `activity_design_mandates`
 ALTER TABLE `activity_logs`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`);
+
+--
+-- Indexes for table `archived_annual_reports`
+--
+ALTER TABLE `archived_annual_reports`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `budget_categories`
@@ -995,19 +1021,19 @@ ALTER TABLE `venues`
 -- AUTO_INCREMENT for table `accomplishment_budget_items`
 --
 ALTER TABLE `accomplishment_budget_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=205;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=226;
 
 --
 -- AUTO_INCREMENT for table `accomplishment_report`
 --
 ALTER TABLE `accomplishment_report`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
 
 --
 -- AUTO_INCREMENT for table `activity_budget_items`
 --
 ALTER TABLE `activity_budget_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=430;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=572;
 
 --
 -- AUTO_INCREMENT for table `activity_classifications`
@@ -1019,25 +1045,31 @@ ALTER TABLE `activity_classifications`
 -- AUTO_INCREMENT for table `activity_design`
 --
 ALTER TABLE `activity_design`
-  MODIFY `act_design_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=90;
+  MODIFY `act_design_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=98;
 
 --
 -- AUTO_INCREMENT for table `activity_design_issues`
 --
 ALTER TABLE `activity_design_issues`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=259;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=275;
 
 --
 -- AUTO_INCREMENT for table `activity_design_mandates`
 --
 ALTER TABLE `activity_design_mandates`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=273;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=295;
 
 --
 -- AUTO_INCREMENT for table `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=392;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=430;
+
+--
+-- AUTO_INCREMENT for table `archived_annual_reports`
+--
+ALTER TABLE `archived_annual_reports`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `budget_categories`
@@ -1061,7 +1093,7 @@ ALTER TABLE `budget_realignment_logs`
 -- AUTO_INCREMENT for table `evaluation_results`
 --
 ALTER TABLE `evaluation_results`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=89;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
 
 --
 -- AUTO_INCREMENT for table `form_types`
@@ -1085,7 +1117,7 @@ ALTER TABLE `gpb_budget_breakdown`
 -- AUTO_INCREMENT for table `gpb_items`
 --
 ALTER TABLE `gpb_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=130;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=131;
 
 --
 -- AUTO_INCREMENT for table `messages`
@@ -1097,7 +1129,7 @@ ALTER TABLE `messages`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `office_units`
@@ -1109,7 +1141,7 @@ ALTER TABLE `office_units`
 -- AUTO_INCREMENT for table `settings`
 --
 ALTER TABLE `settings`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -1121,7 +1153,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `venues`
 --
 ALTER TABLE `venues`
-  MODIFY `venue_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `venue_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- Constraints for dumped tables

@@ -92,6 +92,18 @@
                   </div>
 
                   <div class="input-group">
+                    <label class="form-label">Venue Location *</label>
+                    <div class="toggle-container" style="display: flex; gap: 1rem; align-items: center; height: 42px;">
+                      <label style="color: #cbd5e1; font-size: 14px; cursor: pointer;">
+                        <input type="radio" :value="true" v-model="form.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Inside BSU
+                      </label>
+                      <label style="color: #cbd5e1; font-size: 14px; cursor: pointer;">
+                        <input type="radio" :value="false" v-model="form.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Outside BSU
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="input-group">
                     <label class="form-label">Venue *</label>
                     <select 
                       v-model="form.venue" 
@@ -100,7 +112,7 @@
                     >
                       <option value="" disabled class="dark-option">Select venue...</option>
                       <option 
-                        v-for="v in venues" 
+                        v-for="v in filteredVenues" 
                         :key="v.venue_id" 
                         :value="v.venue_id" 
                         class="dark-option"
@@ -413,8 +425,8 @@
                           <div class="budget-row-item">
                             <div class="budget-item-info">
                               <div class="budget-item-title">Transportation</div>
-                              <div v-if="form.budget_items[8].total > 20000" class="budget-error-inline">
-                                ⚠️ Cannot exceed ₱20,000 limit.
+                              <div v-if="form.budget_items[8].total > baselineSettings.transportation_limit" class="budget-error-inline">
+                                ⚠️ Cannot exceed ₱{{ Number(baselineSettings.transportation_limit).toLocaleString('en-US') }} limit.
                               </div>
                             </div>
                             <div class="budget-item-value">
@@ -500,7 +512,7 @@
                           <div class="budget-row-item">
                             <div class="budget-item-info">
                               <div class="budget-item-title">Materials and Supplies</div>
-                              <span class="budget-item-subtext">(Auto-computed: participants * ₱1,000)</span>
+                              <span class="budget-item-subtext">(Auto-computed: participants * ₱{{ Number(baselineSettings.materials).toLocaleString('en-US') }})</span>
                             </div>
                             <div class="budget-item-value">
                               <span class="budget-currency-symbol">₱</span>
@@ -724,6 +736,7 @@ const form = ref({
   start_time: '',
   end_time: '',
   venue: '',
+  is_inside_bsu: true,
   target_participants: '',
   proposed_budget: 0,
   budget_items: [
@@ -794,6 +807,19 @@ const fetchVenues = async () => {
     console.error('Error fetching venues:', error);
   }
 };
+
+const filteredVenues = computed(() => {
+  return venues.value.filter(v => (v.is_inside_bsu == 1 || v.is_inside_bsu === true) === form.value.is_inside_bsu);
+});
+
+watch(() => form.value.is_inside_bsu, () => {
+  if (form.value.venue && form.value.venue !== 'Other') {
+    const isValid = filteredVenues.value.some(v => v.venue_id == form.value.venue);
+    if (!isValid) {
+      form.value.venue = '';
+    }
+  }
+});
 
 const fetchFormTypes = async () => {
   try {
@@ -1008,7 +1034,7 @@ const computedDays = computed(() => {
 });
 
 const isOutsideBsu = computed(() => {
-  return form.value.venue === 'Other';
+  return !form.value.is_inside_bsu;
 });
 
 // Reactive Sub-controls State
@@ -1026,14 +1052,37 @@ const removeOtherItem = (index) => {
   othersList.value.splice(index, 1);
 };
 
+// Baseline Settings
+const baselineSettings = ref({
+  meals_inside: 220,
+  meals_outside: 350,
+  snacks_inside: 80,
+  snacks_outside: 150,
+  pf_honoraria: 2258.25,
+  tokens: 1000,
+  materials: 1000,
+  transportation_limit: 20000
+});
+
+const fetchBaselineSettings = async () => {
+  try {
+    const res = await api.get('/settings/baseline');
+    if (res.data) {
+      baselineSettings.value = res.data;
+    }
+  } catch (error) {
+    console.error('Failed to fetch baseline settings:', error);
+  }
+};
+
 // Reactive Auto-computation Watchers
 watch(
-  [mealsSelected, () => form.value.target_participants, computedDays, isOutsideBsu],
+  [mealsSelected, () => form.value.target_participants, computedDays, isOutsideBsu, baselineSettings],
   () => {
     const item = form.value.budget_items.find(i => i.name === 'Meals');
     if (item) {
       const mealsCount = (mealsSelected.value.breakfast ? 1 : 0) + (mealsSelected.value.lunch ? 1 : 0) + (mealsSelected.value.dinner ? 1 : 0);
-      const mealsRate = isOutsideBsu.value ? 350 : 220;
+      const mealsRate = isOutsideBsu.value ? baselineSettings.value.meals_outside : baselineSettings.value.meals_inside;
       const pax = Number(form.value.target_participants) || 0;
       const calculated = (mealsCount * mealsRate * pax * computedDays.value);
       item.total = calculated || '';
@@ -1043,12 +1092,12 @@ watch(
 );
 
 watch(
-  [snacksSelected, () => form.value.target_participants, computedDays, isOutsideBsu],
+  [snacksSelected, () => form.value.target_participants, computedDays, isOutsideBsu, baselineSettings],
   () => {
     const item = form.value.budget_items.find(i => i.name === 'Snacks');
     if (item) {
       const snacksCount = (snacksSelected.value.am ? 1 : 0) + (snacksSelected.value.pm ? 1 : 0);
-      const snacksRate = isOutsideBsu.value ? 150 : 80;
+      const snacksRate = isOutsideBsu.value ? baselineSettings.value.snacks_outside : baselineSettings.value.snacks_inside;
       const pax = Number(form.value.target_participants) || 0;
       const calculated = (snacksCount * snacksRate * pax * computedDays.value);
       item.total = calculated || '';
@@ -1057,26 +1106,26 @@ watch(
   { deep: true }
 );
 
-watch(pfPax, (newPax) => {
+watch([pfPax, baselineSettings], ([newPax, _]) => {
   const item = form.value.budget_items.find(i => i.name === 'Professional Fee/Honoraria');
   if (item) {
-    item.total = (Number(newPax) * 2258.25) || '';
+    item.total = (Number(newPax) * baselineSettings.value.pf_honoraria) || '';
   }
-});
+}, { deep: true });
 
-watch(tokensPax, (newPax) => {
+watch([tokensPax, baselineSettings], ([newPax, _]) => {
   const item = form.value.budget_items.find(i => i.name === 'Token/s');
   if (item) {
-    item.total = (Number(newPax) * 1000) || '';
+    item.total = (Number(newPax) * baselineSettings.value.tokens) || '';
   }
-});
+}, { deep: true });
 
-watch(() => form.value.target_participants, (newPax) => {
+watch([() => form.value.target_participants, baselineSettings], ([newPax, _]) => {
   const item = form.value.budget_items.find(i => i.name === 'Materials and Supplies');
   if (item) {
-    item.total = (Number(newPax) * 1000) || '';
+    item.total = (Number(newPax) * baselineSettings.value.materials) || '';
   }
-});
+}, { deep: true });
 
 watch(
   othersList,
@@ -1090,20 +1139,43 @@ watch(
   { deep: true }
 );
 
+const adSubmissionLimitEnabled = ref(true);
+
+const fetchSystemSettings = async () => {
+  try {
+    const res = await api.get('settings/system');
+    adSubmissionLimitEnabled.value = res.data.ad_submission_limit_enabled ?? true;
+  } catch (err) {
+    console.error('Failed to fetch system settings:', err);
+  }
+};
+
 const submitActivityDesign = async () => {
-  // Check if today is a weekday
-  const currentDay = new Date().getDay();
-  if (currentDay === 0 || currentDay === 6) {
+  if (adSubmissionLimitEnabled.value) {
+    // Check if today is a weekday
+    const currentDay = new Date().getDay();
+    if (currentDay === 0 || currentDay === 6) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Submission Not Allowed',
+        text: 'Submissions are only allowed from Monday to Friday.',
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
+  }
+
+  // Validate Cause of Gender Issue
+  if (!form.value.gender_issue_id || form.value.gender_issue_id.length === 0) {
     Swal.fire({
       icon: 'warning',
-      title: 'Submission Not Allowed',
-      text: 'Submissions are only allowed from Monday to Friday.',
+      title: 'Missing Field',
+      text: 'Please select at least one Cause of Gender Issue before submitting.',
       confirmButtonColor: '#b979cc'
     });
     return;
   }
 
-  // Validate start date
   const startValidation = isValidActivityDate(form.value.start_date, true);
   if (!startValidation.valid) {
     Swal.fire({
@@ -1230,11 +1302,11 @@ const submitActivityDesign = async () => {
     formData.append('proposed_budget', form.value.proposed_budget);
     
     const transItem = form.value.budget_items.find(i => i.name === 'Transportation');
-    if (transItem && Number(transItem.total) > 20000) {
+    if (transItem && Number(transItem.total) > baselineSettings.value.transportation_limit) {
       Swal.fire({
         icon: 'warning',
         title: 'Limit Exceeded',
-        text: 'Transportation budget cannot exceed the maximum limit of ₱20,000.',
+        text: `Transportation budget cannot exceed the maximum limit of ₱${Number(baselineSettings.value.transportation_limit).toLocaleString('en-US')}.`,
         confirmButtonColor: '#b979cc'
       });
       return;
@@ -1339,11 +1411,13 @@ onMounted(() => {
   if (!user.value.id || user.value.role !== 'gad_staff') {
     router.push('/login');
   }
+  fetchBaselineSettings();
   fetchFormTypes();
   fetchActivityClassifications();
   fetchGADMandates();
   fetchVenues();
   fetchHolidays();
+  fetchSystemSettings();
   document.addEventListener('click', closeAllHelp);
 });
 

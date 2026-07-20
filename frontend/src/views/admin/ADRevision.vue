@@ -116,12 +116,23 @@
                   <input v-model="formData.end_time" type="time" class="modal-input">
                 </div>
               </div>
+              <div style="margin-bottom: 1rem;">
+                <label class="form-label">Venue Location *</label>
+                <div class="toggle-container" style="display: flex; gap: 1rem; align-items: center; height: 38px;">
+                  <label style="color: #cbd5e1; font-size: 14px; cursor: pointer;">
+                    <input type="radio" :value="true" v-model="formData.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Inside BSU
+                  </label>
+                  <label style="color: #cbd5e1; font-size: 14px; cursor: pointer;">
+                    <input type="radio" :value="false" v-model="formData.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Outside BSU
+                  </label>
+                </div>
+              </div>
               <div class="venue-participants-row">
                 <div class="venue-col">
                   <label class="form-label">Venue</label>
                   <select v-model="formData.venue" class="modal-input select-input select-arrow-fix">
                     <option value="" disabled>Select venue...</option>
-                    <option v-for="v in venues" :key="v.venue_id" :value="v.venue_id" class="dark-option">
+                    <option v-for="v in filteredVenues" :key="v.venue_id" :value="v.venue_id" class="dark-option">
                       {{ v.venue_name }}
                     </option>
                     <option value="Other" class="dark-option">Other</option>
@@ -603,7 +614,7 @@ const computedDays = computed(() => {
 });
 
 const isOutsideBsu = computed(() => {
-  return formData.value.venue === 'Other';
+  return !formData.value.is_inside_bsu;
 });
 
 // Reactive Sub-controls State
@@ -626,7 +637,7 @@ const removeOtherItem = (index) => {
 
 // Reactive Auto-computation Watchers
 watch(
-  [mealsSelected, () => formData.value.target_participants, computedDays, isOutsideBsu],
+  [mealsSelected, () => formData.value.target_participants, () => computedDays.value, () => isOutsideBsu.value],
   () => {
     if (loadingData.value) return;
     const item = formData.value.budget_items.find(i => i.name === 'Meals');
@@ -642,7 +653,7 @@ watch(
 );
 
 watch(
-  [snacksSelected, () => formData.value.target_participants, computedDays, isOutsideBsu],
+  [snacksSelected, () => formData.value.target_participants, () => computedDays.value, () => isOutsideBsu.value],
   () => {
     if (loadingData.value) return;
     const item = formData.value.budget_items.find(i => i.name === 'Snacks');
@@ -705,6 +716,20 @@ const fetchVenues = async () => {
   }
 };
 
+const filteredVenues = computed(() => {
+  return venues.value.filter(v => (v.is_inside_bsu == 1 || v.is_inside_bsu === true) === formData.value.is_inside_bsu);
+});
+
+watch(() => formData.value.is_inside_bsu, () => {
+  if (loadingData.value) return;
+  if (formData.value.venue && formData.value.venue !== 'Other') {
+    const isValid = filteredVenues.value.some(v => v.venue_id == formData.value.venue);
+    if (!isValid) {
+      formData.value.venue = '';
+    }
+  }
+});
+
 const fetchFormTypes = async () => {
   try {
     const response = await api.get('get-form-types');
@@ -737,32 +762,24 @@ const fetchGADMandates = async () => {
 };
 
 const fetchGenderIssues = async (mandateIds) => {
-  if (!mandateIds || !Array.isArray(mandateIds) || mandateIds.length === 0) {
+  const ids = (mandateIds || formData.value?.gad_mandate || []).filter(id => id !== 'Other');
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
     genderIssues.value = [];
     return;
   }
   try {
-    const allIssues = [];
-    for (const mandateId of mandateIds) {
-       if (mandateId !== 'Other') {
-           const res = await api.get(`get-gender-issues/${mandateId}`);
-           if (res.data) allIssues.push(...res.data);
-       }
+    const idString = ids.join(',');
+    let url = `get-gender-issues?mandates=${encodeURIComponent(idString)}`;
+    if (formData.value && formData.value.activity_classification) {
+      url += '&classification=' + formData.value.activity_classification;
     }
-    genderIssues.value = allIssues;
+    const res = await api.get(url);
+    genderIssues.value = res.data || [];
   } catch (error) {
     console.error('Error fetching gender issues:', error);
+    genderIssues.value = [];
   }
 };
-
-watch(() => formData.value.gad_mandate, (newVal) => {
-  if (newVal && newVal.length > 0) {
-    fetchGenderIssues(newVal);
-  } else {
-    genderIssues.value = [];
-    formData.value.gender_issue = [];
-  }
-}, { deep: true });
 
 const fetchDesignDetails = async () => {
   loading.value = true;
@@ -849,6 +866,7 @@ const fetchDesignDetails = async () => {
         start_time: design.value.start_time,
         end_time: design.value.end_time,
         venue: design.value.venue_id || 'Other',
+        is_inside_bsu: design.value.is_inside_bsu == 1 || design.value.is_inside_bsu === true,
         proposed_budget: design.value.proposed_budget,
         target_participants: design.value.target_participants,
         budget_items: [
@@ -872,17 +890,35 @@ const fetchDesignDetails = async () => {
         await fetchGADMandates();
         const mapLoadedMandates = () => {
             if (gadMandates.value.length > 0 && formData.value.gad_mandate.length > 0) {
-                const loadedIds = formData.value.gad_mandate.map(String);
+                const savedMandates = formData.value.gad_mandate.map(String);
                 const mappedIds = gadMandates.value
-                    .filter(m => loadedIds.some(id => m.id.split(',').includes(id)))
+                    .filter(m => {
+                        const mIds = String(m.id).split(',');
+                        return mIds.every(id => savedMandates.includes(id));
+                    })
                     .map(m => m.id.toString());
                 if (mappedIds.length > 0) {
                     formData.value.gad_mandate = mappedIds;
                 }
+                if (savedMandates.includes('Other') && !formData.value.gad_mandate.includes('Other')) {
+                    formData.value.gad_mandate.push('Other');
+                }
             }
         };
         mapLoadedMandates();
-        await fetchGenderIssues(formData.value.gad_mandate);
+        if (formData.value.gad_mandate.length > 0) {
+            await fetchGenderIssues(formData.value.gad_mandate);
+            const savedIssues = formData.value.gender_issue.map(String);
+            formData.value.gender_issue = genderIssues.value
+                .filter(m => {
+                    const mIds = String(m.id).split(',');
+                    return mIds.every(id => savedIssues.includes(id));
+                })
+                .map(m => m.id.toString());
+            if (savedIssues.includes('Other') && !formData.value.gender_issue.includes('Other')) {
+                formData.value.gender_issue.push('Other');
+            }
+        }
       } else {
         error.value = "Activity design not found.";
     }
@@ -1102,6 +1138,17 @@ watch([() => formData.value.start_time, () => formData.value.end_time], ([newSta
 
 const handleUpdate = async () => {
 
+  // Validate Cause of Gender Issue
+  if (!formData.value.gender_issue || formData.value.gender_issue.length === 0) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Missing Field',
+      text: 'Please select at least one Cause of Gender Issue before submitting.',
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+
   // Validate start date
   const startValidation = isValidActivityDate(formData.value.start_date, true);
   if (!startValidation.valid) {
@@ -1203,10 +1250,12 @@ const handleUpdate = async () => {
 
     // Venue Logic
     if (formData.value.venue && formData.value.venue !== 'Other') {
-      submitData.append('venue', formData.value.venue);
+      submitData.append('venue_id', formData.value.venue);
     } else if (formData.value.venue === 'Other') {
+      submitData.append('venue_id', 'Other');
       submitData.append('venue', customVenue.value || '');
     }
+    submitData.append('is_inside_bsu', formData.value.is_inside_bsu ? 1 : 0);
 
     const transItem = formData.value.budget_items.find(i => i.name === 'Transportation');
     if (transItem && Number(transItem.total) > 20000) {
@@ -1244,6 +1293,23 @@ const handleUpdate = async () => {
           }
         });
       }
+      const mealsItem = normalizedBudgetItems.find(i => i.item_name === 'Meals');
+      if (mealsItem) {
+        let selected = [];
+        if (mealsSelected.value.breakfast) selected.push('Breakfast');
+        if (mealsSelected.value.lunch) selected.push('Lunch');
+        if (mealsSelected.value.dinner) selected.push('Dinner');
+        mealsItem.sub_item = selected.join(', ');
+      }
+
+      const snacksItem = normalizedBudgetItems.find(i => i.item_name === 'Snacks');
+      if (snacksItem) {
+        let selected = [];
+        if (snacksSelected.value.am) selected.push('AM');
+        if (snacksSelected.value.pm) selected.push('PM');
+        snacksItem.sub_item = selected.join(', ');
+      }
+
       submitData.append('budget_items', JSON.stringify(normalizedBudgetItems));
 
     submitData.append('status', 'Pending'); // Reset status so admin can review again
@@ -1282,9 +1348,14 @@ const handleUpdate = async () => {
   
   watch(() => formData.value.gad_mandate, (newVal) => {
       if (typeof loadingData !== 'undefined' && loadingData.value) return;
-      formData.value.gender_issue = [];
-      fetchGenderIssues(newVal);
-  });
+      if (newVal && newVal.length > 0) {
+          formData.value.gender_issue = [];
+          fetchGenderIssues(newVal);
+      } else {
+          genderIssues.value = [];
+          formData.value.gender_issue = [];
+      }
+  }, { deep: true });
   
   onMounted(() => {
   if (!user.value.id || user.value.role !== 'admin') {

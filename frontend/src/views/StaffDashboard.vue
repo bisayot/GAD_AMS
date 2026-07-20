@@ -11,7 +11,7 @@
       @logout="handleLogout"
     />
 
-    <div class="flex-grow flex flex-col lg:ml-64 min-h-screen transition-all duration-300 w-full relative">
+    <div class="flex-grow flex flex-col lg:ml-64 min-h-screen transition-all duration-300 relative">
       <header 
         :class="[
           'h-20 bg-[#1a1a2e] border-b border-purple-900/30 flex items-center justify-between px-6 sticky top-0 z-30 transition-transform duration-300',

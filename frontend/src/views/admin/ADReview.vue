@@ -116,6 +116,9 @@
                 <div class="full-width-info">
                   <label class="info-label">Venue</label>
                   <p class="info-value-white">{{ design.venue }}</p>
+                  <span :class="design.is_inside_bsu == 1 || design.is_inside_bsu === true ? 'venue-badge inside-bsu' : 'venue-badge outside-bsu'">
+                    {{ design.is_inside_bsu == 1 || design.is_inside_bsu === true ? '🏫 Inside BSU' : '🌐 Outside BSU' }}
+                  </span>
                 </div>
                 <div class="full-width-info participants-info">
                   <label class="info-label">Target Participants</label>
@@ -1457,5 +1460,24 @@ button { transition: all 0.2s ease-in-out; cursor: pointer; }
   font-weight: 800;
   color: #b979cc;
   text-shadow: 0 0 10px rgba(185, 121, 204, 0.2);
+}
+.venue-badge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+.venue-badge.inside-bsu {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.venue-badge.outside-bsu {
+  background: rgba(251, 146, 60, 0.15);
+  color: #fb923c;
+  border: 1px solid rgba(251, 146, 60, 0.3);
 }
 </style>

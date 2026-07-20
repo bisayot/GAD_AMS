@@ -814,6 +814,12 @@ export default {
     async function deleteItem(item) {
       const { isConfirmed } = await Swal.fire({title: 'Are you sure?', text: 'Remove this item and all its budget lines? This cannot be undone.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes'});
       if (!isConfirmed) return;
+
+      if (item.id && !String(item.id).startsWith('i_')) {
+        try { await api.delete(`/gpb/item/${item.id}`); } 
+        catch (e) { console.error('Failed to delete from DB', e); }
+      }
+
       state.value.items = state.value.items.filter(i => i.id !== item.id);
       const idx = expandedCards.value.indexOf(item.id);
       if (idx > -1) expandedCards.value.splice(idx, 1);

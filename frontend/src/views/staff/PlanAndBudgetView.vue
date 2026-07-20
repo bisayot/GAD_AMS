@@ -14,6 +14,9 @@
           <button class="topbar-btn secondary" @click="scrollToStats" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
             Budget Distribution
           </button>
+          <button class="topbar-btn outline" @click="openBaselineModal" style="border-color: #b979cc; color: #b979cc;">
+            ⚙️ Baseline Amounts
+          </button>
         <button id="btnExpandAll" class="topbar-btn outline" @click="expandAll">Expand All</button>
         <button id="btnCollapseAll" class="topbar-btn outline" @click="collapseAll">Collapse All</button>
         <button id="btnExport" class="topbar-btn primary" @click="exportToExcel" :disabled="exporting">
@@ -374,6 +377,53 @@
     <input :disabled="isReadOnly" type="file" ref="excelImport" accept=".xlsx, .xls, .csv" style="display:none" @change="handleExcelImport">
 
     <PdfPreviewModal :isOpen="isPdfModalOpen" :fileUrl="pdfFileUrl" @close="closePdfModal" />
+
+    <!-- BASELINE AMOUNTS MODAL -->
+    <div v-if="isBaselineModalOpen" class="modal-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 9999;">
+      <div class="modal-content" style="background: #1e293b; padding: 32px; border-radius: 12px; width: 600px; max-width: 90vw; border: 1px solid #b979cc; color: white;">
+        <h2 style="margin-top: 0; margin-bottom: 24px; color: #b979cc;">Modify Baseline Amounts</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+          <div>
+            <label style="display: block; margin-bottom: 6px; font-size: 14px;">Meals (Inside BSU)</label>
+            <input type="number" v-model.number="baselineForm.meals_inside" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; font-size: 14px;">Meals (Outside BSU)</label>
+            <input type="number" v-model.number="baselineForm.meals_outside" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; font-size: 14px;">Snacks (Inside BSU)</label>
+            <input type="number" v-model.number="baselineForm.snacks_inside" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; font-size: 14px;">Snacks (Outside BSU)</label>
+            <input type="number" v-model.number="baselineForm.snacks_outside" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; font-size: 14px;">PF/Honoraria per Speaker</label>
+            <input type="number" step="0.01" v-model.number="baselineForm.pf_honoraria" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; font-size: 14px;">Tokens per Recipient</label>
+            <input type="number" v-model.number="baselineForm.tokens" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; font-size: 14px;">Materials per Participant</label>
+            <input type="number" v-model.number="baselineForm.materials" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: white;">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 6px; font-size: 14px;">Transportation Limit</label>
+            <input type="number" v-model.number="baselineForm.transportation_limit" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: white;">
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+          <button @click="isBaselineModalOpen = false" style="padding: 8px 16px; background: transparent; border: 1px solid #475569; color: white; border-radius: 6px; cursor: pointer;">Cancel</button>
+          <button @click="saveBaselineAmounts" :disabled="savingBaselines" style="padding: 8px 16px; background: #b979cc; border: none; color: white; border-radius: 6px; cursor: pointer;">
+            {{ savingBaselines ? 'Saving...' : 'Save Settings' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -826,6 +876,12 @@ export default {
     async function deleteItem(item) {
       const { isConfirmed } = await Swal.fire({title: 'Are you sure?', text: 'Remove this item and all its budget lines? This cannot be undone.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes'});
       if (!isConfirmed) return;
+
+      if (item.id && !String(item.id).startsWith('i_')) {
+        try { await api.delete(`/gpb/item/${item.id}`); } 
+        catch (e) { console.error('Failed to delete from DB', e); }
+      }
+
       state.value.items = state.value.items.filter(i => i.id !== item.id);
       const idx = expandedCards.value.indexOf(item.id);
       if (idx > -1) expandedCards.value.splice(idx, 1);
@@ -1237,6 +1293,49 @@ export default {
       pdfFileUrl.value = '';
     };
 
+    // Baseline Amounts Modal Logic
+    const isBaselineModalOpen = ref(false);
+    const savingBaselines = ref(false);
+    const baselineForm = reactive({
+      meals_inside: 0,
+      meals_outside: 0,
+      snacks_inside: 0,
+      snacks_outside: 0,
+      pf_honoraria: 0,
+      tokens: 0,
+      materials: 0,
+      transportation_limit: 0
+    });
+
+    const fetchBaselines = async () => {
+      try {
+        const res = await api.get('/settings/baseline');
+        if (res.data) {
+          Object.assign(baselineForm, res.data);
+        }
+      } catch (e) {
+        console.error('Failed to fetch baseline amounts', e);
+      }
+    };
+
+    const openBaselineModal = () => {
+      fetchBaselines();
+      isBaselineModalOpen.value = true;
+    };
+
+    const saveBaselineAmounts = async () => {
+      savingBaselines.value = true;
+      try {
+        await api.post('/settings/baseline', baselineForm);
+        Swal.fire({ icon: 'success', title: 'Saved!', text: 'Baseline amounts updated successfully.', timer: 2000, showConfirmButton: false, background: '#1e293b', color: '#fff' });
+        isBaselineModalOpen.value = false;
+      } catch (e) {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to save baseline amounts.', background: '#1e293b', color: '#fff' });
+      } finally {
+        savingBaselines.value = false;
+      }
+    };
+
     return {
       mandateStats, mandateStatsFilter, filteredMandateStats, loadingStats, statsChartCanvas, scrollToStats,
       isReadOnly,
@@ -1251,6 +1350,7 @@ export default {
       getAllocatedElsewhere,
       saveAllocations,
       isPdfModalOpen, pdfFileUrl, openDocumentPreview, closePdfModal,
+      isBaselineModalOpen, savingBaselines, baselineForm, openBaselineModal, saveBaselineAmounts,
 
       SECTION_ORDER, SECTION_LABELS, SECTION_SHORT, SOURCE_OPTIONS,
       state, budgetSummary, currentTab, searchQuery, expandedCards,

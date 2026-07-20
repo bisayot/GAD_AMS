@@ -73,6 +73,14 @@
               </div>
 
               <div class="filter-item">
+                <label class="filter-label">FISCAL YEAR</label>
+                <select v-model="filters.fiscalYear" class="filter-select-custom" @change="applyFilters">
+                  <option value="all">All Years</option>
+                  <option v-for="year in availableFiscalYears" :key="year" :value="year">{{ year }}</option>
+                </select>
+              </div>
+
+              <div class="filter-item">
                 <label class="filter-label">SORT BY</label>
                 <select v-model="filters.sort" class="filter-select-custom" @change="applyFilters">
                   <option value="date_desc">Newest First</option>
@@ -214,7 +222,8 @@ const activeTab = ref('designs');
 const filters = ref({
   status: 'all',
   sort: 'date_desc',
-  search: ''
+  search: '',
+  fiscalYear: 'all'
 });
 
 const currentPage = ref(1);
@@ -248,6 +257,16 @@ const currentSourceData = computed(() => {
   return activeTab.value === 'designs' ? archivedDesigns.value : archivedReports.value;
 });
 
+const availableFiscalYears = computed(() => {
+  const years = new Set();
+  currentSourceData.value.forEach(item => {
+    if (item.dateRaw) {
+      years.add(new Date(item.dateRaw).getFullYear().toString());
+    }
+  });
+  return Array.from(years).sort((a, b) => b - a);
+});
+
 const filteredItems = computed(() => {
   let items = [...currentSourceData.value];
   
@@ -261,6 +280,14 @@ const filteredItems = computed(() => {
       item.title.toLowerCase().includes(searchTerm) || 
       item.control.toLowerCase().includes(searchTerm)
     );
+  }
+  
+  if (filters.value.fiscalYear !== 'all') {
+    items = items.filter(item => {
+      if (!item.dateRaw) return false;
+      const year = new Date(item.dateRaw).getFullYear().toString();
+      return year === filters.value.fiscalYear;
+    });
   }
   
   const sorted = [...items];
@@ -331,7 +358,8 @@ const resetFilters = () => {
   filters.value = {
     status: 'all',
     sort: 'date_desc',
-    search: ''
+    search: '',
+    fiscalYear: 'all'
   };
   currentPage.value = 1;
 };

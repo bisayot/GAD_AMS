@@ -23,6 +23,7 @@ class ApprovedControlModel extends Model
         return $this->select('
                         activity_design.*, 
                         venues.venue_name,
+                        venues.is_inside_bsu,
                         activity_classifications.classification_name as activity_classification,
                         form_types.name as form_type_name
                     ')

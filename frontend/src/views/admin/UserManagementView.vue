@@ -6,10 +6,16 @@
           <h1 class="page-title">User Management</h1>
           <p class="page-subtitle">Manage system users, roles, and office assignments.</p>
         </div>
-        <button @click="openModal()" class="btn-primary flex items-center gap-2">
-          <span class="material-symbols-outlined">person_add</span>
-          Add User
-        </button>
+        <div class="flex items-center gap-3">
+          <button @click="toggleSubmissionLimit()" class="btn-secondary flex items-center gap-2" :class="adSubmissionLimitEnabled ? '!bg-green-600 !border-green-700 !text-white hover:!bg-green-700' : '!bg-red-600 !border-red-700 !text-white hover:!bg-red-700'">
+            <span class="material-symbols-outlined">{{ adSubmissionLimitEnabled ? 'toggle_on' : 'toggle_off' }}</span>
+            Limit AD Submissions (Mon-Fri): {{ adSubmissionLimitEnabled ? 'ON' : 'OFF' }}
+          </button>
+          <button @click="openModal()" class="btn-primary flex items-center gap-2">
+            <span class="material-symbols-outlined">person_add</span>
+            Add User
+          </button>
+        </div>
       </div>
 
       <div class="layout-stacked">
@@ -272,6 +278,36 @@ import api from '../../api';
 const router = useRouter();
 const users = ref([]);
 const offices = ref([]);
+const adSubmissionLimitEnabled = ref(true);
+
+const toggleSubmissionLimit = async () => {
+  try {
+    const newVal = !adSubmissionLimitEnabled.value;
+    await api.post('settings/system', { ad_submission_limit_enabled: newVal });
+    adSubmissionLimitEnabled.value = newVal;
+    Swal.fire({
+      icon: 'success',
+      title: 'Settings Updated',
+      text: `AD Submission Mon-Fri Limit is now ${newVal ? 'ON' : 'OFF'}`,
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 3000
+    });
+  } catch (err) {
+    console.error('Failed to update settings:', err);
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to update system settings' });
+  }
+};
+
+const fetchSettings = async () => {
+  try {
+    const res = await api.get('settings/system');
+    adSubmissionLimitEnabled.value = res.data.ad_submission_limit_enabled ?? true;
+  } catch (err) {
+    console.error('Failed to fetch system settings:', err);
+  }
+};
 
 // Individual search/filter states
 const searchTwg = ref('');
@@ -537,6 +573,7 @@ onMounted(() => {
   }
   fetchOffices();
   fetchUsers();
+  fetchSettings();
 });
 </script>
 

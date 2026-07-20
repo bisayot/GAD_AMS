@@ -319,6 +319,18 @@ $routes->group('api', function($routes) {
     $routes->options('plan', 'AuthController::handleOptions');
     $routes->get('plan', 'PlanController::getPlan');
     $routes->post('plan', 'PlanController::savePlan');
+
+    // ----------------------------------------------------------------
+    // SETTINGS ROUTES (new)
+    // ----------------------------------------------------------------
+    $routes->options('settings/baseline', 'AuthController::handleOptions');
+    $routes->get('settings/baseline', 'SettingController::getBaselineAmounts');
+    $routes->post('settings/baseline', 'SettingController::updateBaselineAmounts');
+    
+    $routes->options('settings/system', 'AuthController::handleOptions');
+    $routes->get('settings/system', 'SettingController::getSystemSettings');
+    $routes->post('settings/system', 'SettingController::updateSystemSettings');
+
     
     $routes->options('plan/mandate-statistics', 'AuthController::handleOptions');
     $routes->get('plan/mandate-statistics', 'PlanController::getMandateStatistics');
@@ -344,4 +356,11 @@ $routes->group('api', function($routes) {
     $routes->get('gpb/item/(:num)', 'GpbController::show/$1');
     $routes->put('gpb/item/(:num)', 'GpbController::update/$1');
     $routes->delete('gpb/item/(:num)', 'GpbController::delete/$1');
+
+    // Annual Report Archives
+    $routes->options('annual-reports/archive', 'AuthController::handleOptions');
+    $routes->post('annual-reports/archive', 'AnnualReportArchiveController::archive');
+    $routes->get('annual-reports/archive', 'AnnualReportArchiveController::index');
+    $routes->options('annual-reports/archive/(:num)', 'AuthController::handleOptions');
+    $routes->get('annual-reports/archive/(:num)', 'AnnualReportArchiveController::show/$1');
 });

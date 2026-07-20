@@ -101,6 +101,9 @@
                 <div class="full-width-info">
                   <label class="info-label">Venue</label>
                   <p class="text-sm-light mt-1">{{ report.activity_design.venue_name || report.activity_design.venue }}</p>
+                  <span :class="report.activity_design.is_inside_bsu == 1 || report.activity_design.is_inside_bsu === true ? 'venue-badge inside-bsu' : 'venue-badge outside-bsu'">
+                    {{ report.activity_design.is_inside_bsu == 1 || report.activity_design.is_inside_bsu === true ? '🏫 Inside BSU' : '🌐 Outside BSU' }}
+                  </span>
                 </div>
                 <div class="full-width-info" v-if="report.activity_design">
                   <label class="info-label">Target Participants</label>
@@ -275,6 +278,9 @@
                 <div class="full-width-info">
                   <label class="info-label">Venue</label>
                   <p class="text-sm-light mt-1">{{ report.venue }}</p>
+                  <span :class="report.is_inside_bsu == 1 || report.is_inside_bsu === true ? 'venue-badge inside-bsu' : 'venue-badge outside-bsu'">
+                    {{ report.is_inside_bsu == 1 || report.is_inside_bsu === true ? '🏫 Inside BSU' : '🌐 Outside BSU' }}
+                  </span>
                 </div>
                 <div>
                   <label class="info-label">Number of Attendees</label>
@@ -853,4 +859,23 @@ onMounted(() => {
   font-size: 12px;
 }
 
+.venue-badge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+.venue-badge.inside-bsu {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.venue-badge.outside-bsu {
+  background: rgba(251, 146, 60, 0.15);
+  color: #fb923c;
+  border: 1px solid rgba(251, 146, 60, 0.3);
+}
 </style>

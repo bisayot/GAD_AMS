@@ -123,7 +123,7 @@
                           </button>
                           <transition name="fade-pop">
                             <div v-if="helpState.startDate" class="simple-popup">
-                              Must be scheduled on working days from Monday to Thursday.
+                              Must be scheduled on working days from Monday to Friday.
                             </div>
                           </transition>
                         </div>
@@ -188,6 +188,18 @@
                   </div>
 
                   <div class="input-group-ar">
+                    <label class="form-label-ar">Venue Location *</label>
+                    <div class="toggle-container" style="display: flex; gap: 1rem; align-items: center; height: 42px;">
+                      <label style="color: #cbd5e1; font-size: 14px; cursor: pointer;">
+                        <input type="radio" :value="true" v-model="form.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Inside BSU
+                      </label>
+                      <label style="color: #cbd5e1; font-size: 14px; cursor: pointer;">
+                        <input type="radio" :value="false" v-model="form.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Outside BSU
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="input-group-ar">
                     <label class="form-label-ar">Venue *</label>
                     <select 
                       v-model="form.venue" 
@@ -196,7 +208,7 @@
                     >
                       <option value="" disabled class="dark-option">Select venue...</option>
                       <option 
-                        v-for="v in venues" 
+                        v-for="v in filteredVenues" 
                         :key="v.venue_id" 
                         :value="v.venue_name" 
                         class="dark-option"
@@ -749,6 +761,7 @@ const form = ref({
   start_time: '',
   end_time: '',
   venue: '',
+  is_inside_bsu: true,
   attendees: '',
   male: '',
   female: '', 
@@ -796,6 +809,19 @@ const fetchVenues = async () => {
     console.error('Error fetching venues:', error);
   }
 };
+
+const filteredVenues = computed(() => {
+  return venues.value.filter(v => (v.is_inside_bsu == 1 || v.is_inside_bsu === true) === form.value.is_inside_bsu);
+});
+
+watch(() => form.value.is_inside_bsu, () => {
+  if (form.value.venue && form.value.venue !== 'Other') {
+    const isValid = filteredVenues.value.some(v => v.venue_name === form.value.venue);
+    if (!isValid) {
+      form.value.venue = '';
+    }
+  }
+});
 
 const fetchFormTypes = async () => {
   try {
@@ -932,6 +958,7 @@ watch(() => form.value.control_number, async (newVal) => {
     form.value.end_date = selected.end_date;
     form.value.start_time = selected.start_time;
     form.value.end_time = selected.end_time;
+    form.value.is_inside_bsu = selected.is_inside_bsu == 1 || selected.is_inside_bsu === true;
     form.value.venue = selected.venue_name || selected.venue; 
     form.value.activity_classification = selected.activity_classification || 'N/A';
     form.value.form_type = selected.form_type_name || selected.form_type || 'N/A';
@@ -1159,6 +1186,17 @@ const submitReport = async () => {
     return;
   }
 
+  // Validate Cause of Gender Issue
+  if (!form.value.gender_issue_id || form.value.gender_issue_id.length === 0) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Missing Field',
+      text: 'Please select at least one Cause of Gender Issue before submitting.',
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+
   if (form.value.start_date && form.value.end_date) {
     const startDate = new Date(form.value.start_date + 'T00:00:00');
     const endDate = new Date(form.value.end_date + 'T00:00:00');
@@ -1256,7 +1294,7 @@ const submitReport = async () => {
     formData.append('evaluation_results', JSON.stringify(evalObj));
 
     Object.keys(form.value).forEach(key => {
-      if (key !== 'budget_items' && key !== 'evaluation_items' && key !== 'venue') {
+      if (key !== 'budget_items' && key !== 'evaluation_items' && key !== 'venue' && key !== 'is_inside_bsu') {
         formData.append(key, form.value[key]);
       }
     });
@@ -1266,6 +1304,7 @@ const submitReport = async () => {
     } else {
       formData.append('venue', form.value.venue);
     }
+    formData.append('is_inside_bsu', form.value.is_inside_bsu ? 1 : 0);
 
     const selectedClassification = ActClassification.value.find(c => c.classification_name === form.value.activity_classification);
     if (selectedClassification) {

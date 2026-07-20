@@ -14,7 +14,7 @@
               <p class="modal-option-title">Activity Design</p>
               <p class="modal-option-desc">Submit a new activity design proposal for approval</p>
             </div>
-            <div class="modal-option-arrow">→</div>
+            <div class="modal-option-arrow">&rarr;</div>
           </router-link>
 
           <router-link to="/college/submit-report" class="modal-option">
@@ -22,7 +22,7 @@
               <p class="modal-option-title">Accomplishment Report</p>
               <p class="modal-option-desc">Submit accomplishment report for completed activities</p>
             </div>
-            <div class="modal-option-arrow">→</div>
+            <div class="modal-option-arrow">&rarr;</div>
           </router-link>
         </div>
       </div>

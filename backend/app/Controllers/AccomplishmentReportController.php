@@ -60,6 +60,7 @@ class AccomplishmentReportController extends BaseController
                 "start_time"     => $this->request->getPost("start_time"),
                 "end_time"       => $this->request->getPost("end_time"),
                 "venue"          => $this->request->getPost("venue"),
+                "is_inside_bsu"  => filter_var($this->request->getPost('is_inside_bsu'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0,
                 "attendees"      => $this->request->getPost("attendees"),
                 "male"           => $this->request->getPost("male"),
                 "female"         => $this->request->getPost("female"),
@@ -349,8 +350,8 @@ class AccomplishmentReportController extends BaseController
                       ->join('form_types', 'form_types.id = aad.form_type', 'left')
                       ->join('users', 'users.id = aad.user_id', 'left')
                       ->join('office_units', 'office_units.office_id = users.office_id', 'left')
-                      ->select('(SELECT GROUP_CONCAT(adm.mandate_id SEPARATOR ",") FROM activity_design_mandates adm WHERE adm.act_design_id = aad.act_design_id) as gad_mandate_ids')
-                        ->select('(SELECT GROUP_CONCAT(adi.issue_id SEPARATOR ",") FROM activity_design_issues adi WHERE adi.act_design_id = aad.act_design_id) as gender_issue_ids')
+                      ->select('(SELECT GROUP_CONCAT(adm.mandate_id SEPARATOR \',\') FROM activity_design_mandates adm WHERE adm.act_design_id = aad.act_design_id) as gad_mandate_ids')
+                        ->select('(SELECT GROUP_CONCAT(adi.issue_id SEPARATOR \',\') FROM activity_design_issues adi WHERE adi.act_design_id = aad.act_design_id) as gender_issue_ids')
                         ->where('aad.control_number', $controlNumber)
                         ->get()->getRowArray();
                       
@@ -511,6 +512,7 @@ class AccomplishmentReportController extends BaseController
             'start_time'     => $this->request->getPost('start_time'),
             'end_time'       => $this->request->getPost('end_time'),
             'venue'          => $this->request->getPost('venue'),
+            'is_inside_bsu'  => $this->request->getPost('is_inside_bsu') !== null ? (filter_var($this->request->getPost('is_inside_bsu'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0) : null,
             'attendees'      => $this->request->getPost('attendees'),
             'male'           => $this->request->getPost('male'),
             'female'         => $this->request->getPost('female'),

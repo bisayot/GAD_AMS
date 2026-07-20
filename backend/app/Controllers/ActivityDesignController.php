@@ -60,6 +60,7 @@ class ActivityDesignController extends BaseController
         }
 
         try {
+            $isInsideBsu = filter_var($this->request->getPost('is_inside_bsu'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0;
             $venueId = $this->request->getPost("venue_id");
             if ($venueId === 'Other') {
                 $customVenueName = $this->request->getPost("custom_venue");
@@ -72,7 +73,7 @@ class ActivityDesignController extends BaseController
                 
                 // Insert new venue
                 $venueModel = new \App\Models\VenueModel();
-                $venueModel->insert(['venue_name' => $customVenueName]);
+                $venueModel->insert(['venue_name' => $customVenueName, 'is_inside_bsu' => $isInsideBsu]);
                 $venueId = $venueModel->getInsertID();
             }
 
@@ -110,6 +111,7 @@ class ActivityDesignController extends BaseController
                 "start_time"                 => $this->request->getPost("start_time"),
                 "end_time"                   => $this->request->getPost("end_time"),
                 "venue_id"                   => $venueId,
+                "is_inside_bsu"              => $isInsideBsu,
                 "target_participants"        => $this->request->getPost("target_participants"),
                 "proposed_budget"            => $this->request->getPost("proposed_budget"),
                 "user_id"                    => $this->request->getPost("user_id"),
@@ -243,11 +245,11 @@ class ActivityDesignController extends BaseController
         $activityDesignModel = new ActivityDesignModel();
 
         $design = $activityDesignModel
-            ->select('activity_design.*, office_units.office_name as office, users.full_name as submitter_name, activity_design.start_date as date, venues.venue_name as venue, activity_classifications.classification_name as activity_classification, form_types.name as form_type_name')
-            ->select('(SELECT GROUP_CONCAT(CONCAT("GPB - ", CASE WHEN gm.mandate = "" OR gm.mandate IS NULL THEN CONCAT("N/A (Attributed Program) - ", IFNULL(gm.activity, "")) ELSE gm.mandate END) SEPARATOR ";;; ") FROM activity_design_mandates adm JOIN gpb_items gm ON gm.id = adm.mandate_id WHERE adm.act_design_id = activity_design.act_design_id) as gad_mandate')
-            ->select('(SELECT GROUP_CONCAT(CASE WHEN gi.cause = "" OR gi.cause IS NULL THEN CONCAT("N/A (Attributed Program) - ", IFNULL(gi.activity, "")) ELSE gi.cause END SEPARATOR ";;; ") FROM activity_design_issues adi JOIN gpb_items gi ON gi.id = adi.issue_id WHERE adi.act_design_id = activity_design.act_design_id) as gender_issue')
-            ->select('(SELECT GROUP_CONCAT(adm.mandate_id SEPARATOR ",") FROM activity_design_mandates adm WHERE adm.act_design_id = activity_design.act_design_id) as gad_mandate_ids')
-            ->select('(SELECT GROUP_CONCAT(adi.issue_id SEPARATOR ",") FROM activity_design_issues adi WHERE adi.act_design_id = activity_design.act_design_id) as gender_issue_ids')
+            ->select('activity_design.*, office_units.office_name as office, users.full_name as submitter_name, activity_design.start_date as date, venues.venue_name as venue, venues.is_inside_bsu, activity_classifications.classification_name as activity_classification, form_types.name as form_type_name')
+            ->select('(SELECT GROUP_CONCAT(CONCAT(\'GPB - \', CASE WHEN gm.mandate = \'\' OR gm.mandate IS NULL THEN CONCAT(\'N/A (Attributed Program) - \', IFNULL(gm.activity, \'\')) ELSE gm.mandate END) SEPARATOR \';;; \') FROM activity_design_mandates adm JOIN gpb_items gm ON gm.id = adm.mandate_id WHERE adm.act_design_id = activity_design.act_design_id) as gad_mandate')
+            ->select('(SELECT GROUP_CONCAT(CASE WHEN gi.cause = \'\' OR gi.cause IS NULL THEN CONCAT(\'N/A (Attributed Program) - \', IFNULL(gi.activity, \'\')) ELSE gi.cause END SEPARATOR \';;; \') FROM activity_design_issues adi JOIN gpb_items gi ON gi.id = adi.issue_id WHERE adi.act_design_id = activity_design.act_design_id) as gender_issue')
+            ->select('(SELECT GROUP_CONCAT(adm.mandate_id SEPARATOR \',\') FROM activity_design_mandates adm WHERE adm.act_design_id = activity_design.act_design_id) as gad_mandate_ids')
+            ->select('(SELECT GROUP_CONCAT(adi.issue_id SEPARATOR \',\') FROM activity_design_issues adi WHERE adi.act_design_id = activity_design.act_design_id) as gender_issue_ids')
             ->join('users', 'users.id = activity_design.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->join('venues', 'venues.venue_id = activity_design.venue_id', 'left')
@@ -476,7 +478,16 @@ class ActivityDesignController extends BaseController
               if (is_numeric($mandate)) {
                   $finalMandates[] = $mandate;
               }
-          }
+        }
+
+        $isInsideBsu = filter_var($this->request->getPost('is_inside_bsu'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0;
+        $venueId = $this->request->getPost('venue_id');
+        if ($venueId === 'Other') {
+            $customVenueName = $this->request->getPost("venue");
+            $venueModel = new \App\Models\VenueModel();
+            $venueModel->insert(['venue_name' => $customVenueName, 'is_inside_bsu' => $isInsideBsu]);
+            $venueId = $venueModel->getInsertID();
+        }
 
         $genderIssueStr = $this->request->getPost('gender_issue_id');
         $genderIssues = $genderIssueStr ? explode(',', $genderIssueStr) : [];
@@ -498,7 +509,7 @@ class ActivityDesignController extends BaseController
             'start_time'          => $this->request->getPost('start_time'),
             'end_time'            => $this->request->getPost('end_time'),
             'venue'               => $this->request->getPost('venue'),
-            'venue_id'            => $this->request->getPost('venue_id'),
+            'venue_id'            => $venueId,
             'proposed_budget'     => $this->request->getPost('proposed_budget'),
             'target_participants' => $this->request->getPost('target_participants'),
         ];
@@ -937,56 +948,114 @@ class ActivityDesignController extends BaseController
         
         $classification_id = $this->request->getGet('classification');
         
-        $builder = $db->table('gpb_items')
-            ->select('GROUP_CONCAT(id) as id, "GPB" as code, CASE WHEN mandate = "" OR mandate IS NULL THEN CONCAT("N/A (Attributed Program) - ", IFNULL(activity, "")) ELSE mandate END as title', false);
-        $builder->groupBy('title');
+        try {
+            $expression = "CASE WHEN mandate = '' OR mandate IS NULL THEN CONCAT('N/A (Attributed Program) - ', IFNULL(activity, '')) ELSE mandate END";
+            $builder = $db->table('gpb_items')
+                ->select("id, 'GPB' as code, " . $expression . " as title", false);
 
-        if ($classification_id) {
-            $section = '';
-            if ($classification_id == 1) $section = 'client';
-            else if ($classification_id == 2) $section = 'org';
-            else if ($classification_id == 3) $section = 'attributed';
+            if ($classification_id) {
+                $section = '';
+                if ($classification_id == 1) $section = 'client';
+                else if ($classification_id == 2) $section = 'org';
+                else if ($classification_id == 3) $section = 'attributed';
 
-            if ($section) {
-                $builder->where('section', $section);
+                if ($section) {
+                    $builder->where('section', $section);
+                }
             }
-        }
-        
-        // Only filter out empty mandates if it's NOT an attributed program
-        // Because attributed programs specifically need to show N/A
-        if ($classification_id != 3) {
-            $builder->where('mandate !=', '');
-            $builder->where('mandate IS NOT NULL');
-        }
+            
+            // Only filter out empty mandates if it's NOT an attributed program
+            // Because attributed programs specifically need to show N/A
+            if ($classification_id != 3) {
+                $builder->where('mandate !=', '');
+                $builder->where('mandate IS NOT NULL');
+            }
 
-        $query = $builder->get();
-        return $this->response->setJSON($query->getResult());
+            $query = $builder->get();
+            $results = $query->getResult();
+            
+            $grouped = [];
+            foreach ($results as $row) {
+                $title = $row->title;
+                if (!isset($grouped[$title])) {
+                    $grouped[$title] = (object)[
+                        'id' => [],
+                        'code' => $row->code,
+                        'title' => $title
+                    ];
+                }
+                $grouped[$title]->id[] = $row->id;
+            }
+            
+            // Convert arrays of IDs to comma separated string
+            foreach ($grouped as $group) {
+                $group->id = implode(',', $group->id);
+            }
+            
+            return $this->response->setJSON(array_values($grouped));
+        } catch (\Throwable $e) {
+            return $this->response->setStatusCode(500)->setJSON([
+                'error' => true, 
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
     }
 
     public function getGenderIssues($mandate_id = null)
     {
         $db = \Config\Database::connect();
-        $builder = $db->table('gpb_items')->select('GROUP_CONCAT(id) as id, CASE WHEN cause = "" OR cause IS NULL THEN CONCAT("N/A (Attributed Program) - ", IFNULL(activity, "")) ELSE cause END as title', false);
-        $builder->groupBy('title');
-        
-        $classification_id = $this->request->getGet('classification');
+        try {
+            $expression = "CASE WHEN cause = '' OR cause IS NULL THEN CONCAT('N/A (Attributed Program) - ', IFNULL(activity, '')) ELSE cause END";
+            $builder = $db->table('gpb_items')->select("id, " . $expression . " as title", false);
+            
+            $classification_id = $this->request->getGet('classification');
 
-        if ($classification_id != 3) {
-            $builder->where('cause !=', '');
-            $builder->where('cause IS NOT NULL');
+            if ($classification_id != 3) {
+                $builder->where('cause !=', '');
+                $builder->where('cause IS NOT NULL');
+            }
+
+            $mandates = $this->request->getGet('mandates');
+            if ($mandates) {
+                $mandateIds = explode(',', $mandates);
+                $builder->whereIn('id', $mandateIds);
+            } else if ($mandate_id) {
+                $mandateIds = explode(',', $mandate_id);
+                $builder->whereIn('id', $mandateIds);
+            }
+
+            $query = $builder->get();
+            $results = $query->getResult();
+            
+            $grouped = [];
+            foreach ($results as $row) {
+                $title = $row->title;
+                if (!isset($grouped[$title])) {
+                    $grouped[$title] = (object)[
+                        'id' => [],
+                        'title' => $title
+                    ];
+                }
+                $grouped[$title]->id[] = $row->id;
+            }
+            
+            // Convert arrays of IDs to comma separated string
+            foreach ($grouped as $group) {
+                $group->id = implode(',', $group->id);
+            }
+            
+            return $this->response->setJSON(array_values($grouped));
+        } catch (\Throwable $e) {
+            return $this->response->setStatusCode(500)->setJSON([
+                'error' => true, 
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
         }
-
-        $mandates = $this->request->getGet('mandates');
-        if ($mandates) {
-            $mandateIds = explode(',', $mandates);
-            $builder->whereIn('id', $mandateIds);
-        } else if ($mandate_id) {
-            $mandateIds = explode(',', $mandate_id);
-            $builder->whereIn('id', $mandateIds);
-        }
-
-        $query = $builder->get();
-        return $this->response->setJSON($query->getResult());
     }
 
     public function getActivityClassifications()
