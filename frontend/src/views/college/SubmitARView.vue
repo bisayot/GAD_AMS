@@ -807,7 +807,9 @@ const ActClassification = ref([]);
 const fetchVenues = async () => {
   try {
     const response = await api.get('venues');
-    if (response.data && response.data.success) {
+    if (Array.isArray(response.data)) {
+      venues.value = response.data;
+    } else if (response.data && response.data.success) {
       venues.value = response.data.data || [];
     }
   } catch (error) {
@@ -2454,5 +2456,25 @@ onUnmounted(() => {
 .budget-sub-number-input:focus {
   outline: none;
   border-color: #b979cc;
+}
+
+@media (max-width: 768px) {
+  .budget-row-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .budget-item-value {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .budget-sub-controls {
+    flex-wrap: wrap;
+  }
+  .grand-total-banner-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
 }
 </style>

@@ -330,7 +330,9 @@ $routes->group('api', function($routes) {
     $routes->options('settings/system', 'AuthController::handleOptions');
     $routes->get('settings/system', 'SettingController::getSystemSettings');
     $routes->post('settings/system', 'SettingController::updateSystemSettings');
-
+    
+    $routes->options('settings/trigger-cleanup', 'AuthController::handleOptions');
+    $routes->post('settings/trigger-cleanup', 'SettingController::triggerCleanup');
     
     $routes->options('plan/mandate-statistics', 'AuthController::handleOptions');
     $routes->get('plan/mandate-statistics', 'PlanController::getMandateStatistics');
@@ -352,10 +354,10 @@ $routes->group('api', function($routes) {
     $routes->options('gpb/item', 'AuthController::handleOptions');
     $routes->get('gpb/item', 'GpbController::index');
     $routes->post('gpb/item', 'GpbController::create');
-    $routes->options('gpb/item/(:num)', 'AuthController::handleOptions');
-    $routes->get('gpb/item/(:num)', 'GpbController::show/$1');
-    $routes->put('gpb/item/(:num)', 'GpbController::update/$1');
-    $routes->delete('gpb/item/(:num)', 'GpbController::delete/$1');
+    $routes->options('gpb/item/(:segment)', 'AuthController::handleOptions');
+    $routes->get('gpb/item/(:segment)', 'GpbController::show/$1');
+    $routes->put('gpb/item/(:segment)', 'GpbController::update/$1');
+    $routes->delete('gpb/item/(:segment)', 'GpbController::delete/$1');
 
     // Annual Report Archives
     $routes->options('annual-reports/archive', 'AuthController::handleOptions');
@@ -363,4 +365,12 @@ $routes->group('api', function($routes) {
     $routes->get('annual-reports/archive', 'AnnualReportArchiveController::index');
     $routes->options('annual-reports/archive/(:num)', 'AuthController::handleOptions');
     $routes->get('annual-reports/archive/(:num)', 'AnnualReportArchiveController::show/$1');
+
+    // Venues Management
+    $routes->options('venues', 'AuthController::handleOptions');
+    $routes->get('venues', 'VenueController::index');
+    $routes->post('venues', 'VenueController::create');
+    $routes->options('venues/(:num)', 'AuthController::handleOptions');
+    $routes->put('venues/(:num)', 'VenueController::update/$1');
+    $routes->delete('venues/(:num)', 'VenueController::delete/$1');
 });

@@ -63,6 +63,15 @@ class AuthController extends ResourceController
 
         \App\Models\ActivityLogModel::log($user['id'], 'Login', $user['full_name'] . " logged in");
 
+        // Trigger automated data retention cleanup (Pseudo-Cron)
+        if (in_array(strtolower($user['role']), ['admin', 'gad_staff', 'superadmin'])) {
+            try {
+                \App\Libraries\DataRetentionService::runCleanup();
+            } catch (\Exception $e) {
+                log_message('error', 'Auto-cleanup failed during login: ' . $e->getMessage());
+            }
+        }
+
         return $this->respond([
             'status' => 200,
             'message' => 'Login successful',

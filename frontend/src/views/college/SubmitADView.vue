@@ -798,7 +798,9 @@ const formatBudgetName = (name) => {
 const fetchVenues = async () => {
   try {
     const response = await api.get('venues');
-    if (response.data && response.data.success) {
+    if (Array.isArray(response.data)) {
+      venues.value = response.data;
+    } else if (response.data && response.data.success) {
       venues.value = response.data.data || [];
     }
   } catch (error) {
@@ -2281,5 +2283,25 @@ onUnmounted(() => {
 .fade-pop-leave-from {
   opacity: 1;
   transform: translate(-50%, 0) scale(1);
+}
+
+@media (max-width: 768px) {
+  .budget-row-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .budget-item-value {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .budget-sub-controls {
+    flex-wrap: wrap;
+  }
+  .grand-total-banner-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
 }
 </style>

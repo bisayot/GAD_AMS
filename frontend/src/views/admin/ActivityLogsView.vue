@@ -94,8 +94,8 @@
               </div>
               <div class="log-details flex-grow">
                   <p class="log-description">
-                    <span class="font-bold text-white">{{ log.email || 'Unknown User' }}</span> 
-                    <span class="text-slate-300">{{ log.description }}</span>
+                    <span class="font-bold text-white">{{ log.email || 'System' }}</span> 
+                    <span class="text-slate-300"> {{ log.description }}</span>
                   </p>
                   <div class="log-meta flex items-center gap-4 mt-1">
                     <span class="text-xs text-slate-400 flex items-center gap-1">

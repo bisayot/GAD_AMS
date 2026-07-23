@@ -47,7 +47,7 @@ const routes = [
       { path: 'messages', name: 'admin-messages', component: () => import('../views/admin/MessagesView.vue') },
       { path: 'user-management', name: 'admin-user-management', component: () => import('../views/admin/UserManagementView.vue') },
       { path: 'activity-logs', name: 'admin-activity-logs', component: () => import('../views/admin/ActivityLogsView.vue') },
-      { path: 'office-management', name: 'admin-office-management', component: () => import('../views/admin/OfficeManagementView.vue') },
+      { path: 'campus-resources', name: 'admin-campus-resources', component: () => import('../views/admin/CampusResourcesView.vue') },
       { path: 'settings', name: 'admin-settings', component: () => import('../views/UserSettingsView.vue') },
     ]
   },
@@ -109,7 +109,7 @@ const routes = [
       { path: 'messages', name: 'staff-messages', component: () => import('../views/staff/MessagesView.vue') },
       { path: 'user-management', name: 'staff-user-management', component: () => import('../views/staff/UserManagementView.vue') },
       { path: 'activity-logs', name: 'staff-activity-logs', component: () => import('../views/staff/ActivityLogsView.vue') },
-      { path: 'office-management', name: 'staff-office-management', component: () => import('../views/staff/OfficeManagementView.vue') },
+      { path: 'campus-resources', name: 'staff-campus-resources', component: () => import('../views/staff/CampusResourcesView.vue') },
       { path: 'settings', name: 'staff-settings', component: () => import('../views/UserSettingsView.vue') },
     ]
   },

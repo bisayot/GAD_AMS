@@ -343,7 +343,7 @@ class ActivityDesignController extends BaseController
             ->getResultArray();
 
         $users = $db->table('users')
-            ->select('users.office_id, COALESCE(users.profile_role, "Non-TWG") as user_role')
+            ->select('users.office_id, COALESCE(users.profile_role, \'Non-TWG\') as user_role')
             ->select('(SELECT COUNT(*) FROM activity_design WHERE activity_design.user_id = users.id AND activity_design.deleted_at IS NULL AND activity_design.is_archived = 0) as activity_designs_count')
             ->select('(SELECT COUNT(*) FROM accomplishment_report WHERE accomplishment_report.user_id = users.id AND accomplishment_report.deleted_at IS NULL AND accomplishment_report.is_archived = 0) as accomplishment_reports_count')
             ->where('users.role !=', 'admin')

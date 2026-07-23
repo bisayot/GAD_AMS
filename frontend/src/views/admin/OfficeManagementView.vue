@@ -1,6 +1,6 @@
 <template>
   <div class="page-container">
-    <div class="header-section">
+    <div v-if="!isNested" class="header-section">
       <div class="flex justify-between items-center w-full">
         <div>
           <h1 class="page-title">Office / Unit Management</h1>
@@ -11,6 +11,14 @@
           Add Office
         </button>
       </div>
+    </div>
+
+    <!-- Action Bar for nested view -->
+    <div v-if="isNested" class="flex justify-end mb-6">
+      <button class="btn-primary" @click="openAddModal">
+        <span class="material-symbols-outlined">add</span>
+        Add Office
+      </button>
     </div>
 
     <!-- Filters and Search -->
@@ -39,7 +47,7 @@
     </div>
 
     <!-- Offices Table -->
-    <div class="glass-card table-container">
+    <div class="glass-card table-container overflow-x-auto">
       <div v-if="loading" class="flex justify-center items-center py-12">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
       </div>
@@ -61,13 +69,15 @@
           <tr v-else v-for="(office, index) in filteredOffices" :key="office.office_id" class="hover:bg-white/5 transition-colors border-b border-white/5">
             <td class="p-4 text-slate-300 text-center">{{ index + 1 }}</td>
             <td class="p-4 text-white font-medium">{{ office.office_name }}</td>
-            <td class="p-4 text-right space-x-2">
-              <button class="btn-icon text-blue-400 hover:bg-blue-500/20" @click="openEditModal(office)" title="Edit">
-                <span class="material-symbols-outlined text-[1.2rem]">edit</span>
-              </button>
-              <button class="btn-icon text-red-400 hover:bg-red-500/20" @click="confirmDelete(office.office_id)" title="Delete">
-                <span class="material-symbols-outlined text-[1.2rem]">delete</span>
-              </button>
+            <td class="p-4">
+              <div class="flex justify-end items-center gap-2">
+                <button class="btn-icon text-blue-400 hover:bg-blue-500/20" @click="openEditModal(office)" title="Edit">
+                  <span class="material-symbols-outlined text-[1.2rem]">edit</span>
+                </button>
+                <button class="btn-icon text-red-400 hover:bg-red-500/20" @click="confirmDelete(office.office_id)" title="Delete">
+                  <span class="material-symbols-outlined text-[1.2rem]">delete</span>
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -126,6 +136,13 @@
 import { ref, onMounted, computed } from 'vue';
 import api from '../../api';
 import Swal from 'sweetalert2';
+
+const props = defineProps({
+  isNested: {
+    type: Boolean,
+    default: false
+  }
+});
 
 const offices = ref([]);
 const loading = ref(true);
@@ -332,7 +349,7 @@ onMounted(() => {
 
 <style scoped>
 .page-container {
-  padding: 1rem;
+  padding: v-bind('isNested ? "0" : "32px"');
   max-width: 1400px;
   margin: 0 auto;
 }

@@ -74,7 +74,7 @@ const adminMenu = ref([
   {
     label: 'System Controls', icon: 'admin_panel_settings',
     children: [
-      { label: 'Office/Unit Management', icon: 'domain', href: '/admin/office-management' },
+      { label: 'Campus Resources', icon: 'business_center', href: '/admin/campus-resources' },
       { label: 'User Management', icon: 'manage_accounts', href: '/admin/user-management' },
       { label: 'Activity Logs', icon: 'history', href: '/admin/activity-logs' },
       { label: 'Document Trash Bin', icon: 'delete', href: '/admin/trash-bin' }
