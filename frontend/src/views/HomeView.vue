@@ -1071,12 +1071,22 @@ const goals = [
   .hero { padding: 60px 32px 72px; }
 }
 @media (max-width: 768px) {
-  .hero-title { font-size: 36px; }
+  .hero-title { font-size: 36px; word-wrap: break-word; }
+  .section-title { font-size: 32px; word-wrap: break-word; }
+  .about-title { font-size: 32px; word-wrap: break-word; }
   .goals-grid { grid-template-columns: 1fr; }
   .stats-bar { grid-template-columns: repeat(2, 1fr); }
   .stats-bar .stat-item:nth-child(2) { border-right: none; }
   .hero-btns, .about-btns { flex-direction: column; align-items: center; }
   .section { padding: 48px 20px; }
   .hero { padding: 48px 20px 60px; }
+}
+@media (max-width: 480px) {
+  .hero-title { font-size: 28px; }
+  .section-title { font-size: 26px; }
+  .about-title { font-size: 26px; }
+  .hero-badge { font-size: 12px; padding: 4px 12px; }
+  .section-tag { font-size: 12px; }
+  .hero-logo { max-width: 250px; }
 }
 </style>

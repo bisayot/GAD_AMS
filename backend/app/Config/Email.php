@@ -6,8 +6,8 @@ use CodeIgniter\Config\BaseConfig;
 
 class Email extends BaseConfig
 {
-    public string $fromEmail  = '';
-    public string $fromName   = '';
+    public string $fromEmail  = 'gadims.bsu.bsit@gmail.com';
+    public string $fromName   = 'GAD AMS System';
     public string $recipients = '';
 
     /**
@@ -18,7 +18,7 @@ class Email extends BaseConfig
     /**
      * The mail sending protocol: mail, sendmail, smtp
      */
-    public string $protocol = 'mail';
+    public string $protocol = 'smtp';
 
     /**
      * The server path to Sendmail.
@@ -28,7 +28,7 @@ class Email extends BaseConfig
     /**
      * SMTP Server Hostname
      */
-    public string $SMTPHost = '';
+    public string $SMTPHost = 'smtp-relay.brevo.com';
 
     /**
      * Which SMTP authentication method to use: login, plain
@@ -48,7 +48,22 @@ class Email extends BaseConfig
     /**
      * SMTP Port
      */
-    public int $SMTPPort = 25;
+    public int $SMTPPort = 587;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        // Securely load from environment variables if present. 
+        // We check standard uppercase variables first (for Render/Linux) using native getenv()
+        $this->fromEmail  = getenv('FROM_EMAIL') ?: env('FROM_EMAIL') ?: env('email.fromEmail') ?: $this->fromEmail;
+        $this->SMTPHost   = getenv('SMTP_HOST') ?: env('SMTP_HOST') ?: env('email.SMTPHost') ?: $this->SMTPHost;
+        $this->SMTPUser   = getenv('SMTP_USER') ?: env('SMTP_USER') ?: env('email.SMTPUser') ?: $this->SMTPUser;
+        $this->SMTPPass   = getenv('SMTP_PASS') ?: env('SMTP_PASS') ?: env('email.SMTPPass') ?: $this->SMTPPass;
+        $this->SMTPPort   = (int) (getenv('SMTP_PORT') ?: env('SMTP_PORT') ?: env('email.SMTPPort') ?: $this->SMTPPort);
+        $this->SMTPCrypto = getenv('SMTP_CRYPTO') ?: env('SMTP_CRYPTO') ?: env('email.SMTPCrypto') ?: $this->SMTPCrypto;
+        $this->mailType   = getenv('MAIL_TYPE') ?: env('MAIL_TYPE') ?: env('email.mailType') ?: $this->mailType;
+    }
 
     /**
      * SMTP Timeout (in seconds)
@@ -82,7 +97,7 @@ class Email extends BaseConfig
     /**
      * Type of mail, either 'text' or 'html'
      */
-    public string $mailType = 'text';
+    public string $mailType = 'html';
 
     /**
      * Character set (utf-8, iso-8859-1, etc.)

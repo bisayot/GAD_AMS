@@ -15,6 +15,10 @@ $routes->group('api', function($routes) {
     $routes->post('login', 'AuthController::login');
     $routes->post('register', 'AuthController::register');
     $routes->get('logout', 'AuthController::logout');
+    $routes->post('forgot-password', 'AuthController::forgotPassword');
+    $routes->post('reset-password', 'AuthController::resetPassword');
+    $routes->options('forgot-password', 'AuthController::handleOptions');
+    $routes->options('reset-password', 'AuthController::handleOptions');
 
     // CORS preflight routes (existing)
     $routes->options('login', 'AuthController::handleOptions');
@@ -87,11 +91,14 @@ $routes->group('api', function($routes) {
     $routes->options('get-gender-issues', 'AuthController::handleOptions');
     $routes->get('get-gender-issues', 'ActivityDesignController::getGenderIssues');
     
-    $routes->options('get-gender-issues/(:num)', 'AuthController::handleOptions');
-    $routes->get('get-gender-issues/(:num)', 'ActivityDesignController::getGenderIssues/$1');
+    $routes->options('get-gender-issues/(:any)', 'AuthController::handleOptions');
+    $routes->get('get-gender-issues/(:any)', 'ActivityDesignController::getGenderIssues/$1');
     
     $routes->options('get-activity-classifications', 'AuthController::handleOptions');
     $routes->get('get-activity-classifications', 'ActivityDesignController::getActivityClassifications');
+
+    $routes->options('get-next-control-number', 'AuthController::handleOptions');
+    $routes->get('get-next-control-number', 'ActivityDesignController::getNextControlNumber');
 
     $routes->options('activity-designs', 'ActivityDesignController::index');
     $routes->get('activity-designs', 'ActivityDesignController::index');
@@ -117,9 +124,23 @@ $routes->group('api', function($routes) {
     $routes->options('get-next-control-number', 'AuthController::handleOptions');
     $routes->get('get-next-control-number', 'ActivityDesignController::getNextControlNumber');
 
+    // Modification requests
+    $routes->options('activity-designs/(:num)/request-modification', 'AuthController::handleOptions');
+    $routes->post('activity-designs/(:num)/request-modification', 'ActivityDesignController::requestModification/$1');
+    $routes->options('activity-designs/(:num)/approve-modification', 'AuthController::handleOptions');
+    $routes->post('activity-designs/(:num)/approve-modification', 'ActivityDesignController::approveModification/$1');
+    $routes->options('activity-designs/(:num)/reject-modification', 'AuthController::handleOptions');
+    $routes->post('activity-designs/(:num)/reject-modification', 'ActivityDesignController::rejectModification/$1');
+
     // Update deadline
     $routes->options('update-deadline/(:num)', 'AuthController::handleOptions');
     $routes->post('update-deadline/(:num)', 'ActivityDesignController::updateDeadline/$1');
+
+    // Disapprove and Revert
+    $routes->options('disapprove-design/(:num)', 'AuthController::handleOptions');
+    $routes->post('disapprove-design/(:num)', 'ActivityDesignController::disapproveDesign/$1');
+    $routes->options('revert-design/(:num)', 'AuthController::handleOptions');
+    $routes->post('revert-design/(:num)', 'ActivityDesignController::revertDecision/$1');
 
     // ----------------------------------------------------------------
     // MANDATES & GENDER ISSUES ROUTES
@@ -166,6 +187,8 @@ $routes->group('api', function($routes) {
     // ----------------------------------------------------------------
     $routes->options('approved-controls/(:num)', 'AuthController::handleOptions');
     $routes->get('approved-controls/(:num)', 'ApprovedControlsController::index/$1');
+    $routes->options('get-next-control-number', 'AuthController::handleOptions');
+    $routes->get('get-next-control-number', 'ActivityDesignController::getNextControlNumber');
 
     // ----------------------------------------------------------------
     // ARCHIVE ROUTES (new)
@@ -209,9 +232,20 @@ $routes->group('api', function($routes) {
     $routes->options('revision-report/(:num)', 'AuthController::handleOptions');
     $routes->post('revision-report/(:num)', 'AccomplishmentReportController::revisionReport/$1');
 
+    $routes->options('activity-design/mark-viewed/(:num)', 'AuthController::handleOptions');
+    $routes->post('activity-design/mark-viewed/(:num)', 'ActivityDesignController::markViewed/$1');
+    $routes->options('activity-design/unmark-viewed/(:num)', 'AuthController::handleOptions');
+    $routes->post('activity-design/unmark-viewed/(:num)', 'ActivityDesignController::unmarkViewed/$1');
+
+    $routes->options('accomplishment-report/mark-viewed/(:num)', 'AuthController::handleOptions');
+    $routes->post('accomplishment-report/mark-viewed/(:num)', 'AccomplishmentReportController::markViewed/$1');
+    $routes->options('accomplishment-report/unmark-viewed/(:num)', 'AuthController::handleOptions');
+    $routes->post('accomplishment-report/unmark-viewed/(:num)', 'AccomplishmentReportController::unmarkViewed/$1');
+
     // ----------------------------------------------------------------
     // MESSAGING ROUTES
     // ----------------------------------------------------------------
+
     $routes->options('messages/send', 'AuthController::handleOptions');
     $routes->post('messages/send', 'MessageController::send');
     $routes->options('messages/announce', 'AuthController::handleOptions');
@@ -276,7 +310,9 @@ $routes->group('api', function($routes) {
     // ----------------------------------------------------------------
     // FILE SERVING ROUTES (serve PDFs from writable/uploads)
     // ----------------------------------------------------------------
+    $routes->options('files/drafts/(:segment)', 'AuthController::handleOptions');
     $routes->get('files/drafts/(:segment)', 'FileController::serveDraft/$1');
+    $routes->options('files/archived/(:segment)', 'AuthController::handleOptions');
     $routes->get('files/archived/(:segment)', 'FileController::serveArchived/$1');
     // Document Trash Endpoints
     $routes->options('documents/trashed', 'AuthController::handleOptions');
@@ -285,4 +321,66 @@ $routes->group('api', function($routes) {
     $routes->post('documents/restore', 'DocumentTrashController::restore');
     $routes->options('documents/permanently-delete', 'AuthController::handleOptions');
     $routes->post('documents/permanently-delete', 'DocumentTrashController::permanentlyDelete');
+});
+$routes->group('api', function($routes) {
+    // ----------------------------------------------------------------
+    // GPB PLAN AND BUDGET ROUTES (new)
+    // ----------------------------------------------------------------
+    $routes->options('plan', 'AuthController::handleOptions');
+    $routes->get('plan', 'PlanController::getPlan');
+    $routes->post('plan', 'PlanController::savePlan');
+
+    // ----------------------------------------------------------------
+    // SETTINGS ROUTES (new)
+    // ----------------------------------------------------------------
+    $routes->options('settings/baseline', 'AuthController::handleOptions');
+    $routes->get('settings/baseline', 'SettingController::getBaselineAmounts');
+    $routes->post('settings/baseline', 'SettingController::updateBaselineAmounts');
+    
+    $routes->options('settings/system', 'AuthController::handleOptions');
+    $routes->get('settings/system', 'SettingController::getSystemSettings');
+    $routes->post('settings/system', 'SettingController::updateSystemSettings');
+    
+    $routes->options('settings/trigger-cleanup', 'AuthController::handleOptions');
+    $routes->post('settings/trigger-cleanup', 'SettingController::triggerCleanup');
+    
+    $routes->options('plan/mandate-statistics', 'AuthController::handleOptions');
+    $routes->get('plan/mandate-statistics', 'PlanController::getMandateStatistics');
+
+    $routes->options('plan/mandate-allocations', 'AuthController::handleOptions');
+    $routes->get('plan/mandate-allocations', 'PlanController::getMandateAllocations');
+    $routes->post('plan/mandate-allocations', 'PlanController::saveMandateAllocations');
+    
+    $routes->options('gpb/export/(:num)', 'AuthController::handleOptions');
+    $routes->get('gpb/export/(:num)', 'GpbExportController::export/$1');
+    
+    $routes->options('gpb/export-live', 'AuthController::handleOptions');
+    $routes->post('gpb/export-live', 'GpbLiveExportController::export');
+});
+
+$routes->group('api', function($routes) {
+    $routes->options('gpb/import', 'AuthController::handleOptions');
+    $routes->post('gpb/import', 'GpbController::import');
+    $routes->options('gpb/item', 'AuthController::handleOptions');
+    $routes->get('gpb/item', 'GpbController::index');
+    $routes->post('gpb/item', 'GpbController::create');
+    $routes->options('gpb/item/(:segment)', 'AuthController::handleOptions');
+    $routes->get('gpb/item/(:segment)', 'GpbController::show/$1');
+    $routes->put('gpb/item/(:segment)', 'GpbController::update/$1');
+    $routes->delete('gpb/item/(:segment)', 'GpbController::delete/$1');
+
+    // Annual Report Archives
+    $routes->options('annual-reports/archive', 'AuthController::handleOptions');
+    $routes->post('annual-reports/archive', 'AnnualReportArchiveController::archive');
+    $routes->get('annual-reports/archive', 'AnnualReportArchiveController::index');
+    $routes->options('annual-reports/archive/(:num)', 'AuthController::handleOptions');
+    $routes->get('annual-reports/archive/(:num)', 'AnnualReportArchiveController::show/$1');
+
+    // Venues Management
+    $routes->options('venues', 'AuthController::handleOptions');
+    $routes->get('venues', 'VenueController::index');
+    $routes->post('venues', 'VenueController::create');
+    $routes->options('venues/(:num)', 'AuthController::handleOptions');
+    $routes->put('venues/(:num)', 'VenueController::update/$1');
+    $routes->delete('venues/(:num)', 'VenueController::delete/$1');
 });

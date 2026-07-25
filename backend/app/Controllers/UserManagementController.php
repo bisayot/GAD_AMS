@@ -57,20 +57,12 @@ class UserManagementController extends ResourceController
             'password' => password_hash($data['password'], PASSWORD_DEFAULT),
             'role' => $role,
             'full_name' => $data['full_name'],
-            'office_id' => $data['office_id']
+            'office_id' => $data['office_id'],
+            'profile_role' => $data['user_role']
         ];
 
         if ($userModel->insert($userData)) {
             $newUserId = $userModel->insertID();
-
-            $db = \Config\Database::connect();
-            $db->table('user_profiles')->insert([
-                'user_id' => $newUserId,
-                'first_name' => '',
-                'last_name' => '',
-                'user_role' => $data['user_role'],
-                'office_unit_id' => $data['office_id']
-            ]);
 
             $actionUserId = $this->request->getHeaderLine('X-User-Id');
             if ($actionUserId) {
@@ -124,7 +116,8 @@ class UserManagementController extends ResourceController
             'email' => $data['email'],
             'full_name' => $data['full_name'],
             'role' => $role,
-            'office_id' => $data['office_id']
+            'office_id' => $data['office_id'],
+            'profile_role' => $data['user_role']
         ];
 
         if (!empty($data['password'])) {
@@ -132,23 +125,6 @@ class UserManagementController extends ResourceController
         }
 
         $userModel->update($id, $updateData);
-
-        $db = \Config\Database::connect();
-        $profileExists = $db->table('user_profiles')->where('user_id', $id)->countAllResults() > 0;
-        
-        $profileData = [
-            'user_role' => $data['user_role'],
-            'office_unit_id' => $data['office_id']
-        ];
-
-        if ($profileExists) {
-            $db->table('user_profiles')->where('user_id', $id)->update($profileData);
-        } else {
-            $profileData['user_id'] = $id;
-            $profileData['first_name'] = '';
-            $profileData['last_name'] = '';
-            $db->table('user_profiles')->insert($profileData);
-        }
 
         $actionUserId = $this->request->getHeaderLine('X-User-Id');
         if ($actionUserId) {
@@ -198,7 +174,6 @@ class UserManagementController extends ResourceController
         $user = $db->table('users')->where('id', $id)->get()->getRowArray();
         
         $db->table('users')->where('id', $id)->delete();
-        $db->table('user_profiles')->where('user_id', $id)->delete();
         
         $actionUserId = $this->request->getHeaderLine('X-User-Id');
         if ($actionUserId && $user) {

@@ -4,21 +4,21 @@
       <div class="loading-spinner"></div>
     </div>
 
-    <div v-else-if="error" class="error-view-wrapper">
-      <div class="error-card">
-        <div class="error-glow"></div>
-        <div class="error-icon-container">
-          <span class="material-symbols-outlined error-icon" v-if="error.includes('Access Denied')">gpp_bad</span>
-          <span class="material-symbols-outlined error-icon" v-else>error</span>
+    <div v-else-if="error" class="min-h-[60vh] flex items-center justify-center p-6">
+      <div class="bg-black/80 backdrop-blur-3xl rounded-3xl border-2 border-red-500/40 max-w-md w-full text-center p-10 relative overflow-hidden flex flex-col items-center shadow-2xl shadow-red-900/20">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-red-600/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="w-24 h-24 rounded-full bg-red-500/20 border-2 border-red-500/50 flex items-center justify-center mb-6 relative z-10 shadow-lg shadow-red-500/20">
+          <span class="material-symbols-outlined text-5xl text-red-400 drop-shadow-md" v-if="error.includes('Access Denied')">gpp_bad</span>
+          <span class="material-symbols-outlined text-5xl text-red-400 drop-shadow-md" v-else>error</span>
         </div>
-        <h2 class="error-heading">
+        <h2 class="text-3xl font-headline font-black text-white mb-3 relative z-10 tracking-tight drop-shadow-md">
           {{ error.includes('Access Denied') ? 'Access Restricted' : 'Error Loading Data' }}
         </h2>
-        <p class="error-text">
+        <p class="text-slate-200 font-body text-base font-medium mb-10 relative z-10 leading-relaxed px-2">
           {{ error }}
         </p>
-        <button @click="router.back()" class="error-btn">
-          <span class="material-symbols-outlined btn-icon">arrow_back</span>
+        <button @click="router.back()" class="relative z-10 bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-900/50 px-10 py-4 rounded-full font-label text-sm font-extrabold tracking-widest uppercase transition-all hover:-translate-y-1 active:translate-y-0 flex items-center gap-3 group">
+          <span class="material-symbols-outlined text-base group-hover:-translate-x-1 transition-transform font-bold">arrow_back</span>
           Go Back
         </button>
       </div>
@@ -26,42 +26,64 @@
 
     <div v-else class="page-container">
       <div class="layout-grid">
-
+        <!-- LEFT SECTION - Design Preview -->
         <section class="flex-06 glass-card">
           <div class="report-header">
             <div class="meta-header">
-              <div class="status-badge-wrapper">
-                <div class="status-badge-view" :class="getStatusClass(design.status)">
-                  <span class="status-text">{{ formatStatus(design.status) }}</span>
-                </div>
-                <span class="control-number">{{ design.control || 'PENDING ASSIGNMENT' }}</span>
+              <div class="status-badge-view" :class="getStatusClass(design.status)">
+                <span class="status-text">{{ formatStatus(design.status) }}</span>
               </div>
-              <div class="meta-group">
-                <div class="meta-item">
-                  <span class="info-label header-label">Category</span>
-                  <span class="info-value-white">Activity Design</span>
-                </div>
-                <div class="meta-item">
-                  <span class="info-label header-label">Form Type</span>
-                  <span class="info-value-white">{{ formatFormType(design.form_type) }}</span>
-                </div>
-              </div>
+              <span class="control-number">{{ design.control || 'PENDING ASSIGNMENT' }}</span>
             </div>
 
             <h2 class="report-title">{{ design.activity_title }}</h2>
 
             <div class="info-grid">
+              <div class="info-item" style="grid-column: span 2;">
+                <span class="info-label">Activity Title</span>
+                <span class="info-value-white">{{ design.activity_title }}</span>
+              </div>
               <div class="info-item">
               <span class="info-label">Submitted By</span>
-              <span class="info-value-white">{{ design.username || '' }}</span>
+              <span class="info-value-purple">{{ design.submitter_name || '' }}</span>
             </div>
             <div class="info-item">
                 <span class="info-label">Office / Unit</span>
-                <span class="info-value-white">{{ design.office }}</span>
+                <span class="info-value-purple">{{ design.office }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">Date Submitted</span>
                 <span class="info-value-white">{{ design.date || '---' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Category</span>
+                <span class="info-value-white">Activity Design</span>
+              </div>
+              <div class="info-item" style="grid-column: span 2;">
+                <span class="info-label">Activity Classification</span>
+                <span class="info-value-white">{{ design.activity_classification || '---' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Form Type</span>
+                <span class="info-value-white uppercase">{{ design.form_type_name || formatFormType(design.form_type) || '---' }}</span>
+              </div>
+              <div class="info-item" style="grid-column: span 2;">
+                <span class="info-label">Gender Issue / GAD Mandate</span>
+                <div v-if="design.gad_mandate" class="mandate-boxes">
+                  <span v-for="(mandate, index) in design.gad_mandate.split(';;;')" :key="'m'+index" class="mandate-box">
+                    {{ mandate.trim() }}
+                  </span>
+                </div>
+                <span v-else class="info-value-white">---</span>
+              </div>
+              <div class="info-item" style="grid-column: span 2;">
+                <span class="info-label">Cause of Gender Issue</span>
+                <div v-if="design.gender_issue" class="mandate-boxes">
+                  <span v-for="(issue, index) in design.gender_issue.split(';;;')" :key="'i'+index" class="mandate-box">
+                    {{ issue.trim() }}
+                  </span>
+                </div>
+                <span v-else class="info-value-white">---</span>
               </div>
             </div>
           </div>
@@ -74,42 +96,31 @@
               </div>
               <div class="grid-2">
                 <div>
-                  <label class="info-label">Date</label>
-                  <p class="info-value-white">{{ formatDate(design.start_date) }} — {{ formatDate(design.end_date) }}</p>
+                  <label class="info-label">Start Date</label>
+                  <p class="info-value-white">{{ formatDate(design.start_date) }}</p>
                 </div>
                 <div>
-                  <label class="info-label">Time</label>
-                  <p class="info-value-white">{{ formatTime(design.start_time) }} to {{ formatTime(design.end_time) }}</p>
+                  <label class="info-label">End Date</label>
+                  <p class="info-value-white">{{ formatDate(design.end_date) }}</p>
+                </div>
+                <div>
+                  <label class="info-label">Start Time</label>
+                  <p class="info-value-white">{{ formatTime(design.start_time) }}</p>
+                </div>
+                <div>
+                  <label class="info-label">End Time</label>
+                  <p class="info-value-white">{{ formatTime(design.end_time) }}</p>
                 </div>
                 <div class="full-width-info">
                   <label class="info-label">Venue</label>
                   <p class="info-value-white">{{ design.venue }}</p>
+                  <span :class="design.is_inside_bsu == 1 || design.is_inside_bsu === true ? 'venue-badge inside-bsu' : 'venue-badge outside-bsu'">
+                    {{ design.is_inside_bsu == 1 || design.is_inside_bsu === true ? '🏫 Inside BSU' : '🌐 Outside BSU' }}
+                  </span>
                 </div>
                 <div class="full-width-info participants-info">
                   <label class="info-label">Target Participants</label>
                   <p class="info-value-white">{{ design.target_participants }} individuals</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- GAD Alignment Section Card -->
-            <div class="section-card">
-              <div class="section-header-row">
-                <span class="material-symbols-outlined icon-pink">gavel</span>
-                <h3 class="section-title">GAD Alignment</h3>
-              </div>
-              <div class="grid-2">
-                <div class="full-width-info">
-                  <label class="info-label">Activity Classification</label>
-                  <p class="info-value-white">{{ design.classification_name || '---' }}</p>
-                </div>
-                <div class="full-width-info">
-                  <label class="info-label">GAD Mandate / Plan Objective</label>
-                  <p class="info-value-white">{{ design.mandate_title || '---' }}</p>
-                </div>
-                <div class="full-width-info">
-                  <label class="info-label">Gender Issue Addressed</label>
-                  <p class="info-value-white">{{ design.gender_issue_title || '---' }}</p>
                 </div>
               </div>
             </div>
@@ -119,30 +130,44 @@
                 <span class="material-symbols-outlined icon-pink">payments</span>
                 <h3 class="section-title">Proposed Budgetary Requirements</h3>
               </div>
-              <div v-if="parsedBudget.length" class="budget-content">
-                <div class="budget-table-wrapper">
-                  <table class="budget-table">
-                    <thead class="budget-table-header">
-                      <tr>
-                        <th class="table-header-cell">Budget Item</th>
-                        <th class="table-header-cell budget-total-header">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody class="budget-table-body">
-                      <tr v-for="(item, idx) in parsedBudget" :key="idx" class="budget-table-row">
-                        <td class="budget-item-name" v-html="formatBudgetName(item.name)"></td>
-                        <td class="budget-item-value-cell budget-value-right">
-                          <span class="budget-item-value">₱{{ formatCurrency(item.total) }}</span>
-                        </td>
-                      </tr>
-                    </tbody>
-                    <tfoot class="budget-table-footer">
-                      <tr>
-                        <td class="grand-total-label">Grand Total (PHP)</td>
-                        <td class="grand-total-value-white budget-value-right">₱{{ formatCurrency(design.proposed_budget) }}</td>
-                      </tr>
-                    </tfoot>
-                  </table>
+              <div v-if="parsedBudget.length" class="budget-groups-container">
+                <div v-for="(group, gIdx) in parsedBudget" :key="gIdx" class="budget-group-card">
+                  <div class="budget-group-header">
+                    <span class="budget-group-icon">{{ group.icon }}</span>
+                    <span class="budget-group-title">{{ group.name }}</span>
+                  </div>
+                  <div class="budget-group-content">
+                    <div v-for="(child, cIdx) in group.children" :key="cIdx" class="budget-row-item" :class="{'has-sub-options': child.subOptions}">
+                      <div class="budget-row-header">
+                        <div class="budget-item-info">
+                          <div class="budget-item-title" v-html="formatBudgetName(child.name)"></div>
+                        </div>
+                        <div class="budget-item-value">
+                          <span class="budget-currency-symbol">₱</span>
+                          <div class="budget-card-input-readonly">{{ formatCurrency(child.value) }}</div>
+                        </div>
+                      </div>
+                      <div v-if="child.subOptions" class="budget-sub-options-container">
+                        <label v-for="(opt, oIdx) in child.subOptions" :key="oIdx" class="budget-read-only-checkbox">
+                          <input type="checkbox" :checked="opt.checked" disabled class="budget-checkbox-disabled" />
+                          <span class="budget-checkbox-label-text">{{ opt.label }}</span>
+                        </label>
+                      </div>
+                      <div v-if="child.othersBreakdown && child.othersBreakdown.length" class="budget-others-breakdown-container mt-2">
+                        <div v-for="(o, oIdx) in child.othersBreakdown" :key="oIdx" class="budget-others-breakdown-row" style="display: flex; justify-content: space-between; padding: 4px 12px; background: rgba(0,0,0,0.1); border-radius: 4px; margin-bottom: 4px; font-size: 13px;">
+                          <span style="color: #cbd5e1;">{{ o.name || 'Unnamed Item' }}</span>
+                          <span style="color: #f1f5f9; font-weight: 500;">₱{{ formatCurrency(o.amount) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grand-total-banner-card mt-4">
+                  <div class="grand-total-label-banner">Grand Total (PHP)</div>
+                  <div class="grand-total-value-banner">
+                    ₱{{ formatCurrency(grandTotal) }}
+                  </div>
                 </div>
               </div>
               <div v-else class="empty-budget-notice">
@@ -163,27 +188,33 @@
                     <p class="doc-meta">Reference: {{ design.attachment }}</p>
                   </div>
                 </div>
-                <button @click="previewFile(design.attachment)" class="preview-btn">👁️ Preview</button>
+                <button @click="previewFile(design.attachment)" class="preview-btn">Preview</button>
               </div>
             </div>
           </div>
         </section>
 
+        <!-- RIGHT SECTION - Assessment Sidebar -->
         <section class="flex-04-sidebar">
           <div class="assessment-card-custom">
             <div class="assessment-header">
               <div class="assessment-icon">📋</div>
-              <div class="assessment-title">Design Assessment</div>
+              <div class="assessment-title">Assessment Record</div>
             </div>
 
             <div class="assessment-form">
-              <div class="info-item assessment-field">
-                <span class="info-label">Date of Assessment</span>
+              <div class="info-item mb-4">
+                <span class="info-label">Assessment Date</span>
                 <span class="info-value-white">{{ formatDate(design.assessment_date) || '---' }}</span>
               </div>
 
-              <div class="info-item assessment-field">
-                <span class="info-label">Accomplishment Deadline</span>
+              <div class="info-item mb-4">
+                <span class="info-label" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  Accomplishment Deadline
+                  <button @click="editDeadline" class="edit-btn" title="Edit Deadline" style="background: none; border: none; cursor: pointer; color: #b979cc; padding: 0;">
+                    <span class="material-symbols-outlined" style="font-size: 14px;">edit</span>
+                  </button>
+                </span>
                 <span class="info-value-white">{{ formatDate(design.accomplishment_deadline) || '---' }}</span>
               </div>
 
@@ -195,15 +226,21 @@
               </div>
 
               <div class="action-buttons">
-                <button 
-                  v-if="design.status && design.status.toLowerCase() === 'revision'"
-                  @click="router.push(`/staff/ad-revision/${design.act_design_id || route.params.id}`)" 
-                  class="btn-revise"
-                >
-                  ✏️ Revise Design
+                <div v-if="design.modification_request_status === 'pending'" style="margin-bottom: 1rem; border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 1rem; background: rgba(245,158,11,0.05);">
+                  <div style="color: #fbbf24; font-weight: bold; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;"><span class="material-symbols-outlined">warning</span> Modification Requested</div>
+                  <div style="font-size: 0.85rem; color: #e2e8f0; margin-bottom: 1rem; line-height: 1.4;">{{ design.modification_remarks || 'No reason provided.' }}</div>
+                  <button @click="approveModRequest" class="btn-primary" style="background: #4ade80; color: #064e3b; border: none; width: 100%; margin-bottom: 0.5rem; padding: 0.5rem;">Approve Request</button>
+                  <button @click="openRejectModModal" class="btn-primary" style="background: #f87171; color: #450a0a; border: none; width: 100%; padding: 0.5rem;">Reject Request</button>
+                </div>
+                <button v-if="design.status === 'Approved'" @click="router.push(`/staff/ad-revision/${design.act_design_id}`)" class="btn-primary" style="margin-bottom: 10px; width: 100%;">
+                  <span class="material-symbols-outlined" style="font-size: 1.2rem; margin-right: 4px;">edit</span> Modify Design
+                </button>
+
+                <button @click="handleTrash" class="btn-trash">
+                  <span class="material-symbols-outlined">delete</span> MOVE TO TRASH
                 </button>
                 <button @click="router.back()" class="btn-back">
-                  ← Back to Archive
+                  ← Back
                 </button>
               </div>
             </div>
@@ -212,14 +249,282 @@
       </div>
     </div>
 
+    <!-- PDF Preview Modal -->
     <PdfPreviewModal :isOpen="isPdfModalOpen" :fileUrl="pdfFileUrl" @close="closePdfModal" />
+
+    <!-- Reject Mod Request Modal -->
+    <div v-if="isRejectModModalOpen" class="modal-overlay">
+      <div class="modal-content">
+        <h3 class="modal-title">Reject Modification</h3>
+        <p class="modal-desc">Please provide a reason for rejecting this modification request.</p>
+        <textarea v-model="rejectModRemarks" class="modal-input" rows="4" placeholder="Enter reason..."></textarea>
+        <div class="modal-actions">
+          <button @click="closeRejectModModal" class="btn-cancel">Cancel</button>
+          <button @click="rejectModRequest" class="btn-submit" style="background: #f87171; color: white;">Reject Request</button>
+        </div>
+      </div>
+    </div>
   </main>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+
+const isRejectModModalOpen = ref(false);
+const rejectModRemarks = ref('');
+
+const openRejectModModal = () => {
+  isRejectModModalOpen.value = true;
+  rejectModRemarks.value = '';
+};
+
+const closeRejectModModal = () => {
+  isRejectModModalOpen.value = false;
+};
+
+const approveModRequest = async () => {
+  const result = await Swal.fire({
+    title: 'Approve Modification?',
+    text: 'Are you sure you want to approve this modification request?',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#4ade80',
+    cancelButtonColor: '#334155',
+    confirmButtonText: 'Yes, approve'
+  });
+  if (!result.isConfirmed) return;
+  try {
+    const res = await api.post(`activity-designs/${route.params.id}/approve-modification`);
+    if (res.data.success) {
+      Swal.fire({ icon: 'success', title: 'Approved', text: 'Modification request approved.', timer: 1500, showConfirmButton: false });
+      fetchDesignDetails();
+    } else {
+      Swal.fire({ icon: 'error', title: 'Failed', text: res.data.message });
+    }
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Error approving modification request.' });
+  }
+};
+
+const rejectModRequest = async () => {
+  try {
+    const res = await api.post(`activity-designs/${route.params.id}/reject-modification`, { remarks: rejectModRemarks.value });
+    if (res.data.success) {
+      closeRejectModModal();
+      Swal.fire({ icon: 'success', title: 'Rejected', text: 'Modification request rejected.', timer: 1500, showConfirmButton: false });
+      fetchDesignDetails();
+    } else {
+      Swal.fire({ icon: 'error', title: 'Failed', text: res.data.message });
+    }
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Error rejecting modification request.' });
+  }
+};
+
+const editDeadline = async () => {
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth();
+  const firstDay = new Date(currentYear, currentMonth, 1);
+  const minCurrentMonth = `${firstDay.getFullYear()}-${String(firstDay.getMonth() + 1).padStart(2, '0')}-${String(firstDay.getDate()).padStart(2, '0')}`;
+  const lastDay = new Date(currentYear, 11, 31);
+  const maxYear = `${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`;
+  
+  const endD = design.value.end_date ? design.value.end_date.split(' ')[0] : minCurrentMonth;
+  const finalMin = endD > minCurrentMonth ? endD : minCurrentMonth;
+
+  const { value: formValues } = await Swal.fire({
+    title: 'Edit Accomplishment Deadline',
+    html: `<input type="date" id="swal-input-deadline" class="swal2-input" value="${design.value.accomplishment_deadline || ''}" min="${finalMin}" max="${maxYear}">`,
+    focusConfirm: false,
+    showCancelButton: true,
+    confirmButtonColor: '#9333ea',
+    preConfirm: () => {
+      const val = document.getElementById('swal-input-deadline').value;
+      if (!val) {
+        Swal.showValidationMessage('Please select a date');
+        return false;
+      }
+      const selected = new Date(val);
+      const current = new Date();
+      if (selected.getFullYear() !== current.getFullYear()) {
+        Swal.showValidationMessage('Deadline must be within the current year');
+        return false;
+      }
+      if (selected.getMonth() < current.getMonth() && selected.getFullYear() === current.getFullYear()) {
+        Swal.showValidationMessage('Deadline cannot be in a previous month');
+        return false;
+      }
+      
+      const minDate = design.value.end_date ? new Date(design.value.end_date.split(' ')[0]) : null;
+      if (minDate) {
+        selected.setHours(0,0,0,0);
+        minDate.setHours(0,0,0,0);
+        
+        if (selected.getTime() === minDate.getTime()) {
+          Swal.showValidationMessage('Deadline cannot be the exact same date as the activity end date');
+          return false;
+        } else if (selected.getTime() < minDate.getTime()) {
+          Swal.showValidationMessage('Deadline cannot be before the activity end date');
+          return false;
+        }
+      }
+      return val;
+    }
+  });
+
+  if (formValues) {
+    const endD = design.value.end_date ? new Date(design.value.end_date.split(' ')[0]) : null;
+    if (endD) {
+      const selectedD = new Date(formValues);
+      const diffTime = selectedD - endD;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays !== 14) {
+        const isMore = diffDays > 14;
+        const confirmExtra = await Swal.fire({
+          title: 'Deadline Validation',
+          text: `The selected accomplishment deadline is ${isMore ? 'more' : 'less'} than 2 weeks from the activity end date. Do you want to proceed?`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#9333ea',
+          confirmButtonText: 'Yes, proceed'
+        });
+        if (!confirmExtra.isConfirmed) return;
+      }
+    }
+
+    try {
+      const response = await api.post(`update-deadline/${design.value.act_design_id || route.params.id}`, {
+        deadline: formValues,
+        is_archived: design.value.is_archived
+      });
+      if (response.data.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Accomplishment deadline updated.',
+          confirmButtonColor: '#9333ea',
+          timer: 1500,
+          showConfirmButton: false
+        });
+        fetchDesignDetails();
+      } else {
+        Swal.fire({ icon: 'error', title: 'Error', text: response.data.message });
+      }
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to update deadline.' });
+    }
+  }
+};
+
+const formatBudgetName = (name) => {
+  if (!name) return '';
+  return name.replace(/(\([^)]+\))/g, '<span class="budget-item-subtext">$1</span>');
+};
+
+const parsedBudget = computed(() => {
+  const d = design.value;
+  if (!d || !d.act_design_id) return [];
+
+  const dbMeals = Number(d.meals_total || 0);
+  const dbSnacks = Number(d.snacks_total || 0);
+  const legacyMealsSnacks = Number(d.meals_and_snacks || 0);
+
+  let mealsVal = 0;
+  let snacksVal = 0;
+  
+  if (dbMeals === 0 && dbSnacks === 0 && legacyMealsSnacks > 0) {
+      // Fallback for older records
+      mealsVal = legacyMealsSnacks;
+  } else {
+      mealsVal = dbMeals;
+      snacksVal = dbSnacks;
+  }
+
+  const dbMat = Number(d.materials_total || 0);
+  let ob = [];
+  if (d.materials_others_breakdown) {
+    try { ob = JSON.parse(d.materials_others_breakdown); } catch(e){}
+  }
+  const dbOthers = Number(d.others_total) || ob.reduce((s, o) => s + Number(o.amount || 0), 0);
+  const legacyMatOthers = Number(d.materials_and_supplies || 0);
+
+  let matVal = 0;
+  let othersVal = 0;
+
+  if (dbMat === 0 && dbOthers === 0 && legacyMatOthers > 0) {
+      // Fallback for older records
+      matVal = legacyMatOthers;
+  } else {
+      matVal = dbMat;
+      othersVal = dbOthers;
+  }
+
+  const items = [
+    {
+      name: 'Catering & Hospitality',
+      icon: '🍽️',
+      total: mealsVal + snacksVal,
+      children: [
+        { 
+          name: 'Meals', 
+          value: mealsVal,
+          subOptions: [
+            { label: 'Breakfast', checked: Number(d.breakfast_selected) === 1 },
+            { label: 'Lunch', checked: Number(d.lunch_selected) === 1 },
+            { label: 'Dinner', checked: Number(d.dinner_selected) === 1 }
+          ]
+        },
+        { 
+          name: 'Snacks', 
+          value: snacksVal,
+          subOptions: [
+            { label: 'AM Snack', checked: Number(d.am_snack_selected) === 1 },
+            { label: 'PM Snack', checked: Number(d.pm_snack_selected) === 1 }
+          ]
+        }
+      ]
+    },
+    {
+      name: 'Venue & Logistics',
+      icon: '🏛️',
+      total: Number(d.function_room_venue || 0) + Number(d.accommodation || 0) + Number(d.equipment_rental || 0) + Number(d.transportation || 0),
+      children: [
+        { name: 'Function Room/Venue', value: Number(d.function_room_venue || 0) },
+        { name: 'Accommodation', value: Number(d.accommodation || 0) },
+        { name: 'Equipment Rental', value: Number(d.equipment_rental || 0) },
+        { name: 'Transportation', value: Number(d.transportation || 0) }
+      ]
+    },
+    {
+      name: 'Program & Speakers',
+      icon: '🎤',
+      total: Number(d.professional_fee_honoria || 0) + Number(d.tokens || 0),
+      children: [
+        { name: `Professional Fee/Honoraria ${Number(d.professional_fee_honoria || 0) > 0 ? `(Number of Speakers: ${d.pf_pax || 0})` : ''}`, value: Number(d.professional_fee_honoria || 0) },
+        { name: `Token/s ${Number(d.tokens || 0) > 0 ? `(Number of Recipients: ${d.tokens_pax || 0})` : ''}`, value: Number(d.tokens || 0) }
+      ]
+    },
+    {
+      name: 'Materials & Miscellaneous',
+      icon: '📦',
+      total: matVal + othersVal,
+      children: [
+        { name: 'Materials and Supplies', value: matVal },
+        { name: 'Others', value: othersVal, othersBreakdown: ob }
+      ]
+    }
+  ];
+  return items;
+});
+
+const grandTotal = computed(() => {
+  return parsedBudget.value.reduce((sum, cat) => sum + (Number(cat.total) || 0), 0);
+});
+
+import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '../../api';
+import Swal from 'sweetalert2';
 import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
 
 const route = useRoute();
@@ -228,6 +533,52 @@ const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 const design = ref({});
 const loading = ref(true);
 const error = ref(null);
+
+const handleTrash = async () => {
+  const isArchived = design.value.is_archived == 1;
+  if (!isArchived && (design.value.status !== 'Pending' || design.value.is_viewed_by_admin == 1)) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Action Denied',
+      text: 'You cannot move this document to trash because it is already being processed or has been viewed by an admin.',
+      confirmButtonColor: '#3085d6'
+    });
+    return;
+  }
+  const result = await Swal.fire({
+    title: 'Move to Trash?',
+    text: 'This document will be moved to the trash bin.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#334155',
+    confirmButtonText: 'Yes, move it'
+  });
+
+  if (result.isConfirmed) {
+    try {
+      const response = await api.delete(`activity-designs/trash/${route.params.id}`);
+      if (response.data.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Moved to Trash',
+          text: 'Document has been moved to trash.',
+          timer: 1500,
+          showConfirmButton: false
+        });
+        router.push(design.value.is_archived == 1 ? '/staff/archive' : '/staff/ad-list');
+      } else {
+        throw new Error(response.data.message || 'Failed to move to trash');
+      }
+    } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: err.message || 'An error occurred while moving to trash'
+      });
+    }
+  }
+};
 
 const fetchDesignDetails = async () => {
   loading.value = true;
@@ -252,7 +603,7 @@ const formatTime = (time) => {
 
 const formatStatus = (status) => {
   if (!status) return 'Unknown';
-  if (status.toLowerCase() === 'Revision') return 'For Revision';
+  if (status.toLowerCase() === 'revision required') return 'For Revision';
   return status.charAt(0).toUpperCase() + status.slice(1);
 };
 
@@ -278,110 +629,12 @@ const getStatusClass = (status) => {
   if (s === 'approved') return 'approved';
   if (s === 'completed' || s === 'archived') return 'completed';
   if (s === 'cancelled') return 'cancelled';
-  if (s === 'Revision' || s === 'revision') return 'revision';
+  if (s === 'revision required' || s === 'revision') return 'revision';
+  if (s === 'disapproved') return 'disapproved';
   return 'completed';
 };
 
 const formatCurrency = (amt) => amt ? parseFloat(amt).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00';
-
-const parsedBudget = computed(() => {
-  const d = design.value;
-  if (!d || !d.act_design_id) return [];
-
-  const items = [];
-  if (d.budget_items && d.budget_items.length > 0) {
-    // 1. Meals
-    const meals = d.budget_items.filter(bi => bi.item_name === 'Meals');
-    if (meals.length > 0) {
-      let total = meals.reduce((sum, bi) => sum + Number(bi.amount), 0);
-      let subItems = meals.map(bi => bi.sub_item).filter(Boolean);
-      let name = 'Meals';
-      if (subItems.length > 0) {
-        name += ` (${subItems.join(', ')})`;
-      }
-      items.push({ name, total });
-    }
-
-    // 2. Snacks
-    const snacks = d.budget_items.filter(bi => bi.item_name === 'Snacks');
-    if (snacks.length > 0) {
-      let total = snacks.reduce((sum, bi) => sum + Number(bi.amount), 0);
-      let subItems = snacks.map(bi => bi.sub_item).filter(Boolean);
-      let name = 'Snacks';
-      if (subItems.length > 0) {
-        name += ` (${subItems.join(', ')})`;
-      }
-      items.push({ name, total });
-    }
-
-    // 3. Standard items: Function Room/Venue, Accommodation, Equipment Rental, Materials and Supplies, Transportation
-    const standardNames = [
-      'Function Room/Venue',
-      'Accommodation',
-      'Equipment Rental',
-      'Materials and Supplies',
-      'Transportation'
-    ];
-    standardNames.forEach(sName => {
-      const found = d.budget_items.find(bi => bi.item_name === sName);
-      if (found && Number(found.amount) > 0) {
-        items.push({ name: found.item_name, total: found.amount });
-      }
-    });
-
-    // 4. Professional Fee with Pax
-    const pf = d.budget_items.find(bi => bi.item_name === 'Professional Fee/Honoria');
-    if (pf && Number(pf.amount) > 0) {
-      let name = pf.item_name;
-      if (pf.pax) {
-        name += ` (Number of Speakers: ${pf.pax})`;
-      }
-      items.push({ name, total: pf.amount });
-    }
-
-    // 5. Token/s with Pax
-    const tokens = d.budget_items.find(bi => bi.item_name === 'Token/s');
-    if (tokens && Number(tokens.amount) > 0) {
-      let name = tokens.item_name;
-      if (tokens.pax) {
-        name += ` (Number of Recipients: ${tokens.pax})`;
-      }
-      items.push({ name, total: tokens.amount });
-    }
-
-    // 6. Others
-    const others = d.budget_items.filter(bi => bi.item_name === 'Others');
-    if (others.length > 0) {
-      others.forEach(o => {
-        if (Number(o.amount) > 0) {
-          items.push({ name: `Other: ${o.sub_item || 'Unspecified'}`, total: o.amount });
-        }
-      });
-    }
-
-    return items;
-  }
-
-  // Fallback to static columns if budget_items not present (backward compatibility)
-  const fallbackItems = [
-    { name: 'Meals and Snacks (AM/PM)', total: d.meals_and_snacks },
-    { name: 'Function Room/Venue', total: d.function_room_venue },
-    { name: 'Accommodation', total: d.accommodation },
-    { name: 'Equipment Rental', total: d.equipment_rental },
-    { name: 'Professional Fee/Honoria', total: d.professional_fee_honoria },
-    { name: 'Token/s', total: d.tokens },
-    { name: 'Materials and Supplies', total: d.materials_and_supplies },
-    { name: 'Transportation', total: d.transportation },
-    { name: 'Others', total: d.others }
-  ];
-
-  return fallbackItems.filter(item => Number(item.total) > 0);
-});
-
-const formatBudgetName = (name) => {
-  if (!name) return '';
-  return name.replace(/(\(.*\))/g, '<span class="budget-item-subtext">$1</span>');
-};
 
 const isPdfModalOpen = ref(false);
 const pdfFileUrl = ref('');
@@ -389,7 +642,7 @@ const pdfFileUrl = ref('');
 const previewFile = (fileName) => {
   if (!fileName) return;
   const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api/', '') : 'https://gad-ams-2-1.onrender.com');
-  const folder = design.value.is_archived ? 'archived' : 'drafts';
+  const folder = Number(design.value.is_archived) === 1 ? 'archived' : 'drafts';
   pdfFileUrl.value = `${base}/api/files/${folder}/${fileName}`;
   isPdfModalOpen.value = true;
 };
@@ -406,69 +659,59 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.main-viewport { flex: 1;  height: 100vh; background: transparent; }
-
+.main-viewport { flex: 1; overflow-y: auto; background: transparent; }
 .loading-wrapper { display: flex; justify-content: center; align-items: center; min-height: 400px; }
-
-.error-container { max-width: 768px; margin: 0 auto; padding: 40px; }
-
-.error-box { background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 16px; border-radius: 12px; }
-
+.error-container { max-width: 48rem; margin: 0 auto; padding: 2.5rem; }
+.error-box { background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 1rem; border-radius: 0.75rem; }
 .error-title { color: #ef4444; font-weight: 700; }
-
-.error-message { color: #cbd5e1; font-size: 18px; }
-.error-back-btn { margin-top: 16px; font-size: 18px; font-weight: 700; color: #ef4444; background: transparent; border: none; cursor: pointer; }
+.error-message { color: #cbd5e1; font-size: 1.1rem; }
+.error-back-btn { margin-top: 1rem; font-size: 1.1rem; font-weight: 700; color: #ef4444; background: transparent; border: none; cursor: pointer; }
 .page-container { min-height: 100vh;  }
-.glass-card { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); backdrop-filter: blur(24px); border-radius: 24px; border: 1px solid rgba(185, 121, 204, 0.2); }
+.glass-card { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); backdrop-filter: blur(24px); border-radius: 1.5rem; border: 1px solid rgba(185, 121, 204, 0.2); }
 
-.layout-grid { display: flex; gap: 15px; max-width: 1280px; margin: 0 auto; align-items: flex-start; }
-.flex-06 { flex: 0.65; display: flex; flex-direction: column; overflow: hidden; }
-.flex-04-sidebar { flex: 0.35; position: sticky; top: 120px; align-self: flex-start; }
+.layout-grid { display: flex; gap: 32px; padding: 2.5rem; max-width: 80rem; margin: 0 auto; }
+.flex-06 { flex: 0.6; display: flex; flex-direction: column; overflow: hidden; }
+.flex-04-sidebar { flex: 0.4; position: sticky; top: 20px; align-self: flex-start; }
 
-.report-header { padding: 32px; border-bottom: 1px solid rgba(185, 121, 204, 0.15); background: rgba(0, 0, 0, 0.2); }
-.meta-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
-.status-badge-wrapper { display: flex; align-items: center; }
-.meta-group { display: flex; gap: 20px; align-items: center; }
-.meta-item { display: flex; flex-direction: column; align-items: flex-end; text-align: right; }
-.header-label { color: #64748b !important; margin-bottom: 2px; }
-
-.report-title { font-family: 'Times New Roman', serif; font-size: 26px; color: white; line-height: 1.25; margin: 16px 0; }
-.status-badge-view { padding: 4px 12px; border-radius: 9999px; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; }
+.report-header { padding: 2rem; border-bottom: 1px solid rgba(185, 121, 204, 0.15); background: rgba(0, 0, 0, 0.2); }
+.meta-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
+.report-title { font-size: 26px; color: white; line-height: 1.25; margin: 1rem 0; }
+.status-badge-view { padding: 4px 12px; border-radius: 9999px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; }
 .status-badge-view.completed { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
 .status-badge-view.cancelled { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
 .status-badge-view.pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
 .status-badge-view.approved { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
 .status-badge-view.revision { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
-.control-number { font-size: 13px; font-weight: 700; color: #b979cc; text-transform: uppercase; margin-left: 12px; font-family: monospace; }
-
+.status-badge-view.disapproved { background: rgba(220, 38, 38, 0.15); color: #dc2626; border: 1px solid rgba(220, 38, 38, 0.3); }
+.control-number { font-size: 11px; font-weight: 700; color: #b979cc; text-transform: uppercase; margin-left: 12px; font-family: monospace; }
 .info-grid { display: flex; flex-wrap: wrap; gap: 24px; padding-top: 16px; border-top: 1px solid rgba(185, 121, 204, 0.1); }
-.info-item { display: flex; flex-direction: column; padding-bottom: 18px; }
-.info-label { font-size: 13px; text-transform: uppercase; color: #b979cc; font-weight: 700; margin-bottom: 4px; }
-.info-value-white { font-size: 14px; font-weight: 600; color: white; text-transform: uppercase; }
-.info-value-purple { font-size: 14px; font-weight: 600; color: white; }
-
-.report-body { padding: 32px; }
-.report-body > * + * { margin-top: 24px; }
+.info-item { display: flex; flex-direction: column; }
+.info-label { font-size: 10px; text-transform: uppercase; color: #cbd5e1; font-weight: 700; margin-bottom: 4px; }
+.info-value-white { font-size: 14px; font-weight: 600; color: white; }
+.info-value-purple { font-size: 14px; font-weight: 600; color: #b979cc; }
+.report-body { padding: 2rem; }
+.report-body > * + * { margin-top: 1.5rem; }
 .section-card { background: rgba(0, 0, 0, 0.2); border-radius: 16px; padding: 24px; border: 1px solid rgba(185, 121, 204, 0.15); }
 .section-header-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
 .section-title { font-weight: 800; font-size: 13px; text-transform: uppercase; color: #b979cc; }
 .icon-pink { color: #b979cc; }
+.text-sm-light { font-size: 1.1rem; color: #cbd5e1; font-weight: 500; }
 .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
 .metric-box { background: rgba(0, 0, 0, 0.3); border-radius: 12px; padding: 16px; text-align: center; border: 1px solid rgba(185, 121, 204, 0.1); }
 .metric-value { font-size: 24px; font-weight: 700; color: white; }
-.metric-label { font-size: 13px; color: #cbd5e1; text-transform: uppercase; margin-top: 4px; }
-.doc-item { display: flex; align-items: center; justify-content: space-between; padding: 16px; background: rgba(0, 0, 0, 0.3); border-radius: 12px; border: 1px solid rgba(185, 121, 204, 0.15); }
+.metric-label { font-size: 10px; color: #cbd5e1; text-transform: uppercase; margin-top: 4px; }
+.doc-item { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 16px; background: rgba(0, 0, 0, 0.3); border-radius: 12px; border: 1px solid rgba(185, 121, 204, 0.15); overflow-x: auto; }
 .doc-info { display: flex; align-items: center; gap: 12px; }
-.doc-pdf-icon { font-size: 30px; color: #ef4444; }
-.doc-title { font-size: 13px; font-weight: 700; color: white; }
-.doc-meta { font-size: 13px; color: #cbd5e1; margin-top: 2px; }
-.preview-btn { color: #b979cc; font-size: 13px; padding: 6px 16px; border-radius: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(185, 121, 204, 0.15); font-weight: 700; cursor: pointer; transition: all 0.2s; }
+.doc-pdf-icon { font-size: 1.875rem; color: #ef4444; }
+.doc-title { font-size: 13px; font-weight: 700; color: white; white-space: nowrap; }
+.doc-meta { font-size: 11px; color: #cbd5e1; margin-top: 2px; white-space: nowrap; }
+.preview-btn { color: #b979cc; font-size: 11px; padding: 6px 16px; border-radius: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(185, 121, 204, 0.15); font-weight: 700; cursor: pointer; transition: all 0.2s; }
 .preview-btn:hover { border-color: #b979cc; color: white; background: rgba(185, 121, 204, 0.1); }
 
 .assessment-card-custom {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border-radius: 24px;
-  padding: 32px;
+  border-radius: 1.5rem;
+  padding: 2rem;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(185, 121, 204, 0.2);
 }
@@ -484,92 +727,437 @@ onMounted(() => {
   padding: 14px 16px;
   font-size: 13px;
   background: rgba(0, 0, 0, 0.3);
-  color: white;
+  color: #cbd5e1;
   min-height: 100px;
   line-height: 1.5;
 }
 
-.action-buttons { margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(185, 121, 204, 0.15); }
-.btn-revise { width: 100%; padding: 12px; margin-bottom: 12px; font-size: 13px; font-weight: 800; text-transform: uppercase; color: white; border-radius: 12px; background: linear-gradient(135deg, #a78bfa, #8b5cf6); border: none; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3); }
-.btn-revise:hover { background: linear-gradient(135deg, #c084fc, #a78bfa); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4); }
-.btn-revise:active { transform: translateY(0); }
-.btn-back { width: 100%; padding: 12px; font-size: 13px; font-weight: 800; text-transform: uppercase; color: #cbd5e1; border-radius: 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(185, 121, 204, 0.15); cursor: pointer; transition: all 0.2s; }
-.btn-back:hover { color: white; border-color: #b979cc; background: rgba(185, 121, 204, 0.05); }
-
-.empty-budget-notice {
-  color: #64748b;
-  font-size: 13px;
-  font-style: italic;
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.modal-content {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 1px solid rgba(185, 121, 204, 0.2);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  padding: 2rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+.modal-title {
+  color: #e2e8f0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  margin-top: 0;
+}
+.modal-desc {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+.modal-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(185, 121, 204, 0.2);
+  color: white;
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 0.95rem;
+  resize: vertical;
+  margin-bottom: 1.5rem;
+}
+.modal-input:focus {
+  outline: none;
+  border-color: #b979cc;
+  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.2);
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+.btn-cancel {
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+.btn-submit {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #b979cc 0%, #990dd1 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(185, 121, 204, 0.3);
 }
 
-.budget-table-wrapper {
-  overflow-x: auto;
+.action-buttons { margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(185, 121, 204, 0.15); }
+.btn-back { width: 100%; padding: 12px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #cbd5e1; border-radius: 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(185, 121, 204, 0.15); cursor: pointer; transition: all 0.2s; }
+.btn-back:hover { color: white; border-color: #b979cc; background: rgba(185, 121, 204, 0.05); }
+
+.btn-primary {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #b979cc 0%, #990dd1 100%);
+  border: none;
+  color: white;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background-color: rgba(0, 0, 0, 0.2);
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 0.75rem;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(185, 121, 204, 0.4);
+}
+
+.btn-trash {
+  width: 100%;
+  padding: 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  border-radius: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 0.75rem;
+}
+.btn-trash:hover { background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #fca5a5; }
+.btn-back:hover { color: white; border-color: #b979cc; background: rgba(185, 121, 204, 0.05); }
+
+@media (max-width: 1024px) {
+  .layout-grid { flex-direction: column; padding: 1rem; }
+  .flex-06, .flex-055, .flex-04-sidebar, .flex-045-sidebar { flex: 1 !important; width: 100% !important; max-width: 100% !important; position: relative !important; top: 0 !important; }
+}
+
+@media (max-width: 768px) {
+  .grid-2, .grid-3 { grid-template-columns: 1fr !important; }
+  .info-grid { flex-direction: column !important; gap: 12px !important; }
+}
+
+
+/* CREATIVE BUDGET TABLE STYLES */
+.budget-table-wrapper {
+  overflow: hidden;
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%);
+  border: 1px solid rgba(185, 121, 204, 0.25);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
 }
 
 .budget-table {
   width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
   text-align: left;
-  border-collapse: collapse;
 }
 
 .budget-table-header {
-  background-color: rgba(255, 255, 255, 0.05);
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #b979cc;
+  background: linear-gradient(90deg, rgba(185, 121, 204, 0.2) 0%, rgba(185, 121, 204, 0.05) 100%);
 }
 
 .table-header-cell {
-  padding: 10px 16px;
-  font-weight: 700;
+  padding: 16px 20px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #e2e8f0;
+  border-bottom: 2px solid rgba(185, 121, 204, 0.4);
+}
+
+.budget-total-header {
+  text-align: right;
 }
 
 .budget-table-row {
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.budget-table-row:hover {
+  background: rgba(185, 121, 204, 0.1);
+  transform: scale(1.002);
+}
+
+.budget-table-row td {
+  border-bottom: 1px solid rgba(185, 121, 204, 0.1);
+}
+
+.budget-table-row:last-child td {
+  border-bottom: none;
 }
 
 .budget-item-name {
-  padding: 12px 16px;
-  color: #b979cc;
-  line-height: 1.25; font-size: 13px;
+  padding: 16px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #f8fafc;
 }
 
 .budget-item-subtext {
-  display: block;
-  font-size: 13px;
-  color: #64748b;
+  display: inline-block;
+  font-size: 11px;
+  color: #94a3b8;
+  margin-left: 8px;
   font-weight: 400;
-  margin-top: 2px;
+  background: rgba(0,0,0,0.2);
+  padding: 2px 8px;
+  border-radius: 12px;
 }
 
 .budget-item-value-cell {
-  color: white;
-  padding: 8px 16px;
-  font-size: 13px;
+  padding: 16px 20px;
+  text-align: right;
+}
+
+.budget-item-value {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(185, 121, 204, 0.2) 0%, rgba(153, 13, 209, 0.2) 100%);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(185, 121, 204, 0.3);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .budget-table-footer {
-  background-color: rgba(255, 255, 255, 0.05);
+  background: linear-gradient(90deg, rgba(0,0,0,0.4) 0%, rgba(185, 121, 204, 0.15) 100%);
+}
+
+.budget-table-footer td {
+  border-top: 2px solid rgba(185, 121, 204, 0.4);
 }
 
 .grand-total-label {
-  padding: 12px 16px;
+  padding: 20px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 900;
   color: #b979cc;
   text-align: right;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
 }
 
 .grand-total-value-white {
-  padding: 12px 16px;
-  font-size: 14px;
+  padding: 20px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 18px;
+  font-weight: 900;
+  color: #fff;
+  text-align: right;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+
+.mandate-boxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 5px;
+}
+.mandate-box {
+  background: rgba(185, 121, 204, 0.15);
+  border: 1px solid rgba(185, 121, 204, 0.3);
+  color: #f1f5f9;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+
+/* GAD Grouped Budget Styles */
+.budget-groups-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+.budget-group-card {
+  background: rgba(30, 41, 59, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+.budget-group-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+.budget-group-icon { font-size: 18px; }
+.budget-group-title {
+  font-size: 13px;
   font-weight: 700;
-  color: white;
+  color: #b979cc;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.budget-group-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.budget-row-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.budget-row-item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+.budget-row-item.has-sub-options {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+.budget-row-header {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
+}
+.budget-sub-options-container {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-left: 8px;
+  margin-top: -4px;
+}
+.budget-read-only-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: not-allowed;
+  opacity: 0.9;
+}
+.budget-checkbox-disabled {
+  accent-color: #b979cc;
+  width: 15px;
+  height: 15px;
+}
+.budget-checkbox-label-text {
+  font-size: 13px;
+  color: #cbd5e1;
+}
+.budget-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-grow: 1;
+}
+.budget-item-title {
+  font-weight: 600;
+  color: #f1f5f9;
+  font-size: 14px;
+}
+.budget-item-value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 160px;
+  flex-shrink: 0;
+  justify-content: flex-end;
+}
+.budget-currency-symbol {
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 600;
+}
+.budget-card-input-readonly {
+  color: #ffffff;
+  font-size: 14px;
+  padding: 8px 12px;
+  width: 100%;
+  text-align: right;
+  font-weight: 600;
+}
+.grand-total-banner-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, rgba(185, 121, 204, 0.1) 0%, rgba(153, 13, 209, 0.1) 100%);
+  border: 1px solid rgba(185, 121, 204, 0.3);
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 4px 15px -3px rgba(185, 121, 204, 0.1);
+}
+.grand-total-label-banner {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.grand-total-value-banner {
+  font-size: 20px;
+  font-weight: 800;
+  color: #b979cc;
+  text-shadow: 0 0 10px rgba(185, 121, 204, 0.2);
+}
+.venue-badge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+.venue-badge.inside-bsu {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.venue-badge.outside-bsu {
+  background: rgba(251, 146, 60, 0.15);
+  color: #fb923c;
+  border: 1px solid rgba(251, 146, 60, 0.3);
 }
 </style>

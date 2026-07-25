@@ -11,6 +11,7 @@ class DocumentTrashController extends BaseController
     public function getTrashedDocuments()
     {
         $db = \Config\Database::connect();
+        $userId = $this->request->getGet('user_id');
         
         // --- 30-Day Auto Cleanup Logic ---
         $this->autoCleanup($db, 'activity_design');
@@ -18,16 +19,18 @@ class DocumentTrashController extends BaseController
 
         // Fetch Trashed Activity Designs
         $adModel = new ActivityDesignModel();
-        // Since useSoftDeletes is true, normally find() ignores deleted. 
-        // We use onlyDeleted()
-        $trashedDesigns = $adModel->onlyDeleted()
-            ->select('activity_design.act_design_id as id, activity_design.activity_title as title, activity_design.form_type as type, users.full_name as submitter_name, activity_design.deleted_at')
+        $adQuery = $adModel->onlyDeleted()
+            ->select('activity_design.act_design_id as id, activity_design.activity_title as title, activity_design.form_type as type, users.full_name as submitter_name, deleter.full_name as deleted_by_name, activity_design.deleted_at')
             ->join('users', 'users.id = activity_design.user_id', 'left')
-            ->findAll();
+            ->join('users as deleter', 'deleter.id = activity_design.deleted_by', 'left');
+            
+        if ($userId) {
+            $adQuery->where('activity_design.deleted_by', $userId);
+        }
+        $trashedDesigns = $adQuery->findAll();
 
         foreach ($trashedDesigns as &$td) {
             $td['doc_type'] = 'design';
-            // ensure format
             $date = new \DateTime($td['deleted_at']);
             $date->setTimezone(new \DateTimeZone('Asia/Manila'));
             $td['deleted_date'] = $date->format('M d, Y h:i A');
@@ -35,10 +38,15 @@ class DocumentTrashController extends BaseController
 
         // Fetch Trashed Accomplishment Reports
         $arModel = new AccomplishmentReportModel();
-        $trashedReports = $arModel->onlyDeleted()
-            ->select('accomplishment_report.id, accomplishment_report.activity_title as title, users.full_name as submitter_name, accomplishment_report.deleted_at')
+        $arQuery = $arModel->onlyDeleted()
+            ->select('accomplishment_report.id, accomplishment_report.activity_title as title, users.full_name as submitter_name, deleter.full_name as deleted_by_name, accomplishment_report.deleted_at')
             ->join('users', 'users.id = accomplishment_report.user_id', 'left')
-            ->findAll();
+            ->join('users as deleter', 'deleter.id = accomplishment_report.deleted_by', 'left');
+            
+        if ($userId) {
+            $arQuery->where('accomplishment_report.deleted_by', $userId);
+        }
+        $trashedReports = $arQuery->findAll();
 
         foreach ($trashedReports as &$tr) {
             $tr['type'] = 'Accomplishment Report';
@@ -103,25 +111,44 @@ class DocumentTrashController extends BaseController
                 $reportIds[] = $item->id;
             }
         }
+        
+        $actionUserId = $this->request->getHeaderLine('X-User-Id');
+        $userModel = new \App\Models\UserModel();
+        $actionUser = $userModel->find($actionUserId);
+        $isAdmin = $actionUser && $actionUser['role'] === 'admin';
 
         if (!empty($designIds)) {
-            $records = $adModel->onlyDeleted()->whereIn('act_design_id', $designIds)->findAll();
+            $query = $adModel->onlyDeleted()->whereIn('act_design_id', $designIds);
+            if (!$isAdmin) {
+                $query->where('user_id', $actionUserId);
+            }
+            $records = $query->findAll();
+            $validDesignIds = array_column($records, 'act_design_id');
             foreach ($records as $record) {
                 if (!empty($record['attachment'])) {
                     FileStorage::deleteFromDrafts($record['attachment']);
                 }
             }
-            $adModel->delete($designIds, true); // true = purge
+            if (!empty($validDesignIds)) {
+                $adModel->delete($validDesignIds, true); // true = purge
+            }
         }
 
         if (!empty($reportIds)) {
-            $records = $arModel->onlyDeleted()->whereIn('id', $reportIds)->findAll();
+            $query = $arModel->onlyDeleted()->whereIn('id', $reportIds);
+            if (!$isAdmin) {
+                $query->where('user_id', $actionUserId);
+            }
+            $records = $query->findAll();
+            $validReportIds = array_column($records, 'id');
             foreach ($records as $record) {
                 if (!empty($record['attachment'])) {
                     FileStorage::deleteFromDrafts($record['attachment']);
                 }
             }
-            $arModel->delete($reportIds, true);
+            if (!empty($validReportIds)) {
+                $arModel->delete($validReportIds, true);
+            }
         }
 
         return $this->response->setJSON(['success' => true, 'message' => 'Permanently deleted selected items']);
@@ -149,13 +176,25 @@ class DocumentTrashController extends BaseController
             }
         }
 
+        $actionUserId = $this->request->getHeaderLine('X-User-Id');
+        $userModel = new \App\Models\UserModel();
+        $actionUser = $userModel->find($actionUserId);
+        $isAdmin = $actionUser && $actionUser['role'] === 'admin';
+
         if (!empty($designIds)) {
-            // To restore, we set deleted_at back to null
-            $adModel->builder()->whereIn('act_design_id', $designIds)->update(['deleted_at' => null]);
+            $builder = $adModel->builder()->whereIn('act_design_id', $designIds);
+            if (!$isAdmin) {
+                $builder->where('user_id', $actionUserId);
+            }
+            $builder->update(['deleted_at' => null, 'deleted_by' => null]);
         }
         
         if (!empty($reportIds)) {
-            $arModel->builder()->whereIn('id', $reportIds)->update(['deleted_at' => null]);
+            $builder = $arModel->builder()->whereIn('id', $reportIds);
+            if (!$isAdmin) {
+                $builder->where('user_id', $actionUserId);
+            }
+            $builder->update(['deleted_at' => null, 'deleted_by' => null]);
         }
 
         return $this->response->setJSON(['success' => true, 'message' => 'Restored selected items']);

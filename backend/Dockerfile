@@ -7,8 +7,13 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     git \
+    libzip-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
     && docker-php-ext-configure intl \
-    && docker-php-ext-install intl mysqli pdo pdo_mysql
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install intl mysqli pdo pdo_mysql zip gd
 
 # 3. Enable Apache mod_rewrite (Crucial for CI4 URL routing)
 RUN a2enmod rewrite

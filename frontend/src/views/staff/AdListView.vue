@@ -62,7 +62,24 @@
                   <option value="all">All Statuses</option>
                   <option value="Pending">Pending Review</option>
                   <option value="Approved">Approved</option>
-                  <option value="Revision">Revision</option>
+                  <option value="Revision Required">Revision Required</option>
+                  <option value="Disapproved">Disapproved</option>
+                  <option value="Mod Requests">Modification Requests</option>
+                </select>
+                <span class="select-arrow">▼</span>
+              </div>
+
+              <div class="select-wrapper">
+                <select 
+                  v-model="filters.sort"
+                  class="filter-select"
+                >
+                  <option value="oldest_submission">Oldest Submission</option>
+                  <option value="newest_submission">Newest Submission</option>
+                  <option value="earliest_implementation">Earliest Implementation Date</option>
+                  <option value="latest_implementation">Furthest Implementation Date</option>
+                  <option value="title_asc">Title (A-Z)</option>
+                  <option value="title_desc">Title (Z-A)</option>
                 </select>
                 <span class="select-arrow">▼</span>
               </div>
@@ -83,11 +100,16 @@
           </section>
 
           <div class="table-container">
-            <div class="table-wrapper">
+            <div v-if="filters.status !== 'Mod Requests'" style="padding: 1.5rem 1.5rem 1rem 1.5rem; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(185,121,204,0.1);">
+              <h2 style="color: #e2e8f0; font-size: 1.1rem; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">
+                <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem; color: #b979cc;">description</span>
+                Submissions
+              </h2>
+            </div>
+            <div v-if="filters.status !== 'Mod Requests'" class="table-wrapper">
               <table class="data-table">
                 <thead>
                   <tr class="table-header-row">
-                    <th class="table-header-cell">Control No.</th>
                     <th class="table-header-cell">Activity Title</th>
                     <th class="table-header-cell">Office / Unit</th>
                     <th class="table-header-cell">Form Type</th>
@@ -96,24 +118,24 @@
                   </tr>
                 </thead>
                 <tbody class="table-body">
-                  <tr v-if="filteredDesigns.length === 0">
-                    <td colspan="6" class="empty-state">
+                  <tr v-if="regularDesigns.length === 0">
+                    <td colspan="5" class="empty-state">
                       No matching activity design submissions found in the repository index.
                     </td>
                   </tr>
                   
                   <tr 
                     v-else
-                    v-for="item in filteredDesigns" 
+                    v-for="item in regularDesigns" 
                     :key="item.act_design_id"
-                    @click="viewDetails(item)"
+                    @click="viewDetails(item.act_design_id, item.status)"
                     class="table-row"
                   >
-                    <td class="table-cell control-cell">
-                      {{ item.control }}
-                    </td>
                     <td class="table-cell title-cell">
-                      {{ item.title }}
+                      <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        {{ item.title }}
+                        <span v-if="isRush(item)" class="rush-badge">RUSH</span>
+                      </div>
                     </td>
                     <td class="table-cell office-cell">
                       {{ item.office }}
@@ -133,6 +155,64 @@
                       >
                         {{ item.status }}
                       </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div v-if="filters.status === 'all' || filters.status === 'Mod Requests'" style="padding: 1.5rem 1.5rem 1rem 1.5rem; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(185,121,204,0.1); border-top: 1px solid rgba(185,121,204,0.1);">
+              <h2 style="color: #e2e8f0; font-size: 1.1rem; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">
+                <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem; color: #fbbf24;">edit_note</span>
+                Modification Requests
+              </h2>
+            </div>
+            <div v-if="filters.status === 'all' || filters.status === 'Mod Requests'" class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr class="table-header-row">
+                    <th class="table-header-cell">Activity Title</th>
+                    <th class="table-header-cell">Office / Unit</th>
+                    <th class="table-header-cell">Form Type</th>
+                    <th class="table-header-cell">Date Submitted</th>
+                    <th class="table-header-cell">Action</th>
+                  </tr>
+                </thead>
+                <tbody class="table-body">
+                  <tr v-if="modRequestDesigns.length === 0">
+                    <td colspan="5" class="empty-state">
+                      No modification requests found.
+                    </td>
+                  </tr>
+                  
+                  <tr 
+                    v-else
+                    v-for="item in modRequestDesigns" 
+                    :key="item.act_design_id"
+                    @click="viewDetails(item.act_design_id, item.status)"
+                    class="table-row"
+                  >
+                    <td class="table-cell title-cell">
+                      <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        {{ item.title }}
+                        <span class="status-badge" style="background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 4px;">MOD REQ</span>
+                      </div>
+                    </td>
+                    <td class="table-cell office-cell">
+                      {{ item.office }}
+                    </td>
+                    <td class="table-cell">
+                      <span class="mandate-badge">
+                        {{ item.formLabel }}
+                      </span>
+                    </td>
+                    <td class="table-cell date-cell">
+                      {{ item.date }}
+                    </td>
+                    <td class="table-cell">
+                      <button @click.stop="approveModRequest(item.act_design_id)" class="btn-primary" style="background: #4ade80; color: #064e3b; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; transition: all 0.2s;">
+                        Approve Request
+                      </button>
                     </td>
                   </tr>
                 </tbody>
@@ -176,8 +256,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import Swal from 'sweetalert2';
 import api from '../../api';
 
 const router = useRouter();
@@ -186,7 +267,8 @@ const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 const filters = ref({
   search: '',
   office: 'all',
-  status: 'all'
+  status: 'all',
+  sort: 'oldest_submission'
 });
 
 const officeOptions = ref([]);
@@ -201,36 +283,80 @@ const metricsStats = ref([
   { label: 'Total Designs', value: '0', icon: 'description', iconColor: 'text-purple-400', bgClass: 'bg-purple-500/10' },
   { label: 'Pending Reviews', value: '0', icon: 'schedule', iconColor: 'text-amber-400', bgClass: 'bg-amber-500/10' },
   { label: 'Approved Plans', value: '0', icon: 'verified', iconColor: 'text-green-400', bgClass: 'bg-green-500/10' },
-  { label: 'Revision', value: '0', icon: 'assignment_return', iconColor: 'text-red-400', bgClass: 'bg-red-500/10' }
+  { label: 'Revision Required', value: '0', icon: 'assignment_return', iconColor: 'text-red-400', bgClass: 'bg-red-500/10' },
+  { label: 'Disapproved', value: '0', icon: 'cancel', iconColor: 'text-red-600', bgClass: 'bg-red-600/10' }
 ]);
 
 const filteredDesigns = computed(() => {
-  let records = activityDesigns.value;
+  let records = [...activityDesigns.value];
   if (filters.value.search) {
     const q = filters.value.search.toLowerCase();
-    records = records.filter(i => i.control.toLowerCase().includes(q) || i.title.toLowerCase().includes(q));
+    records = records.filter(i => (i.control && i.control.toLowerCase().includes(q)) || (i.title && i.title.toLowerCase().includes(q)));
   }
   if (filters.value.office !== 'all') {
     records = records.filter(i => i.office === filters.value.office);
   }
   if (filters.value.status !== 'all') {
-    records = records.filter(i => i.status === filters.value.status);
+    if (filters.value.status === 'Mod Requests') {
+      records = records.filter(i => i.modification_request_status === 'pending');
+    } else {
+      records = records.filter(i => i.status === filters.value.status);
+    }
   }
+
+  records.sort((a, b) => {
+    switch (filters.value.sort) {
+      case 'newest_submission':
+        return b.act_design_id - a.act_design_id;
+      case 'oldest_submission':
+        return a.act_design_id - b.act_design_id;
+      case 'earliest_implementation':
+        return new Date(a.date) - new Date(b.date);
+      case 'latest_implementation':
+        return new Date(b.date) - new Date(a.date);
+      case 'title_asc':
+        return (a.title || '').localeCompare(b.title || '');
+      case 'title_desc':
+        return (b.title || '').localeCompare(a.title || '');
+      default:
+        return 0;
+    }
+  });
+
   return records;
+});
+
+const regularDesigns = computed(() => {
+  return filteredDesigns.value.filter(i => i.modification_request_status !== 'pending');
+});
+
+const modRequestDesigns = computed(() => {
+  return filteredDesigns.value.filter(i => i.modification_request_status === 'pending');
 });
 
 const statusBadgeClass = (status) => {
   if (status === 'Approved') return 'status-badge-approved';
-  if (status === 'Revision') return 'status-badge-revision';
+  if (status === 'Revision Required') return 'status-badge-revision';
+  if (status === 'Disapproved') return 'status-badge-disapproved';
   return 'status-badge-pending';
 };
 
-const viewDetails = (item) => {
-  // Only navigate to the revision/edit view if the status is 'Revision' AND the current user is the owner
-  if (item.status === 'Revision' && item.user_id == user.value.id) {
-    router.push(`/staff/ad-revision/${item.act_design_id}`);
+const isRush = (item) => {
+  if (item.status !== 'Pending') return false;
+  const startDate = new Date(item.date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  startDate.setHours(0, 0, 0, 0);
+  const diffTime = startDate - today;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays >= 3 && diffDays < 14;
+};
+
+const viewDetails = (id, status) => {
+  if (status === 'Revision Required') {
+    router.push(`/staff/ad-revision/${id}`);
   } else {
-    router.push(`/staff/ad-view/${item.act_design_id}`);
+    router.push(`/staff/ad-view/${id}`);
   }
 };
 
@@ -238,18 +364,20 @@ const fetchDesigns = async () => {
   try {
     const response = await api.get('activity-designs');
     if (response.data.success) {
-      activityDesigns.value = response.data.data;
+      activityDesigns.value = response.data.data.sort((a, b) => a.act_design_id - b.act_design_id);
       officeOptions.value = [...new Set(response.data.data.map(d => d.office).filter(Boolean))];
 
       // Update stat cards
       const total = activityDesigns.value.length;
       const pending = activityDesigns.value.filter(d => d.status === 'Pending').length;
       const approved = activityDesigns.value.filter(d => d.status === 'Approved').length;
-      const revision = activityDesigns.value.filter(d => d.status === 'Revision').length;
+      const revision = activityDesigns.value.filter(d => d.status === 'Revision Required').length;
+      const disapproved = activityDesigns.value.filter(d => d.status === 'Disapproved').length;
       metricsStats.value[0].value = String(total);
       metricsStats.value[1].value = String(pending);
       metricsStats.value[2].value = String(approved);
       metricsStats.value[3].value = String(revision);
+      metricsStats.value[4].value = String(disapproved);
 
       paginationMeta.value.total = total;
       paginationMeta.value.from = total > 0 ? 1 : 0;
@@ -263,11 +391,40 @@ const fetchDesigns = async () => {
 const handleLogout = async () => {
   try {
     await api.get('logout');
+    localStorage.removeItem('token');
     localStorage.removeItem('user');
+    delete api.defaults.headers.common['Authorization'];
     router.push('/login');
+  } catch (error) {
+    console.error('Logout error:', error);
+  }
+};
+
+const approveModRequest = async (id) => {
+  try {
+    const res = await api.post(`activity-designs/${id}/approve-modification`);
+    if (res.data.success) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Modification request approved successfully.',
+        timer: 1500,
+        showConfirmButton: false
+      });
+      fetchDesigns();
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: res.data.message || 'Failed to approve.'
+      });
+    }
   } catch (err) {
-    localStorage.removeItem('user');
-    router.push('/login');
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Server error while approving.'
+    });
   }
 };
 
@@ -281,84 +438,595 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.main-container { flex-grow: 1; display: flex; flex-direction: column; min-height: 100vh; }
-.main-content { padding-left: 0; flex-grow: 1; }
-.content-wrapper { display: flex; flex-direction: column; gap: 24px; }
-.page-header { padding: 0 4px; }
-.page-title { font-size: 24px; font-weight: 900; letter-spacing: -0.025em; color: #16213e; }
-.page-subtitle { font-size: 14px; color: #475569; margin-top: 4px; }
-.stats-section { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-.stat-card { padding: 16px; border-radius: 16px; border: 1px solid rgba(185, 121, 204, 0.15); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); backdrop-filter: blur(8px); transition: all 0.3s; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
-.stat-card:hover { transform: translateY(-4px); }
-.stat-card-inner { display: flex; align-items: center; gap: 12px; }
-.stat-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.stat-icon-symbol { font-weight: 500; font-size: 18px; }
-.text-blue-400 { color: #60a5fa; }
-.text-amber-400 { color: #fbbf24; }
-.text-cyan-400 { color: #22d3ee; }
-.text-red-400 { color: #f87171; }
+.main-container {
+  flex-grow: 1;
+  margin-left: 256px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 256px;
+  right: 0;
+  height: 80px;
+  background: rgba(26, 26, 46, 0.4);
+  backdrop-filter: blur(24px);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  border-bottom: 1px solid rgba(185, 121, 204, 0.1);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.header-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  background: linear-gradient(135deg, white, #cbd5e1, #b979cc);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.header-subtitle-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.125rem;
+}
+
+.header-subtitle {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #b979cc;
+  font-weight: 800;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.notification-wrapper {
+  position: relative;
+}
+
+.notification-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(185, 121, 204, 0.2);
+  font-size: 1.125rem;
+  cursor: pointer;
+}
+
+
+.main-content {
+  padding-left: 0;
+  flex-grow: 1;
+}
+
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.page-header {
+  padding: 0 0.25rem;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  color: #16213e;
+}
+
+.page-subtitle {
+  font-size: 1rem;
+  color: #475569;
+  margin-top: 0.25rem;
+}
+
+.stats-section {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+}
+
+.stat-card {
+  padding: 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(185, 121, 204, 0.15);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+  transition: all 0.3s;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+}
+
+.stat-card-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-icon-symbol {
+  font-weight: 500;
+  font-size: 1.125rem;
+}
+
 .text-purple-400 { color: #c084fc; }
+.text-amber-400 { color: #fbbf24; }
 .text-green-400 { color: #4ade80; }
-.bg-blue-500\/10 { background: rgba(59, 130, 246, 0.1); }
-.bg-amber-500\/10 { background: rgba(245, 158, 11, 0.1); }
-.bg-cyan-500\/10 { background: rgba(6, 182, 212, 0.1); }
-.bg-red-500\/10 { background: rgba(239, 68, 68, 0.1); }
+.text-red-400 { color: #f87171; }
+.text-red-600 { color: #dc2626; }
+
 .bg-purple-500\/10 { background: rgba(168, 85, 247, 0.1); }
+.bg-amber-500\/10 { background: rgba(245, 158, 11, 0.1); }
 .bg-green-500\/10 { background: rgba(34, 197, 94, 0.1); }
-.mandate-badge { padding: 4px 10px; border-radius: 8px; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #cbd5e1; }
-.status-badge-approved { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
-.stat-info { min-width: 0; }
-.stat-value { font-size: 20px; font-weight: 900; letter-spacing: -0.025em; color: white; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.stat-label { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(203, 213, 225, 0.7); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.filter-section { padding: 16px; border-radius: 16px; border: 1px solid rgba(185, 121, 204, 0.15); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25); backdrop-filter: blur(8px); display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 16px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
-.filter-controls { display: flex; flex-direction: row; align-items: center; gap: 12px; width: auto; }
-.search-wrapper { position: relative; width: 288px; }
-.search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 13px; }
-.search-input { width: 100%; padding: 8px 16px 8px 36px; border-radius: 12px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(185, 121, 204, 0.2); font-size: 13px; font-weight: 600; color: white; transition: all 0.3s; }
-.search-input:focus { outline: none; border-color: rgba(185, 121, 204, 0.5); }
-.search-input::placeholder { color: #94a3b8; }
-.select-wrapper { position: relative; width: 176px; }
-.filter-select { width: 100%; padding: 8px 12px; border-radius: 12px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(185, 121, 204, 0.2); font-size: 13px; font-weight: 600; color: white; appearance: none; cursor: pointer; transition: all 0.3s; }
-.filter-select:focus { outline: none; border-color: rgba(185, 121, 204, 0.5); }
-.select-arrow { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 13px; pointer-events: none; }
-.per-page-controls { display: flex; align-items: center; gap: 8px; }
-.per-page-label { font-size: 13px; color: #94a3b8; font-weight: 500; }
-.per-page-select { padding: 6px 10px; border-radius: 8px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(185, 121, 204, 0.2); font-size: 13px; font-weight: 700; color: white; cursor: pointer; transition: all 0.3s; }
-.per-page-select:focus { outline: none; border-color: rgba(185, 121, 204, 0.5); }
-.table-container { border-radius: 16px; border: 1px solid rgba(185, 121, 204, 0.15); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25); overflow: hidden; backdrop-filter: blur(8px); background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
-.table-wrapper { overflow-x: auto; }
-.data-table { width: 100%; text-align: left; border-collapse: collapse; }
-.table-header-row { border-bottom: 1px solid rgba(185, 121, 204, 0.1); background: rgba(0, 0, 0, 0.3); }
-.table-header-cell { padding: 16px 24px; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #b979cc; }
-.table-body { display: table-row-group; }
-.empty-state { padding: 48px 24px; text-align: center; font-size: 13px; color: #94a3b8; font-weight: 500; }
-.table-row { transition: all 0.3s; border-bottom: 1px solid rgba(185, 121, 204, 0.05); cursor: pointer; font-size: 13px; }
-.table-row:hover { background: rgba(255, 255, 255, 0.05); }
-.table-cell { padding: 16px 24px; }
-.control-cell { font-family: monospace; font-size: 13px; font-weight: 700; color: #b979cc; }
-.title-cell { font-weight: 600; color: #e2e8f0; transition: color 0.3s; font-size: 13px; }
-.table-row:hover .title-cell { color: #b979cc; }
-.office-cell { color: rgba(203, 213, 225, 0.8); font-size: 13px; }
-.date-cell { color: #94a3b8; font-family: monospace; font-size: 13px; }
-.category-badge { padding: 4px 10px; border-radius: 8px; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #cbd5e1; }
-.status-badge { display: inline-block; padding: 4px 12px; border-radius: 8px; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; }
-.status-badge-pending { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
-.status-badge-verified { background: rgba(6, 182, 212, 0.2); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.3); }
-.status-badge-revision { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
-.pagination-container { padding: 16px 24px; border-top: 1px solid rgba(185, 121, 204, 0.1); background: rgba(0, 0, 0, 0.1); display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 16px; }
-.pagination-info { font-size: 13px; color: #94a3b8; font-weight: 500; }
-.pagination-highlight { font-weight: 700; color: white; }
-.pagination-controls { display: flex; align-items: center; gap: 6px; }
-.pagination-btn { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: white; border: 1px solid rgba(185, 121, 204, 0.1); background: rgba(0, 0, 0, 0.3); cursor: pointer; transition: all 0.2s; }
-.pagination-btn:hover:not(:disabled) { border-color: rgba(185, 121, 204, 0.4); }
-.pagination-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-.pagination-page { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; transition: all 0.2s; cursor: pointer; color: #94a3b8; border: 1px solid rgba(185, 121, 204, 0.1); background: rgba(0, 0, 0, 0.2); }
-.pagination-page:hover { border-color: rgba(185, 121, 204, 0.3); }
-.pagination-page-active { color: white; background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: none; }
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); }
-::-webkit-scrollbar-thumb { background: rgba(185, 121, 204, 0.3); border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(153, 13, 209, 0.5); }
-@media (max-width: 1024px) { .main-container { margin-left: 0; } .app-header { left: 0; } .stats-section { grid-template-columns: repeat(2, 1fr); } .filter-section { flex-direction: column; align-items: stretch; } .filter-controls { width: 100%; flex-direction: column; } .search-wrapper, .select-wrapper { width: 100%; } .pagination-container { flex-direction: column; } }
-@media (max-width: 768px) { .content-wrapper { padding: 20px; } .stats-section { grid-template-columns: 1fr; } }
+.bg-red-500\/10 { background: rgba(239, 68, 68, 0.1); }
+.bg-red-600\/10 { background: rgba(220, 38, 38, 0.1); }
+
+.stat-info {
+  min-width: 0;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  color: white;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(203, 213, 225, 0.7);
+  margin-top: 0.125rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.filter-section {
+  padding: 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(185, 121, 204, 0.15);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+.filter-controls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  width: auto;
+}
+
+.search-wrapper {
+  position: relative;
+  width: 288px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 1rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.5rem 1rem 0.5rem 2.25rem;
+  border-radius: 0.75rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(185, 121, 204, 0.2);
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  transition: all 0.3s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: rgba(185, 121, 204, 0.5);
+}
+
+.search-input::placeholder {
+  color: #94a3b8;
+}
+
+.select-wrapper {
+  position: relative;
+  width: 240px;
+}
+
+.filter-select {
+  width: 100%;
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(185, 121, 204, 0.2);
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  appearance: none;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: rgba(185, 121, 204, 0.5);
+}
+
+.select-arrow {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #b979cc;
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+.filter-select option {
+  background-color: #1a1a2e;
+  color: #ffffff;
+}
+
+.per-page-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.per-page-label {
+  font-size: 0.9rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.per-page-select {
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.5rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(185, 121, 204, 0.2);
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.per-page-select:focus {
+  outline: none;
+  border-color: rgba(185, 121, 204, 0.5);
+}
+
+.table-container {
+  border-radius: 1rem;
+  border: 1px solid rgba(185, 121, 204, 0.15);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+}
+
+.table-header-row {
+  border-bottom: 1px solid rgba(185, 121, 204, 0.1);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.table-header-cell {
+  padding: 1rem 1.5rem;
+  font-size: 0.85rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #b979cc;
+}
+
+.table-body {
+  display: table-row-group;
+}
+
+.empty-state {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  font-size: 1rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.table-row {
+  transition: all 0.3s;
+  border-bottom: 1px solid rgba(185, 121, 204, 0.05);
+  cursor: pointer;
+}
+
+.table-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.table-cell {
+  padding: 1rem 1.5rem;
+}
+
+.control-cell {
+  font-family: monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #b979cc;
+}
+
+.title-cell {
+  font-weight: 600;
+  color: #e2e8f0;
+  transition: color 0.3s;
+}
+
+.table-row:hover .title-cell {
+  color: #b979cc;
+}
+
+.office-cell {
+  color: rgba(203, 213, 225, 0.8);
+}
+
+.date-cell {
+  color: #94a3b8;
+  font-family: monospace;
+  font-size: 1rem;
+}
+
+.mandate-badge {
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-badge-pending {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.status-badge-approved {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.status-badge-revision {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.status-badge-disapproved {
+  background: rgba(220, 38, 38, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+.rush-badge {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pagination-container {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid rgba(185, 121, 204, 0.1);
+  background: rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pagination-info {
+  font-size: 1rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.pagination-highlight {
+  font-weight: 700;
+  color: white;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.pagination-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  border: 1px solid rgba(185, 121, 204, 0.1);
+  background: rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  border-color: rgba(185, 121, 204, 0.4);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.pagination-page {
+  width: 32px;
+  height: 32px;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 700;
+  transition: all 0.2s;
+  cursor: pointer;
+  color: #94a3b8;
+  border: 1px solid rgba(185, 121, 204, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.pagination-page:hover {
+  border-color: rgba(185, 121, 204, 0.3);
+}
+
+.pagination-page-active {
+  color: white;
+  background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: none;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(185, 121, 204, 0.3);
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(153, 13, 209, 0.5);
+}
+
+@media (max-width: 1024px) {
+  .main-container {
+    margin-left: 0;
+  }
+  
+  .app-header {
+    left: 0;
+  }
+  
+  .stats-section {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .filter-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-controls {
+    width: 100%;
+    flex-direction: column;
+  }
+  
+  .search-wrapper,
+  .select-wrapper {
+    width: 100%;
+  }
+  
+  .pagination-container {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 768px) {
+  .content-wrapper {
+    padding: 20px;
+  }
+  
+  .stats-section {
+    grid-template-columns: 1fr;
+  }
+}
 </style>

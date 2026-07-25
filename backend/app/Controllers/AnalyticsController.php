@@ -18,8 +18,8 @@ class AnalyticsController extends Controller
                 MONTH(start_date) as month,
                 SUM(male) as total_male,
                 SUM(female) as total_female
-            FROM archived_accomplishment_reports
-            WHERE YEAR(start_date) = ?
+            FROM accomplishment_report
+            WHERE YEAR(start_date) = ? AND is_archived = 1 AND status = 'Verified'
             GROUP BY MONTH(start_date)
             ORDER BY MONTH(start_date) ASC
         ";
@@ -41,12 +41,12 @@ class AnalyticsController extends Controller
         $officeSql = "
             SELECT 
                 COALESCE(office_units.office_name, 'Unknown') as office_name,
-                SUM(archived_accomplishment_reports.male) as total_male,
-                SUM(archived_accomplishment_reports.female) as total_female
-            FROM archived_accomplishment_reports
-            LEFT JOIN users ON users.id = archived_accomplishment_reports.user_id
+                SUM(accomplishment_report.male) as total_male,
+                SUM(accomplishment_report.female) as total_female
+            FROM accomplishment_report
+            LEFT JOIN users ON users.id = accomplishment_report.user_id
             LEFT JOIN office_units ON office_units.office_id = users.office_id
-            WHERE YEAR(archived_accomplishment_reports.start_date) = ?
+            WHERE YEAR(accomplishment_report.start_date) = ? AND accomplishment_report.is_archived = 1 AND accomplishment_report.status = 'Verified'
             GROUP BY office_units.office_id, office_units.office_name
         ";
         $officeResults = $db->query($officeSql, [$year])->getResultArray();
@@ -77,8 +77,8 @@ class AnalyticsController extends Controller
                 MONTH(start_date) as month,
                 SUM(male) as total_male,
                 SUM(female) as total_female
-            FROM archived_accomplishment_reports
-            WHERE YEAR(start_date) = ? AND user_id = ?
+            FROM accomplishment_report
+            WHERE YEAR(start_date) = ? AND user_id = ? AND is_archived = 1 AND status = 'Verified'
             GROUP BY MONTH(start_date)
             ORDER BY MONTH(start_date) ASC
         ";

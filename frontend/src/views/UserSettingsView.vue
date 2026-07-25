@@ -117,6 +117,79 @@
           <p v-if="passwordError" class="error-msg">{{ passwordError }}</p>
         </form>
       </div>
+      <!-- Data Retention (Admin Only) -->
+      <div v-if="isAdminOrStaff" class="settings-card">
+        <div class="card-header">
+          <span class="material-symbols-outlined text-blue-400">auto_delete</span>
+          <h2 class="card-title">Data Retention Policies</h2>
+        </div>
+        
+        <p class="text-slate-400 text-sm mb-4">
+          Configure how long deleted items and historical data are kept before being permanently purged. Set to 0 to disable automated deletion.
+        </p>
+        
+        <form @submit.prevent="updateRetentionSettings" class="form-group">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="input-wrapper">
+              <label class="input-label">Trashbin TTL (Days)</label>
+              <input 
+                type="number" 
+                v-model.number="retentionForm.trash_ttl_days" 
+                class="custom-input" 
+                min="0"
+                required
+              />
+              <span class="text-xs text-slate-500">Soft-deleted documents</span>
+            </div>
+            
+            <div class="input-wrapper">
+              <label class="input-label">Messages TTL (Days)</label>
+              <input 
+                type="number" 
+                v-model.number="retentionForm.messages_ttl_days" 
+                class="custom-input" 
+                min="0"
+                required
+              />
+              <span class="text-xs text-slate-500">Auto-move to trash</span>
+            </div>
+            
+            <div class="input-wrapper">
+              <label class="input-label">Activity Logs TTL (Days)</label>
+              <input 
+                type="number" 
+                v-model.number="retentionForm.activity_logs_ttl_days" 
+                class="custom-input" 
+                min="0"
+                required
+              />
+              <span class="text-xs text-slate-500">System activity logs</span>
+            </div>
+
+            <div class="input-wrapper">
+              <label class="input-label">Archived Documents TTL (Days)</label>
+              <input 
+                type="number" 
+                v-model.number="retentionForm.archived_documents_ttl_days" 
+                class="custom-input" 
+                min="0"
+                required
+              />
+              <span class="text-xs text-slate-500">Old historical records</span>
+            </div>
+          </div>
+          
+          <div class="form-actions mt-4">
+            <button type="submit" class="btn-primary" :disabled="isUpdatingRetention">
+              <span v-if="isUpdatingRetention" class="material-symbols-outlined animate-spin text-sm mr-2">refresh</span>
+              {{ isUpdatingRetention ? 'Saving...' : 'Save Retention Policies' }}
+            </button>
+          </div>
+          <p v-if="retentionSuccess" class="success-msg">{{ retentionSuccess }}</p>
+          <p v-if="retentionError" class="error-msg">{{ retentionError }}</p>
+        </form>
+      </div>
+
     </div>
   </div>
 </template>
@@ -125,8 +198,15 @@
 import { ref, onMounted } from 'vue';
 import api from '../api'; // Adjust path if necessary
 import Swal from 'sweetalert2';
+import { computed } from 'vue';
 
 const user = ref({});
+
+// Check if user is admin or staff to show system settings
+const isAdminOrStaff = computed(() => {
+  const role = user.value.role ? user.value.role.toLowerCase() : '';
+  return role === 'admin' || role === 'gad_staff' || role === 'superadmin';
+});
 
 const nameForm = ref({ full_name: '' });
 const isUpdatingName = ref(false);
@@ -147,6 +227,16 @@ const isUpdatingPassword = ref(false);
 const passwordSuccess = ref('');
 const passwordError = ref('');
 
+const retentionForm = ref({
+  trash_ttl_days: 30,
+  messages_ttl_days: 365,
+  activity_logs_ttl_days: 365,
+  archived_documents_ttl_days: 1825
+});
+const isUpdatingRetention = ref(false);
+const retentionSuccess = ref('');
+const retentionError = ref('');
+
 onMounted(async () => {
   const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
   user.value = storedUser;
@@ -165,6 +255,23 @@ onMounted(async () => {
     }
   } catch (error) {
     console.error("Failed to fetch profile", error);
+  }
+
+  // Fetch system settings if admin
+  if (isAdminOrStaff.value) {
+    try {
+      const res = await api.get('/settings/system');
+      if (res.data) {
+        retentionForm.value = {
+          trash_ttl_days: res.data.trash_ttl_days ?? 30,
+          messages_ttl_days: res.data.messages_ttl_days ?? 365,
+          activity_logs_ttl_days: res.data.activity_logs_ttl_days ?? 365,
+          archived_documents_ttl_days: res.data.archived_documents_ttl_days ?? 1825
+        };
+      }
+    } catch (error) {
+      console.error("Failed to fetch system settings", error);
+    }
   }
 });
 
@@ -286,6 +393,31 @@ const updatePassword = async () => {
     passwordError.value = err.response?.data?.message || 'An error occurred while updating password.';
   } finally {
     isUpdatingPassword.value = false;
+  }
+};
+
+const updateRetentionSettings = async () => {
+  isUpdatingRetention.value = true;
+  retentionSuccess.value = '';
+  retentionError.value = '';
+  
+  try {
+    const res = await api.post('/settings/system', retentionForm.value);
+    if (res.status === 200 || res.status === 201 || (res.data && res.data.message)) {
+      retentionSuccess.value = 'Data retention policies updated successfully.';
+      
+      // Also trigger a manual cleanup run since they just updated the settings
+      try {
+        api.post('/settings/trigger-cleanup').catch(e => console.log('Silent background cleanup error', e));
+      } catch (e) {}
+      
+    } else {
+      retentionError.value = 'Failed to update retention policies.';
+    }
+  } catch (err) {
+    retentionError.value = err.response?.data?.message || 'An error occurred while updating policies.';
+  } finally {
+    isUpdatingRetention.value = false;
   }
 };
 </script>

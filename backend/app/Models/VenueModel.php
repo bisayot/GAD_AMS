@@ -8,6 +8,6 @@ class VenueModel extends Model
 {
     protected $table = 'venues';
     protected $primaryKey = 'venue_id';
-    protected $allowedFields = ['venue_name'];
+    protected $allowedFields = ['venue_name', 'is_inside_bsu'];
     protected $returnType = 'array';
 }

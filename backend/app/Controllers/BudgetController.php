@@ -18,12 +18,29 @@ class BudgetController extends Controller
     {
         $db = \Config\Database::connect();
         
-        $totalBudget = $db->table('gad_plan_budget')
-            ->selectSum('gad_budget')
-            ->get()->getRow()->gad_budget ?? 0.0;
+        $items = $db->table('gpb_items')->get()->getResultArray();
+        $totalBudget = 0.0;
+        foreach ($items as $item) {
+            $budgetLines = isset($item['budget_lines']) ? json_decode($item['budget_lines'], true) : [];
+            if (is_array($budgetLines)) {
+                foreach ($budgetLines as $line) {
+                    $totalBudget += (float) ($line['amount'] ?? 0);
+                }
+            }
+        }
 
-        $archivedDesigns = $db->table('archived_activity_designs')
+        $settingModel = new \App\Models\SettingModel();
+        $latestItem = $db->table('gpb_items')->select('fiscal_year')->orderBy('id', 'DESC')->get()->getRowArray();
+        $latestYear = $latestItem ? $latestItem['fiscal_year'] : date('Y');
+        $settings = $settingModel->getByFiscalYear($latestYear);
+        $otherSources = isset($settings['otherSources']) ? (float) $settings['otherSources'] : 0.0;
+        
+        $totalBudget += $otherSources;
+
+        $archivedDesigns = $db->table('activity_design')
             ->where('status', 'Approved')
+            ->where('is_archived', 1)
+            ->where('deleted_at', null)
             ->get()
             ->getResultArray();
 
@@ -31,27 +48,19 @@ class BudgetController extends Controller
         $pendingApproved = 0.0;
 
         foreach ($archivedDesigns as $design) {
-            $designId = $design['original_act_design_id'];
+            $designId = $design['act_design_id'];
 
             // Check for completed/verified accomplishment report (active or archived)
             $report = $db->table('accomplishment_report')
-                ->where('act_design_id', $designId)
-                ->whereIn('status', ['Completed', 'Verified'])
+                ->where('control_number', $design['control_number'])
+                ->whereIn('status', ['Completed', 'Verified', 'Approved'])
+                ->where('deleted_at', null)
                 ->get()
                 ->getRowArray();
 
-            if (!$report) {
-                $report = $db->table('archived_accomplishment_reports')
-                    ->where('act_design_id', $designId)
-                    ->whereIn('status', ['Completed', 'Verified'])
-                    ->get()
-                    ->getRowArray();
-            }
-
             if ($report) {
-                $reportId = $report['id'] ?? $report['original_report_id'];
-                $isActiveReport = isset($report['id']) && empty($report['original_report_id']);
-                $table = $isActiveReport ? 'accomplishment_budget_items' : 'archived_accomplishment_budget_items';
+                $reportId = $report['id'];
+                $table = 'accomplishment_budget_items';
 
                 $sum = $db->table($table)
                     ->selectSum('amount')
@@ -91,7 +100,7 @@ class BudgetController extends Controller
         $db = \Config\Database::connect();
         
         $rows = $db->table('gad_plan_budget gpb')
-            ->select('gpb.*, (SELECT GROUP_CONCAT(DISTINCT source_of_budget SEPARATOR ", ") FROM gpb_budget_breakdown WHERE gpb_id = gpb.gpb_id) AS source')
+            ->select('gpb.*, gpb.source_of_budget AS source')
             ->get()
             ->getResultArray();
 
@@ -119,19 +128,11 @@ class BudgetController extends Controller
         foreach ($offices as $office) {
             $officeId = $office['office_id'];
 
-            $gpbIdsQuery = $db->table('gpb_offices_map')
-                ->where('office_id', $officeId)
-                ->get()
-                ->getResultArray();
-            $gpbIds = array_column($gpbIdsQuery, 'gpb_id');
-
-            $allocated = 0.0;
-            if (!empty($gpbIds)) {
-                $allocated = (float) $db->table('gad_plan_budget')
-                    ->selectSum('gad_budget')
-                    ->whereIn('gpb_id', $gpbIds)
-                    ->get()->getRow()->gad_budget ?? 0.0;
-            }
+            // 1. Calculate Allocated Budget (from GPB activities mapped to this office)
+            $allocated = (float) $db->table('gad_plan_budget')
+                ->selectSum('gad_budget')
+                ->like('responsible_unit_office', $office['office_name'])
+                ->get()->getRow()->gad_budget ?? 0.0;
 
             // 2. Calculate Utilized Budget (from activity designs and accomplishment reports)
             $users = $db->table('users')
@@ -144,35 +145,29 @@ class BudgetController extends Controller
             $pendingApproved = 0.0;
             if (!empty($userIds)) {
                 // Get approved activity designs
-                $archivedDesigns = $db->table('archived_activity_designs')
+                $archivedDesigns = $db->table('activity_design')
                     ->whereIn('user_id', $userIds)
                     ->where('status', 'Approved')
+                    ->where('is_archived', 1)
+                    ->where('deleted_at', null)
                     ->get()
                     ->getResultArray();
 
                 foreach ($archivedDesigns as $design) {
-                    $designId = $design['original_act_design_id'];
+                    $designId = $design['act_design_id'];
 
                     // Check for a completed accomplishment report (active or archived)
                     $report = $db->table('accomplishment_report')
-                        ->where('act_design_id', $designId)
-                        ->whereIn('status', ['Completed', 'Verified'])
+                        ->where('control_number', $design['control_number'])
+                        ->whereIn('status', ['Completed', 'Verified', 'Approved'])
+                        ->where('deleted_at', null)
                         ->get()
                         ->getRowArray();
 
-                    if (!$report) {
-                        $report = $db->table('archived_accomplishment_reports')
-                            ->where('act_design_id', $designId)
-                            ->whereIn('status', ['Completed', 'Verified'])
-                            ->get()
-                            ->getRowArray();
-                    }
-
                     if ($report) {
                         // Use actual spending total from accomplishment_budget_items
-                        $reportId = $report['id'] ?? $report['original_report_id'];
-                        $isActiveReport = isset($report['id']) && empty($report['original_report_id']);
-                        $table = $isActiveReport ? 'accomplishment_budget_items' : 'archived_accomplishment_budget_items';
+                        $reportId = $report['id'];
+                        $table = 'accomplishment_budget_items';
                         
                         $actualTotalRow = $db->table($table)
                             ->select('SUM(amount) as total')
@@ -241,34 +236,26 @@ class BudgetController extends Controller
             return $this->fail('Office not found');
         }
 
-            if ($field === 'allocated') {
-            $gpbIdsQuery = $db->table('gpb_offices_map')
-                ->where('office_id', $officeId)
+        if ($field === 'allocated') {
+            $existingGpb = $db->table('gad_plan_budget')
+                ->like('responsible_unit_office', $office['office_name'])
                 ->get()
-                ->getResultArray();
-            $gpbIds = array_column($gpbIdsQuery, 'gpb_id');
+                ->getRowArray();
 
-            if (!empty($gpbIds)) {
-                // Update the first mapped GPB activity budget directly
+            if ($existingGpb) {
+                // Update the first matched GPB activity budget directly
                 $db->table('gad_plan_budget')
-                    ->where('gpb_id', $gpbIds[0])
+                    ->where('gpb_id', $existingGpb['gpb_id'])
                     ->update(['gad_budget' => $newValue]);
             } else {
-                // Create a default GPB activity and map it to the office
-                $newGpbId = $db->table('gad_plan_budget')->insert([
+                // Create a default GPB activity
+                $db->table('gad_plan_budget')->insert([
                     'gender_issue_mandate' => 'General Budget Allocation',
                     'gad_activity' => 'General GAD budget allocation for ' . $office['office_name'],
                     'gad_budget' => $newValue,
                     'responsible_unit_office' => $office['office_name'],
                     'form_type' => 'client-focused activity'
                 ]);
-
-                if ($newGpbId) {
-                    $db->table('gpb_offices_map')->insert([
-                        'gpb_id' => $newGpbId,
-                        'office_id' => $officeId
-                    ]);
-                }
             }
         }
 
@@ -299,9 +286,10 @@ class BudgetController extends Controller
                 ->where('gpb_id', $gpbId)
                 ->get()->getRow()->proposed_budget ?? 0.0;
 
-            $proposedArchived = $db->table('archived_activity_designs')
+            $proposedArchived = $db->table('activity_design')
                 ->selectSum('proposed_budget')
                 ->where('gpb_id', $gpbId)
+                ->where('is_archived', 1)
                 ->get()->getRow()->proposed_budget ?? 0.0;
 
             $utilized = (float) $proposedActive + (float) $proposedArchived;
@@ -367,8 +355,9 @@ class BudgetController extends Controller
             ->selectSum('proposed_budget')
             ->get()->getRow()->proposed_budget ?? 0.0;
 
-        $totalUtilizedArchived = $db->table('archived_activity_designs')
+        $totalUtilizedArchived = $db->table('activity_design')
             ->selectSum('proposed_budget')
+            ->where('is_archived', 1)
             ->get()->getRow()->proposed_budget ?? 0.0;
 
         $totalBudget = (float) $totalBudget;
