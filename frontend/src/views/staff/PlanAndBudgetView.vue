@@ -298,6 +298,25 @@
                     <span :style="{ color: stat.remaining_budget < 0 ? '#ef4444' : '#3b82f6' }" style="font-family: monospace; font-size: 1.05rem;">₱{{ Number(stat.remaining_budget).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
                   </div>
                 </div>
+
+                <!-- Budget Lines Details -->
+                <div v-if="stat.budget_lines && stat.budget_lines.length > 0" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
+                  <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 12px; letter-spacing: 0.5px;">Budget Lines Breakdown</div>
+                  <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div v-for="bl in stat.budget_lines" :key="bl.id" style="background: rgba(0,0,0,0.2); border-radius: 6px; padding: 10px; border: 1px solid rgba(255,255,255,0.05); font-size: 0.8rem;">
+                       <div style="color: var(--text-primary); font-weight: 600; margin-bottom: 6px;">{{ bl.label || 'Unnamed Line' }}</div>
+                       <div style="display: flex; justify-content: space-between; color: var(--text-secondary); margin-bottom: 2px;">
+                          <span>Original:</span> <span style="font-family: monospace;">₱{{ Number(bl.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
+                       </div>
+                       <div style="display: flex; justify-content: space-between; color: #10b981; margin-bottom: 2px;">
+                          <span>Utilized:</span> <span style="font-family: monospace;">₱{{ Number(bl.utilized_budget || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
+                       </div>
+                       <div style="display: flex; justify-content: space-between; color: #f59e0b;">
+                          <span>Pending (AD):</span> <span style="font-family: monospace;">₱{{ Number(bl.pending_budget || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
+                       </div>
+                    </div>
+                  </div>
+                </div>
               </div>
               
               <button @click="openAllocationModal(stat)" v-if="!isReadOnly" style="width: 100%; padding: 10px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: #93c5fd; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(59, 130, 246, 0.25)'; this.style.color='#bfdbfe';" onmouseout="this.style.background='rgba(59, 130, 246, 0.15)'; this.style.color='#93c5fd';">
@@ -317,10 +336,55 @@
         </p>
 
         <div v-if="loadingAllocations" style="padding: 20px; text-align: center; color: var(--text-muted);">Loading...</div>
-        <div v-else-if="allocationsData.length === 0" style="padding: 20px; text-align: center; color: var(--text-muted);">
-          No approved Activity Designs or Accomplishment Reports found for this mandate.
-        </div>
         <div v-else>
+          <!-- Budget Lines Summary -->
+          <div v-if="currentAllocationStat && currentAllocationStat.budget_lines && currentAllocationStat.budget_lines.length > 0" style="margin-bottom: 24px;">
+             <h3 style="color: var(--text-primary); font-size: 1rem; margin-bottom: 12px;">Planned Budget Lines</h3>
+             <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; border: 1px solid var(--border); border-radius: 8px; overflow: hidden;">
+               <thead>
+                 <tr style="background: rgba(0,0,0,0.2); text-align: left; color: var(--text-muted);">
+                   <th style="padding: 10px; font-weight: 600;">Budget Line</th>
+                   <th style="padding: 10px; font-weight: 600;">Original Amount</th>
+                   <th style="padding: 10px; font-weight: 600;">Pending (AD)</th>
+                   <th style="padding: 10px; font-weight: 600;">Utilized (AR)</th>
+                 </tr>
+               </thead>
+               <tbody>
+                 <tr v-for="bl in currentAllocationStat.budget_lines" :key="bl.id" style="border-top: 1px solid rgba(255,255,255,0.05);">
+                   <td style="padding: 10px; color: var(--text-primary);">{{ bl.label || 'Unnamed Line' }}</td>
+                   <td style="padding: 10px; color: var(--text-primary);">₱{{ Number(bl.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</td>
+                   <td style="padding: 10px; color: #f59e0b;">₱{{ Number(bl.pending_budget || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</td>
+                   <td style="padding: 10px; color: #10b981;">₱{{ Number(bl.utilized_budget || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</td>
+                 </tr>
+               </tbody>
+             </table>
+          </div>
+
+          <!-- Verified Utilizations by Item (AR) -->
+          <div v-if="arVerifiedTotals && arVerifiedTotals.length > 0" style="margin-bottom: 24px; margin-top: 16px;">
+            <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 12px; color: var(--text-primary); border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+               Actual Expenditures Breakdown (Verified ARs)
+            </div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; border: 1px solid var(--border); border-radius: 8px; overflow: hidden;">
+               <thead>
+                 <tr style="background: rgba(0,0,0,0.2); text-align: left; color: var(--text-muted);">
+                   <th style="padding: 10px; font-weight: 600;">Expenditure Item</th>
+                   <th style="padding: 10px; font-weight: 600;">Total Cost</th>
+                 </tr>
+               </thead>
+               <tbody>
+                 <tr v-for="(tv, idx) in arVerifiedTotals" :key="idx" style="border-top: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 10px; color: var(--text-primary);">{{ tv.name }}</td>
+                    <td style="padding: 10px; color: #10b981; font-family: monospace; font-weight: 600;">₱{{ Number(tv.amount).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</td>
+                 </tr>
+               </tbody>
+            </table>
+          </div>
+
+          <div v-if="allocationsData.length === 0" style="padding: 20px; text-align: center; color: var(--text-muted);">
+            No approved Activity Designs or Accomplishment Reports found for this mandate.
+          </div>
+          <div v-else>
           <div v-for="doc in allocationsData" :key="doc.type + doc.id" style="margin-bottom: 16px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden;">
             <div style="background: rgba(0,0,0,0.2); padding: 12px 16px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; cursor: pointer;" @click="doc._expanded = !doc._expanded">
               <div style="color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
@@ -339,7 +403,7 @@
                   <tr style="border-bottom: 1px solid var(--border); text-align: left; color: var(--text-muted);">
                     <th style="padding: 8px; font-weight: 600;">Item Name</th>
                     <th style="padding: 8px; font-weight: 600;">Total Cost</th>
-                    <th style="padding: 8px; font-weight: 600;">Allocated Here (₱)</th>
+                    <th style="padding: 8px; font-weight: 600;">Allocated To (Budget Line)</th>
                     <th style="padding: 8px; font-weight: 600;">Status</th>
                   </tr>
                 </thead>
@@ -348,12 +412,17 @@
                     <td style="padding: 12px 8px; color: var(--text-primary);">{{ item.item_name }} <span v-if="item.sub_item" style="color: var(--text-muted); font-size: 0.8rem;">- {{ item.sub_item }}</span></td>
                     <td style="padding: 12px 8px; color: var(--text-primary);">₱{{ Number(item.amount).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</td>
                     <td style="padding: 12px 8px;">
-                      <input v-if="item.amount > 0" type="number" step="0.01" min="0" :max="item.amount" v-model.number="item.allocated_to_current" style="width: 120px; padding: 6px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: white; border-radius: 4px;" @input="markAllocationsDirty">
+                      <select v-if="item.amount > 0" v-model="item.gpb_budget_line_id" style="width: 200px; padding: 6px; background: #1e293b; border: 1px solid var(--border); color: #f8fafc; border-radius: 4px; outline: none;" @change="markAllocationsDirty">
+                         <option :value="null">-- Not Allocated --</option>
+                         <option v-for="bl in (currentAllocationStat?.budget_lines || [])" :key="bl.id" :value="bl.id">
+                            {{ bl.label }} (₱{{ Number(bl.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }})
+                         </option>
+                      </select>
                       <span v-else style="color: var(--text-muted); font-size: 0.8rem;">N/A</span>
                     </td>
                     <td style="padding: 12px 8px; font-size: 0.8rem;">
                        <span v-if="item.amount <= 0" style="color: var(--text-muted);" title="This item has no cost to allocate.">No Cost</span>
-                       <span v-else-if="item.allocated_to_current > 0" style="color: #10b981; font-weight: 600;">Assigned</span>
+                       <span v-else-if="item.gpb_budget_line_id" style="color: #10b981; font-weight: 600;">Assigned</span>
                        <span v-else-if="getAllocatedElsewhere(item) >= item.amount" style="color: #ef4444; font-weight: 600;" title="This budget item has been fully assigned to other mandates. It cannot be assigned here unless it is removed from the other mandate first.">🔒 Locked</span>
                        <span v-else style="color: var(--text-muted);">Unassigned</span>
                     </td>
@@ -362,6 +431,7 @@
               </table>
             </div>
           </div>
+        </div>
         </div>
 
         <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border); padding-top: 16px;">
@@ -465,6 +535,22 @@ export default {
     const currentAllocationStat = ref(null);
     const allocationsDirty = ref(false);
 
+    const arVerifiedTotals = computed(() => {
+      const totals = {};
+      for (const doc of allocationsData.value) {
+        if (doc.type === 'AR') {
+          for (const item of doc.items) {
+            const name = item.item_name || 'Unspecified Item';
+            if (!totals[name]) {
+              totals[name] = 0;
+            }
+            totals[name] += parseFloat(item.amount) || 0;
+          }
+        }
+      }
+      return Object.entries(totals).map(([name, amount]) => ({ name, amount }));
+    });
+
     const openAllocationModal = async (stat) => {
       currentAllocationStat.value = stat;
       showAllocationModal.value = true;
@@ -509,16 +595,18 @@ export default {
        const flatAllocs = [];
        for (const doc of allocationsData.value) {
            for (const item of doc.items) {
-               let val = parseFloat(item.allocated_to_current) || 0;
-               const elsewhere = getAllocatedElsewhere(item);
-               const maxAllowed = parseFloat(item.amount) - elsewhere;
-               if (val > maxAllowed) val = maxAllowed;
-               if (val < 0) val = 0;
+               let val = 0;
+               let gpbLineId = item.gpb_budget_line_id;
+               
+               if (gpbLineId) {
+                   val = parseFloat(item.amount) || 0;
+               }
 
                flatAllocs.push({
                    budget_item_id: item.id,
                    item_type: doc.type,
-                   allocated_amount: val
+                   allocated_amount: val,
+                   gpb_budget_line_id: gpbLineId
                });
            }
        }
@@ -1252,6 +1340,7 @@ export default {
         const res = await api.post('/plan', payload);
         if (res.status === 200 || res.status === 201) {
           saveStatus.value = 'Saved';
+          fetchMandateStats();
         } else throw new Error('fail');
       } catch {
         // Could not reach backend
@@ -1343,12 +1432,14 @@ export default {
       loadingAllocations,
       savingAllocations,
       allocationsData,
+      currentAllocationStat,
       allocationsDirty,
       openAllocationModal,
       closeAllocationModal,
       markAllocationsDirty,
       getAllocatedElsewhere,
       saveAllocations,
+      arVerifiedTotals,
       isPdfModalOpen, pdfFileUrl, openDocumentPreview, closePdfModal,
       isBaselineModalOpen, savingBaselines, baselineForm, openBaselineModal, saveBaselineAmounts,
 

@@ -727,6 +727,52 @@ class AccomplishmentReportController extends BaseController
             'archived_at' => date('Y-m-d H:i:s')
         ]);
 
+        // Auto-sync AD allocations to AR items upon verification
+        $ad = $db->table('activity_design')->where('control_number', $item['control_number'])->get()->getRowArray();
+        if ($ad) {
+            $arItems = $db->table('accomplishment_budget_items')->where('accomplishment_report_id', $id)->get()->getResultArray();
+            foreach ($arItems as $arItem) {
+                // Find matching AD item
+                $adItemQuery = $db->table('activity_budget_items')
+                                  ->where('act_design_id', $ad['act_design_id'])
+                                  ->where('item_name', $arItem['item_name']);
+                if (empty($arItem['sub_item'])) {
+                    $adItemQuery->groupStart()
+                                ->where('sub_item', null)
+                                ->orWhere('sub_item', '')
+                                ->groupEnd();
+                } else {
+                    $adItemQuery->where('sub_item', $arItem['sub_item']);
+                }
+                $adItem = $adItemQuery->get()->getRowArray();
+                
+                if ($adItem) {
+                    $adAllocs = $db->table('budget_item_mandate_allocations')
+                                   ->where('item_type', 'AD')
+                                   ->where('budget_item_id', $adItem['id'])
+                                   ->get()->getResultArray();
+                                   
+                    if (!empty($adAllocs)) {
+                        $db->table('budget_item_mandate_allocations')
+                           ->where('item_type', 'AR')
+                           ->where('budget_item_id', $arItem['id'])
+                           ->delete();
+                           
+                        $adAlloc = $adAllocs[0];
+                        $db->table('budget_item_mandate_allocations')->insert([
+                            'budget_item_id' => $arItem['id'],
+                            'item_type' => 'AR',
+                            'mandate_id' => $adAlloc['mandate_id'],
+                            'gpb_budget_line_id' => $adAlloc['gpb_budget_line_id'],
+                            'allocated_amount' => $arItem['amount'],
+                            'created_at' => date('Y-m-d H:i:s'),
+                            'updated_at' => date('Y-m-d H:i:s')
+                        ]);
+                    }
+                }
+            }
+        }
+
         $db->transComplete();
 
         if ($db->transStatus() === false) {

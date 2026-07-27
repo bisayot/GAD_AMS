@@ -206,6 +206,7 @@ class BudgetController extends Controller
                 'unit_code' => strtoupper($acronym),
                 'allocated' => $allocated,
                 'utilized' => $utilized,
+                'pending_approved' => $pendingApproved,
                 'remaining' => $remaining,
                 'utilizationRate' => $utilizationRate
             ];

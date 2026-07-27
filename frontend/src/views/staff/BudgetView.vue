@@ -21,8 +21,8 @@
                 <span class="material-symbols-outlined">account_balance</span>
               </div>
               <div class="stat-content">
-                <h3 class="stat-value">₱{{ formatNum(totalAllocatedBudget) }}</h3>
-                <p class="stat-label">Total Allocated Budget</p>
+                <h3 class="stat-value">₱{{ formatNum(totalAvailableBudget) }}</h3>
+                <p class="stat-label">Total Available Budget</p>
               </div>
             </div>
 
@@ -38,11 +38,11 @@
 
             <div class="stat-card">
               <div class="stat-icon-wrapper amber">
-                <span class="material-symbols-outlined">account_balance_wallet</span>
+                <span class="material-symbols-outlined">hourglass_empty</span>
               </div>
               <div class="stat-content">
-                <h3 class="stat-value">₱{{ formatNum(totalRemainingBudget) }}</h3>
-                <p class="stat-label">Total Remaining Budget</p>
+                <h3 class="stat-value">₱{{ formatNum(totalPendingBudget) }}</h3>
+                <p class="stat-label">Total Pending Budget</p>
               </div>
             </div>
 
@@ -65,14 +65,15 @@
                     <th class="table-header-cell col-number">#</th>
                     <th class="table-header-cell col-unit text-left">Unit / Office</th>
                     <th class="table-header-cell col-allocated">Total Allocated Budget</th>
+                    <th class="table-header-cell col-pending">Pending Budget</th>
                     <th class="table-header-cell col-utilized">Utilized Amount</th>
-                    <th class="table-header-cell col-remaining">Remaining Budget</th>
+                    <th class="table-header-cell col-remaining">Available Budget</th>
                     <th class="table-header-cell col-percent">% Utilization</th>
                   </tr>
                 </thead>
                 <tbody class="table-body">
                   <tr v-if="budgetRows.length === 0">
-                    <td colspan="6" class="empty-state">
+                    <td colspan="7" class="empty-state">
                       No budget records found in the database.
                     </td>
                   </tr>
@@ -107,23 +108,15 @@
                       </div>
                     </td>
 
-                    <td class="table-cell cell-utilized editable-cell" @click="startEditingCell(row.id, 'utilized', row.utilized)">
-                      <div v-if="isEditing(row.id, 'utilized')" class="edit-input-wrapper">
-                        <input 
-                          :ref="el => setCellInputRef(el, row.id, 'utilized')" 
-                          v-model.number="activeEditValue" 
-                          type="number" 
-                          step="1000" 
-                          min="0"
-                          @blur="saveCellAdjustment(row.id, 'utilized')" 
-                          @keyup.enter="saveCellAdjustment(row.id, 'utilized')" 
-                          @keyup.esc="cancelCellAdjustment" 
-                          class="edit-input"
-                        />
+                    <td class="table-cell cell-pending">
+                      <div class="cell-value">
+                        ₱{{ formatNum(row.pending_approved) }}
                       </div>
-                      <div v-else class="cell-value">
+                    </td>
+
+                    <td class="table-cell cell-utilized">
+                      <div class="cell-value">
                         ₱{{ formatNum(row.utilized) }}
-                        <span class="edit-icon">✏️</span>
                       </div>
                     </td>
 
@@ -165,7 +158,7 @@
               </span>
             </div>
             <div class="legend-right">
-              <span class="edit-note">✏️ Click on allocated or utilized cells to edit</span>
+              <span class="edit-note">✏️ Click on allocated cells to edit</span>
             </div>
           </div>
         </div>
@@ -209,22 +202,11 @@ const showConfirmModal = ref(false);
 const pendingUpdate = ref({ rowId: null, field: null, value: 0 });
 const inputRefs = {};
 
-const totalAllocatedBudget = computed(() => {
-  return budgetRows.value.reduce((sum, row) => sum + (row.allocated || 0), 0);
-});
-
-const totalUtilizedAmount = computed(() => {
-  return budgetRows.value.reduce((sum, row) => sum + (row.utilized || 0), 0);
-});
-
-const totalRemainingBudget = computed(() => {
-  return budgetRows.value.reduce((sum, row) => sum + (row.remaining || 0), 0);
-});
-
-const overallUtilizationRate = computed(() => {
-  if (totalAllocatedBudget.value === 0) return 0;
-  return ((totalUtilizedAmount.value / totalAllocatedBudget.value) * 100).toFixed(1);
-});
+const totalAllocatedBudget = ref(0);
+const totalAvailableBudget = ref(0);
+const totalUtilizedAmount = ref(0);
+const totalPendingBudget = ref(0);
+const overallUtilizationRate = ref('0.0');
 
 const formatNum = (val) => {
   if (val === undefined || val === null) return '0.00';
@@ -241,7 +223,7 @@ const calculateUtilizationRate = (allocated, utilized) => {
 };
 
 const updateRowCalculations = (row) => {
-  row.remaining = calculateRemaining(row.allocated, row.utilized);
+  row.remaining = Math.max(0, (row.allocated || 0) - (row.utilized || 0) - (row.pending_approved || 0));
   row.utilizationRate = calculateUtilizationRate(row.allocated, row.utilized);
 };
 
@@ -338,12 +320,25 @@ const cancelModalAction = () => {
 
 const fetchBudgetData = async () => {
   try {
-    const response = await api.get('staff/budget-monitoring');
-    if (response.data && response.data.success) {
-      budgetRows.value = response.data.data;
+    const [monitoringRes, summaryRes] = await Promise.all([
+      api.get('staff/budget-monitoring'),
+      api.get('budget/summary')
+    ]);
+
+    if (monitoringRes.data) {
+      budgetRows.value = monitoringRes.data;
       budgetRows.value.forEach(row => {
         updateRowCalculations(row);
       });
+    }
+
+    if (summaryRes.data && summaryRes.data.success) {
+      const b = summaryRes.data.data;
+      totalAllocatedBudget.value = b.total_budget || 0;
+      totalAvailableBudget.value = b.remaining_balance || 0;
+      totalUtilizedAmount.value = b.total_utilized || 0;
+      totalPendingBudget.value = b.total_pending_approved || 0;
+      overallUtilizationRate.value = Number(b.utilization_rate || 0).toFixed(1);
     }
   } catch (err) {
     console.error('Error fetching budget data:', err);
@@ -592,7 +587,7 @@ onMounted(() => {
 
 .table-body {
   display: table-row-group;
-  background: #cbd5e1;
+  background: transparent;
 }
 
 .empty-state {
@@ -698,7 +693,7 @@ onMounted(() => {
 
 .edit-input:focus {
   outline: none;
-  ring: 1px solid #b979cc;
+  box-shadow: 0 0 0 2px #b979cc;
 }
 
 /* Remaining Budget Colors */

@@ -293,79 +293,11 @@
                   </div>
                 </div>
               </div>
-              
-              <button @click="openAllocationModal(stat)" v-if="!isReadOnly" style="width: 100%; padding: 10px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: #93c5fd; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(59, 130, 246, 0.25)'; this.style.color='#bfdbfe';" onmouseout="this.style.background='rgba(59, 130, 246, 0.15)'; this.style.color='#93c5fd';">
-                Manage Allocations
-              </button>
             </div>
           </div>
        </div>
     </div>
 
-    <!-- Allocation Modal -->
-    <div v-if="showAllocationModal" class="modal-backdrop" @click.self="closeAllocationModal" style="z-index: 1000; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center;">
-      <div class="card" style="width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; background: #1e293b; padding: 24px; border-radius: 12px; border: 1px solid var(--border);">
-        <h2 style="margin-bottom: 8px; color: var(--text-primary);">Budget Allocations</h2>
-        <p style="color: var(--text-secondary); margin-bottom: 24px; font-size: 0.9rem;">
-          Assign specific Activity Design and Accomplishment Report budgets to this mandate.
-        </p>
-
-        <div v-if="loadingAllocations" style="padding: 20px; text-align: center; color: var(--text-muted);">Loading...</div>
-        <div v-else-if="allocationsData.length === 0" style="padding: 20px; text-align: center; color: var(--text-muted);">
-          No approved Activity Designs or Accomplishment Reports found for this mandate.
-        </div>
-        <div v-else>
-          <div v-for="doc in allocationsData" :key="doc.type + doc.id" style="margin-bottom: 16px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden;">
-            <div style="background: rgba(0,0,0,0.2); padding: 12px 16px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; cursor: pointer;" @click="doc._expanded = !doc._expanded">
-              <div style="color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
-                 <span :style="{ color: doc.type === 'AR' ? '#10b981' : '#f59e0b' }">[{{ doc.type }}]</span>
-                 {{ doc.title || doc.control_number }}
-                 <button v-if="doc.attachment" @click.stop="openDocumentPreview(doc.attachment, doc.type)" style="background: transparent; border: none; color: #3b82f6; cursor: pointer; text-decoration: underline; font-size: 0.85rem; padding: 0 4px;" title="Preview Document">
-                   Click here to preview document
-                 </button>
-              </div>
-              <span style="color: var(--text-muted);">{{ doc._expanded ? '▼' : '▶' }}</span>
-            </div>
-            
-            <div v-if="doc._expanded" style="padding: 16px; background: rgba(255,255,255,0.02);">
-              <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-                <thead>
-                  <tr style="border-bottom: 1px solid var(--border); text-align: left; color: var(--text-muted);">
-                    <th style="padding: 8px; font-weight: 600;">Item Name</th>
-                    <th style="padding: 8px; font-weight: 600;">Total Cost</th>
-                    <th style="padding: 8px; font-weight: 600;">Allocated Here (₱)</th>
-                    <th style="padding: 8px; font-weight: 600;">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="item in doc.items" :key="item.id" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <td style="padding: 12px 8px; color: var(--text-primary);">{{ item.item_name }} <span v-if="item.sub_item" style="color: var(--text-muted); font-size: 0.8rem;">- {{ item.sub_item }}</span></td>
-                    <td style="padding: 12px 8px; color: var(--text-primary);">₱{{ Number(item.amount).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</td>
-                    <td style="padding: 12px 8px;">
-                      <input v-if="item.amount > 0" type="number" step="0.01" min="0" :max="item.amount" v-model.number="item.allocated_to_current" style="width: 120px; padding: 6px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: white; border-radius: 4px;" @input="markAllocationsDirty">
-                      <span v-else style="color: var(--text-muted); font-size: 0.8rem;">N/A</span>
-                    </td>
-                    <td style="padding: 12px 8px; font-size: 0.8rem;">
-                       <span v-if="item.amount <= 0" style="color: var(--text-muted);" title="This item has no cost to allocate.">No Cost</span>
-                       <span v-else-if="item.allocated_to_current > 0" style="color: #10b981; font-weight: 600;">Assigned</span>
-                       <span v-else-if="getAllocatedElsewhere(item) >= item.amount" style="color: #ef4444; font-weight: 600;" title="This budget item has been fully assigned to other mandates. It cannot be assigned here unless it is removed from the other mandate first.">🔒 Locked</span>
-                       <span v-else style="color: var(--text-muted);">Unassigned</span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border); padding-top: 16px;">
-           <button @click="closeAllocationModal" style="padding: 8px 16px; background: transparent; border: 1px solid var(--border); color: var(--text-primary); border-radius: 4px; cursor: pointer;">Cancel</button>
-           <button @click="saveAllocations" :disabled="savingAllocations || !allocationsDirty" style="padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; opacity: allocationsDirty ? 1 : 0.5;">
-             {{ savingAllocations ? 'Saving...' : 'Save Allocations' }}
-           </button>
-        </div>
-      </div>
-    </div>
 
     <input :disabled="isReadOnly" type="file" ref="fileImport" accept="application/json" style="display:none" @change="handleFileImport">
 
@@ -487,90 +419,6 @@ export default {
       });
     };
 
-    const showAllocationModal = ref(false);
-    const loadingAllocations = ref(false);
-    const savingAllocations = ref(false);
-    const allocationsData = ref([]);
-    const currentAllocationStat = ref(null);
-    const allocationsDirty = ref(false);
-
-    const openAllocationModal = async (stat) => {
-      currentAllocationStat.value = stat;
-      showAllocationModal.value = true;
-      loadingAllocations.value = true;
-      allocationsDirty.value = false;
-      allocationsData.value = [];
-      
-      try {
-        const res = await api.get(`/plan/mandate-allocations?gpb_ids=${stat.gpb_ids.join(',')}`);
-        if (res.data.success) {
-           allocationsData.value = res.data.data.map(d => ({ ...d, _expanded: true }));
-        } else {
-           Swal.fire('Error', res.data.message || 'Failed to load allocations.', 'error');
-        }
-      } catch (err) {
-        Swal.fire('Error', 'Network error while loading allocations.', 'error');
-      } finally {
-        loadingAllocations.value = false;
-      }
-    };
-
-    const closeAllocationModal = () => {
-       showAllocationModal.value = false;
-       currentAllocationStat.value = null;
-    };
-
-    const markAllocationsDirty = () => { allocationsDirty.value = true; };
-
-    const getAllocatedElsewhere = (item) => {
-       if (!item.allocations || !currentAllocationStat.value) return 0;
-       return item.allocations.reduce((sum, al) => {
-          if (!currentAllocationStat.value.gpb_ids.includes(parseInt(al.mandate_id))) {
-              return sum + parseFloat(al.allocated_amount);
-          }
-          return sum;
-       }, 0);
-    };
-
-    const saveAllocations = async () => {
-       savingAllocations.value = true;
-       
-       const flatAllocs = [];
-       for (const doc of allocationsData.value) {
-           for (const item of doc.items) {
-               let val = parseFloat(item.allocated_to_current) || 0;
-               const elsewhere = getAllocatedElsewhere(item);
-               const maxAllowed = parseFloat(item.amount) - elsewhere;
-               if (val > maxAllowed) val = maxAllowed;
-               if (val < 0) val = 0;
-
-               flatAllocs.push({
-                   budget_item_id: item.id,
-                   item_type: doc.type,
-                   allocated_amount: val
-               });
-           }
-       }
-
-       try {
-          const res = await api.post('/plan/mandate-allocations', {
-             gpb_ids: currentAllocationStat.value.gpb_ids,
-             allocations: flatAllocs
-          });
-          if (res.data.success) {
-             allocationsDirty.value = false;
-             closeAllocationModal();
-             await fetchMandateStats();
-             Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Allocations saved successfully', showConfirmButton: false, timer: 3000 });
-          } else {
-             Swal.fire('Error', res.data.message || 'Failed to save allocations.', 'error');
-          }
-       } catch (err) {
-          Swal.fire('Error', 'Network error while saving allocations.', 'error');
-       } finally {
-          savingAllocations.value = false;
-       }
-    };
 
     // ─── Seed ───────────────────────────────────────────────────────────────
     function seedState() {

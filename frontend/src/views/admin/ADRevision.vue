@@ -70,7 +70,7 @@
                 <span class="info-label">Gender Issue / GAD Mandate *</span>
                 <div class="checkbox-group-container modal-input" style="min-height: 120px; max-height: 250px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
                   <label v-for="mandate in gadMandates" :key="mandate.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
-                    <input type="checkbox" v-model="formData.gad_mandate" :value="mandate.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
+                    <input type="radio" v-model="formData.gad_mandate" :value="mandate.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
                     <span style="font-size: 14px; line-height: 1.4;">{{ mandate.code }} - {{ mandate.title }}</span>
                   </label>
                   
@@ -81,7 +81,7 @@
                 <span class="info-label">Cause of Gender Issue *</span>
                 <div class="checkbox-group-container modal-input" style="min-height: 120px; max-height: 250px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
                   <label v-for="issue in genderIssues" :key="issue.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
-                    <input type="checkbox" v-model="formData.gender_issue" :value="issue.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
+                    <input type="radio" v-model="formData.gender_issue" :value="issue.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
                     <span style="font-size: 14px; line-height: 1.4;">{{ issue.title }}</span>
                   </label>
                   
@@ -708,9 +708,7 @@ watch(
 const fetchVenues = async () => {
   try {
     const response = await api.get('venues');
-    if (response.data && response.data.success) {
-      venues.value = response.data.data || [];
-    }
+    venues.value = response.data || [];
   } catch (err) {
     console.error('Error fetching venues:', err);
   }
@@ -762,7 +760,9 @@ const fetchGADMandates = async () => {
 };
 
 const fetchGenderIssues = async (mandateIds) => {
-  const ids = (mandateIds || formData.value?.gad_mandate || []).filter(id => id !== 'Other');
+  let rawIds = mandateIds || formData.value?.gad_mandate || [];
+  if (typeof rawIds === 'string' || typeof rawIds === 'number') rawIds = [rawIds];
+  const ids = rawIds.filter(id => id !== 'Other');
   if (!ids || !Array.isArray(ids) || ids.length === 0) {
     genderIssues.value = [];
     return;
@@ -896,12 +896,12 @@ const fetchDesignDetails = async () => {
                         const mIds = String(m.id).split(',');
                         return mIds.every(id => savedMandates.includes(id));
                     })
-                    .map(m => m.id.toString());
+                    .map(m => m.id.toString())[0] || '';
                 if (mappedIds.length > 0) {
                     formData.value.gad_mandate = mappedIds;
                 }
-                if (savedMandates.includes('Other') && !formData.value.gad_mandate.includes('Other')) {
-                    formData.value.gad_mandate.push('Other');
+                if (savedMandates.includes('Other') && formData.value.gad_mandate !== 'Other') {
+                    formData.value.gad_mandate = 'Other';
                 }
             }
         };
@@ -914,9 +914,9 @@ const fetchDesignDetails = async () => {
                     const mIds = String(m.id).split(',');
                     return mIds.every(id => savedIssues.includes(id));
                 })
-                .map(m => m.id.toString());
-            if (savedIssues.includes('Other') && !formData.value.gender_issue.includes('Other')) {
-                formData.value.gender_issue.push('Other');
+                .map(m => m.id.toString())[0] || '';
+            if (savedIssues.includes('Other') && formData.value.gender_issue !== 'Other') {
+                formData.value.gender_issue = 'Other';
             }
         }
       } else {
@@ -1234,11 +1234,11 @@ const handleUpdate = async () => {
     submitData.append('form_type', formData.value.form_type);
     submitData.append('activity_classification_id', formData.value.activity_classification);
     submitData.append('gad_mandate_id', Array.isArray(formData.value.gad_mandate) ? formData.value.gad_mandate.join(',') : formData.value.gad_mandate);
-    if (Array.isArray(formData.value.gad_mandate) && formData.value.gad_mandate.includes('Other')) {
+    if (formData.value.gad_mandate === 'Other') {
       submitData.append('custom_gad_mandate', customMandate.value);
     }
     submitData.append('gender_issue_id', Array.isArray(formData.value.gender_issue) ? formData.value.gender_issue.join(',') : formData.value.gender_issue);
-    if (Array.isArray(formData.value.gender_issue) && formData.value.gender_issue.includes('Other')) {
+    if (formData.value.gender_issue === 'Other') {
       submitData.append('custom_gender_issue', customGenderIssue.value);
     }
     submitData.append('start_date', formData.value.start_date);
@@ -1341,19 +1341,19 @@ const handleUpdate = async () => {
 
   watch(() => formData.value.activity_classification, (newVal) => {
       if (typeof loadingData !== 'undefined' && loadingData.value) return;
-      formData.value.gad_mandate = [];
-      formData.value.gender_issue = [];
+      formData.value.gad_mandate = '';
+      formData.value.gender_issue = '';
       fetchGADMandates();
   });
   
   watch(() => formData.value.gad_mandate, (newVal) => {
       if (typeof loadingData !== 'undefined' && loadingData.value) return;
       if (newVal && newVal.length > 0) {
-          formData.value.gender_issue = [];
+          formData.value.gender_issue = '';
           fetchGenderIssues(newVal);
       } else {
           genderIssues.value = [];
-          formData.value.gender_issue = [];
+          formData.value.gender_issue = '';
       }
   }, { deep: true });
   

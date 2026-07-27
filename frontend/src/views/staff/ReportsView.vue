@@ -617,7 +617,7 @@ function addDataRow(data){
   tr.appendChild(tdActual);
 
   const budgetItems = (data.items || []).map(it => ({label:it[0], amount:it[1], source:it[3] || 'GAA'}));
-  const costItems    = (data.items || []).map(it => ({label:it[0], amount:0, source:it[3] || 'GAA'}));
+  const costItems    = (data.items || []).map(it => ({label:it[0], amount:it[2] || 0, source:it[3] || 'GAA'}));
 
   const tdBudget = document.createElement('td');
   tdBudget.setAttribute('data-col','budget');
@@ -978,11 +978,12 @@ function exportCSV(){
           actualResult: { text: '', m: item.actualResult_m || '', f: item.actualResult_f || '' },
           items: (item.budgetLines || []).map(b => {
             const amt = parseFloat(b.amount) || 0;
+            const utilized = parseFloat(b.utilized_budget) || 0;
             totalGadBudget += amt;
             return [
               b.label || '', 
               amt, 
-              amt, // Pre-fill actual cost with budget
+              utilized, 
               b.source || 'GAA'
             ];
           })
@@ -1030,33 +1031,30 @@ function exportCSV(){
 
 
 .report-wrapper {
-  
-  & {
-    --green-deep: #1a1a2e; /* Dark header/sidebar background */
-    --green-mid: #2d1b4e; /* Dark purple gradient end */
-    --gold: #9333ea; /* Vibrant purple accent (buttons, highlights) */
-    --gold-soft: #c084fc; /* Lighter purple */
-    --cream: #ffffff; /* System white backgrounds */
-    --paper: #ffffff; /* Card/Panel backgrounds */
-    --ink: #0f172a; /* Slate-900 main text */
-    --ink-soft: #64748b; /* Slate-500 subtext */
-    --line: #e2e8f0; /* Slate-200 borders */
-    --sage: #f8fafc; /* Slate-50 alt backgrounds/hover */
-    --danger: #ef4444; /* Red-500 */
-    --danger-bg: #fee2e2; /* Red-100 */
-    --ok: #22c55e; /* Green-500 */
-    --ok-bg: #dcfce7; /* Green-100 */
+  --green-deep: #1a1a2e; /* Dark header/sidebar background */
+  --green-mid: #2d1b4e; /* Dark purple gradient end */
+  --gold: #9333ea; /* Vibrant purple accent (buttons, highlights) */
+  --gold-soft: #c084fc; /* Lighter purple */
+  --cream: #ffffff; /* System white backgrounds */
+  --paper: #ffffff; /* Card/Panel backgrounds */
+  --ink: #0f172a; /* Slate-900 main text */
+  --ink-soft: #64748b; /* Slate-500 subtext */
+  --line: #e2e8f0; /* Slate-200 borders */
+  --sage: #f8fafc; /* Slate-50 alt backgrounds/hover */
+  --danger: #ef4444; /* Red-500 */
+  --danger-bg: #fee2e2; /* Red-100 */
+  --ok: #22c55e; /* Green-500 */
+  --ok-bg: #dcfce7; /* Green-100 */
+
+  box-sizing: border-box;
+  background: var(--cream) !important;
+  color: var(--ink);
+  font-family: 'Manrope', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 0 0 80px;
 }
-  & * { box-sizing:border-box; }
-  
-  & { background: transparent !important; 
-    background:var(--cream);
-    color:var(--ink);
-    font-family: 'Manrope', system-ui, Avenir, Helvetica, Arial, sans-serif;
-    font-size:14px;
-    line-height:1.5;
-    padding:0 0 80px;
-  }
+.report-wrapper * { box-sizing: border-box; }
 
   /* ---------- Masthead ---------- */
   .masthead{
@@ -1213,12 +1211,12 @@ function exportCSV(){
     background:var(--paper);
     box-shadow:0 10px 26px -20px rgba(30,69,54,.4);
   }
-  table{
+  .report-wrapper table{
     border-collapse:collapse;
     width:100%;
     min-width: 100%;
   }
-  thead th{
+  .report-wrapper thead th{
     position:sticky;
     top:0;
     z-index:3;
@@ -1235,7 +1233,7 @@ function exportCSV(){
     white-space:normal;
     vertical-align:bottom;
   }
-  thead th .colnum{
+  .report-wrapper thead th .colnum{
     display:block;
     font-family: 'Manrope', system-ui, Avenir, Helvetica, Arial, sans-serif;
     font-style:italic;
@@ -1243,11 +1241,11 @@ function exportCSV(){
     font-size: 14px;
     margin-bottom:2px;
   }
-  thead th em{font-style:normal;color:var(--gold-soft);display:block;font-size:9.5px;margin-top:3px;text-transform:none;letter-spacing:0;}
-  th.col-num, td.col-num{width:34px;min-width:34px;text-align:center;}
-  th.col-actions, td.col-actions{width:40px;min-width:40px;}
+  .report-wrapper thead th em{font-style:normal;color:var(--gold-soft);display:block;font-size:9.5px;margin-top:3px;text-transform:none;letter-spacing:0;}
+  .report-wrapper th.col-num, .report-wrapper td.col-num{width:34px;min-width:34px;text-align:center;}
+  .report-wrapper th.col-actions, .report-wrapper td.col-actions{width:40px;min-width:40px;}
 
-  tbody td{
+  .report-wrapper tbody td{
     padding:11px 12px;
     border-right:1px solid var(--line);
     border-bottom:1px solid var(--line);
@@ -1255,16 +1253,16 @@ function exportCSV(){
     font-size:13px;
     min-width: 120px;
   }
-  tbody td[data-col="budget"], tbody td[data-col="cost"]{
+  .report-wrapper tbody td[data-col="budget"], .report-wrapper tbody td[data-col="cost"]{
     min-width: 180px;
   }
-  tbody td[data-col="issue"]{min-width: 160px;}
-  tbody td[data-col="indicators"], tbody td[data-col="actualResult"]{min-width: 160px;}
-  tbody tr:nth-child(odd) td{background:#f8fafc;}
-  tbody tr:hover td{background:var(--sage);}
-  td[contenteditable="true"]{outline:none;white-space:pre-wrap;}
-  td[contenteditable="true"]:focus{background:#f3e8ff !important;box-shadow:inset 0 0 0 2px var(--gold);}
-  td.col-num{
+  .report-wrapper tbody td[data-col="issue"]{min-width: 160px;}
+  .report-wrapper tbody td[data-col="indicators"], .report-wrapper tbody td[data-col="actualResult"]{min-width: 160px;}
+  .report-wrapper tbody tr:nth-child(odd) td{background:#f8fafc;}
+  .report-wrapper tbody tr:hover td{background:var(--sage);}
+  .report-wrapper td[contenteditable="true"]{outline:none;white-space:pre-wrap;}
+  .report-wrapper td[contenteditable="true"]:focus{background:#f3e8ff !important;box-shadow:inset 0 0 0 2px var(--gold);}
+  .report-wrapper td.col-num{
     font-family: 'Manrope', system-ui, Avenir, Helvetica, Arial, sans-serif;
     color:var(--ink-soft);
     text-align:center;
@@ -1280,9 +1278,9 @@ function exportCSV(){
   .remove-btn:hover{background:var(--danger);color:var(--paper);border-color:var(--danger);}
 
   /* section divider rows */
-  tr.section-row td{
+  .report-wrapper tr.section-row td{
     background:var(--gold) !important;
-    color:var(--gold);
+    color:var(--cream);
     font-family: 'Manrope', system-ui, Avenir, Helvetica, Arial, sans-serif;
     font-weight:700;
     font-size:13.5px;
@@ -1291,12 +1289,12 @@ function exportCSV(){
     padding:10px 14px;
     border-bottom:2px solid var(--green-deep);
   }
-  tr.add-row td{
+  .report-wrapper tr.add-row td{
     background:var(--paper) !important;
     padding:10px 14px;
     border-bottom:1px solid var(--line);
   }
-  tr.add-row button{width:100%;border-style:dashed;}
+  .report-wrapper tr.add-row button{width:100%;border-style:dashed;}
 
   /* ---------- line-item editors (budget / cost cells) ---------- */
   .items-editor{display:flex;flex-direction:column;}
@@ -1471,6 +1469,11 @@ function exportCSV(){
     background: #1e293b !important; 
     color: var(--gold-soft) !important; 
 }
+.info-panel .field .val:focus {
+    background: #1e293b !important;
+    border-color: var(--gold) !important;
+}
+
 .scroller tbody tr { background: #0f172a !important; }
 .scroller tbody tr:hover { background: #1e293b !important; }
 .scroller tbody tr:hover td { background: transparent !important; }
@@ -1486,9 +1489,13 @@ function exportCSV(){
     background: #2e1065 !important; /* Dark purple focus */
     outline: 2px solid var(--gold);
 }
-.scroller .val:focus {
+.scroller .val:focus,
+.scroller td[contenteditable="true"]:focus,
+.scroller .gc-text:focus,
+.scroller .item-label:focus,
+.scroller .item-amt:focus,
+.scroller .item-src:focus {
     background: #2e1065 !important;
-}
-
+    color: #ffffff !important;
 }
 </style>
