@@ -304,6 +304,8 @@ $routes->group('api', function($routes) {
     $routes->get('files/drafts/(:segment)', 'FileController::serveDraft/$1');
     $routes->options('files/archived/(:segment)', 'AuthController::handleOptions');
     $routes->get('files/archived/(:segment)', 'FileController::serveArchived/$1');
+    $routes->options('files/overwrite/(:segment)/(:segment)', 'AuthController::handleOptions');
+    $routes->post('files/overwrite/(:segment)/(:segment)', 'FileController::overwrite/$1/$2');
     // Document Trash Endpoints
     $routes->options('documents/trashed', 'AuthController::handleOptions');
     $routes->get('documents/trashed', 'DocumentTrashController::getTrashedDocuments');

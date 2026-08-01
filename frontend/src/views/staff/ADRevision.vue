@@ -460,12 +460,22 @@
               <!-- Document Previews -->
               <div class="document-previews" style="margin-top: 15px;">
                 <div v-if="design.attachment" style="margin-bottom: 20px;">
-                  <p style="color: #cbd5e1; font-size: 13px; font-weight: bold; margin-bottom: 8px;">Previous Document:</p>
-                  <iframe :src="`${api.defaults.baseURL}/files/${Number(design.is_archived) === 1 ? 'archived' : 'drafts'}/${design.attachment}`" width="100%" height="400px" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;"></iframe>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <p style="color: #cbd5e1; font-size: 13px; font-weight: bold; margin: 0;">Previous Document:</p>
+                    <button type="button" @click.prevent="expandToNewTab(`${api.defaults.baseURL}/files/${Number(design.is_archived) === 1 ? 'archived' : 'drafts'}/${design.attachment}`)" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #cbd5e1; padding: 4px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; display: flex; align-items: center;">
+                      <span class="material-symbols-outlined" style="font-size: 14px; margin-right: 4px;">open_in_new</span> Expand
+                    </button>
+                  </div>
+                  <iframe :src="getPdfViewerUrl(`${api.defaults.baseURL}/files/${Number(design.is_archived) === 1 ? 'archived' : 'drafts'}/${design.attachment}`)" width="100%" height="400px" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;"></iframe>
                 </div>
                 <div v-if="newFileURL">
-                  <p style="color: #b979cc; font-size: 13px; font-weight: bold; margin-bottom: 8px;">New Document Preview:</p>
-                  <iframe :src="newFileURL" width="100%" height="400px" style="border: 1px solid #b979cc; border-radius: 8px;"></iframe>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <p style="color: #b979cc; font-size: 13px; font-weight: bold; margin: 0;">New Document Preview:</p>
+                    <button type="button" @click.prevent="expandToNewTab(newFileURL)" style="background: transparent; border: 1px solid rgba(185,121,204,0.4); color: #b979cc; padding: 4px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; display: flex; align-items: center;">
+                      <span class="material-symbols-outlined" style="font-size: 14px; margin-right: 4px;">open_in_new</span> Expand
+                    </button>
+                  </div>
+                  <iframe :src="getPdfViewerUrl(newFileURL)" width="100%" height="400px" style="border: 1px solid #b979cc; border-radius: 8px;"></iframe>
                 </div>
               </div>
             </div>
@@ -538,9 +548,22 @@ import api from '../../api';
 import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
 import Swal from 'sweetalert2';
 
+const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
+const userRole = user.value?.role || user.value?.user_role || '';
+
+const getPdfViewerUrl = (url) => {
+  if (!url) return '';
+  return `/pdfjs/web/viewer.html?file=${encodeURIComponent(url)}&role=${encodeURIComponent(userRole)}`;
+};
+
+const expandToNewTab = (url) => {
+  if (url) {
+    window.open(getPdfViewerUrl(url), '_blank');
+  }
+};
+
 const route = useRoute();
 const router = useRouter();
-const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 
 const design = ref({});
 const loading = ref(true);
@@ -616,7 +639,7 @@ const baselineSettings = ref({
 
 const fetchBaselineSettings = async () => {
   try {
-    const res = await api.get('baseline-settings');
+    const res = await api.get('settings/baseline');
     if (res.data) {
       baselineSettings.value = res.data;
     }

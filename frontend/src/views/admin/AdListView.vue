@@ -142,7 +142,7 @@
                     </td>
                     <td class="table-cell">
                       <span class="mandate-badge">
-                        {{ item.formLabel }}
+                        {{ item.formLabel || 'N/A' }}
                       </span>
                     </td>
                     <td class="table-cell date-cell">
@@ -203,7 +203,7 @@
                     </td>
                     <td class="table-cell">
                       <span class="mandate-badge">
-                        {{ item.formLabel }}
+                        {{ item.formLabel || 'N/A' }}
                       </span>
                     </td>
                     <td class="table-cell date-cell">

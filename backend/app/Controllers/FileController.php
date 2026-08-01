@@ -36,9 +36,17 @@ class FileController extends BaseController
         $filepath = $directory . DIRECTORY_SEPARATOR . $filename;
 
         if (!file_exists($filepath)) {
-            return $this->response
-                ->setStatusCode(404)
-                ->setJSON(['success' => false, 'message' => 'File not found']);
+            // Fallback: Check the other directory in case the file wasn't moved or was overwritten incorrectly
+            $otherDirectory = (strpos($directory, 'archived') !== false) ? FileStorage::draftsPath() : FileStorage::archivedPath();
+            $otherFilepath = $otherDirectory . DIRECTORY_SEPARATOR . $filename;
+            
+            if (file_exists($otherFilepath)) {
+                $filepath = $otherFilepath;
+            } else {
+                return $this->response
+                    ->setStatusCode(404)
+                    ->setJSON(['success' => false, 'message' => 'File not found']);
+            }
         }
 
         $mime = mime_content_type($filepath) ?: 'application/octet-stream';
@@ -48,5 +56,43 @@ class FileController extends BaseController
             ->setHeader('Content-Disposition', 'inline; filename="' . $filename . '"')
             ->setHeader('Cache-Control', 'private, max-age=3600')
             ->setBody(file_get_contents($filepath));
+    }
+
+    public function overwrite(string $folder, string $filename)
+    {
+        $file = $this->request->getFile('pdf_file');
+
+        if (!$file || !$file->isValid()) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Invalid file uploaded'
+            ])->setStatusCode(400);
+        }
+
+        // Only allow PDF
+        if ($file->getMimeType() !== 'application/pdf' && $file->getClientExtension() !== 'pdf') {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Only PDF files are allowed'
+            ])->setStatusCode(400);
+        }
+
+        // Sanitize filename to prevent directory traversal
+        $cleanName = basename($filename);
+
+        $success = FileStorage::overwrite($folder, $cleanName, $file->getTempName(), $file->getMimeType());
+
+        if ($success) {
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'File overwritten successfully',
+                'url' => ($folder === 'drafts') ? FileStorage::getCloudDraftUrl($cleanName) : FileStorage::getCloudArchivedUrl($cleanName)
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'success' => false,
+            'message' => 'Failed to overwrite file'
+        ])->setStatusCode(500);
     }
 }

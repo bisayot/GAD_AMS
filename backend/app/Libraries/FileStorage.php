@@ -92,6 +92,38 @@ class FileStorage
     }
 
     /**
+     * Save an uploaded file directly to the archived folder.
+     */
+    public static function saveToArchived($file): string
+    {
+        if (!$file || !$file->isValid() || $file->hasMoved()) {
+            return '';
+        }
+        
+        $name = $file->getRandomName();
+
+        if (self::isCloud()) {
+            try {
+                $s3 = self::getClient();
+                $s3->putObject([
+                    'Bucket'      => self::getBucket(),
+                    'Key'         => 'archived/' . $name,
+                    'SourceFile'  => $file->getTempName(),
+                    'ContentType' => $file->getMimeType()
+                ]);
+            } catch (\Exception $e) {
+                log_message('error', 'R2 Upload Failed: ' . $e->getMessage());
+                return '';
+            }
+        } else {
+            // Local fallback
+            $file->move(self::archivedPath(), $name);
+        }
+        
+        return $name;
+    }
+
+    /**
      * Move a file from drafts → archived.
      */
     public static function moveToArchived(string $fileName): bool
@@ -133,20 +165,50 @@ class FileStorage
     public static function deleteFromDrafts(string $fileName): void
     {
         if (empty($fileName)) return;
-        
+
         if (self::isCloud()) {
             try {
-                self::getClient()->deleteObject([
-                    'Bucket' => self::getBucket(),
-                    'Key'    => 'drafts/' . $fileName
-                ]);
+                $s3 = self::getClient();
+                $bucket = self::getBucket();
+                if ($s3->doesObjectExist($bucket, 'drafts/' . $fileName)) {
+                    $s3->deleteObject([
+                        'Bucket' => $bucket,
+                        'Key'    => 'drafts/' . $fileName
+                    ]);
+                }
             } catch (\Exception $e) {
                 log_message('error', 'R2 Delete Failed: ' . $e->getMessage());
             }
         } else {
-            // Local fallback
             $path = self::draftsPath() . DIRECTORY_SEPARATOR . $fileName;
-            if (file_exists($path)) unlink($path);
+            if (file_exists($path)) {
+                unlink($path);
+            }
+        }
+    }
+
+    public static function deleteFromArchived(string $fileName): void
+    {
+        if (empty($fileName)) return;
+
+        if (self::isCloud()) {
+            try {
+                $s3 = self::getClient();
+                $bucket = self::getBucket();
+                if ($s3->doesObjectExist($bucket, 'archived/' . $fileName)) {
+                    $s3->deleteObject([
+                        'Bucket' => $bucket,
+                        'Key'    => 'archived/' . $fileName
+                    ]);
+                }
+            } catch (\Exception $e) {
+                log_message('error', 'R2 Delete Failed: ' . $e->getMessage());
+            }
+        } else {
+            $path = self::archivedPath() . DIRECTORY_SEPARATOR . $fileName;
+            if (file_exists($path)) {
+                unlink($path);
+            }
         }
     }
 
@@ -177,5 +239,36 @@ class FileStorage
         
         $request = $s3->createPresignedRequest($cmd, '+60 minutes');
         return (string) $request->getUri();
+    }
+
+    /**
+     * Overwrite an existing file in the specified folder (e.g. 'drafts' or 'archived').
+     */
+    public static function overwrite(string $folder, string $fileName, string $tempPath, string $mimeType): bool
+    {
+        if (empty($fileName) || empty($tempPath)) {
+            return false;
+        }
+
+        if (self::isCloud()) {
+            try {
+                $s3 = self::getClient();
+                $s3->putObject([
+                    'Bucket'      => self::getBucket(),
+                    'Key'         => $folder . '/' . $fileName,
+                    'SourceFile'  => $tempPath,
+                    'ContentType' => $mimeType
+                ]);
+                return true;
+            } catch (\Exception $e) {
+                log_message('error', 'R2 Overwrite Failed: ' . $e->getMessage());
+                return false;
+            }
+        } else {
+            // Local fallback
+            $basePath = ($folder === 'archived') ? self::archivedPath() : self::draftsPath();
+            $targetPath = $basePath . DIRECTORY_SEPARATOR . $fileName;
+            return move_uploaded_file($tempPath, $targetPath) || rename($tempPath, $targetPath);
+        }
     }
 }

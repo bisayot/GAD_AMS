@@ -631,8 +631,13 @@
                     <!-- Inline iframe preview of existing file -->
                     <div class="document-previews" style="margin-top:15px;">
                       <div v-for="(file, index) in filteredExistingAttachments" :key="'prev-'+index" style="margin-bottom:20px;">
-                        <p style="color:#b979cc;font-size:13px;font-weight:700;margin-bottom:8px;">Current File Preview:</p>
-                        <iframe :src="getExistingFileURL(file)" width="100%" height="400px" style="border:1px solid rgba(185,121,204,0.3);border-radius:8px;"></iframe>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                          <p style="color:#b979cc;font-size:13px;font-weight:700;margin: 0;">Current File Preview:</p>
+                          <button type="button" @click.prevent="expandToNewTab(getExistingFileURL(file))" style="background: transparent; border: 1px solid rgba(185,121,204,0.4); color: #b979cc; padding: 4px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; display: flex; align-items: center;">
+                            <span class="material-symbols-outlined" style="font-size: 14px; margin-right: 4px;">open_in_new</span> Expand
+                          </button>
+                        </div>
+                        <iframe :src="getPdfViewerUrl(getExistingFileURL(file))" width="100%" height="400px" style="border:1px solid rgba(185,121,204,0.3);border-radius:8px;"></iframe>
                       </div>
                     </div>
                   </div>
@@ -660,8 +665,13 @@
                     <!-- Inline preview of newly selected files -->
                     <div class="document-previews" style="margin-top:10px;">
                       <div v-for="(file, index) in uploadedFiles" :key="'newprev-'+index" style="margin-bottom:16px;">
-                        <p style="color:#b979cc;font-size:13px;font-weight:700;margin-bottom:6px;">New File Preview: {{ file.name }}</p>
-                        <iframe :src="getFileURL(file)" width="100%" height="400px" style="border:1px solid #b979cc;border-radius:8px;"></iframe>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                          <p style="color:#b979cc;font-size:13px;font-weight:700;margin: 0;">New File Preview: {{ file.name }}</p>
+                          <button type="button" @click.prevent="expandToNewTab(getFileURL(file))" style="background: transparent; border: 1px solid rgba(185,121,204,0.4); color: #b979cc; padding: 4px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; display: flex; align-items: center;">
+                            <span class="material-symbols-outlined" style="font-size: 14px; margin-right: 4px;">open_in_new</span> Expand
+                          </button>
+                        </div>
+                        <iframe :src="getPdfViewerUrl(getFileURL(file))" width="100%" height="400px" style="border:1px solid #b979cc;border-radius:8px;"></iframe>
                       </div>
                     </div>
                   </div>
@@ -693,13 +703,27 @@ import { useRouter, useRoute } from 'vue-router';
 import Swal from 'sweetalert2';
 import api from '../../api';
 
+const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
+const userRole = user.value?.role || user.value?.user_role || '';
+
+const getPdfViewerUrl = (url) => {
+  if (!url) return '';
+  return `/pdfjs/web/viewer.html?file=${encodeURIComponent(url)}&role=${encodeURIComponent(userRole)}`;
+};
+
+const expandToNewTab = (url) => {
+  if (url) {
+    window.open(getPdfViewerUrl(url), '_blank');
+  }
+};
+
 const router = useRouter();
 const route = useRoute();
 
 const goBack = () => {
   router.back();
 };
-const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
+
 
 const menuItems = computed(() => {
   if (route.path.includes('/college')) return collegeMenu;

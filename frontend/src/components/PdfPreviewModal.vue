@@ -30,7 +30,7 @@
           <div class="spinner"></div>
           <p>Loading document...</p>
         </div>
-        <iframe :src="fileUrl" class="pdf-iframe" title="PDF Preview" @load="onIframeLoad"></iframe>
+        <iframe :src="pdfViewerUrl" class="pdf-iframe" title="PDF Preview" @load="onIframeLoad"></iframe>
       </div>
     </div>
   </div>
@@ -39,7 +39,7 @@
 <script setup>
 
 
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 
 const props = defineProps({
   isOpen: {
@@ -55,6 +55,14 @@ const props = defineProps({
 const emit = defineEmits(['close']);
 const isLoaded = ref(false);
 
+const user = JSON.parse(localStorage.getItem('user') || '{}');
+const userRole = user?.role || user?.user_role || '';
+
+const pdfViewerUrl = computed(() => {
+  if (!props.fileUrl) return '';
+  return `/pdfjs/web/viewer.html?file=${encodeURIComponent(props.fileUrl)}&role=${encodeURIComponent(userRole)}`;
+});
+
 watch(() => props.fileUrl, () => {
   isLoaded.value = false;
 });
@@ -68,8 +76,8 @@ const close = () => {
 };
 
 const expandToNewTab = () => {
-  if (props.fileUrl) {
-    window.open(props.fileUrl, '_blank');
+  if (pdfViewerUrl.value) {
+    window.open(pdfViewerUrl.value, '_blank');
   }
 };
 </script>

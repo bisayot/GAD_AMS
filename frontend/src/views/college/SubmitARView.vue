@@ -628,7 +628,12 @@
                         </div>
                         
                         <div v-if="file.previewUrl" class="document-previews" style="width: 100%;">
-                           <iframe :src="file.previewUrl" width="100%" height="300px" style="border: 1px solid #b979cc; border-radius: 8px; background: white;"></iframe>
+                                                   <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
+                          <button @click.prevent="expandToNewTab(file.previewUrl)" style="background: rgba(185, 121, 204, 0.1); border: 1px solid rgba(185, 121, 204, 0.3); color: #e9d5ff; padding: 4px 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; font-size: 13px;">
+                            <span class="material-symbols-outlined" style="font-size: 14px; margin-right: 4px;">open_in_new</span> Expand
+                          </button>
+                        </div>
+                        <iframe :src="getPdfViewerUrl(file.previewUrl)" width="100%" height="400px" style="border: 1px solid #b979cc; border-radius: 8px; background: white;"></iframe>
                         </div>
                       </div>
                     </div>
@@ -1151,6 +1156,16 @@ watch(() => form.value.evaluation_items, (items) => {
 const uploadedFiles = ref([]);
 const fileInput = ref(null);
 const activePreviewIndex = ref(0);
+const userRole = user.value?.role || user.value?.user_role || '';
+const getPdfViewerUrl = (url) => {
+  if (!url) return '';
+  return `/pdfjs/web/viewer.html?file=${encodeURIComponent(url)}&role=${encodeURIComponent(userRole)}`;
+};
+const expandToNewTab = (url) => {
+  if (url) {
+    window.open(getPdfViewerUrl(url), '_blank');
+  }
+};
 
 const handleDrop = (event) => {
   if (event.dataTransfer.files.length > 0) {

@@ -186,7 +186,7 @@ class ActivityDesignController extends BaseController
         $db = \Config\Database::connect();
         
         $active = $db->table('activity_design as ad')
-            ->select('ad.act_design_id, ad.status, ad.control_number as control, office_units.office_name as office, users.full_name as submitter_name, ad.activity_title as title, form_types.name as formLabel, ad.start_date as date, ad.end_date, ad.modification_request_status, ad.is_modified')
+            ->select('ad.act_design_id, ad.status, ad.control_number as control, office_units.office_name as office, users.full_name as submitter_name, ad.activity_title as title, COALESCE(form_types.name, ad.form_type) as formLabel, ad.start_date as date, ad.end_date, ad.modification_request_status, ad.is_modified')
             ->join('users', 'users.id = ad.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->join('form_types', 'form_types.id = ad.form_type', 'left')
@@ -217,7 +217,7 @@ class ActivityDesignController extends BaseController
         $db = \Config\Database::connect();
         
         $active = $db->table('activity_design as ad')
-            ->select('ad.act_design_id, ad.status, ad.control_number as control, office_units.office_name as office, users.full_name as submitter_name, ad.activity_title as title, form_types.name as formLabel, ad.start_date as date, ad.end_date, ad.modification_request_status, ad.is_modified')
+            ->select('ad.act_design_id, ad.status, ad.control_number as control, office_units.office_name as office, users.full_name as submitter_name, ad.activity_title as title, COALESCE(form_types.name, ad.form_type) as formLabel, ad.start_date as date, ad.end_date, ad.modification_request_status, ad.is_modified')
             ->join('users', 'users.id = ad.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->join('form_types', 'form_types.id = ad.form_type', 'left')
@@ -441,7 +441,7 @@ class ActivityDesignController extends BaseController
 
         // Fetch designs that are 'Approved' or 'Cancelled'
         $designs = $activityDesignModel
-            ->select('activity_design.*, activity_design.control_number as control, office_units.office_name as office, users.full_name as submitter_name, activity_design.activity_title as title, form_types.name as formLabel, activity_design.start_date as date, activity_design.modification_request_status, activity_design.is_modified')
+            ->select('activity_design.*, activity_design.control_number as control, office_units.office_name as office, users.full_name as submitter_name, activity_design.activity_title as title, COALESCE(form_types.name, activity_design.form_type) as formLabel, activity_design.start_date as date, activity_design.modification_request_status, activity_design.is_modified')
             ->join('users', 'users.id = activity_design.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->join('form_types', 'form_types.id = activity_design.form_type', 'left')

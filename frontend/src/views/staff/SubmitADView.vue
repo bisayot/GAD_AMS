@@ -276,7 +276,12 @@
                           <!-- Document Previews -->
                           <div class="document-previews" style="margin-top: 15px; width: 100%;" v-if="designFile.previewUrl">
                             <p style="color: #b979cc; font-size: 13px; font-weight: bold; margin-bottom: 8px;">Document Preview:</p>
-                            <iframe :src="designFile.previewUrl" width="100%" height="400px" style="border: 1px solid #b979cc; border-radius: 8px;"></iframe>
+                            <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
+                              <button @click.prevent="expandToNewTab(designFile.previewUrl)" style="background: rgba(185, 121, 204, 0.1); border: 1px solid rgba(185, 121, 204, 0.3); color: #e9d5ff; padding: 4px 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; font-size: 13px;">
+                                <span class="material-symbols-outlined" style="font-size: 14px; margin-right: 4px;">open_in_new</span> Expand
+                              </button>
+                            </div>
+                            <iframe :src="getPdfViewerUrl(designFile.previewUrl)" width="100%" height="400px" style="border: 1px solid #b979cc; border-radius: 8px;"></iframe>
                           </div>
                         </div>
                         <p v-else class="no-file-uploaded-text">No file uploaded yet.</p>
@@ -755,6 +760,18 @@ const form = ref({
 
 const designFile = ref(null);
 const fileInput = ref(null);
+
+const userRole = user.value?.role || user.value?.user_role || '';
+const getPdfViewerUrl = (url) => {
+  if (!url) return '';
+  return `/pdfjs/web/viewer.html?file=${encodeURIComponent(url)}&role=${encodeURIComponent(userRole)}`;
+};
+
+const expandToNewTab = (url) => {
+  if (url) {
+    window.open(getPdfViewerUrl(url), '_blank');
+  }
+};
 
 const handleFileUpload = (event) => {
   if (event.target.files.length > 0) {
