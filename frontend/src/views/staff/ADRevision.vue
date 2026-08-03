@@ -1988,4 +1988,50 @@ letter-spacing: 0.05em;
   color: #b979cc;
   text-shadow: 0 0 10px rgba(185, 121, 204, 0.2);
 }
+@media (max-width: 768px) {
+  .budget-row-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .budget-item-value {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .others-breakdown-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .others-input-name {
+    width: 100%;
+    flex: none;
+  }
+  .others-input-amount {
+    flex: 1;
+  }
+  .budget-sub-controls {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .budget-item-info {
+    width: 100%;
+  }
+  .budget-card-input {
+    width: 100%;
+  }
+  .doc-item, .doc-item-custom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .doc-info {
+    width: 100%;
+    word-break: break-word;
+  }
+  .preview-btn {
+    align-self: flex-start;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
 </style>

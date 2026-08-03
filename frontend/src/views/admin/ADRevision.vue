@@ -461,11 +461,11 @@
               <div class="document-previews" style="margin-top: 15px;">
                 <div v-if="design.attachment" style="margin-bottom: 20px;">
                   <p style="color: #cbd5e1; font-size: 13px; font-weight: bold; margin-bottom: 8px;">Previous Document:</p>
-                  <iframe :src="`${api.defaults.baseURL}/files/${Number(design.is_archived) === 1 ? 'archived' : 'drafts'}/${design.attachment}`" width="100%" height="400px" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;"></iframe>
+                  <iframe :src="getPdfViewerUrl(`${api.defaults.baseURL}/files/${Number(design.is_archived) === 1 ? 'archived' : 'drafts'}/${design.attachment}`)" width="100%" height="400px" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;"></iframe>
                 </div>
                 <div v-if="newFileURL">
                   <p style="color: #b979cc; font-size: 13px; font-weight: bold; margin-bottom: 8px;">New Document Preview:</p>
-                  <iframe :src="newFileURL" width="100%" height="400px" style="border: 1px solid #b979cc; border-radius: 8px;"></iframe>
+                  <iframe :src="getPdfViewerUrl(newFileURL)" width="100%" height="400px" style="border: 1px solid #b979cc; border-radius: 8px;"></iframe>
                 </div>
               </div>
             </div>
@@ -556,6 +556,12 @@ const activityClassifications = ref([]);
 const gadMandates = ref([]);
 const genderIssues = ref([]);
 
+
+const userRole = user.value?.role || user.value?.user_role || '';
+const getPdfViewerUrl = (url) => {
+  if (!url) return '';
+  return `/pdfjs/web/viewer.html?file=${encodeURIComponent(url)}&role=${encodeURIComponent(userRole)}`;
+};
 
 const minStartDate = computed(() => {
   const d = new Date();
@@ -1941,5 +1947,51 @@ letter-spacing: 0.05em;
   font-weight: 800;
   color: #b979cc;
   text-shadow: 0 0 10px rgba(185, 121, 204, 0.2);
+}
+@media (max-width: 768px) {
+  .budget-row-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .budget-item-value {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .others-breakdown-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .others-input-name {
+    width: 100%;
+    flex: none;
+  }
+  .others-input-amount {
+    flex: 1;
+  }
+  .budget-sub-controls {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .budget-item-info {
+    width: 100%;
+  }
+  .budget-card-input {
+    width: 100%;
+  }
+  .doc-item, .doc-item-custom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .doc-info {
+    width: 100%;
+    word-break: break-word;
+  }
+  .preview-btn {
+    align-self: flex-start;
+    width: 100%;
+    box-sizing: border-box;
+  }
 }
 </style>

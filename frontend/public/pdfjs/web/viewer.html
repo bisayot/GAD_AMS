@@ -295,16 +295,16 @@ See https://github.com/adobe-type-tools/cmap-resources
               </div>
               <div id="toolbarViewerRight">
                 <div id="editorModeButtons" class="splitToolbarButton toggled" role="radiogroup">
-                  <button id="editorHighlight" class="toolbarButton" hidden="true" disabled="disabled" title="Highlight" role="radio" aria-checked="false" aria-controls="editorHighlightParamsToolbar" tabindex="31" data-l10n-id="pdfjs-editor-highlight-button">
+                  <button id="editorHighlight" class="toolbarButton" title="Highlight" role="radio" aria-checked="false" aria-controls="editorHighlightParamsToolbar" tabindex="31" data-l10n-id="pdfjs-editor-highlight-button">
                     <span data-l10n-id="pdfjs-editor-highlight-button-label">Highlight</span>
                   </button>
-                  <button id="editorFreeText" class="toolbarButton" disabled="disabled" title="Text" role="radio" aria-checked="false" aria-controls="editorFreeTextParamsToolbar" tabindex="32" data-l10n-id="pdfjs-editor-free-text-button">
+                  <button id="editorFreeText" class="toolbarButton" title="Text" role="radio" aria-checked="false" aria-controls="editorFreeTextParamsToolbar" tabindex="32" data-l10n-id="pdfjs-editor-free-text-button">
                     <span data-l10n-id="pdfjs-editor-free-text-button-label">Text</span>
                   </button>
-                  <button id="editorInk" class="toolbarButton" disabled="disabled" title="Draw" role="radio" aria-checked="false" aria-controls="editorInkParamsToolbar" tabindex="33" data-l10n-id="pdfjs-editor-ink-button">
+                  <button id="editorInk" class="toolbarButton" title="Draw" role="radio" aria-checked="false" aria-controls="editorInkParamsToolbar" tabindex="33" data-l10n-id="pdfjs-editor-ink-button">
                     <span data-l10n-id="pdfjs-editor-ink-button-label">Draw</span>
                   </button>
-                  <button id="editorStamp" class="toolbarButton hidden" disabled="disabled" title="Add or edit images" role="radio" aria-checked="false" aria-controls="editorStampParamsToolbar" tabindex="34" data-l10n-id="pdfjs-editor-stamp-button">
+                  <button id="editorStamp" class="toolbarButton" title="Add or edit images" role="radio" aria-checked="false" aria-controls="editorStampParamsToolbar" tabindex="34" data-l10n-id="pdfjs-editor-stamp-button">
                     <span data-l10n-id="pdfjs-editor-stamp-button-label">Add or edit images</span>
                   </button>
                 </div>
@@ -512,7 +512,7 @@ See https://github.com/adobe-type-tools/cmap-resources
         const fileUrl = urlParams.get('file');
 
         // Hide editor toolbar for non-Admins
-        if (role && role.toLowerCase() !== 'admin') {
+        if (!role || role.toLowerCase() !== 'admin') {
           const style = document.createElement('style');
           style.innerHTML = `
             #editorModeButtons, #editorModeSeparator, #editorFreeText, #editorInk, #editorStamp {

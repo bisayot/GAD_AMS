@@ -2478,4 +2478,27 @@ onUnmounted(() => {
     gap: 12px;
   }
 }
+@media (max-width: 768px) {
+  .others-breakdown-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .others-input-name {
+    width: 100%;
+    flex: none;
+  }
+  .others-input-amount {
+    flex: 1;
+  }
+  .budget-sub-controls {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .budget-item-info {
+    width: 100%;
+  }
+  .budget-card-input {
+    width: 100%;
+  }
+}
 </style>

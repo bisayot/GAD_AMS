@@ -2323,4 +2323,36 @@ onUnmounted(() => {
     gap: 12px;
   }
 }
+@media (max-width: 768px) {
+  .budget-row-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .budget-item-value {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .others-breakdown-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .others-input-name {
+    width: 100%;
+    flex: none;
+  }
+  .others-input-amount {
+    flex: 1;
+  }
+  .budget-sub-controls {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .budget-item-info {
+    width: 100%;
+  }
+  .budget-card-input {
+    width: 100%;
+  }
+}
 </style>
