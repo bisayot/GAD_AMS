@@ -48,8 +48,7 @@ $routes->group('api', function($routes) {
     $routes->post('users/suspend/(:num)', 'UserManagementController::suspend/$1');
     $routes->options('users/restore/(:num)', 'AuthController::handleOptions');
     $routes->post('users/restore/(:num)', 'UserManagementController::restore/$1');
-    $routes->options('users/delete/(:num)', 'AuthController::handleOptions');
-    $routes->delete('users/delete/(:num)', 'UserManagementController::permanentlyDelete/$1');
+
     $routes->options('users/create', 'AuthController::handleOptions');
     $routes->post('users/create', 'UserManagementController::create');
     $routes->options('users/update/(:num)', 'AuthController::handleOptions');

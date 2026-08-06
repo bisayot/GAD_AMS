@@ -5,6 +5,7 @@ import '@fontsource/manrope/700.css'
 import '@fontsource/manrope/800.css'
 import 'material-symbols/outlined.css'
 import './style.css'
+import './assets/report-styles.css'
 import App from './App.vue'
 import router from './router'
 

@@ -166,22 +166,7 @@ class UserManagementController extends ResourceController
         return $this->respond(['success' => true, 'message' => 'User restored']);
     }
 
-    public function permanentlyDelete($id = null)
-    {
-        if (!$id) return $this->fail('User ID required');
-        
-        $db = \Config\Database::connect();
-        $user = $db->table('users')->where('id', $id)->get()->getRowArray();
-        
-        $db->table('users')->where('id', $id)->delete();
-        
-        $actionUserId = $this->request->getHeaderLine('X-User-Id');
-        if ($actionUserId && $user) {
-            \App\Models\ActivityLogModel::log($actionUserId, 'Delete User', 'permanently deleted user account: ' . $user['full_name']);
-        }
-        
-        return $this->respond(['success' => true, 'message' => 'User permanently deleted']);
-    }
+
     public function getProfile()
     {
         $userId = $this->request->getHeaderLine('X-User-Id');

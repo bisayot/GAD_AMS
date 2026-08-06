@@ -177,10 +177,7 @@
             </div>
           </div>
           <div class="card-body custom-scrollbar relative">
-            <div class="warning-note mb-4">
-              <span class="material-symbols-outlined text-sm">warning</span>
-              Note: Suspended accounts will be automatically deleted after 30 days.
-            </div>
+
             <div v-if="suspendedUsers.length === 0" class="empty-state !text-red-400/50">No suspended users.</div>
             <div v-else class="user-grid">
               <div v-for="user in suspendedUsers" :key="user.id" class="user-item !border-red-500/20 hover:!border-red-500/40 hover:!bg-red-500/10">
@@ -196,9 +193,6 @@
                 <div class="user-actions mt-auto">
                   <button @click="restoreUser(user.id)" class="btn-restore" title="Restore User">
                     <span class="material-symbols-outlined text-sm">restore</span> Restore
-                  </button>
-                  <button @click="deleteUser(user.id)" class="btn-delete" title="Permanently Delete">
-                    <span class="material-symbols-outlined text-sm">delete_forever</span> Delete
                   </button>
                 </div>
               </div>
@@ -526,37 +520,6 @@ const restoreUser = async (id) => {
   }
 };
 
-const deleteUser = async (id) => {
-  const result = await Swal.fire({
-    title: 'Permanently Delete?',
-    text: "You won't be able to revert this! All user data will be permanently removed.",
-    icon: 'error',
-    showCancelButton: true,
-    confirmButtonColor: '#ef4444',
-    cancelButtonColor: '#475569',
-    confirmButtonText: 'Yes, delete forever!'
-  });
-
-  if (result.isConfirmed) {
-    try {
-      const res = await api.delete(`users/delete/${id}`);
-      if (res.data.success) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Deleted!',
-          text: 'User has been permanently deleted.',
-          timer: 1500,
-          showConfirmButton: false
-        });
-        fetchUsers();
-      } else {
-        throw new Error(res.data.message || 'Failed to delete');
-      }
-    } catch (err) {
-      Swal.fire({ icon: 'error', title: 'Error', text: err.message || 'Failed to delete user.' });
-    }
-  }
-};
 
 const formatDate = (dateString) => {
   if (!dateString) return '---';

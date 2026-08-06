@@ -229,12 +229,11 @@ class AccomplishmentReportController extends BaseController
         $db = \Config\Database::connect();
         
         $reports = $db->table('accomplishment_report as ar')
-            ->select('ar.id, ar.status, ar.control_number as control, ar.activity_title as title, DATE(ar.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, COALESCE(form_types.name, ad.form_type) as formLabel')
+            ->select('ar.id, ar.status, ar.control_number as control, ar.activity_title as title, DATE(ar.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, COALESCE(form_types.name, ad.form_type) as formLabel, ar.attachment')
             ->join('users', 'users.id = ar.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->join('activity_design as ad', 'ad.control_number = ar.control_number', 'left')
             ->join('form_types', 'form_types.id = ad.form_type OR form_types.name = ad.form_type', 'left')
-            ->where('ar.status !=', 'Verified')
             ->where('ar.deleted_at', null)
             ->where('ar.is_archived', 0)
             ->get()->getResultArray();

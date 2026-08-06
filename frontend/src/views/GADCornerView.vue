@@ -11,7 +11,84 @@
       </div>
     </section>
 
+    <!-- Accomplishment Reports Section -->
     <section class="py-16 px-12 bg-background">
+      <div class="max-w-7xl mx-auto space-y-12">
+        <div class="space-y-4">
+          <span class="inline-block px-4 py-1.5 rounded-full bg-secondary-container text-on-secondary-container font-label text-xs font-bold uppercase tracking-widest">Public Disclosures</span>
+          <h2 class="text-4xl font-headline font-extrabold text-primary tracking-tight">Accomplishment Reports</h2>
+          <p class="text-on-surface-variant text-lg max-w-lg leading-relaxed">
+            Review the university's verified gender-responsive activities and archived annual reports.
+          </p>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-16">
+          <!-- Verified & Archived Reports -->
+          <div>
+            <div class="flex items-center gap-4 mb-8">
+              <h3 class="text-2xl font-headline font-bold text-primary">Verified & Archived Reports</h3>
+              <div class="h-px flex-grow bg-outline-variant/20"></div>
+            </div>
+            <div v-if="loadingReports" class="text-center py-8 text-outline">Loading reports...</div>
+            <div v-else-if="verifiedReports.length === 0" class="text-center py-8 text-outline">No reports found.</div>
+            <div v-else class="space-y-4">
+              <div v-for="report in verifiedReports" :key="report.id" class="group bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/15 hover:shadow-xl transition-all duration-300">
+                <div class="flex justify-between items-start mb-4">
+                  <div class="w-12 h-12 academic-gradient rounded-lg flex items-center justify-center text-white shadow-md">
+                    <span class="material-symbols-outlined">description</span>
+                  </div>
+                  <span class="material-symbols-outlined text-outline/40 group-hover:text-primary transition-colors">picture_as_pdf</span>
+                </div>
+                <h4 class="font-headline font-bold text-lg mb-2 text-on-surface group-hover:text-primary transition-colors">{{ report.title }}</h4>
+                <div class="flex flex-wrap gap-4 text-xs font-label text-outline mb-6">
+                  <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">tag</span> {{ report.control }}</span>
+                  <span v-if="report.office" class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">business</span> {{ report.office }}</span>
+                  <span v-if="report.date" class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">calendar_month</span> {{ report.date }}</span>
+                </div>
+                <div class="flex items-center justify-between mt-auto">
+                  <span class="text-xs font-label uppercase tracking-widest font-bold text-secondary">Accomplishment Report</span>
+                  <button @click="viewPdf(report)" class="text-primary font-label text-sm font-bold flex items-center gap-1 hover:underline underline-offset-4 decoration-2">
+                    <span class="material-symbols-outlined text-sm">visibility</span> View File
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Archived Reports -->
+          <div>
+            <div class="flex items-center gap-4 mb-8">
+              <h3 class="text-2xl font-headline font-bold text-primary">Archived Annual Reports</h3>
+              <div class="h-px flex-grow bg-outline-variant/20"></div>
+            </div>
+            <div v-if="loadingArchives" class="text-center py-8 text-outline">Loading archives...</div>
+            <div v-else-if="archivedReports.length === 0" class="text-center py-8 text-outline">No archived reports found.</div>
+            <div v-else class="space-y-4">
+              <div v-for="archive in archivedReports" :key="archive.id" class="group bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/15 hover:shadow-xl transition-all duration-300">
+                <div class="flex justify-between items-start mb-4">
+                  <div class="w-12 h-12 academic-gradient rounded-lg flex items-center justify-center text-white shadow-md">
+                    <span class="material-symbols-outlined">folder_open</span>
+                  </div>
+                  <span class="material-symbols-outlined text-outline/40 group-hover:text-primary transition-colors">html</span>
+                </div>
+                <h4 class="font-headline font-bold text-lg mb-1 text-on-surface group-hover:text-primary transition-colors">FY {{ archive.fiscal_year }} Annual GAD Report</h4>
+                <p class="text-xs text-outline mb-6">Archived on {{ new Date(archive.created_at).toLocaleDateString() }}</p>
+                
+                <div class="flex items-center justify-between mt-auto">
+                  <span class="text-xs font-label uppercase tracking-widest font-bold text-secondary">Annual Report</span>
+                  <button @click="viewHtmlReport(archive)" class="text-primary font-label text-sm font-bold flex items-center gap-1 hover:underline underline-offset-4 decoration-2">
+                    <span class="material-symbols-outlined text-sm">visibility</span> View File
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- News & Updates Section -->
+    <section class="py-16 px-12 bg-background border-t border-outline-variant/10">
       <div class="max-w-screen-2xl mx-auto grid lg:grid-cols-12 gap-16">
 
         <div class="lg:col-span-8">
@@ -178,6 +255,10 @@
         </div>
       </div>
     </section>
+
+    <!-- Modals -->
+    <PdfPreviewModal :isOpen="isPdfPreviewOpen" :fileUrl="currentPdfUrl" @close="isPdfPreviewOpen = false" />
+    <HtmlPreviewModal :isOpen="isHtmlPreviewOpen" :htmlContent="currentHtmlContent" :title="currentHtmlTitle" :loading="isHtmlLoading" @close="isHtmlPreviewOpen = false" />
   </div>
 </template>
 
@@ -236,7 +317,106 @@ const socialLinks = [
   { icon: 'rss_feed' }
 ];
 
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import api from '../api';
+import Swal from 'sweetalert2';
+import PdfPreviewModal from '../components/PdfPreviewModal.vue';
+import HtmlPreviewModal from '../components/HtmlPreviewModal.vue';
+
+const isPdfPreviewOpen = ref(false);
+const currentPdfUrl = ref('');
+
+const isHtmlPreviewOpen = ref(false);
+const isHtmlLoading = ref(false);
+const currentHtmlContent = ref('');
+const currentHtmlTitle = ref('');
+
+const verifiedReports = ref([]);
+const archivedReports = ref([]);
+const loadingReports = ref(true);
+const loadingArchives = ref(true);
+
+const fetchAccomplishmentReports = async () => {
+  try {
+    const [res1, res2] = await Promise.all([
+      api.get('activity-reports').catch(() => ({ data: { success: false } })),
+      api.get('archives').catch(() => ({ data: { success: false } }))
+    ]);
+    
+    let combined = [];
+    if (res1.data && res1.data.success) {
+      combined = [...combined, ...res1.data.data.filter(r => r.status === 'Verified').map(r => ({ ...r, is_archived: 0 }))];
+    }
+    if (res2.data && res2.data.success) {
+      combined = [...combined, ...res2.data.data.filter(r => r.type === 'report').map(r => ({ ...r, is_archived: 1 }))];
+    }
+    
+    verifiedReports.value = combined.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+  } catch (err) {
+    console.error('Failed to fetch accomplishment reports:', err);
+  } finally {
+    loadingReports.value = false;
+  }
+};
+
+const fetchArchivedReports = async () => {
+  try {
+    const res = await api.get('annual-reports/archive');
+    if (res.data && res.data.success) {
+      archivedReports.value = res.data.data.slice(0, 5);
+    }
+  } catch (err) {
+    console.error('Failed to fetch archives:', err);
+  } finally {
+    loadingArchives.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchAccomplishmentReports();
+  fetchArchivedReports();
+});
+
+const viewPdf = (report) => {
+  try {
+    if (report.attachment) {
+      const attachments = JSON.parse(report.attachment);
+      if (attachments && attachments.length > 0) {
+        const folder = report.is_archived ? 'archived' : 'drafts';
+        currentPdfUrl.value = `${import.meta.env.VITE_API_BASE_URL || 'https://gad-ams-2-1.onrender.com/api/'}files/${folder}/${attachments[0]}`;
+        isPdfPreviewOpen.value = true;
+        return;
+      }
+    }
+    // Fallback if no attachment exists
+    Swal.fire({ icon: 'info', title: 'Not Available', text: 'There is no PDF attachment available for this report.' });
+  } catch (err) {
+    console.error('Failed to parse attachment:', err);
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Could not open the file.' });
+  }
+};
+
+const viewHtmlReport = async (archive) => {
+  currentHtmlTitle.value = `FY ${archive.fiscal_year} Annual GAD Report`;
+  currentHtmlContent.value = '';
+  isHtmlPreviewOpen.value = true;
+  isHtmlLoading.value = true;
+  
+  try {
+    const res = await api.get(`annual-reports/archive/${archive.id}`);
+    if (res.data && res.data.success) {
+      currentHtmlContent.value = res.data.data.html_content;
+    } else {
+      isHtmlPreviewOpen.value = false;
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load the document.' });
+    }
+  } catch (err) {
+    isHtmlPreviewOpen.value = false;
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to fetch the archived report.' });
+  } finally {
+    isHtmlLoading.value = false;
+  }
+};
 
 const searchQuery = ref('');
 const activeCategory = ref('All Resources');
