@@ -53,15 +53,15 @@ const activeTab = ref('offices');
 }
 
 .page-title {
-  font-size: 28px;
+  font-size: 36px;
   font-weight: 800;
-  color: #1a1a2e;
-  margin: 0 0 4px 0;
+  color: #1e293b;
+  margin: 0 0 8px 0;
 }
 
 .page-subtitle {
   color: #64748b;
-  font-size: 15px;
+  font-size: 18px;
   margin: 0;
 }
 
@@ -69,13 +69,13 @@ const activeTab = ref('offices');
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 20px;
+  padding: 16px 24px;
   background: transparent;
   border: none;
-  border-bottom: 2px solid transparent;
+  border-bottom: 3px solid transparent;
   color: #64748b;
-  font-weight: 600;
-  font-size: 15px;
+  font-weight: 700;
+  font-size: 18px;
   cursor: pointer;
   transition: all 0.2s;
   margin-bottom: -1px;

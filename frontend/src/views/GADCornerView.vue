@@ -6,7 +6,7 @@
         <span class="text-secondary font-label font-bold uppercase text-xs tracking-[0.3em]">News &Updates</span>
         <h1 class="text-5xl font-headline font-black text-primary tracking-tight">GAD Corner</h1>
         <p class="text-lg text-on-surface-variant max-w-3xl mx-auto leading-relaxed">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          Stay informed on the latest updates, activities, and achievements of the Gender and Development Office. Explore our public disclosures, verified reports, and news articles.
         </p>
       </div>
     </section>

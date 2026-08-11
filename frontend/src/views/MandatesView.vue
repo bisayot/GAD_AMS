@@ -6,7 +6,7 @@
         <span class="text-secondary font-label font-bold uppercase text-xs tracking-[0.3em]">Gender and Development</span>
         <h1 class="text-5xl font-headline font-black text-primary tracking-tight">Issues & Mandates</h1>
         <p class="text-lg text-on-surface-variant max-w-3xl mx-auto leading-relaxed">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          Browse through the foundational legal frameworks, university policies, and national directives that guide our Gender and Development initiatives.
         </p>
       </div>
     </section>

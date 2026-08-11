@@ -75,13 +75,25 @@ class DataRetentionService
                 $totalDeleted['messages_deleted'] = $db->affectedRows();
             }
 
-            // C. Delete old Activity Logs
+            // C. Delete old Activity Logs (Split into Operational and Main)
             if ($logsTtlDays > 0) {
-                $db->query("
-                    DELETE FROM activity_logs 
-                    WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)
-                ", [$logsTtlDays]);
-                $totalDeleted['logs_deleted'] = $db->affectedRows();
+                $operationalActions = ['Login', 'Logout', 'Register User', 'Suspend User', 'Restore User', 'Delete User'];
+                
+                // C1. Delete Operational Logs older than 90 days
+                $db->table('activity_logs')
+                   ->whereIn('action', $operationalActions)
+                   ->where('created_at <', date('Y-m-d H:i:s', strtotime('-90 days')))
+                   ->delete();
+                $opDeleted = $db->affectedRows();
+
+                // C2. Delete Main Logs older than the configured TTL (usually 1 year)
+                $db->table('activity_logs')
+                   ->whereNotIn('action', $operationalActions)
+                   ->where('created_at <', date('Y-m-d H:i:s', strtotime("-{$logsTtlDays} days")))
+                   ->delete();
+                $mainDeleted = $db->affectedRows();
+                
+                $totalDeleted['logs_deleted'] = $opDeleted + $mainDeleted;
             }
 
             // D. Permanently delete Soft-Deleted documents (Trashbin)

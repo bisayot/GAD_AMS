@@ -46,6 +46,7 @@
             <div class="flex items-center gap-3">
               <span class="material-symbols-outlined text-xl">{{ item.icon }}</span>
               <span class="text-sm">{{ item.label }}</span>
+              <span v-if="getChildBadgeTotal(item) > 0" class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full ml-1">{{ getChildBadgeTotal(item) }}</span>
             </div>
             <span class="material-symbols-outlined text-sm transition-transform duration-200" :class="{ 'rotate-180': expandedState[item.label] }">
               expand_more
@@ -59,13 +60,14 @@
               :key="child.label"
               :to="child.href"
               @click="$emit('close')"
-              class="flex items-center justify-between p-3 rounded-xl transition-all duration-200"
+              class="flex items-center justify-between pl-10 pr-3 py-3 rounded-xl transition-all duration-200"
               :class="$route.path === child.href ? 'bg-primary/20 text-white font-bold' : 'text-slate-400 hover:bg-white/5 hover:text-white'"
             >
               <div class="flex items-center gap-3">
                 <span class="material-symbols-outlined text-xl">{{ child.icon }}</span>
                 <span class="text-sm">{{ child.label }}</span>
               </div>
+              <span v-if="child.badge && child.badge > 0" class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{{ child.badge }}</span>
             </router-link>
           </div>
         </div>
@@ -119,6 +121,11 @@ const toggleExpand = (label) => {
 const isChildActive = (item) => {
   if (!item.children) return false;
   return item.children.some(child => route.path === child.href);
+};
+
+const getChildBadgeTotal = (item) => {
+  if (!item.children) return 0;
+  return item.children.reduce((sum, child) => sum + (child.badge || 0), 0);
 };
 </script>
 

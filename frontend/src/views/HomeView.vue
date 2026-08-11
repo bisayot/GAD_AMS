@@ -170,11 +170,11 @@
           <div class="about-text">
             <p class="about-label">Platform Background</p>
             <h2 class="about-title">GAD Activity Management System</h2>
-            <p class="about-body-lg">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </p>
-            <p class="about-body">Aliquip do do consectetur ut ut ut consequat ad ea sed commodo sed adipiscing nisi. Ut eiusmod labore elit ullamco ipsum elit eiusmod aliqua ut ipsum.</p>
+            <p class="about-body-lg">This platform is where Benguet State University's Gender and Development Office keeps track of activity plans, budgets, and accomplishment reports online. Instead of printing revision documents and walking them over to the office, you upload your files and fill in the details here, and you can check the status any time to see if it's pending, needs changes, or has been approved.</p>
+            <p class="about-body">Budget numbers update on their own as funds are used. The GAD Director still reviews and approves everything, but this system just removes the paper-based revision and guesswork around getting things there and finding out where they stand. Visitors can also check completed activities and summary reports on the page without needing to log in.</p>
             <div class="about-btns">
-              <button class="btn-primary">Access System</button>
-              <button class="btn-outline">User Guidelines</button>
+              <button class="btn-primary" @click="$router.push('/register')">Access System</button>
+              <button class="btn-outline" @click="showGuidelinesModal = true">User Guidelines</button>
             </div>
           </div>
           <div class="about-img-wrap">
@@ -190,11 +190,37 @@
     </section>
 
   </div>
+
+    <!-- User Guidelines Modal -->
+    <div v-if="showGuidelinesModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" style="z-index: 10000;">
+      <div class="bg-white rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh]">
+        <div class="p-6 border-b border-slate-200 flex justify-between items-center">
+          <h2 class="text-2xl font-headline font-bold text-slate-800">System Access Guidelines</h2>
+          <button type="button" @click="showGuidelinesModal = false" class="text-slate-400 hover:text-slate-700 transition-colors">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        
+        <div class="p-6 overflow-y-auto font-body text-slate-600 space-y-4 text-left">
+          <ul class="list-disc pl-5 space-y-3">
+            <li><strong>Account Registration:</strong> All users must register using their official BSU institutional email.</li>
+            <li><strong>Role Assignment:</strong> Upon registration, you will be assigned a default role. Higher-level access (like Staff or Director) requires administrative verification.</li>
+            <li><strong>Document Submission:</strong> Ensure all uploaded documents (e.g., Activity Designs, Accomplishment Reports) follow the standardized formats provided by the GAD Office.</li>
+            <li><strong>Data Privacy:</strong> Do not share your login credentials. All actions within the system are logged for security and accountability.</li>
+            <li><strong>Tracking Status:</strong> You can view the real-time status of your submissions directly on your dashboard. Do not submit duplicate requests.</li>
+          </ul>
+        </div>
+        <div class="p-6 border-t border-slate-200 bg-slate-50 rounded-b-2xl flex justify-end">
+          <button @click="showGuidelinesModal = false" class="bg-slate-800 text-white px-6 py-2 rounded-full font-bold uppercase transition-all shadow-md hover:bg-slate-900">Close</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import api from '../api';
 import { Doughnut } from 'vue-chartjs';
 import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from 'chart.js';
@@ -219,6 +245,8 @@ const displayFemale = ref(0);
 const displayOffices = ref([]);
 const isAnimating = ref(false);
 const showSplash = ref(true);
+const showGuidelinesModal = ref(false);
+const $router = useRouter();
 
 // Scroll observer states
 const impactSectionRef = ref(null);

@@ -63,7 +63,13 @@ const handleScroll = () => {
 
 const adminMenu = ref([
   { label: 'Dashboard', icon: 'dashboard', href: '/admin/dashboard' },
-  { label: 'Messages', icon: 'mail', href: '/admin/messages', badge: 0 },
+  {
+    label: 'Communications', icon: 'forum',
+    children: [
+      { label: 'Messages', icon: 'mail', href: '/admin/messages', badge: 0 },
+      { label: 'Inquiries', icon: 'contact_mail', href: '/admin/contact-inquiries', badge: 0 }
+    ]
+  },
   { label: 'Submitted List', icon: 'folder', href: '/admin/submitted-list' },
   { label: 'Activity Design List', icon: 'description', href: '/admin/ad-list' },
   { label: 'Accomplishment Report List', icon: 'description', href: '/admin/ar-list' },
@@ -92,10 +98,22 @@ const adminMenu = ref([
 const fetchUnreadCount = async () => {
   if (user.value?.id) {
     try {
-      const res = await api.get(`/messages/unread-count/${user.value.id}`);
-      if (res.data.success) {
-        const msgItem = adminMenu.value.find(m => m.label === 'Messages');
-        if (msgItem) msgItem.badge = res.data.count;
+      // Fetch Messages unread count
+      const msgRes = await api.get(`/messages/unread-count/${user.value.id}`);
+      const commItem = adminMenu.value.find(m => m.label === 'Communications');
+      
+      if (commItem) {
+        const msgChild = commItem.children.find(c => c.label === 'Messages');
+        if (msgChild && msgRes.data.success) {
+          msgChild.badge = msgRes.data.count;
+        }
+
+        // Fetch Contact Inquiries unread count
+        const inqRes = await api.get(`/contact-inquiries/unread-count`);
+        const inqChild = commItem.children.find(c => c.label === 'Inquiries');
+        if (inqChild && inqRes.data.success) {
+          inqChild.badge = inqRes.data.count;
+        }
       }
     } catch (err) {
       console.error('Failed to fetch unread count:', err);
@@ -124,7 +142,7 @@ onMounted(() => {
     router.push('/login');
   } else {
     fetchUnreadCount();
-    unreadInterval = setInterval(fetchUnreadCount, 30000); // Check every 30 seconds
+    unreadInterval = setInterval(fetchUnreadCount, 10000); // Check every 10 seconds
   }
 });
 

@@ -57,6 +57,13 @@
           </button>
         </form>
 
+        <div v-if="emailLimitReached" class="mt-6 p-4 bg-primary/5 rounded-lg border border-primary/10 flex items-start gap-3">
+          <span class="material-symbols-outlined text-primary text-[20px]">info</span>
+          <p class="text-sm text-on-surface-variant leading-relaxed">
+            Not receiving the email? Our system uses a free email service with daily limits. If it fails, please email us directly at <a href="mailto:gad.office@bsu.edu.ph" class="text-primary font-bold hover:underline">gad.office@bsu.edu.ph</a> for a manual reset.
+          </p>
+        </div>
+
         <div class="mt-8 pt-8 border-t border-outline-variant/15 text-center">
           <p class="text-sm text-on-surface-variant font-body">
             Remembered your password?
@@ -79,6 +86,7 @@ const error = ref('');
 const success = ref('');
 const turnstileToken = ref('');
 const turnstileRef = ref(null);
+const emailLimitReached = ref(false);
 
 const onTurnstileVerify = (token) => {
   turnstileToken.value = token;
@@ -114,6 +122,7 @@ const handleForgotPassword = async () => {
     } else {
       error.value = 'Connection error. Please try again later.';
     }
+    emailLimitReached.value = true;
   } finally {
     loading.value = false;
   }
