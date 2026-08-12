@@ -98,15 +98,7 @@
         </div>
       </div>
 
-      <!-- Help Section -->
-      <section class="mt-24 bg-surface-container-low rounded-3xl p-12 text-center max-w-4xl mx-auto">
-        <h2 class="text-3xl font-headline font-extrabold text-primary mb-4">Cannot find a specific document?</h2>
-        <p class="text-on-surface-variant mb-8 text-lg">Our office maintains an extensive physical archive of gender-related legislations and university memos. Please reach out if you need assistance.</p>
-        <div class="flex flex-col sm:flex-row justify-center gap-4">
-          <button class="px-8 py-3 rounded-full bg-primary text-white font-bold font-headline hover:opacity-90 transition-all">Request Document</button>
-          <button class="px-8 py-3 rounded-full border border-primary text-primary font-bold font-headline hover:bg-primary/5 transition-all">Contact GAD Office</button>
-        </div>
-      </section>
+
   </div>
 </template>
 

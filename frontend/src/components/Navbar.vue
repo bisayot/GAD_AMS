@@ -26,10 +26,7 @@
       </div>
 
       <div class="navbar-actions">
-        <div class="search-wrapper">
-          <span class="material-symbols-outlined search-icon">search</span>
-          <input class="search-input" placeholder="Search resources..." type="text"/>
-        </div>
+
 
         <template v-if="$route.path === '/login'">
           <router-link to="/register" class="btn-signup">Sign Up</router-link>

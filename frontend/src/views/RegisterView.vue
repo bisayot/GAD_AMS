@@ -1,23 +1,23 @@
 <template>
-  <div class="register-page bg-background text-on-surface font-body pt-32 pb-16 px-4 flex flex-col items-center justify-center">
+  <div class="register-page font-body pt-32 pb-16 px-4 flex flex-col items-center justify-center min-h-screen" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #ffffff;">
     <div class="max-w-6xl w-full grid grid-cols-1 md:grid-cols-12 gap-8 items-start relative z-10">
       
       <div class="md:col-span-5 flex flex-col gap-10 pr-0 md:pr-12">
         <div class="space-y-4">
-          <div class="inline-flex items-center gap-2 bg-secondary-container/20 text-on-secondary-container px-3 py-1 rounded-full">
+          <div class="inline-flex items-center gap-2 bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full border border-blue-500/30">
             <span class="material-symbols-outlined text-[18px]">verified_user</span>
             <span class="text-[10px] font-bold uppercase tracking-[0.2em] font-label">Official Registration</span>
           </div>
-          <h1 class="text-5xl font-extrabold font-headline tracking-tighter text-primary leading-tight">
-            Empowering Equality through <span class="text-secondary italic">Scholarly Action.</span>
+          <h1 class="text-5xl font-extrabold font-headline tracking-tighter text-purple-400 leading-tight">
+            Empowering Equality through <span class="text-blue-400 italic">Scholarly Action.</span>
           </h1>
-          <p class="text-on-surface-variant text-lg leading-relaxed max-w-md">
+          <p class="text-slate-300 text-lg leading-relaxed max-w-md">
             Join the Benguet State University Gender and Development portal. All fields are required.
           </p>
         </div>
-        <div class="relative w-full aspect-square rounded-xl overflow-hidden shadow-2xl">
-          <img alt="Academic Building" class="object-cover w-full h-full grayscale hover:grayscale-0 transition-all duration-700" src="/images/img_16.jpg" />
-          <div class="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent"></div>
+        <div class="relative w-full aspect-square rounded-xl overflow-hidden shadow-2xl border border-white/10">
+          <img alt="Academic Building" class="object-cover w-full h-full grayscale hover:grayscale-0 transition-all duration-700 opacity-80" src="/images/img_16.jpg" />
+          <div class="absolute inset-0 bg-gradient-to-t from-[#1a1a2e] to-transparent"></div>
           <div class="absolute bottom-6 left-6 right-6 text-white">
             <p class="text-sm font-label uppercase tracking-widest opacity-80 mb-2">Heritage & Excellence</p>
             <p class="font-headline font-bold text-xl">Serving the Highlands since 1916.</p>
@@ -25,34 +25,34 @@
         </div>
       </div>
 
-      <div class="md:col-span-7 bg-surface-container-lowest rounded-xl p-8 md:p-12 shadow-[0_8px_24px_rgba(26,28,29,0.04)] border border-outline-variant/10">
+      <div class="md:col-span-7 rounded-xl p-8 md:p-12 shadow-2xl border border-white/10" style="background-color: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px);">
         <form @submit.prevent="handleRegister" class="space-y-8">
-          <div v-if="error" class="rounded-md bg-red-100 border border-red-200 text-red-700 px-4 py-3 text-sm">{{ error }}</div>
+          <div v-if="error" class="rounded-md bg-red-900/50 border border-red-500/50 text-red-200 px-4 py-3 text-sm">{{ error }}</div>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div class="flex flex-col gap-2">
-              <label class="text-xs uppercase tracking-widest font-label font-bold text-slate-500">First Name <span class="text-red-500">*</span></label>
-              <input v-model="form.first_name" placeholder="Juan" class="bg-surface-container-low border-none rounded-lg px-4 py-3 text-on-surface" required />
+              <label class="text-xs uppercase tracking-widest font-label font-bold text-slate-400">First Name <span class="text-red-400">*</span></label>
+              <input v-model="form.first_name" placeholder="Juan" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all placeholder:text-slate-600" required />
             </div>
             <div class="flex flex-col gap-2">
-              <label class="text-xs uppercase tracking-widest font-label font-bold text-slate-500">Middle Name</label>
-              <input v-model="form.middle_name" placeholder="Dela" class="bg-surface-container-low border-none rounded-lg px-4 py-3 text-on-surface" />
+              <label class="text-xs uppercase tracking-widest font-label font-bold text-slate-400">Middle Name</label>
+              <input v-model="form.middle_name" placeholder="Dela" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all placeholder:text-slate-600" />
             </div>
             <div class="flex flex-col gap-2 md:col-span-2">
-              <label class="text-xs uppercase tracking-widest font-label font-bold text-slate-500">Last Name <span class="text-red-500">*</span></label>
-              <input v-model="form.last_name" placeholder="Santos" class="bg-surface-container-low border-none rounded-lg px-4 py-3 text-on-surface" required />
+              <label class="text-xs uppercase tracking-widest font-label font-bold text-slate-400">Last Name <span class="text-red-400">*</span></label>
+              <input v-model="form.last_name" placeholder="Santos" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all placeholder:text-slate-600" required />
             </div>
 
             <div class="flex flex-col gap-2">
-              <label class="text-xs uppercase tracking-widest font-label font-bold text-slate-500">Role <span class="text-red-500">*</span></label>
-              <select v-model="form.user_role" class="bg-surface-container-low border-none rounded-lg px-4 py-3 text-on-surface" required>
-                <option value="Non-TWG">Non-TWG</option>
-                <option value="TWG">TWG</option>
+              <label class="text-xs uppercase tracking-widest font-label font-bold text-slate-400">Role <span class="text-red-400">*</span></label>
+              <select v-model="form.user_role" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all">
+                <option value="Non-TWG" class="bg-[#1a1a2e] text-white">Non-TWG</option>
+                <option value="TWG" class="bg-[#1a1a2e] text-white">TWG</option>
               </select>
             </div>
 
             <div class="flex flex-col gap-2">
-              <label class="text-xs uppercase tracking-widest font-label font-bold text-slate-500">Department / Office <span class="text-red-500">*</span></label>
+              <label class="text-xs uppercase tracking-widest font-label font-bold text-slate-400">Department / Office <span class="text-red-400">*</span></label>
               
               <div class="space-y-2 relative" ref="dropdownRef">
                 <!-- Searchable Combobox -->
@@ -62,19 +62,19 @@
                     @focus="isDropdownOpen = true"
                     @input="isDropdownOpen = true; handleSearchInput()"
                     placeholder="Search or Select your unit"
-                    class="w-full bg-surface-container-low border-none rounded-lg px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary outline-none transition-all"
+                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all placeholder:text-slate-600"
                     :required="!form.office_unit_id && !isAddingNew"
                   />
-                  <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+                  <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">expand_more</span>
                 </div>
                 
                 <!-- Dropdown List -->
-                <div v-if="isDropdownOpen" class="absolute z-50 w-full mt-1 bg-surface-container-lowest border border-outline-variant/20 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                <div v-if="isDropdownOpen" class="absolute z-50 w-full mt-1 bg-[#1a1a2e] border border-white/20 rounded-lg shadow-xl max-h-60 overflow-y-auto">
                   <div 
                     v-for="unit in filteredOffices" 
                     :key="unit.unit_id" 
                     @click="selectOffice(unit)"
-                    class="px-4 py-3 hover:bg-surface-container-low cursor-pointer text-on-surface transition-colors"
+                    class="px-4 py-3 hover:bg-white/10 cursor-pointer text-white transition-colors"
                   >
                     {{ unit.unit_name }}
                   </div>
@@ -85,7 +85,7 @@
 
                   <div 
                     @click="selectAddNew"
-                    class="px-4 py-3 font-bold text-primary hover:bg-primary/10 cursor-pointer border-t border-outline-variant/20 transition-colors flex items-center gap-2"
+                    class="px-4 py-3 font-bold text-purple-400 hover:bg-purple-500/20 cursor-pointer border-t border-white/10 transition-colors flex items-center gap-2"
                   >
                     <span class="material-symbols-outlined text-sm">add_circle</span>
                     Add "{{ officeSearchQuery || 'New Office' }}"
@@ -93,53 +93,53 @@
                 </div>
                 
                 <div v-if="isAddingNew" class="mt-2 animate-fade-in">
-                  <label class="text-[10px] uppercase tracking-widest font-label font-bold text-primary mb-1 block">New Office Name</label>
+                  <label class="text-[10px] uppercase tracking-widest font-label font-bold text-purple-400 mb-1 block">New Office Name</label>
                   <input v-model="newOfficeName" placeholder="Enter full new office name" 
-                         class="w-full bg-surface-container-low border border-primary/50 focus:border-primary rounded-lg px-4 py-3 text-on-surface outline-none focus:ring-1 focus:ring-primary transition-all" required />
+                         class="w-full bg-white/5 border border-purple-500/50 focus:border-purple-500 rounded-lg px-4 py-3 text-white outline-none focus:ring-1 focus:ring-purple-500 transition-all placeholder:text-slate-600" required />
                 </div>
               </div>
             </div>
 
             <div class="flex flex-col gap-2 md:col-span-2">
-              <label class="text-xs uppercase tracking-widest font-label font-bold text-slate-500">
-                {{ form.user_role !== 'Non-TWG' ? 'Institutional Email' : 'Email Address' }} <span class="text-red-500">*</span>
+              <label class="text-xs uppercase tracking-widest font-label font-bold text-slate-400">
+                {{ form.user_role !== 'Non-TWG' ? 'Institutional Email' : 'Email Address' }} <span class="text-red-400">*</span>
               </label>
-              <input v-model="form.email" type="email" :placeholder="form.user_role !== 'Non-TWG' ? 'name@bsu.edu.ph' : 'name@example.com'" class="bg-surface-container-low border-none rounded-lg px-4 py-3 text-on-surface" required />
+              <input v-model="form.email" type="email" :placeholder="form.user_role !== 'Non-TWG' ? 'name@bsu.edu.ph' : 'name@example.com'" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all placeholder:text-slate-600" required />
             </div>
             <div class="flex flex-col gap-2">
-              <label class="text-xs uppercase tracking-widest font-label font-bold text-slate-500">Password <span class="text-red-500">*</span></label>
+              <label class="text-xs uppercase tracking-widest font-label font-bold text-slate-400">Password <span class="text-red-400">*</span></label>
               <div class="relative">
-                <input v-model="form.password" :type="showPass ? 'text' : 'password'" placeholder="••••••••" class="w-full bg-surface-container-low border-none rounded-lg px-4 py-3 text-on-surface" required />
-                <button type="button" @click="showPass = !showPass" class="absolute right-3 top-3 text-slate-400"><span class="material-symbols-outlined">{{ showPass ? 'visibility_off' : 'visibility' }}</span></button>
+                <input v-model="form.password" :type="showPass ? 'text' : 'password'" placeholder="••••••••" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all placeholder:text-slate-600" required />
+                <button type="button" @click="showPass = !showPass" class="absolute right-3 top-3 text-slate-500 hover:text-white transition-colors"><span class="material-symbols-outlined">{{ showPass ? 'visibility_off' : 'visibility' }}</span></button>
               </div>
               <ul class="text-xs mt-2 space-y-1 font-medium transition-colors">
-                <li class="flex items-center gap-1 transition-colors" :class="form.password.length >= 8 ? 'text-green-600' : 'text-slate-400'">
+                <li class="flex items-center gap-1 transition-colors" :class="form.password.length >= 8 ? 'text-green-400' : 'text-slate-500'">
                   <span class="material-symbols-outlined text-[14px]">{{ form.password.length >= 8 ? 'check_circle' : 'cancel' }}</span>
                   At least 8 characters
                 </li>
-                <li class="flex items-center gap-1 transition-colors" :class="/[A-Z]/.test(form.password || '') ? 'text-green-600' : 'text-slate-400'">
+                <li class="flex items-center gap-1 transition-colors" :class="/[A-Z]/.test(form.password || '') ? 'text-green-400' : 'text-slate-500'">
                   <span class="material-symbols-outlined text-[14px]">{{ /[A-Z]/.test(form.password || '') ? 'check_circle' : 'cancel' }}</span>
                   One uppercase letter
                 </li>
-                <li class="flex items-center gap-1 transition-colors" :class="/[a-z]/.test(form.password || '') ? 'text-green-600' : 'text-slate-400'">
+                <li class="flex items-center gap-1 transition-colors" :class="/[a-z]/.test(form.password || '') ? 'text-green-400' : 'text-slate-500'">
                   <span class="material-symbols-outlined text-[14px]">{{ /[a-z]/.test(form.password || '') ? 'check_circle' : 'cancel' }}</span>
                   One lowercase letter
                 </li>
-                <li class="flex items-center gap-1 transition-colors" :class="/[0-9]/.test(form.password || '') ? 'text-green-600' : 'text-slate-400'">
+                <li class="flex items-center gap-1 transition-colors" :class="/[0-9]/.test(form.password || '') ? 'text-green-400' : 'text-slate-500'">
                   <span class="material-symbols-outlined text-[14px]">{{ /[0-9]/.test(form.password || '') ? 'check_circle' : 'cancel' }}</span>
                   One number
                 </li>
-                <li class="flex items-center gap-1 transition-colors" :class="/[^A-Za-z0-9]/.test(form.password || '') ? 'text-green-600' : 'text-slate-400'">
+                <li class="flex items-center gap-1 transition-colors" :class="/[^A-Za-z0-9]/.test(form.password || '') ? 'text-green-400' : 'text-slate-500'">
                   <span class="material-symbols-outlined text-[14px]">{{ /[^A-Za-z0-9]/.test(form.password || '') ? 'check_circle' : 'cancel' }}</span>
                   One special character
                 </li>
               </ul>
             </div>
             <div class="flex flex-col gap-2">
-              <label class="text-xs uppercase tracking-widest font-label font-bold text-slate-500">Confirm Password <span class="text-red-500">*</span></label>
+              <label class="text-xs uppercase tracking-widest font-label font-bold text-slate-400">Confirm Password <span class="text-red-400">*</span></label>
               <div class="relative">
-                <input v-model="form.confirm_password" :type="showConfirmPass ? 'text' : 'password'" placeholder="••••••••" class="w-full bg-surface-container-low border-none rounded-lg px-4 py-3 text-on-surface" required />
-                <button type="button" @click="showConfirmPass = !showConfirmPass" class="absolute right-3 top-3 text-slate-400"><span class="material-symbols-outlined">{{ showConfirmPass ? 'visibility_off' : 'visibility' }}</span></button>
+                <input v-model="form.confirm_password" :type="showConfirmPass ? 'text' : 'password'" placeholder="••••••••" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all placeholder:text-slate-600" required />
+                <button type="button" @click="showConfirmPass = !showConfirmPass" class="absolute right-3 top-3 text-slate-500 hover:text-white transition-colors"><span class="material-symbols-outlined">{{ showConfirmPass ? 'visibility_off' : 'visibility' }}</span></button>
               </div>
             </div>
           </div>
@@ -150,21 +150,21 @@
           <!-- Privacy Policy Checkbox -->
           <div class="flex items-start gap-3 pt-2">
             <div class="flex items-center h-5">
-              <input id="privacy" v-model="form.privacyAccepted" type="checkbox" class="w-4 h-4 bg-surface-container-low border-none rounded text-primary focus:ring-primary" required />
+              <input id="privacy" v-model="form.privacyAccepted" type="checkbox" class="w-4 h-4 bg-white/10 border-white/20 rounded text-purple-500 focus:ring-purple-500" required />
             </div>
             <div class="text-sm">
-              <label for="privacy" class="text-on-surface-variant font-medium">
+              <label for="privacy" class="text-slate-300 font-medium">
                 I agree to the 
-                <button type="button" @click="showPrivacyModal = true" class="text-primary hover:underline font-bold">Privacy Policy</button>
+                <button type="button" @click="showPrivacyModal = true" class="text-purple-400 hover:underline font-bold">Privacy Policy</button>
               </label>
             </div>
           </div>
 
           <div class="flex flex-col gap-4 pt-4">
-            <button :disabled="loading" class="w-full bg-primary text-white py-4 rounded-full font-bold uppercase transition-all shadow-lg" type="submit">
+            <button :disabled="loading" class="w-full bg-gradient-to-br from-purple-600 to-purple-800 text-white py-4 rounded-full font-bold uppercase transition-all shadow-lg hover:opacity-90 border border-purple-500/50" type="submit">
               {{ loading ? 'Processing...' : 'Register' }}
             </button>
-            <button type="button" @click="router.back()" class="w-full border border-outline text-on-surface py-4 rounded-full font-bold uppercase hover:bg-surface-container-low transition-all">
+            <button type="button" @click="router.back()" class="w-full border border-white/20 text-white py-4 rounded-full font-bold uppercase hover:bg-white/10 transition-all">
               Cancel
             </button>
           </div>
@@ -173,17 +173,17 @@
     </div>
 
     <!-- Privacy Policy Modal -->
-    <div v-if="showPrivacyModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
-      <div class="bg-surface-container-lowest rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh]">
-        <div class="p-6 border-b border-outline-variant/20 flex justify-between items-center">
-          <h2 class="text-2xl font-headline font-bold text-primary">Privacy Policy</h2>
-          <button type="button" @click="showPrivacyModal = false" class="text-on-surface-variant hover:text-primary transition-colors">
+    <div v-if="showPrivacyModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fade-in">
+      <div class="bg-[#1a1a2e] rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh] border border-white/10">
+        <div class="p-6 border-b border-white/10 flex justify-between items-center">
+          <h2 class="text-2xl font-headline font-bold text-purple-400">Privacy Policy</h2>
+          <button type="button" @click="showPrivacyModal = false" class="text-slate-400 hover:text-white transition-colors">
             <span class="material-symbols-outlined">close</span>
           </button>
         </div>
         
-        <div class="p-6 overflow-y-auto font-body text-on-surface-variant space-y-4 text-left">
-          <p class="font-bold text-on-surface">Data Privacy Act of 2012 (RA 10173) Consent</p>
+        <div class="p-6 overflow-y-auto font-body text-slate-300 space-y-4 text-left">
+          <p class="font-bold text-white">Data Privacy Act of 2012 (RA 10173) Consent</p>
           <p>
             By registering for an account on the Benguet State University Gender and Development (BSU GAD) Portal, you acknowledge and agree to the following terms regarding the collection, use, and processing of your personal data:
           </p>
@@ -198,8 +198,8 @@
           </p>
         </div>
 
-        <div class="p-6 border-t border-outline-variant/20 bg-surface-container-low rounded-b-2xl flex justify-end">
-          <button type="button" @click="acceptPrivacy" class="bg-primary text-white px-6 py-2 rounded-full font-bold uppercase transition-all shadow-md hover:shadow-lg">
+        <div class="p-6 border-t border-white/10 bg-white/5 rounded-b-2xl flex justify-end">
+          <button type="button" @click="acceptPrivacy" class="bg-gradient-to-br from-purple-600 to-purple-800 border border-purple-500/50 text-white px-6 py-2 rounded-full font-bold uppercase transition-all shadow-md hover:shadow-lg hover:opacity-90">
             I Understand & Agree
           </button>
         </div>

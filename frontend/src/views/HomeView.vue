@@ -28,20 +28,20 @@
     <!-- VISION & MISSION -->
     <section class="section vm-section">
       <div class="section-inner">
-        <p class="section-tag">University Identity</p>
+        <p class="section-tag">GAD Identity</p>
         <h2 class="section-title">Vision &amp; Mission</h2>
         <div class="vm-grid">
           <div class="vm-card vision">
             <div class="vm-card-label">
               <span class="material-symbols-outlined">visibility</span> Vision
             </div>
-            <p class="vm-quote">"A premier university in transformative education, innovative research, inclusive extension services, sustainable development, and stewardship of culture and the environment"</p>
+            <p class="vm-quote">"A gender responsive university delivering world-class education that promotes sustainable development amidst climate change."</p>
           </div>
           <div class="vm-card mission">
             <div class="vm-card-label">
               <span class="material-symbols-outlined">target</span> Mission
             </div>
-            <p class="vm-body">Cultivate resilient and future-ready human capital through excellent teaching, responsive research, proactive and sustainable community engagements, strategic partnerships, and progressive leadership.</p>
+            <p class="vm-body">To initiate and sustain gender responsive programs in instruction, research, extension and production</p>
           </div>
         </div>
 
@@ -70,7 +70,7 @@
               </div>
             </div>
 
-            <button class="toggle-btn" @click="toggleGoal(index)">
+            <button v-if="goal.objectives && goal.objectives.length > 0" class="toggle-btn" @click="toggleGoal(index)">
               <span class="material-symbols-outlined toggle-icon">
                 {{ activeGoal === index ? 'keyboard_arrow_up' : 'keyboard_arrow_down' }}
               </span>
@@ -164,26 +164,26 @@
     </section>
 
     <!-- ABOUT -->
-    <section class="section about-section">
-      <div class="section-inner">
-        <div class="about-grid">
-          <div class="about-text">
-            <p class="about-label">Platform Background</p>
-            <h2 class="about-title">GAD Activity Management System</h2>
-            <p class="about-body-lg">This platform is where Benguet State University's Gender and Development Office keeps track of activity plans, budgets, and accomplishment reports online. Instead of printing revision documents and walking them over to the office, you upload your files and fill in the details here, and you can check the status any time to see if it's pending, needs changes, or has been approved.</p>
-            <p class="about-body">Budget numbers update on their own as funds are used. The GAD Director still reviews and approves everything, but this system just removes the paper-based revision and guesswork around getting things there and finding out where they stand. Visitors can also check completed activities and summary reports on the page without needing to log in.</p>
-            <div class="about-btns">
-              <button class="btn-primary" @click="$router.push('/register')">Access System</button>
-              <button class="btn-outline" @click="showGuidelinesModal = true">User Guidelines</button>
-            </div>
-          </div>
-          <div class="about-img-wrap">
-            <div class="about-img-decor"></div>
-            <img
-              class="about-img"
-              alt="GAD AMS Interface"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWfT6cC60lgVDULdoogzB-MqXy2W26P0mWQRwWZlGkE923q72CL7VsdlXrQ3ONVRtPpIAdz0loaZqNv752I6T4tWMpiGjfjFZ5fW24Sfoci_ohBW1qEVV9NE620yhOZ-daOtQ5_Ke3-ynCEfXJtIFHBYzVbaaW-eQSwnmTd5KrJTtgawPgSP7WFqL0f1fSXoc59OanXgqSLeqWF3vqqVO6Hx8TiUmjgINFqNzFOmzF5FN5tO8vU23t87uu5FIfJZCCqJ0rgoBGvnpJ"
-            />
+    <section class="section about-section relative overflow-hidden group"
+             @mousemove="handleMouseMove" 
+             @mouseenter="isHovering = true" 
+             @mouseleave="isHovering = false"
+             :style="{ '--mouse-x': mouseX + 'px', '--mouse-y': mouseY + 'px' }">
+             
+      <!-- Hover Glow Effect -->
+      <div class="absolute inset-0 pointer-events-none transition-opacity duration-500 z-0"
+           :class="isHovering ? 'opacity-100' : 'opacity-0'"
+           style="background: radial-gradient(circle 450px at var(--mouse-x) var(--mouse-y), rgba(153, 13, 209, 0.15), transparent 80%);">
+      </div>
+
+      <div class="section-inner relative z-10 py-12">
+        <div class="about-text text-center max-w-5xl mx-auto px-4 lg:px-0">
+          <p class="about-label inline-block">Platform Background</p>
+          <h2 class="about-title mb-8">GAD Activity Management System</h2>
+          <p class="about-body-lg mx-auto text-lg max-w-4xl">This platform is where Benguet State University's Gender and Development Office keeps track of activity plans, budgets, and accomplishment reports online. Instead of printing revision documents and walking them over to the office, you upload your files and fill in the details here, and you can check the status any time to see if it's pending, needs changes, or has been approved.</p>
+          <p class="about-body mx-auto text-base mt-4 mb-10 max-w-4xl">Budget numbers update on their own as funds are used. The GAD Director still reviews and approves everything, but this system just removes the paper-based revision and guesswork around getting things there and finding out where they stand. Visitors can also check completed activities and summary reports on the page without needing to log in.</p>
+          <div class="about-btns justify-center flex gap-4 mt-8">
+            <button class="btn-primary px-8 py-4 text-sm tracking-widest shadow-lg hover:shadow-purple-500/25" @click="$router.push('/register')">Access System</button>
           </div>
         </div>
       </div>
@@ -247,6 +247,17 @@ const isAnimating = ref(false);
 const showSplash = ref(true);
 const showGuidelinesModal = ref(false);
 const $router = useRouter();
+
+// Hover effect states
+const mouseX = ref(0);
+const mouseY = ref(0);
+const isHovering = ref(false);
+
+const handleMouseMove = (e) => {
+  const rect = e.currentTarget.getBoundingClientRect();
+  mouseX.value = e.clientX - rect.left;
+  mouseY.value = e.clientY - rect.top;
+};
 
 // Scroll observer states
 const impactSectionRef = ref(null);
@@ -397,81 +408,52 @@ const toggleGoal = (idx) => {
 
 const goals = [
   {
-    title: 'Instruction (Goal 1)',
-    description: 'Ensure equity in accessing quality higher education.',
+    title: 'Goal 1',
+    description: 'Improve GAD information system for policy and decision making.',
+    icon: 'analytics',
+    objectives: []
+  },
+  {
+    title: 'Goal 2',
+    description: 'Recognize GAD Zonal Resource Center in the Region.',
+    icon: 'stars',
+    objectives: []
+  },
+  {
+    title: 'Goal 3',
+    description: 'Enrich quality education through the integration of gender perspective in academe.',
     icon: 'school',
-    objectives: [
-      'Formulate and implement affirmative action policies aligned with Free Higher Education',
-      'Sustain enrollment of disadvantaged students',
-      'Sustain grants and scholarships for undergraduate and graduate students',
-      'Develop learning continuity and student affairs services plan',
-      'Implement inclusive education strategies for diverse learners',
-      'Sustain optimal enrollment in all degree programs'
-    ]
+    objectives: []
   },
   {
-    title: 'Instruction (Goal 2)',
-    description: 'Advance quality and relevant instruction to boost regional economies.',
-    icon: 'trending_up',
-    objectives: [
-      'Enhance instruction through a supportive and innovative environment',
-      'Continuously improve tertiary and advanced education standards'
-    ]
+    title: 'Goal 4',
+    description: 'Develop highly engaged employees and students with gender-lens perspective through training and advocacy',
+    icon: 'groups',
+    objectives: []
   },
   {
-    title: 'Research (Goal 3)',
-    description: 'Develop pioneering science and gender/culture-sensitive solutions.',
-    icon: 'biotech',
-    objectives: [
-      'Strengthen policies, culture, linkages and support for research and development',
-      'Advance scholarly capabilities of faculty and staff through research-driven initiatives',
-      'Conduct socially-responsive and impactful research'
-    ]
+    title: 'Goal 5',
+    description: 'Increase resilience and reduce vulnerabilities and risk of stakeholders to climate change and DRRM-related concerns.',
+    icon: 'eco',
+    objectives: []
   },
   {
-    title: 'Extension (Goal 4)',
-    description: 'Develop proactive extension programs for disadvantaged communities.',
-    icon: 'diversity_1',
-    objectives: [
-      'Enhance extension system environment for effective community development',
-      'Build capacity among extension service providers',
-      'Implement culturally-relevant and gender-sensitive engagement programs',
-      'Expand reach and inclusivity of extension initiatives',
-      'Evaluate and amplify the impact of extension programs'
-    ]
+    title: 'Goal 6',
+    description: 'Promote gender-transformative approach to improve health and wellness.',
+    icon: 'health_and_safety',
+    objectives: []
   },
   {
-    title: 'Governance (Goal 5)',
-    description: 'Promote integrity-based governance and efficient management of resources.',
-    icon: 'account_balance',
-    objectives: [
-      'Develop human resource capabilities',
-      'Cultivate a culture of good governance and resource stewardship',
-      'Develop smart and green campus solutions',
-      'Establish sound financial policies and systems'
-    ]
+    title: 'Goal 7',
+    description: 'Improve quality of life through gender responsive research and extension programs.',
+    icon: 'psychology',
+    objectives: []
   },
   {
-    title: 'Business (Goal 6)',
-    description: 'Balance progressive resource development while maintaining biophysical resources.',
-    icon: 'payments',
-    objectives: [
-      'Foster a supportive ecosystem for entrepreneurial ventures',
-      'Create strategic and socially-responsible business partnerships',
-      'Strengthen capabilities in revenue-generating activities',
-      'Optimize existing income sources',
-      'Pursue green enterprises and growth opportunities'
-    ]
-  },
-  {
-    title: 'Partnerships (Goal 7)',
-    description: 'Strengthen and expand strategic partnerships.',
-    icon: 'handshake',
-    objectives: [
-      'Build a dynamic and enabling environment for partnerships',
-      'Deepen engagement with alumni, government, and civil society',
-      'Strengthen multi-sectoral collaboration among academe, LGUs, and communities'
-    ]
+    title: 'Goal 8',
+    description: 'Build resilient, “green,” and gender responsive infrastructure.',
+    icon: 'apartment',
+    objectives: []
   }
 ];
 </script>
@@ -595,6 +577,8 @@ const goals = [
   background: radial-gradient(ellipse at 65% 35%, rgba(153, 13, 209, 0.25) 0%, transparent 60%);
   pointer-events: none;
 }
+
+
 .hero-content { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; }
 .hero-badge {
   display: inline-block;
@@ -679,7 +663,14 @@ const goals = [
   margin-bottom: 40px;
 }
 
-.vm-section { background: #fff; }
+.vm-section { 
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); 
+  border-top: 1px solid rgba(255, 255, 255, 0.05); 
+}
+.vm-section .section-title { color: #fff; }
+.vm-section .section-tag { color: #c084fc; }
+.vm-section .goals-label span { color: #c084fc; }
+.vm-section .goals-divider { background: rgba(255, 255, 255, 0.1); }
 .vm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 64px; }
 .vm-card {
   border-radius: 16px;
@@ -690,9 +681,12 @@ const goals = [
   border: 1px solid rgba(153, 13, 209, 0.3);
 }
 .vm-card.mission {
-  background: #faf8ff;
-  border: 1px solid #ede9f7;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
+.vm-card.mission .vm-body { color: #cbd5e1; }
+.vm-card.mission .vm-card-label { color: #c084fc; }
+.vm-card.mission .vm-card-label .material-symbols-outlined { color: #c084fc; }
 .vm-card-label {
   display: flex;
   align-items: center;
@@ -735,16 +729,16 @@ const goals = [
 .goals-divider { flex: 1; height: 1px; background: #ede9f7; }
 .goals-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .goal-card {
-  background: #fff;
-  border: 1px solid #ede9f7;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 14px;
   padding: 24px;
   display: flex;
   flex-direction: column;
   transition: transform 0.2s, border-color 0.2s;
 }
-.goal-card:hover { border-color: rgba(153, 13, 209, 0.3); transform: translateY(-3px); }
-.goal-card.active { border-color: rgba(153, 13, 209, 0.4); }
+.goal-card:hover { border-color: rgba(153, 13, 209, 0.5); transform: translateY(-3px); }
+.goal-card.active { border-color: rgba(153, 13, 209, 0.6); }
 .goal-icon-wrap {
   width: 40px;
   height: 40px;
@@ -761,9 +755,9 @@ const goals = [
   font-weight: 1000;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #1a1a2e;
+  color: #fff;
 }
-.goal-desc { font-size: 15px; color: #16213e; line-height: 1.7; flex-grow: 1; margin-bottom: 14px; }
+.goal-desc { font-size: 15px; color: #cbd5e1; line-height: 1.7; flex-grow: 1; margin-bottom: 14px; }
 .objective-list {
   border-top: 1px solid #ede9f7;
   padding-top: 14px;
@@ -788,9 +782,9 @@ const goals = [
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #990dd1;
-  background: #faf8ff;
-  border: 1px solid rgba(153, 13, 209, 0.2);
+  color: #c084fc;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(153, 13, 209, 0.4);
   border-radius: 8px;
   padding: 7px 12px;
   cursor: pointer;
@@ -1011,8 +1005,8 @@ const goals = [
 }
 
 .about-section {
-  background: linear-gradient(180deg, #faf8ff 0%, #fff 100%);
-  border-top: 1px solid #ede9f7;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 .about-grid { display: grid; grid-template-columns: 6fr 5fr; gap: 72px; align-items: center; }
 .about-text { display: flex; flex-direction: column; gap: 0; }
@@ -1021,19 +1015,19 @@ const goals = [
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.35em;
-  color: #990dd1;
+  color: #c084fc;
   margin-bottom: 12px;
 }
 .about-title {
   font-size: 44px;
   font-weight: 800;
-  color: #1a1a2e;
+  color: #fff;
   line-height: 1.2;
   letter-spacing: -0.02em;
   margin-bottom: 20px;
 }
-.about-body-lg { font-size: 18px; color: #1a1a2e; line-height: 1.85; margin-bottom: 16px; }
-.about-body { font-size: 16px; color: #16213e; line-height: 1.85; margin-bottom: 28px; }
+.about-body-lg { font-size: 18px; color: #cbd5e1; line-height: 1.85; margin-bottom: 16px; }
+.about-body { font-size: 16px; color: #94a3b8; line-height: 1.85; margin-bottom: 28px; }
 .about-btns { display: flex; gap: 12px; flex-wrap: wrap; }
 .btn-primary {
   padding: 12px 28px;
