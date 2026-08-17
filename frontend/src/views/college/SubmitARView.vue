@@ -1242,6 +1242,27 @@ const submitReport = async () => {
     return;
   }
 
+  // Validate participants
+  if (Number(form.value.target_participants) < 1) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Participants',
+      text: 'Target participants must be at least 1.',
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+  
+  if (Number(form.value.male) < 1 || Number(form.value.female) < 1) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Participants',
+      text: 'Male and Female participants must each be at least 1.',
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+
   // Minimal validation for start and end date
   if (form.value.start_date && form.value.end_date) {
     const startDate = new Date(form.value.start_date + 'T00:00:00');
@@ -1257,6 +1278,33 @@ const submitReport = async () => {
     }
   }
 
+  if (form.value.start_time && form.value.end_time && (!form.value.start_date || !form.value.end_date || form.value.start_date === form.value.end_date)) {
+    const startTimeParts = form.value.start_time.split(':');
+    const endTimeParts = form.value.end_time.split(':');
+    const startMinutes = parseInt(startTimeParts[0]) * 60 + parseInt(startTimeParts[1]);
+    const endMinutes = parseInt(endTimeParts[0]) * 60 + parseInt(endTimeParts[1]);
+    
+    if (endMinutes <= startMinutes) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Time Range',
+        text: 'End time must be after start time on the same day.',
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
+    
+    if ((endMinutes - startMinutes) < 60) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Time Range',
+        text: 'The activity duration must be at least 1 hour.',
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
+  }
+
   if (uploadedFiles.value.length === 0) {
     Swal.fire({
       icon: 'warning',
@@ -1266,6 +1314,29 @@ const submitReport = async () => {
     });
     return;
   }
+
+  const submitConfirm = await Swal.fire({
+    title: 'Confirm Submission',
+    text: 'Are you sure you want to submit this Accomplishment Report?',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, Submit',
+    cancelButtonText: 'Cancel',
+    confirmButtonColor: '#b979cc'
+  });
+
+  if (!submitConfirm.isConfirmed) {
+    return;
+  }
+
+  Swal.fire({
+    title: 'Processing...',
+    text: 'Please wait while we submit your report and dispatch email notifications.',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
 
   try {
     const formData = new FormData();
@@ -1530,10 +1601,21 @@ watch(() => form.value.start_time, (newTime) => {
     Swal.fire({ icon: 'warning', title: 'Invalid Time', text: 'Must be set between 04:00 AM and 08:00 PM.', confirmButtonColor: '#b979cc' });
     form.value.start_time = '';
   }
-  if (form.value.start_time && form.value.end_time && form.value.start_time >= form.value.end_time) {
+  if (form.value.start_time && form.value.end_time && (!form.value.start_date || !form.value.end_date || form.value.start_date === form.value.end_date)) {
+    const startTimeParts = form.value.start_time.split(':');
+    const endTimeParts = form.value.end_time.split(':');
+    const startMinutes = parseInt(startTimeParts[0]) * 60 + parseInt(startTimeParts[1]);
+    const endMinutes = parseInt(endTimeParts[0]) * 60 + parseInt(endTimeParts[1]);
+    
+    if (endMinutes <= startMinutes) {
       document.activeElement?.blur();
       Swal.fire({ icon: 'warning', title: 'Invalid Time Range', text: 'End time must be after start time.', confirmButtonColor: '#b979cc' });
       form.value.start_time = '';
+    } else if ((endMinutes - startMinutes) < 60) {
+      document.activeElement?.blur();
+      Swal.fire({ icon: 'warning', title: 'Invalid Time Range', text: 'The activity duration must be at least 1 hour.', confirmButtonColor: '#b979cc' });
+      form.value.start_time = '';
+    }
   }
 });
 
@@ -1543,10 +1625,21 @@ watch(() => form.value.end_time, (newTime) => {
     Swal.fire({ icon: 'warning', title: 'Invalid Time', text: 'Must be set between 04:00 AM and 08:00 PM.', confirmButtonColor: '#b979cc' });
     form.value.end_time = '';
   }
-  if (form.value.start_time && form.value.end_time && form.value.start_time >= form.value.end_time) {
+  if (form.value.start_time && form.value.end_time && (!form.value.start_date || !form.value.end_date || form.value.start_date === form.value.end_date)) {
+    const startTimeParts = form.value.start_time.split(':');
+    const endTimeParts = form.value.end_time.split(':');
+    const startMinutes = parseInt(startTimeParts[0]) * 60 + parseInt(startTimeParts[1]);
+    const endMinutes = parseInt(endTimeParts[0]) * 60 + parseInt(endTimeParts[1]);
+    
+    if (endMinutes <= startMinutes) {
       document.activeElement?.blur();
       Swal.fire({ icon: 'warning', title: 'Invalid Time Range', text: 'End time must be after start time.', confirmButtonColor: '#b979cc' });
       form.value.end_time = '';
+    } else if ((endMinutes - startMinutes) < 60) {
+      document.activeElement?.blur();
+      Swal.fire({ icon: 'warning', title: 'Invalid Time Range', text: 'The activity duration must be at least 1 hour.', confirmButtonColor: '#b979cc' });
+      form.value.end_time = '';
+    }
   }
 });
 

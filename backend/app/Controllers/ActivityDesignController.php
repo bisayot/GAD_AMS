@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\ActivityDesignModel;
 use App\Libraries\FileStorage;
+use App\Libraries\NotificationService;
 
 class ActivityDesignController extends BaseController
 {
@@ -160,6 +161,9 @@ class ActivityDesignController extends BaseController
                 }
 
                 \App\Models\ActivityLogModel::log($data['user_id'], 'Submit Document', 'submitted Activity Design: ' . $data['activity_title']);
+
+                NotificationService::send($data['user_id'], 'Activity Design Submitted', 'Your Activity Design "' . $data['activity_title'] . '" has been successfully submitted and is pending review.', '/staff/activity-designs', 'info');
+                NotificationService::sendToAdmins('New Activity Design Submitted', 'A new Activity Design "' . $data['activity_title'] . '" has been submitted and is pending review.', '/admin/activity-designs', 'info');
 
                 return $this->response->setJSON([
                     "success" => true,
@@ -654,6 +658,8 @@ class ActivityDesignController extends BaseController
         $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
         \App\Models\ActivityLogModel::log($actionUserId, 'Approve Document', 'approved Activity Design: ' . $item['activity_title']);
 
+        NotificationService::send($item['user_id'], 'Activity Design Approved', 'Your Activity Design "' . $item['activity_title'] . '" has been approved.', '/staff/activity-designs', 'success');
+
         \App\Libraries\FileStorage::moveToArchived($item['attachment']);
 
         return $this->response->setJSON([
@@ -695,6 +701,8 @@ class ActivityDesignController extends BaseController
         if ($item) {
             $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
             \App\Models\ActivityLogModel::log($actionUserId, 'Update Status', 'requested revision for Activity Design: ' . $item['activity_title']);
+            
+            NotificationService::send($item['user_id'], 'Revision Required', 'Your Activity Design "' . $item['activity_title'] . '" requires revision. Remarks: ' . $remarks, '/staff/activity-designs', 'warning');
         }
 
         return $this->response->setJSON([
@@ -729,6 +737,8 @@ class ActivityDesignController extends BaseController
         if ($item) {
             $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
             \App\Models\ActivityLogModel::log($actionUserId, 'Disapprove Document', 'disapproved Activity Design: ' . $item['activity_title']);
+            
+            NotificationService::send($item['user_id'], 'Activity Design Disapproved', 'Your Activity Design "' . $item['activity_title'] . '" has been disapproved. Remarks: ' . $remarks, '/staff/activity-designs', 'error');
         }
 
         return $this->response->setJSON([
@@ -1109,6 +1119,9 @@ class ActivityDesignController extends BaseController
         $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
         \App\Models\ActivityLogModel::log($actionUserId, 'Request Modification', 'requested modification for Activity Design: ' . $design['activity_title']);
 
+        NotificationService::sendToAdmins('Modification Requested', 'A modification request for Activity Design "' . $design['activity_title'] . '" has been submitted and is pending review.', '/admin/activity-designs', 'info');
+        NotificationService::send($design['user_id'], 'Modification Requested', 'Your modification request for "' . $design['activity_title'] . '" has been sent and is pending review.', '/staff/activity-designs', 'info');
+
         return $this->response->setJSON(['success' => true, 'message' => 'Modification requested successfully']);
     }
 
@@ -1125,6 +1138,8 @@ class ActivityDesignController extends BaseController
 
         $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
         \App\Models\ActivityLogModel::log($actionUserId, 'Approve Modification', 'approved modification request for Activity Design: ' . $design['activity_title']);
+
+        NotificationService::send($design['user_id'], 'Modification Approved', 'Your modification request for "' . $design['activity_title'] . '" has been approved.', '/staff/activity-designs', 'success');
 
         return $this->response->setJSON(['success' => true, 'message' => 'Modification request approved']);
     }

@@ -1093,9 +1093,6 @@ export default {
       addItemInline, markDirty, saveItem, savePlan,
       deleteItem, addBudgetLine, removeBudgetLine,
       handleFileImport, promptExcelImport, handleExcelImport, exportToExcel, resetToSeed,
-      showAllocationModal, loadingAllocations, savingAllocations, allocationsData,
-      allocationsDirty, openAllocationModal, closeAllocationModal, markAllocationsDirty,
-      getAllocatedElsewhere, saveAllocations,
       isPdfModalOpen, pdfFileUrl, openDocumentPreview, closePdfModal
     };
   }

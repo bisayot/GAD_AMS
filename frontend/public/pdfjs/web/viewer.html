@@ -34,6 +34,7 @@ See https://github.com/adobe-type-tools/cmap-resources
     <link rel="stylesheet" href="viewer.css">
 
   <script src="viewer.mjs" type="module"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   </head>
 
   <body tabindex="1">
@@ -582,14 +583,29 @@ See https://github.com/adobe-type-tools/cmap-resources
                   
                   const result = await response.json();
                   if (result.success) {
-                    alert('File saved successfully to the system.');
+                    Swal.fire({
+                      icon: 'success',
+                      title: 'Saved!',
+                      text: 'File saved successfully to the system.',
+                      confirmButtonColor: '#b979cc'
+                    });
                   } else {
-                    alert('Failed to save file: ' + result.message);
+                    Swal.fire({
+                      icon: 'error',
+                      title: 'Error',
+                      text: 'Failed to save file: ' + result.message,
+                      confirmButtonColor: '#b979cc'
+                    });
                   }
                   document.title = oldTitle;
                 } catch (err) {
                   console.error("Save error:", err);
-                  alert('Error saving the document.');
+                  Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error saving the document.',
+                    confirmButtonColor: '#b979cc'
+                  });
                 }
               };
             }

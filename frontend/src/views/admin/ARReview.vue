@@ -485,7 +485,7 @@
           </div>
 
           <div class="form-group">
-            <label>Revision Remarks / Comments</label>
+            <label>Revision Remarks / Comments or <span style="font-weight: bold; color: #b979cc;">You can also put your remarks/comments in the <a :href="getPdfjsUrl()" target="_blank" style="color: #007bff; text-decoration: underline; cursor: pointer;">pdf</a> file itself before sending revision</span></label>
             <textarea 
               v-model="revisionRemarks"
               class="modal-textarea"
@@ -698,6 +698,15 @@ const handleApprove = async () => {
 
   if (!result.isConfirmed) return;
   
+  Swal.fire({
+    title: 'Processing...',
+    text: 'Please wait while we process this request and dispatch email notifications.',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
   submitting.value = true;
   try {
     const id = report.value.id;
@@ -724,6 +733,15 @@ const handleSendRevision = async () => {
     Swal.fire({ icon: 'warning', title: 'Missing Info', text: 'Please provide both remarks and a deadline.', confirmButtonColor: '#b979cc' });
     return;
   }
+
+  Swal.fire({
+    title: 'Processing...',
+    text: 'Please wait while we process this request and dispatch email notifications.',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
 
   submitting.value = true;
   try {
@@ -889,6 +907,18 @@ const getInterpretationClass = (rating) => {
 const formatBudgetName = (name) => {
   if (!name) return '';
   return name.replace(/(\([^\)]+\))/g, '<span style="opacity:0.7;font-size:11px;">$1</span>');
+};
+
+const getPdfjsUrl = () => {
+  if (!report.value || !report.value.attachment) return '#';
+  const attachments = parseAttachments(report.value.attachment);
+  if (attachments.length === 0) return '#';
+  const firstFile = attachments[0];
+  const folder = Number(report.value.is_archived) === 1 ? 'archived' : 'drafts';
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api/', '') : 'https://gad-ams-2-1.onrender.com');
+  const fileUrl = `${base}/api/files/${folder}/${firstFile}`;
+  const userRole = user.value?.role || user.value?.user_role || '';
+  return `/pdfjs/web/viewer.html?file=${encodeURIComponent(fileUrl)}&role=${encodeURIComponent(userRole)}`;
 };
 
 const previewFile = (filename, folder) => {

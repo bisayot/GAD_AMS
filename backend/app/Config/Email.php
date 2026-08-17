@@ -28,7 +28,7 @@ class Email extends BaseConfig
     /**
      * SMTP Server Hostname
      */
-    public string $SMTPHost = 'smtp-relay.brevo.com';
+    public string $SMTPHost = 'smtp.gmail.com';
 
     /**
      * Which SMTP authentication method to use: login, plain
@@ -48,21 +48,21 @@ class Email extends BaseConfig
     /**
      * SMTP Port
      */
-    public int $SMTPPort = 587;
+    public int $SMTPPort = 465;
 
     public function __construct()
     {
         parent::__construct();
 
         // Securely load from environment variables if present. 
-        // We check standard uppercase variables first (for Render/Linux) using native getenv()
-        $this->fromEmail  = getenv('FROM_EMAIL') ?: env('FROM_EMAIL') ?: env('email.fromEmail') ?: $this->fromEmail;
-        $this->SMTPHost   = getenv('SMTP_HOST') ?: env('SMTP_HOST') ?: env('email.SMTPHost') ?: $this->SMTPHost;
-        $this->SMTPUser   = getenv('SMTP_USER') ?: env('SMTP_USER') ?: env('email.SMTPUser') ?: $this->SMTPUser;
-        $this->SMTPPass   = getenv('SMTP_PASS') ?: env('SMTP_PASS') ?: env('email.SMTPPass') ?: $this->SMTPPass;
-        $this->SMTPPort   = (int) (getenv('SMTP_PORT') ?: env('SMTP_PORT') ?: env('email.SMTPPort') ?: $this->SMTPPort);
-        $this->SMTPCrypto = getenv('SMTP_CRYPTO') ?: env('SMTP_CRYPTO') ?: env('email.SMTPCrypto') ?: $this->SMTPCrypto;
-        $this->mailType   = getenv('MAIL_TYPE') ?: env('MAIL_TYPE') ?: env('email.mailType') ?: $this->mailType;
+        // We prioritize env() over getenv() to properly handle CodeIgniter's .env file
+        $this->fromEmail  = trim(env('FROM_EMAIL') ?: getenv('FROM_EMAIL') ?: env('email.fromEmail') ?: $this->fromEmail, '"\'');
+        $this->SMTPHost   = trim(env('SMTP_HOST') ?: getenv('SMTP_HOST') ?: env('email.SMTPHost') ?: $this->SMTPHost, '"\'');
+        $this->SMTPUser   = trim(env('SMTP_USER') ?: getenv('SMTP_USER') ?: env('email.SMTPUser') ?: $this->SMTPUser, '"\'');
+        $this->SMTPPass   = trim(env('SMTP_PASS') ?: getenv('SMTP_PASS') ?: env('email.SMTPPass') ?: $this->SMTPPass, '"\'');
+        $this->SMTPPort   = (int) trim(env('SMTP_PORT') ?: getenv('SMTP_PORT') ?: env('email.SMTPPort') ?: $this->SMTPPort, '"\'');
+        $this->SMTPCrypto = trim(env('SMTP_CRYPTO') ?: getenv('SMTP_CRYPTO') ?: env('email.SMTPCrypto') ?: $this->SMTPCrypto, '"\'');
+        $this->mailType   = trim(env('MAIL_TYPE') ?: getenv('MAIL_TYPE') ?: env('email.mailType') ?: $this->mailType, '"\'');
     }
 
     /**
@@ -82,7 +82,7 @@ class Email extends BaseConfig
      *             to the server. 'ssl' means implicit SSL. Connection on port
      *             465 should set this to ''.
      */
-    public string $SMTPCrypto = 'tls';
+    public string $SMTPCrypto = 'ssl';
 
     /**
      * Enable word-wrap

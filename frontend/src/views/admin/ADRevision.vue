@@ -1155,6 +1155,19 @@ const handleUpdate = async () => {
     return;
   }
 
+
+
+  // Validate target participants
+  if (Number(formData.value.target_participants) <= 0) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Participants',
+      text: 'Target participants must be at least 1.',
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+
   // Validate start date
   const startValidation = isValidActivityDate(formData.value.start_date, true);
   if (!startValidation.valid) {
@@ -1216,11 +1229,26 @@ const handleUpdate = async () => {
     return;
   }
   if (formData.value.start_time && formData.value.end_time && (!formData.value.start_date || !formData.value.end_date || formData.value.start_date === formData.value.end_date)) {
-    if (formData.value.start_time >= formData.value.end_time) {
+    const startTimeParts = formData.value.start_time.split(':');
+    const endTimeParts = formData.value.end_time.split(':');
+    const startMinutes = parseInt(startTimeParts[0]) * 60 + parseInt(startTimeParts[1]);
+    const endMinutes = parseInt(endTimeParts[0]) * 60 + parseInt(endTimeParts[1]);
+    
+    if (endMinutes <= startMinutes) {
       Swal.fire({
         icon: 'warning',
         title: 'Invalid Time Range',
         text: 'End time must be after start time on the same day.',
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
+    
+    if ((endMinutes - startMinutes) < 60) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Time Range',
+        text: 'The activity duration must be at least 1 hour.',
         confirmButtonColor: '#b979cc'
       });
       return;

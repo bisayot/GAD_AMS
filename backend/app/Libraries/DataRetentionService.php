@@ -38,6 +38,7 @@ class DataRetentionService
         $messagesTtlDays = isset($settings['messages_ttl_days']) ? (int)$settings['messages_ttl_days'] : 365;
         $logsTtlDays = isset($settings['activity_logs_ttl_days']) ? (int)$settings['activity_logs_ttl_days'] : 365;
         $archivesTtlDays = isset($settings['archived_documents_ttl_days']) ? (int)$settings['archived_documents_ttl_days'] : 1825;
+        $notificationsTtlDays = isset($settings['notifications_ttl_days']) ? (int)$settings['notifications_ttl_days'] : 30;
 
         $db = \Config\Database::connect();
         
@@ -46,7 +47,8 @@ class DataRetentionService
             'messages_deleted' => 0,
             'logs_deleted' => 0,
             'archived_docs_deleted' => 0,
-            'soft_deleted_docs_purged' => 0
+            'soft_deleted_docs_purged' => 0,
+            'notifications_deleted' => 0
         ];
         
         $detailedLogs = [];
@@ -182,6 +184,15 @@ class DataRetentionService
                 $totalDeleted['archived_docs_deleted'] += $db->affectedRows();
             }
 
+            // F. Delete old Notifications
+            if ($notificationsTtlDays > 0) {
+                $db->query("
+                    DELETE FROM notifications 
+                    WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)
+                ", [$notificationsTtlDays]);
+                $totalDeleted['notifications_deleted'] = $db->affectedRows();
+            }
+
             $db->transComplete();
 
             if ($db->transStatus() !== false) {
@@ -191,12 +202,13 @@ class DataRetentionService
                 // Log the action if something was actually deleted
                 if (array_sum($totalDeleted) > 0) {
                     $logMsg = sprintf(
-                        "System Cleanup: Trashed %d msgs, Purged %d msgs, %d logs, %d soft-deleted docs, %d archived docs.",
+                        "System Cleanup: Trashed %d msgs, Purged %d msgs, %d logs, %d soft-deleted docs, %d archived docs, %d notifications.",
                         $totalDeleted['messages_trashed'],
                         $totalDeleted['messages_deleted'],
                         $totalDeleted['logs_deleted'],
                         $totalDeleted['soft_deleted_docs_purged'],
-                        $totalDeleted['archived_docs_deleted']
+                        $totalDeleted['archived_docs_deleted'],
+                        $totalDeleted['notifications_deleted']
                     );
                     // Fetch first admin user to attach the log to
                     $admin = $db->table('users')

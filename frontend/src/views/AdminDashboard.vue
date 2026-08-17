@@ -19,12 +19,13 @@
         ]"
       >
         <div class="flex items-center">
-          <button @click="isSidebarOpen = true" class="lg:hidden text-white hover:text-primary transition-colors flex items-center">
-            <span class="material-symbols-outlined text-3xl">menu</span>
+          <button @click="isSidebarOpen = true" class="lg:hidden hover:text-primary transition-colors flex items-center" style="color: white !important;">
+            <span class="material-symbols-outlined text-3xl" style="color: white !important;">menu</span>
           </button>
         </div>
         
-        <div v-if="user.user_role" class="flex items-center gap-3">
+        <div v-if="user.user_role" class="flex items-center gap-4">
+          <NotificationDropdown />
           <div class="px-4 py-1.5 bg-primary/20 border border-primary/50 rounded-full flex items-center gap-2 shadow-sm backdrop-blur-md">
             <span class="material-symbols-outlined text-primary text-[18px]">badge</span>
             <span class="text-white text-xs font-bold uppercase tracking-wider">{{ user.user_role }}</span>
@@ -44,6 +45,7 @@ import { onMounted, onUnmounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../api';
 import DashboardSidebar from '../components/DashboardSidebar.vue';
+import NotificationDropdown from '../components/NotificationDropdown.vue';
 
 const router = useRouter();
 const isSidebarOpen = ref(false);

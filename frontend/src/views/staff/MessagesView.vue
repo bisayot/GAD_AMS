@@ -764,6 +764,13 @@ const sendMessage = async () => {
       document_id: selectedDocuments.value.length > 0 ? selectedDocuments.value.join(',') : null
     };
     
+    Swal.fire({
+      title: 'Sending...',
+      text: 'Please wait while your message is sent and email notifications are dispatched.',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
     const response = await api.post('messages/send', payload);
     if (response.data.success) {
       if (threadId) {
@@ -816,6 +823,13 @@ const sendAnnouncement = async () => {
       message: announceMessage.value
     };
     
+    Swal.fire({
+      title: 'Sending Announcement...',
+      text: 'Please wait while your announcement is broadcasted.',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
     const response = await api.post('messages/announce', payload);
     if (response.data.success) {
       rightPaneMode.value = 'none';
@@ -855,7 +869,17 @@ const sendReply = async () => {
       document_id: composerDocuments.value.length > 0 ? composerDocuments.value.join(',') : null
     };
     
+    // Notice: We don't block the UI with Swal for simple chat replies if we want a seamless chat experience.
+    // However, since email dispatch takes 2-5 seconds, a small loader is necessary to prevent double-sends.
+    Swal.fire({
+      title: 'Sending...',
+      text: 'Please wait while your reply is sent and email notifications are dispatched.',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
     const response = await api.post('messages/send', payload);
+    Swal.close();
     if (response.data.success) {
       composerText.value = '';
       composerDocuments.value = [];

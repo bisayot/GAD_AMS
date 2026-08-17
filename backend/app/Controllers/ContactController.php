@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\ContactInquiryModel;
 use App\Models\UserModel;
 use CodeIgniter\API\ResponseTrait;
+use App\Libraries\NotificationService;
 
 class ContactController extends BaseController
 {
@@ -35,8 +36,11 @@ class ContactController extends BaseController
         
         if ($model->insert($data)) {
             // Send email using Brevo REST API to bypass Render's SMTP block
-            $apiKey = getenv('BREVO_API_KEY') ?: env('BREVO_API_KEY') ?: getenv('SMTP_PASS') ?: env('SMTP_PASS') ?: env('email.SMTPPass') ?: '';
-            $senderEmail = getenv('FROM_EMAIL') ?: env('FROM_EMAIL') ?: env('email.fromEmail') ?: 'gadims.bsu.bsit@gmail.com';
+            $apiKey = env('BREVO_API_KEY') ?: env('SMTP_PASS') ?: env('email.SMTPPass') ?: '';
+            $apiKey = trim($apiKey, '"\'');
+            
+            $senderEmail = env('FROM_EMAIL') ?: env('email.fromEmail') ?: 'gadims.bsu.bsit@gmail.com';
+            $senderEmail = trim($senderEmail, '"\'');
             
             $adminEmail = 'gad.office@bsu.edu.ph'; // Replace with actual recipient if needed
             
@@ -77,6 +81,8 @@ class ContactController extends BaseController
             curl_close($ch);
             
             $emailSent = ($httpCode >= 200 && $httpCode < 300);
+            
+            NotificationService::sendToAdmins('New Inquiry Received', 'A new contact inquiry from ' . $data['name'] . ' has been received.', '/admin/inquiries', 'info');
             
             return $this->respondCreated([
                 'status'  => 201,

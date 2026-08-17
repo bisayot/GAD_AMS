@@ -280,7 +280,7 @@
           </div>
 
           <div class="form-group">
-            <label>Revision Remarks / Comments</label>
+            <label>Revision Remarks / Comments or <span style="font-weight: bold; color: #b979cc;">You can also put your remarks/comments in the <a :href="getPdfjsUrl()" target="_blank" style="color: #007bff; text-decoration: underline; cursor: pointer;">pdf</a> file itself before sending revision</span></label>
             <textarea 
               v-model="revisionRemarks"
               class="modal-textarea"
@@ -635,6 +635,15 @@ const handleApprove = async () => {
 
   if (!result.isConfirmed) return;
   
+  Swal.fire({
+    title: 'Processing...',
+    text: 'Please wait while we process this request and dispatch email notifications.',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
   submitting.value = true;
   try {
     const id = design.value.act_design_id;
@@ -665,6 +674,15 @@ const handleSendRevision = async () => {
     return;
   }
   
+  Swal.fire({
+    title: 'Processing...',
+    text: 'Please wait while we process this request and dispatch email notifications.',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
   submitting.value = true;
   try {
     const id = design.value.act_design_id;
@@ -694,6 +712,15 @@ const handleConfirmDisapprove = async () => {
     return;
   }
   
+  Swal.fire({
+    title: 'Processing...',
+    text: 'Please wait while we process this request and dispatch email notifications.',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
   submitting.value = true;
   try {
     const id = design.value.act_design_id;
@@ -729,6 +756,15 @@ const handleRevertDecision = async () => {
 
   if (!result.isConfirmed) return;
   
+  Swal.fire({
+    title: 'Processing...',
+    text: 'Please wait while we process this request and dispatch email notifications.',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
   submitting.value = true;
   try {
     const id = design.value.act_design_id;
@@ -931,6 +967,14 @@ const formatBudgetName = (name) => {
 
 const isPdfModalOpen = ref(false);
 const pdfFileUrl = ref('');
+
+const getPdfjsUrl = () => {
+  if (!design.value || !design.value.attachment) return '#';
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api/', '') : 'https://gad-ams-2-1.onrender.com');
+  const fileUrl = `${base}/api/files/drafts/${design.value.attachment}`;
+  const userRole = user.value?.role || user.value?.user_role || '';
+  return `/pdfjs/web/viewer.html?file=${encodeURIComponent(fileUrl)}&role=${encodeURIComponent(userRole)}`;
+};
 
 const previewFile = (fileName) => {
   if (!fileName) return;

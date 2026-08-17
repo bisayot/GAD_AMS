@@ -880,28 +880,33 @@ const fetchDesignDetails = async () => {
         othersList.value = [];
       }
 
-      const dbMeals = Number(design.value.meals_total || 0);
-      const dbSnacks = Number(design.value.snacks_total || 0);
+      const dbMeals = Number(design.value.meals_total || dbMealsItem.amount || 0);
+      const dbSnacks = Number(design.value.snacks_total || dbSnacksItem.amount || 0);
       const legacyMealsSnacks = Number(design.value.meals_and_snacks || 0);
       let mealsTotal = (dbMeals === 0 && dbSnacks === 0 && legacyMealsSnacks > 0) ? legacyMealsSnacks : dbMeals;
       let snacksTotal = dbSnacks || '';
 
-      const dbMat = Number(design.value.materials_total || 0);
+      const getBudgetItemAmount = (itemName) => {
+        const item = design.value.budget_items?.find(i => i.item_name === itemName);
+        return Number(item?.amount || 0);
+      };
+
+      const dbMat = Number(design.value.materials_total || getBudgetItemAmount('Materials and Supplies') || 0);
       let ob = [];
       if (design.value.materials_others_breakdown) {
         try { ob = JSON.parse(design.value.materials_others_breakdown); } catch(e){}
       }
-      const dbOthers = Number(design.value.others_total) || ob.reduce((s, o) => s + Number(o.amount || 0), 0);
+      const dbOthers = Number(design.value.others_total) || ob.reduce((s, o) => s + Number(o.amount || 0), 0) || getBudgetItemAmount('Others');
       const legacyMatOthers = Number(design.value.materials_and_supplies || 0);
       let materialsSupplies = (dbMat === 0 && dbOthers === 0 && legacyMatOthers > 0) ? legacyMatOthers : dbMat;
       let othersTotal = dbOthers || '';
 
-      let functionRoomVenue = Number(design.value.function_room_venue) || '';
-      let accommodation = Number(design.value.accommodation) || '';
-      let equipmentRental = Number(design.value.equipment_rental) || '';
-      let professionalFee = Number(design.value.professional_fee_honoria) || '';
-      let tokensVal = Number(design.value.tokens) || '';
-      let transportation = Number(design.value.transportation) || '';
+      let functionRoomVenue = Number(design.value.function_room_venue) || getBudgetItemAmount('Function Room/Venue') || '';
+      let accommodation = Number(design.value.accommodation) || getBudgetItemAmount('Accommodation') || '';
+      let equipmentRental = Number(design.value.equipment_rental) || getBudgetItemAmount('Equipment Rental') || '';
+      let professionalFee = Number(design.value.professional_fee_honoria) || getBudgetItemAmount('Professional Fee/Honoraria') || '';
+      let tokensVal = Number(design.value.tokens) || getBudgetItemAmount('Token/s') || '';
+      let transportation = Number(design.value.transportation) || getBudgetItemAmount('Transportation') || '';
 
       formData.value = {
         activity_title: design.value.activity_title,
@@ -1197,6 +1202,19 @@ const handleUpdate = async () => {
     return;
   }
 
+
+
+  // Validate target participants
+  if (Number(formData.value.target_participants) <= 0) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Participants',
+      text: 'Target participants must be at least 1.',
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+
   // Validate start date
   const startValidation = isValidActivityDate(formData.value.start_date, true);
   if (!startValidation.valid) {
@@ -1258,7 +1276,12 @@ const handleUpdate = async () => {
     return;
   }
   if (formData.value.start_time && formData.value.end_time && (!formData.value.start_date || !formData.value.end_date || formData.value.start_date === formData.value.end_date)) {
-    if (formData.value.start_time >= formData.value.end_time) {
+    const startTimeParts = formData.value.start_time.split(':');
+    const endTimeParts = formData.value.end_time.split(':');
+    const startMinutes = parseInt(startTimeParts[0]) * 60 + parseInt(startTimeParts[1]);
+    const endMinutes = parseInt(endTimeParts[0]) * 60 + parseInt(endTimeParts[1]);
+    
+    if (endMinutes <= startMinutes) {
       Swal.fire({
         icon: 'warning',
         title: 'Invalid Time Range',
@@ -1267,7 +1290,40 @@ const handleUpdate = async () => {
       });
       return;
     }
+    
+    if ((endMinutes - startMinutes) < 60) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Time Range',
+        text: 'The activity duration must be at least 1 hour.',
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
   }
+
+  const submitConfirm = await Swal.fire({
+    title: 'Confirm Submission',
+    text: 'Are you sure you want to submit this revised Activity Design?',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, Submit',
+    cancelButtonText: 'Cancel',
+    confirmButtonColor: '#b979cc'
+  });
+
+  if (!submitConfirm.isConfirmed) {
+    return;
+  }
+
+  Swal.fire({
+    title: 'Processing...',
+    text: 'Please wait while we submit your revision and dispatch email notifications.',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
 
   submitting.value = true;
   try {

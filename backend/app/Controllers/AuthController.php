@@ -210,9 +210,11 @@ class AuthController extends ResourceController
             'reset_token_expires_at' => $expiresAt
         ]);
 
-        // Brevo requires an API Key (starts with xkeysib-) for HTTP requests, not an SMTP password
-        $apiKey = getenv('BREVO_API_KEY') ?: env('BREVO_API_KEY') ?: getenv('SMTP_PASS') ?: env('SMTP_PASS') ?: env('email.SMTPPass') ?: '';
-        $fromEmail = getenv('FROM_EMAIL') ?: env('FROM_EMAIL') ?: env('email.fromEmail') ?: 'gadims.bsu.bsit@gmail.com';
+        $apiKey = env('BREVO_API_KEY') ?: getenv('BREVO_API_KEY');
+        $isProduction = env('CI_ENVIRONMENT') === 'production' || getenv('CI_ENVIRONMENT') === 'production';
+        
+        $fromEmail = env('FROM_EMAIL') ?: getenv('FROM_EMAIL') ?: env('email.fromEmail') ?: 'gadims.bsu.bsit@gmail.com';
+        $fromEmail = trim($fromEmail, '"\'');
 
         $frontendUrl = rtrim(getenv('FRONTEND_URL') ?: env('FRONTEND_URL') ?: getenv('app.baseURL') ?: env('app.baseURL') ?: 'http://localhost:5173', '/');
         $resetLink = $frontendUrl . '/reset-password?token=' . $token;
@@ -229,40 +231,57 @@ class AuthController extends ResourceController
         </html>
         ";
 
-        // Render's Free Tier firewall completely blocks native SMTP (Ports 25, 465, 587)
-        // To bypass this, we use Brevo's HTTP REST API over standard Port 443 (HTTPS)
-        $ch = curl_init('https://api.brevo.com/v3/smtp/email');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'accept: application/json',
-            'api-key: ' . $apiKey,
-            'content-type: application/json'
-        ]);
-        
-        $payload = [
-            'sender'      => ['name' => 'GAD AMS System', 'email' => $fromEmail],
-            'to'          => [['email' => $email]],
-            'subject'     => 'Password Reset Request',
-            'htmlContent' => $message
-        ];
-        
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-        
-        // Disable SSL verification for maximum compatibility across environments
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlError = curl_error($ch);
-        curl_close($ch);
+        if ($apiKey && $isProduction) {
+            // Render's Free Tier firewall completely blocks native SMTP (Ports 25, 465, 587)
+            // To bypass this, we use Brevo's HTTP REST API over standard Port 443 (HTTPS)
+            $ch = curl_init('https://api.brevo.com/v3/smtp/email');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'accept: application/json',
+                'api-key: ' . trim($apiKey, '"\''),
+                'content-type: application/json'
+            ]);
+            
+            $payload = [
+                'sender'      => ['name' => 'GAD AMS System', 'email' => $fromEmail],
+                'to'          => [['email' => $email]],
+                'subject'     => 'Password Reset Request',
+                'htmlContent' => $message
+            ];
+            
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
+            curl_close($ch);
 
-        if ($httpCode >= 200 && $httpCode < 300) {
-            return $this->respond(['message' => 'If your email is registered, you will receive a reset link shortly.']);
+            if ($httpCode >= 200 && $httpCode < 300) {
+                return $this->respond(['message' => 'If your email is registered, you will receive a reset link shortly.']);
+            } else {
+                log_message('error', 'Brevo API Error: ' . $response . ' cURL Error: ' . $curlError);
+                return $this->fail('Unable to send reset email. HTTP Code: ' . $httpCode . ' Error: ' . $response . ' cURL: ' . $curlError);
+            }
         } else {
-            log_message('error', 'Brevo API Error: ' . $response . ' cURL Error: ' . $curlError);
-            return $this->fail('Unable to send reset email. HTTP Code: ' . $httpCode . ' Error: ' . $response . ' cURL: ' . $curlError);
+            // Fallback to CodeIgniter SMTP (Gmail) for Localhost
+            $emailService = \Config\Services::email();
+            $emailService->setTo($email);
+            $emailService->setSubject('Password Reset Request');
+            $emailService->setMessage($message);
+            
+            try {
+                if ($emailService->send()) {
+                    return $this->respond(['message' => 'If your email is registered, you will receive a reset link shortly.']);
+                } else {
+                    return $this->fail('Unable to send reset email. Local SMTP failed.');
+                }
+            } catch (\Exception $e) {
+                log_message('error', 'Local SMTP Error: ' . $e->getMessage());
+                return $this->fail('Unable to send reset email. Local SMTP exception.');
+            }
         }
     }
 

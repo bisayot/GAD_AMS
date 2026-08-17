@@ -1256,7 +1256,12 @@ const submitActivityDesign = async () => {
     return;
   }
   if (form.value.start_time && form.value.end_time && (!form.value.start_date || !form.value.end_date || form.value.start_date === form.value.end_date)) {
-    if (form.value.start_time >= form.value.end_time) {
+    const startTimeParts = form.value.start_time.split(':');
+    const endTimeParts = form.value.end_time.split(':');
+    const startMinutes = parseInt(startTimeParts[0]) * 60 + parseInt(startTimeParts[1]);
+    const endMinutes = parseInt(endTimeParts[0]) * 60 + parseInt(endTimeParts[1]);
+    
+    if (endMinutes <= startMinutes) {
       Swal.fire({
         icon: 'warning',
         title: 'Invalid Time Range',
@@ -1265,6 +1270,27 @@ const submitActivityDesign = async () => {
       });
       return;
     }
+    
+    if ((endMinutes - startMinutes) < 60) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Time Range',
+        text: 'The activity duration must be at least 1 hour.',
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
+  }
+
+  // Validate target participants
+  if (Number(form.value.target_participants) <= 0) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Participants',
+      text: 'Target participants must be at least 1.',
+      confirmButtonColor: '#b979cc'
+    });
+    return;
   }
 
 
@@ -1290,6 +1316,15 @@ const submitActivityDesign = async () => {
   if (!submitConfirm.isConfirmed) {
     return;
   }
+
+  Swal.fire({
+    title: 'Processing...',
+    text: 'Please wait while we submit your design and dispatch email notifications.',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
 
   try {
     const formData = new FormData();
@@ -1318,6 +1353,9 @@ const submitActivityDesign = async () => {
     } else {
       formData.append('venue_id', form.value.venue);
     }
+
+
+
     formData.append('target_participants', form.value.target_participants);
     formData.append('proposed_budget', form.value.proposed_budget);
     

@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\AccomplishmentReportModel;
 use App\Libraries\FileStorage;
+use App\Libraries\NotificationService;
 
 class AccomplishmentReportController extends BaseController
 {
@@ -202,6 +203,9 @@ class AccomplishmentReportController extends BaseController
                   }
 
                 \App\Models\ActivityLogModel::log($data['user_id'], 'Submit Document', 'submitted Accomplishment Report: ' . $data['activity_title']);
+
+                NotificationService::send($data['user_id'], 'Accomplishment Report Submitted', 'Your Accomplishment Report "' . $data['activity_title'] . '" has been successfully submitted and is pending review.', '/staff/accomplishment-reports', 'info');
+                NotificationService::sendToAdmins('New Accomplishment Report Submitted', 'A new Accomplishment Report "' . $data['activity_title'] . '" has been submitted and is pending review.', '/admin/accomplishment-reports', 'info');
 
                 return $this->response->setJSON([
                     "success" => true,
@@ -791,6 +795,8 @@ class AccomplishmentReportController extends BaseController
         $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
         \App\Models\ActivityLogModel::log($actionUserId, 'Approve Document', 'verified Accomplishment Report: ' . $item['activity_title']);
 
+        NotificationService::send($item['user_id'], 'Accomplishment Report Verified', 'Your Accomplishment Report "' . $item['activity_title'] . '" has been verified and archived.', '/staff/accomplishment-reports', 'success');
+
         return $this->response->setJSON([
             'success' => true,
             'message' => 'Accomplishment Report verified and archived successfully.'
@@ -827,6 +833,8 @@ class AccomplishmentReportController extends BaseController
         if ($item) {
             $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
             \App\Models\ActivityLogModel::log($actionUserId, 'Update Status', 'requested revision for Accomplishment Report: ' . $item['activity_title']);
+            
+            NotificationService::send($item['user_id'], 'Revision Required', 'Your Accomplishment Report "' . $item['activity_title'] . '" requires revision. Remarks: ' . $remarks, '/staff/accomplishment-reports', 'warning');
         }
 
         return $this->response->setJSON([

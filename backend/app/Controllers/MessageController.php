@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use CodeIgniter\RESTful\ResourceController;
 use App\Models\MessageModel;
+use App\Libraries\NotificationService;
 
 class MessageController extends ResourceController
 {
@@ -84,6 +85,12 @@ class MessageController extends ResourceController
 
             if ($this->messageModel->insert($data)) {
                 $insertedCount++;
+                
+                // Get sender name for notification
+                $senderName = $db->table('users')->select('full_name, username')->where('id', $senderId)->get()->getRowArray();
+                $sName = $senderName ? ($senderName['full_name'] ?: $senderName['username']) : 'Someone';
+                
+                NotificationService::send($recipientId, 'New Message Received', 'You received a new message from ' . $sName . '.', '/staff/messages', 'info');
             }
         }
 
@@ -202,6 +209,11 @@ class MessageController extends ResourceController
 
             if ($this->messageModel->insert($data)) {
                 $insertedCount++;
+                
+                $senderName = $db->table('users')->select('full_name, username')->where('id', $senderId)->get()->getRowArray();
+                $sName = $senderName ? ($senderName['full_name'] ?: $senderName['username']) : 'Admin';
+                
+                NotificationService::send($row['id'], 'New Announcement', 'There is a new announcement from ' . $sName . '.', '/staff/messages', 'info');
             }
         }
 

@@ -270,6 +270,21 @@ $routes->group('api', function($routes) {
     $routes->options('messages/trashed/(:num)', 'AuthController::handleOptions');
     $routes->get('messages/trashed/(:num)', 'MessageController::getTrashed/$1');
 
+    // ----------------------------------------------------------------
+    // NOTIFICATION ROUTES (new)
+    // ----------------------------------------------------------------
+    $routes->options('notifications/unread', 'AuthController::handleOptions');
+    $routes->get('notifications/unread', 'NotificationController::getUnread');
+    
+    $routes->options('notifications/all', 'AuthController::handleOptions');
+    $routes->get('notifications/all', 'NotificationController::getAll');
+    
+    $routes->options('notifications/read/(:num)', 'AuthController::handleOptions');
+    $routes->post('notifications/read/(:num)', 'NotificationController::markAsRead/$1');
+    
+    $routes->options('notifications/read-all', 'AuthController::handleOptions');
+    $routes->post('notifications/read-all', 'NotificationController::markAllAsRead');
+
     $routes->options('messages/bulk-trash', 'AuthController::handleOptions');
     $routes->post('messages/bulk-trash', 'MessageController::bulkTrash');
     $routes->options('messages/bulk-restore', 'AuthController::handleOptions');
