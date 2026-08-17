@@ -6,7 +6,7 @@
             <div class="header-main-flex">
               <div>
                 <h1 class="page-title">Budget Utilization Monitoring</h1>
-                <p class="page-subtitle">Track budget allocation, utilization, remaining balances, and percentage utilization across all GAD units and offices.</p>
+                <p class="page-subtitle">Track budget allocation, utilization, remaining balances, and percentage utilization across all GAD mandates and activities.</p>
               </div>
               <button @click="router.push('/staff/budget-allocation')" class="allocation-btn">
                 <span class="material-symbols-outlined btn-icon">payments</span>
@@ -63,7 +63,7 @@
                 <thead>
                   <tr class="table-header-row">
                     <th class="table-header-cell col-number">#</th>
-                    <th class="table-header-cell col-unit text-left">Unit / Office</th>
+                    <th class="table-header-cell col-unit text-left">Mandate / GAD Activity</th>
                     <th class="table-header-cell col-allocated">Total Allocated Budget</th>
                     <th class="table-header-cell col-pending">Pending Budget</th>
                     <th class="table-header-cell col-utilized">Utilized Amount</th>
@@ -251,7 +251,7 @@ const getFieldLabel = (field) => {
 
 const getUnitName = (rowId) => {
   const row = budgetRows.value.find(r => r.id === rowId);
-  return row ? row.unit_name : 'Unknown Unit';
+  return row ? row.unit_name : 'Unknown Mandate';
 };
 
 const setCellInputRef = (el, id, field) => {
@@ -295,21 +295,19 @@ const confirmModalAction = async () => {
     updateRowCalculations(target);
     
     try {
-      // TODO: Connect to actual API endpoint
-      // await api.post('staff/budget-monitoring/update', {
-      //   id: pendingUpdate.value.rowId,
-      //   field: pendingUpdate.value.field,
-      //   old_value: oldValue,
-      //   new_value: pendingUpdate.value.value
-      // });
-      console.log('Budget update prepared:', {
-        id: pendingUpdate.value.rowId,
-        field: pendingUpdate.value.field,
-        old_value: oldValue,
-        new_value: pendingUpdate.value.value
-      });
+      const postData = new FormData();
+      postData.append('id', pendingUpdate.value.rowId);
+      postData.append('field', pendingUpdate.value.field);
+      postData.append('new_value', pendingUpdate.value.value);
+
+      await api.post('staff/budget-monitoring/update', postData);
+      console.log('Budget update committed successfully');
+      fetchBudgetData(); // Refresh data to ensure alignment
     } catch (err) { 
       console.error('Error saving budget update:', err); 
+      // Rollback on error
+      target[pendingUpdate.value.field] = oldValue;
+      updateRowCalculations(target);
     }
   }
 };
