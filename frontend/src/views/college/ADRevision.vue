@@ -200,9 +200,11 @@
                           <label class="allocation-label">Charge to GAD Mandate Line:</label>
                           <select v-model="formData.budget_items[0].gpb_budget_line_id" @change="onLineSelected(formData.budget_items[0])" class="allocation-select">
                             <option :value="null">-- Select Budget Line --</option>
-                            <option v-for="bl in selectedMandateBreakdowns" :key="bl.line_id" :value="bl.line_id">
-                              {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
-                            </option>
+                            <optgroup v-for="(lines, mandateTitle) in groupedMandateBreakdowns" :key="mandateTitle" :label="mandateTitle">
+                              <option v-for="bl in lines" :key="bl.line_id" :value="bl.line_id">
+                                {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
+                              </option>
+                            </optgroup>
                           </select>
                         </div>
                       </div>
@@ -236,9 +238,11 @@
                           <label class="allocation-label">Charge to GAD Mandate Line:</label>
                           <select v-model="formData.budget_items[1].gpb_budget_line_id" @change="onLineSelected(formData.budget_items[1])" class="allocation-select">
                             <option :value="null">-- Select Budget Line --</option>
-                            <option v-for="bl in selectedMandateBreakdowns" :key="bl.line_id" :value="bl.line_id">
-                              {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
-                            </option>
+                            <optgroup v-for="(lines, mandateTitle) in groupedMandateBreakdowns" :key="mandateTitle" :label="mandateTitle">
+                              <option v-for="bl in lines" :key="bl.line_id" :value="bl.line_id">
+                                {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
+                              </option>
+                            </optgroup>
                           </select>
                         </div>
                       </div>
@@ -273,9 +277,11 @@
                           <label class="allocation-label">Charge to GAD Mandate Line:</label>
                           <select v-model="formData.budget_items[2].gpb_budget_line_id" @change="onLineSelected(formData.budget_items[2])" class="allocation-select">
                             <option :value="null">-- Select Budget Line --</option>
-                            <option v-for="bl in selectedMandateBreakdowns" :key="bl.line_id" :value="bl.line_id">
-                              {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
-                            </option>
+                            <optgroup v-for="(lines, mandateTitle) in groupedMandateBreakdowns" :key="mandateTitle" :label="mandateTitle">
+                              <option v-for="bl in lines" :key="bl.line_id" :value="bl.line_id">
+                                {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
+                              </option>
+                            </optgroup>
                           </select>
                         </div>
                       </div>
@@ -301,9 +307,11 @@
                           <label class="allocation-label">Charge to GAD Mandate Line:</label>
                           <select v-model="formData.budget_items[3].gpb_budget_line_id" @change="onLineSelected(formData.budget_items[3])" class="allocation-select">
                             <option :value="null">-- Select Budget Line --</option>
-                            <option v-for="bl in selectedMandateBreakdowns" :key="bl.line_id" :value="bl.line_id">
-                              {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
-                            </option>
+                            <optgroup v-for="(lines, mandateTitle) in groupedMandateBreakdowns" :key="mandateTitle" :label="mandateTitle">
+                              <option v-for="bl in lines" :key="bl.line_id" :value="bl.line_id">
+                                {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
+                              </option>
+                            </optgroup>
                           </select>
                         </div>
                       </div>
@@ -329,9 +337,11 @@
                           <label class="allocation-label">Charge to GAD Mandate Line:</label>
                           <select v-model="formData.budget_items[4].gpb_budget_line_id" @change="onLineSelected(formData.budget_items[4])" class="allocation-select">
                             <option :value="null">-- Select Budget Line --</option>
-                            <option v-for="bl in selectedMandateBreakdowns" :key="bl.line_id" :value="bl.line_id">
-                              {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
-                            </option>
+                            <optgroup v-for="(lines, mandateTitle) in groupedMandateBreakdowns" :key="mandateTitle" :label="mandateTitle">
+                              <option v-for="bl in lines" :key="bl.line_id" :value="bl.line_id">
+                                {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
+                              </option>
+                            </optgroup>
                           </select>
                         </div>
                       </div>
@@ -359,9 +369,11 @@
                           <label class="allocation-label">Charge to GAD Mandate Line:</label>
                           <select v-model="formData.budget_items[8].gpb_budget_line_id" @change="onLineSelected(formData.budget_items[8])" class="allocation-select">
                             <option :value="null">-- Select Budget Line --</option>
-                            <option v-for="bl in selectedMandateBreakdowns" :key="bl.line_id" :value="bl.line_id">
-                              {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
-                            </option>
+                            <optgroup v-for="(lines, mandateTitle) in groupedMandateBreakdowns" :key="mandateTitle" :label="mandateTitle">
+                              <option v-for="bl in lines" :key="bl.line_id" :value="bl.line_id">
+                                {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
+                              </option>
+                            </optgroup>
                           </select>
                         </div>
                       </div>
@@ -401,9 +413,11 @@
                           <label class="allocation-label">Charge to GAD Mandate Line:</label>
                           <select v-model="formData.budget_items[5].gpb_budget_line_id" @change="onLineSelected(formData.budget_items[5])" class="allocation-select">
                             <option :value="null">-- Select Budget Line --</option>
-                            <option v-for="bl in selectedMandateBreakdowns" :key="bl.line_id" :value="bl.line_id">
-                              {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
-                            </option>
+                            <optgroup v-for="(lines, mandateTitle) in groupedMandateBreakdowns" :key="mandateTitle" :label="mandateTitle">
+                              <option v-for="bl in lines" :key="bl.line_id" :value="bl.line_id">
+                                {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
+                              </option>
+                            </optgroup>
                           </select>
                         </div>
                       </div>
@@ -434,9 +448,11 @@
                           <label class="allocation-label">Charge to GAD Mandate Line:</label>
                           <select v-model="formData.budget_items[6].gpb_budget_line_id" @change="onLineSelected(formData.budget_items[6])" class="allocation-select">
                             <option :value="null">-- Select Budget Line --</option>
-                            <option v-for="bl in selectedMandateBreakdowns" :key="bl.line_id" :value="bl.line_id">
-                              {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
-                            </option>
+                            <optgroup v-for="(lines, mandateTitle) in groupedMandateBreakdowns" :key="mandateTitle" :label="mandateTitle">
+                              <option v-for="bl in lines" :key="bl.line_id" :value="bl.line_id">
+                                {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
+                              </option>
+                            </optgroup>
                           </select>
                         </div>
                       </div>
@@ -471,9 +487,11 @@
                           <label class="allocation-label">Charge to GAD Mandate Line:</label>
                           <select v-model="formData.budget_items[7].gpb_budget_line_id" @change="onLineSelected(formData.budget_items[7])" class="allocation-select">
                             <option :value="null">-- Select Budget Line --</option>
-                            <option v-for="bl in selectedMandateBreakdowns" :key="bl.line_id" :value="bl.line_id">
-                              {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
-                            </option>
+                            <optgroup v-for="(lines, mandateTitle) in groupedMandateBreakdowns" :key="mandateTitle" :label="mandateTitle">
+                              <option v-for="bl in lines" :key="bl.line_id" :value="bl.line_id">
+                                {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
+                              </option>
+                            </optgroup>
                           </select>
                         </div>
                       </div>
@@ -498,9 +516,11 @@
                               <label class="allocation-label" style="font-size: 10px;">Charge to GAD Mandate Line:</label>
                               <select v-model="o.gpb_budget_line_id" @change="onLineSelected(o)" class="allocation-select" style="padding: 4px 6px; font-size: 12px;">
                                 <option :value="null">-- Select Budget Line --</option>
-                                <option v-for="bl in selectedMandateBreakdowns" :key="bl.line_id" :value="bl.line_id">
-                                  {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
-                                </option>
+                                <optgroup v-for="(lines, mandateTitle) in groupedMandateBreakdowns" :key="mandateTitle" :label="mandateTitle">
+                                  <option v-for="bl in lines" :key="bl.line_id" :value="bl.line_id">
+                                    {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
+                                  </option>
+                                </optgroup>
                               </select>
                             </div>
                           </div>
@@ -897,9 +917,23 @@ const onLineSelected = (item) => {
   }
 };
 
+const groupedMandateBreakdowns = computed(() => {
+  const groups = {};
+  selectedMandateBreakdowns.value.forEach(bl => {
+    const title = bl.mandate_title || 'Attributed / Other';
+    if (!groups[title]) {
+      groups[title] = [];
+    }
+    groups[title].push(bl);
+  });
+  return groups;
+});
+
 const autoSelectMandateLines = () => {
   const breakdowns = selectedMandateBreakdowns.value;
   if (breakdowns.length === 0) return;
+
+  const primaryMandateIds = formData.value.gad_mandate ? String(formData.value.gad_mandate).split(',').map(Number) : [];
 
   const itemMatches = {
     'Meals': ['meal', 'snack', 'catering', 'package'],
@@ -918,13 +952,33 @@ const autoSelectMandateLines = () => {
     if (!item.gpb_budget_line_id) {
       const keywords = itemMatches[item.name] || [];
       let bestMatch = null;
-      for (const kw of keywords) {
-        bestMatch = breakdowns.find(b => b.category.toLowerCase().includes(kw));
-        if (bestMatch) break;
+
+      // 1. Prioritize matching within primary selected mandate(s)
+      if (primaryMandateIds.length > 0) {
+        for (const kw of keywords) {
+          bestMatch = breakdowns.find(b => primaryMandateIds.includes(Number(b.gpb_id)) && b.category.toLowerCase().includes(kw));
+          if (bestMatch) break;
+        }
       }
-      if (!bestMatch && breakdowns.length > 0) {
+
+      // 2. Search other mandates if no primary match
+      if (!bestMatch) {
+        for (const kw of keywords) {
+          bestMatch = breakdowns.find(b => b.category.toLowerCase().includes(kw));
+          if (bestMatch) break;
+        }
+      }
+
+      // 3. Fallback to first line of primary mandate
+      if (!bestMatch && primaryMandateIds.length > 0) {
+        bestMatch = breakdowns.find(b => primaryMandateIds.includes(Number(b.gpb_id)) && !b.category.toLowerCase().includes('attribution'));
+      }
+
+      // 4. Ultimate fallback
+      if (!bestMatch) {
         bestMatch = breakdowns.find(b => !b.category.toLowerCase().includes('attribution')) || breakdowns[0];
       }
+
       if (bestMatch) {
         item.gpb_id = bestMatch.gpb_id;
         item.gpb_budget_line_id = bestMatch.line_id;
@@ -937,13 +991,33 @@ const autoSelectMandateLines = () => {
       if (!item.gpb_budget_line_id) {
         const keywords = itemMatches['Others'];
         let bestMatch = null;
-        for (const kw of keywords) {
-          bestMatch = breakdowns.find(b => b.category.toLowerCase().includes(kw));
-          if (bestMatch) break;
+
+        // 1. Prioritize matching within primary selected mandate(s)
+        if (primaryMandateIds.length > 0) {
+          for (const kw of keywords) {
+            bestMatch = breakdowns.find(b => primaryMandateIds.includes(Number(b.gpb_id)) && b.category.toLowerCase().includes(kw));
+            if (bestMatch) break;
+          }
         }
-        if (!bestMatch && breakdowns.length > 0) {
+
+        // 2. Search other mandates if no primary match
+        if (!bestMatch) {
+          for (const kw of keywords) {
+            bestMatch = breakdowns.find(b => b.category.toLowerCase().includes(kw));
+            if (bestMatch) break;
+          }
+        }
+
+        // 3. Fallback to first line of primary mandate
+        if (!bestMatch && primaryMandateIds.length > 0) {
+          bestMatch = breakdowns.find(b => primaryMandateIds.includes(Number(b.gpb_id)) && !b.category.toLowerCase().includes('attribution'));
+        }
+
+        // 4. Ultimate fallback
+        if (!bestMatch) {
           bestMatch = breakdowns.find(b => !b.category.toLowerCase().includes('attribution')) || breakdowns[0];
         }
+
         if (bestMatch) {
           item.gpb_id = bestMatch.gpb_id;
           item.gpb_budget_line_id = bestMatch.line_id;
@@ -954,8 +1028,7 @@ const autoSelectMandateLines = () => {
 };
 
 const fetchMandateBreakdowns = async () => {
-  const mandateId = formData.value.gad_mandate;
-  if (!mandateId || mandateId === 'Other') {
+  if (!gadMandates.value || gadMandates.value.length === 0) {
     selectedMandateBreakdowns.value = [];
     formData.value.budget_items.forEach(item => {
       item.gpb_id = null;
@@ -963,9 +1036,11 @@ const fetchMandateBreakdowns = async () => {
     });
     return;
   }
-  
+
+  // Fetch breakdown of all available GAD Mandates for this unit
+  const allMandateIds = gadMandates.value.map(m => m.id).join(',');
   try {
-    const res = await api.get(`get-mandate-breakdowns?mandates=${mandateId}`);
+    const res = await api.get(`get-mandate-breakdowns?mandates=${allMandateIds}`);
     selectedMandateBreakdowns.value = res.data;
     autoSelectMandateLines();
   } catch (error) {
@@ -980,7 +1055,10 @@ const fetchGADMandates = async () => {
           url += '?classification=' + formData.value.activity_classification;
       }
       const response = await api.get(url);
-    if (response.data) gadMandates.value = response.data;
+      if (response.data) {
+        gadMandates.value = response.data;
+        await fetchMandateBreakdowns();
+      }
   } catch (error) {
     console.error('Error fetching mandates:', error);
   }
@@ -1605,11 +1683,10 @@ const handleUpdate = async () => {
       if (newVal && newVal.length > 0) {
           formData.value.gender_issue = '';
           fetchGenderIssues(newVal);
-          fetchMandateBreakdowns();
+          autoSelectMandateLines();
       } else {
           genderIssues.value = [];
           formData.value.gender_issue = '';
-          selectedMandateBreakdowns.value = [];
       }
   }, { deep: true });
   
