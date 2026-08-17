@@ -115,95 +115,68 @@ class BudgetController extends Controller
     }
 
     /**
-     * Get real-time office budget utilization monitoring data.
+     * Get real-time GPB mandate budget utilization monitoring data.
      *
      * @return \CodeIgniter\HTTP\ResponseInterface
      */
     public function getOfficeUtilization()
     {
         $db = \Config\Database::connect();
-        $offices = $db->table('office_units')->orderBy('office_name', 'ASC')->get()->getResultArray();
+        $gpbs = $db->table('gad_plan_budget')->orderBy('gpb_id', 'ASC')->get()->getResultArray();
         $budgetRows = [];
 
-        foreach ($offices as $office) {
-            $officeId = $office['office_id'];
+        foreach ($gpbs as $gpb) {
+            $gpbId = $gpb['gpb_id'];
+            $allocated = (float) $gpb['gad_budget'];
 
-            // 1. Calculate Allocated Budget (from GPB activities mapped to this office)
-            $allocated = (float) $db->table('gad_plan_budget')
-                ->selectSum('gad_budget')
-                ->like('responsible_unit_office', $office['office_name'])
-                ->get()->getRow()->gad_budget ?? 0.0;
-
-            // 2. Calculate Utilized Budget (from activity designs and accomplishment reports)
-            $users = $db->table('users')
-                ->where('office_id', $officeId)
+            // Get approved activity designs for this mandate (GPB item)
+            $designs = $db->table('activity_design')
+                ->where('gpb_id', $gpbId)
+                ->where('status', 'Approved')
+                ->where('is_archived', 1)
+                ->where('deleted_at', null)
                 ->get()
                 ->getResultArray();
-            $userIds = array_column($users, 'id');
 
             $utilized = 0.0;
             $pendingApproved = 0.0;
-            if (!empty($userIds)) {
-                // Get approved activity designs
-                $archivedDesigns = $db->table('activity_design')
-                    ->whereIn('user_id', $userIds)
-                    ->where('status', 'Approved')
-                    ->where('is_archived', 1)
+
+            foreach ($designs as $design) {
+                // Check for a completed accomplishment report (active or archived)
+                $report = $db->table('accomplishment_report')
+                    ->where('control_number', $design['control_number'])
+                    ->whereIn('status', ['Completed', 'Verified', 'Approved'])
                     ->where('deleted_at', null)
                     ->get()
-                    ->getResultArray();
+                    ->getRowArray();
 
-                foreach ($archivedDesigns as $design) {
-                    $designId = $design['act_design_id'];
-
-                    // Check for a completed accomplishment report (active or archived)
-                    $report = $db->table('accomplishment_report')
-                        ->where('control_number', $design['control_number'])
-                        ->whereIn('status', ['Completed', 'Verified', 'Approved'])
-                        ->where('deleted_at', null)
+                if ($report) {
+                    // Use actual spending total from accomplishment_budget_items
+                    $reportId = $report['id'];
+                    $table = 'accomplishment_budget_items';
+                    
+                    $actualTotalRow = $db->table($table)
+                        ->select('SUM(amount) as total')
+                        ->where('accomplishment_report_id', $reportId)
                         ->get()
                         ->getRowArray();
 
-                    if ($report) {
-                        // Use actual spending total from accomplishment_budget_items
-                        $reportId = $report['id'];
-                        $table = 'accomplishment_budget_items';
-                        
-                        $actualTotalRow = $db->table($table)
-                            ->select('SUM(amount) as total')
-                            ->where('accomplishment_report_id', $reportId)
-                            ->get()
-                            ->getRowArray();
-
-                        if ($actualTotalRow && $actualTotalRow['total'] !== null) {
-                            $utilized += (float)$actualTotalRow['total'];
-                        }
-                    } else {
-                        // No completed report, so it goes to pending approved
-                        $pendingApproved += (float) $design['proposed_budget'];
+                    if ($actualTotalRow && $actualTotalRow['total'] !== null) {
+                        $utilized += (float)$actualTotalRow['total'];
                     }
+                } else {
+                    // No completed report, so it goes to pending approved
+                    $pendingApproved += (float) $design['proposed_budget'];
                 }
             }
 
             $remaining = max(0.0, $allocated - $utilized - $pendingApproved);
             $utilizationRate = $allocated > 0 ? ($utilized / $allocated) * 100 : 0.0;
 
-            // Generate acronym from office name
-            $words = explode(' ', $office['office_name']);
-            $acronym = '';
-            foreach ($words as $w) {
-                if (ctype_upper($w[0] ?? '')) {
-                    $acronym .= $w[0];
-                }
-            }
-            if (empty($acronym)) {
-                $acronym = substr($office['office_name'], 0, 3);
-            }
-
             $budgetRows[] = [
-                'id' => $officeId,
-                'unit_name' => $office['office_name'],
-                'unit_code' => strtoupper($acronym),
+                'id' => $gpbId,
+                'unit_name' => $gpb['gad_activity'] ?: $gpb['gender_issue_mandate'],
+                'unit_code' => 'GPB-' . $gpbId,
                 'allocated' => $allocated,
                 'utilized' => $utilized,
                 'pending_approved' => $pendingApproved,
@@ -216,52 +189,35 @@ class BudgetController extends Controller
     }
 
     /**
-     * Update/override office budget allocation.
+     * Update/override GAD mandate budget allocation.
      *
      * @return \CodeIgniter\HTTP\ResponseInterface
      */
     public function updateOfficeBudget()
     {
         $db = \Config\Database::connect();
-        $officeId = $this->request->getPost('id');
+        $gpbId = $this->request->getPost('id');
         $field = $this->request->getPost('field');
         $newValue = (float) $this->request->getPost('new_value');
 
-        if (!$officeId || !$field) {
+        if (!$gpbId || !$field) {
             return $this->fail('Invalid parameters');
         }
 
-        $office = $db->table('office_units')->where('office_id', $officeId)->get()->getRowArray();
-        if (!$office) {
-            return $this->fail('Office not found');
-        }
-
         if ($field === 'allocated') {
-            $existingGpb = $db->table('gad_plan_budget')
-                ->like('responsible_unit_office', $office['office_name'])
-                ->get()
-                ->getRowArray();
-
-            if ($existingGpb) {
-                // Update the first matched GPB activity budget directly
-                $db->table('gad_plan_budget')
-                    ->where('gpb_id', $existingGpb['gpb_id'])
-                    ->update(['gad_budget' => $newValue]);
-            } else {
-                // Create a default GPB activity
-                $db->table('gad_plan_budget')->insert([
-                    'gender_issue_mandate' => 'General Budget Allocation',
-                    'gad_activity' => 'General GAD budget allocation for ' . $office['office_name'],
-                    'gad_budget' => $newValue,
-                    'responsible_unit_office' => $office['office_name'],
-                    'form_type' => 'client-focused activity'
-                ]);
+            $gpb = $db->table('gad_plan_budget')->where('gpb_id', $gpbId)->get()->getRowArray();
+            if (!$gpb) {
+                return $this->fail('Mandate activity not found');
             }
+
+            $db->table('gad_plan_budget')
+                ->where('gpb_id', $gpbId)
+                ->update(['gad_budget' => $newValue]);
         }
 
         return $this->respond([
             'success' => true,
-            'message' => 'Office budget updated successfully'
+            'message' => 'Mandate budget updated successfully'
         ]);
     }
 
