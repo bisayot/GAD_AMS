@@ -14,6 +14,9 @@ class AccomplishmentBudgetItemsModel extends Model
         'item_name',
         'sub_item',
         'pax',
-        'amount'
+        'amount',
+        'gpb_id',
+        'gpb_budget_line_id',
+        'allocated_amount'
     ];
 }

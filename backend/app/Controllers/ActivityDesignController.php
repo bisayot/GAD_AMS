@@ -21,7 +21,6 @@ class ActivityDesignController extends BaseController
             "end_time"            => "required",
             "venue_id"            => "required",
             "target_participants" => "required|numeric",
-            "proposed_budget"     => "required|numeric",
             "budget_items"        => "required",
             "user_id"             => "required",
             "design_file"         => "uploaded[design_file]|max_size[design_file,10240]|ext_in[design_file,pdf]",
@@ -38,10 +37,6 @@ class ActivityDesignController extends BaseController
             "target_participants" => [
                 "required" => "Target participants is required",
                 "numeric"  => "Target participants must be a number",
-            ],
-            "proposed_budget"     => [
-                "required" => "Proposed budget is required",
-                "numeric"  => "Proposed budget must be a numeric value",
             ],
             "budget_items"        => ["required" => "Budget items breakdown is required"],
             "user_id"             => ["required" => "User identification is missing"],
@@ -113,7 +108,6 @@ class ActivityDesignController extends BaseController
                 "venue_id"                   => $venueId,
                 "is_inside_bsu"              => $isInsideBsu,
                 "target_participants"        => $this->request->getPost("target_participants"),
-                "proposed_budget"            => $this->request->getPost("proposed_budget"),
                 "user_id"                    => $this->request->getPost("user_id"),
                 "attachment"                 => $fileName,
                 "status"                     => "Pending",
@@ -268,6 +262,12 @@ class ActivityDesignController extends BaseController
         $db = \Config\Database::connect();
         $design['gad_mandate_id'] = array_column($db->table('activity_design_mandates')->where('act_design_id', $design['act_design_id'])->select('mandate_id')->get()->getResultArray(), 'mandate_id');
         $design['gender_issue_id'] = array_column($db->table('activity_design_issues')->where('act_design_id', $design['act_design_id'])->select('issue_id')->get()->getResultArray(), 'issue_id');
+
+        $proposedSum = $db->table('activity_budget_items')
+            ->selectSum('amount')
+            ->where('act_design_id', $design['act_design_id'])
+            ->get()->getRow()->amount ?? 0.0;
+        $design['proposed_budget'] = (float)$proposedSum;
 
         // Fetch budget items
         $budgetModel = new \App\Models\ActivityBudgetItemsModel();
@@ -510,7 +510,6 @@ class ActivityDesignController extends BaseController
             'end_time'            => $this->request->getPost('end_time'),
             'venue'               => $this->request->getPost('venue'),
             'venue_id'            => $venueId,
-            'proposed_budget'     => $this->request->getPost('proposed_budget'),
             'target_participants' => $this->request->getPost('target_participants'),
         ];
         
@@ -1002,6 +1001,78 @@ class ActivityDesignController extends BaseController
                 'trace' => $e->getTraceAsString()
             ]);
         }
+    }
+
+    public function getMandateBreakdowns()
+    {
+        $db = \Config\Database::connect();
+        $mandatesStr = $this->request->getGet('mandates');
+        if (empty($mandatesStr)) {
+            return $this->response->setJSON([]);
+        }
+
+        $mandateIds = explode(',', $mandatesStr);
+        $builder = $db->table('gpb_budget_breakdown bb')
+            ->select('bb.gpb_id, bb.line_id, bb.category, bb.source, bb.amount, gpb.gad_activity as mandate_title')
+            ->join('gad_plan_budget gpb', 'gpb.gpb_id = bb.gpb_id')
+            ->whereIn('bb.gpb_id', $mandateIds);
+
+        $breakdowns = $builder->get()->getResultArray();
+        
+        $formatted = [];
+        foreach ($breakdowns as $bl) {
+            $gpbId = $bl['gpb_id'];
+            $lineId = $bl['line_id'];
+
+            // Sum utilized for this specific line
+            $lineUtilized = $db->table('accomplishment_budget_items abi')
+                ->selectSum('abi.allocated_amount')
+                ->join('accomplishment_report ar', 'ar.id = abi.accomplishment_report_id')
+                ->where('abi.gpb_id', $gpbId)
+                ->where('abi.gpb_budget_line_id', $lineId)
+                ->where('ar.status', 'Verified')
+                ->where('ar.deleted_at', null)
+                ->get()->getRow()->allocated_amount ?? 0.0;
+
+            // Sum pending for this specific line
+            $linePending = 0.0;
+            $adLineAllocations = $db->table('activity_budget_items abi')
+                ->select('abi.allocated_amount, ad.control_number')
+                ->join('activity_design ad', 'ad.act_design_id = abi.act_design_id')
+                ->where('abi.gpb_id', $gpbId)
+                ->where('abi.gpb_budget_line_id', $lineId)
+                ->where('ad.status', 'Approved')
+                ->where('ad.deleted_at', null)
+                ->get()->getResultArray();
+
+            foreach ($adLineAllocations as $alloc) {
+                $hasVerifiedAR = $db->table('accomplishment_report')
+                    ->where('control_number', $alloc['control_number'])
+                    ->where('status', 'Verified')
+                    ->where('deleted_at', null)
+                    ->countAllResults() > 0;
+                if (!$hasVerifiedAR) {
+                    $linePending += (float)$alloc['allocated_amount'];
+                }
+            }
+
+            $allocated = (float)$bl['amount'];
+            $remaining = max(0.0, $allocated - $lineUtilized - $linePending);
+
+            $formatted[] = [
+                'gpb_id' => (int)$gpbId,
+                'line_id' => $lineId,
+                'category' => $bl['category'],
+                'source' => $bl['source'],
+                'allocated' => $allocated,
+                'utilized' => (float)$lineUtilized,
+                'pending' => (float)$linePending,
+                'remaining' => $remaining,
+                'mandate_title' => $bl['mandate_title']
+            ];
+        }
+
+        return $this->response->setJSON($formatted);
     }
 
     public function getGenderIssues($mandate_id = null)

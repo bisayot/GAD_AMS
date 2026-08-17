@@ -28,8 +28,8 @@ class GpbModel extends Model
     protected $primaryKey       = 'id';
     protected $allowedFields    = [
         'fiscal_year', 'section', 'sort_order', 'mandate', 'cause',
-        'objective', 'ppa', 'activity', 'targets', 'budget', 'source', 'office',
-        'result', 'mfo', 'indicators', 'responsible', 'budget_lines',
+        'objective', 'ppa', 'activity', 'targets', 'office',
+        'result', 'mfo', 'indicators', 'responsible',
     ];
     protected $useTimestamps    = true;
 

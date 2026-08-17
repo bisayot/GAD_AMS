@@ -62,6 +62,7 @@
               <table class="data-table">
                 <thead>
                   <tr class="table-header-row">
+                    <th class="table-header-cell col-expand" style="width: 48px;"></th>
                     <th class="table-header-cell col-number">#</th>
                     <th class="table-header-cell col-unit text-left">Mandate / GAD Activity</th>
                     <th class="table-header-cell col-allocated">Total Allocated Budget</th>
@@ -73,72 +74,98 @@
                 </thead>
                 <tbody class="table-body">
                   <tr v-if="budgetRows.length === 0">
-                    <td colspan="7" class="empty-state">
-                      No budget records found in the database.
+                    <td colspan="8" class="empty-state">
+                       No budget records found in the database.
                     </td>
                   </tr>
 
-                  <tr v-else v-for="(row, index) in budgetRows" :key="row.id" class="table-row">
-                    <td class="table-cell cell-number">
-                      {{ index + 1 }}
-                    </td>
-                    
-                    <td class="table-cell cell-unit">
-                      <div class="unit-name">{{ row.unit_name }}</div>
-                      <div class="unit-code">{{ row.unit_code }}</div>
-                    </td>
-
-                    <td class="table-cell cell-allocated editable-cell" @click="startEditingCell(row.id, 'allocated', row.allocated)">
-                      <div v-if="isEditing(row.id, 'allocated')" class="edit-input-wrapper">
-                        <input 
-                          :ref="el => setCellInputRef(el, row.id, 'allocated')" 
-                          v-model.number="activeEditValue" 
-                          type="number" 
-                          step="1000" 
-                          min="0"
-                          @blur="saveCellAdjustment(row.id, 'allocated')" 
-                          @keyup.enter="saveCellAdjustment(row.id, 'allocated')" 
-                          @keyup.esc="cancelCellAdjustment" 
-                          class="edit-input"
-                        />
-                      </div>
-                      <div v-else class="cell-value">
-                        ₱{{ formatNum(row.allocated) }}
-                        <span class="edit-icon">✏️</span>
-                      </div>
-                    </td>
-
-                    <td class="table-cell cell-pending">
-                      <div class="cell-value">
-                        ₱{{ formatNum(row.pending_approved) }}
-                      </div>
-                    </td>
-
-                    <td class="table-cell cell-utilized">
-                      <div class="cell-value">
-                        ₱{{ formatNum(row.utilized) }}
-                      </div>
-                    </td>
-
-                    <td class="table-cell cell-remaining" :class="getRemainingClass(row.remaining)">
-                      ₱{{ formatNum(row.remaining) }}
-                    </td>
-
-                    <td class="table-cell cell-percent">
-                      <div class="progress-container">
-                        <div class="progress-bar-wrapper">
-                          <div 
-                            class="progress-bar-fill"
-                            :class="getUtilizationBarClass(row.utilizationRate)"
-                            :style="{ width: `${Math.min(row.utilizationRate, 100)}%` }"
-                          ></div>
-                        </div>
-                        <span class="percent-text" :class="getUtilizationTextClass(row.utilizationRate)">
-                          {{ row.utilizationRate.toFixed(1) }}%
+                  <template v-else v-for="(row, index) in budgetRows" :key="row.id">
+                    <tr class="table-row clickable-row" @click="toggleRowExpand(row.id)">
+                      <td class="table-cell cell-expand" style="text-align: center; width: 48px;">
+                        <span class="material-symbols-outlined" style="font-size: 1.25rem; color: #94a3b8; transition: transform 0.2s ease;" :style="{ transform: isRowExpanded(row.id) ? 'rotate(90deg)' : 'rotate(0deg)' }">
+                          chevron_right
                         </span>
-                      </div>
-                    </td>
-                  </tr>
+                      </td>
+                      
+                      <td class="table-cell cell-number">
+                        {{ index + 1 }}
+                      </td>
+                      
+                      <td class="table-cell cell-unit">
+                        <div class="unit-name">{{ row.unit_name }}</div>
+                        <div class="unit-code">{{ row.unit_code }}</div>
+                      </td>
+
+                      <td class="table-cell cell-allocated">
+                        <div class="cell-value">
+                          ₱{{ formatNum(row.allocated) }}
+                        </div>
+                      </td>
+
+                      <td class="table-cell cell-pending">
+                        <div class="cell-value">
+                          ₱{{ formatNum(row.pending_approved) }}
+                        </div>
+                      </td>
+
+                      <td class="table-cell cell-utilized">
+                        <div class="cell-value">
+                          ₱{{ formatNum(row.utilized) }}
+                        </div>
+                      </td>
+
+                      <td class="table-cell cell-remaining" :class="getRemainingClass(row.remaining)">
+                        ₱{{ formatNum(row.remaining) }}
+                      </td>
+
+                      <td class="table-cell cell-percent">
+                        <div class="progress-container">
+                          <div class="progress-bar-wrapper">
+                            <div 
+                              class="progress-bar-fill"
+                              :class="getUtilizationBarClass(row.utilizationRate)"
+                              :style="{ width: `${Math.min(row.utilizationRate, 100)}%` }"
+                            ></div>
+                          </div>
+                          <span class="percent-text" :class="getUtilizationTextClass(row.utilizationRate)">
+                            {{ row.utilizationRate.toFixed(1) }}%
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+
+                    <template v-if="isRowExpanded(row.id)">
+                      <tr v-if="!row.breakdown || row.breakdown.length === 0" class="breakdown-sub-row">
+                        <td class="table-cell"></td>
+                        <td class="table-cell"></td>
+                        <td colspan="6" class="table-cell text-left" style="padding-left: 2rem; color: #94a3b8; font-style: italic;">
+                          ↳ No GAD budget breakdown items defined.
+                        </td>
+                      </tr>
+                      <tr v-else v-for="bl in row.breakdown" :key="bl.line_id" class="breakdown-sub-row">
+                        <td class="table-cell"></td>
+                        <td class="table-cell"></td>
+                        <td class="table-cell cell-unit text-left" style="padding-left: 2rem; color: #94a3b8; font-style: italic; font-weight: 500;">
+                          ↳ {{ bl.category }}
+                        </td>
+                        <td class="table-cell cell-allocated" style="color: #94a3b8;">
+                          ₱{{ formatNum(bl.allocated) }}
+                        </td>
+                        <td class="table-cell cell-pending" style="color: #94a3b8;">
+                          ₱{{ formatNum(bl.pending) }}
+                        </td>
+                        <td class="table-cell cell-utilized" style="color: #94a3b8;">
+                          ₱{{ formatNum(bl.utilized) }}
+                        </td>
+                        <td class="table-cell cell-remaining" style="color: #94a3b8;">
+                          ₱{{ formatNum(bl.remaining) }}
+                        </td>
+                        <td class="table-cell cell-percent" style="color: #94a3b8; font-weight: 600;">
+                          {{ ((bl.utilized / (bl.allocated || 1)) * 100).toFixed(1) }}%
+                        </td>
+                      </tr>
+                    </template>
+                  </template>
                 </tbody>
               </table>
             </div>
@@ -157,33 +184,9 @@
                 <span class="legend-dot red"></span> Critical (&gt;85%)
               </span>
             </div>
-            <div class="legend-right">
-              <span class="edit-note">✏️ Click on allocated cells to edit</span>
-            </div>
           </div>
         </div>
       </main>
-
-    <div v-if="showConfirmModal" class="modal-overlay">
-      <div class="modal-container">
-        <h3 class="modal-title">Confirm Budget Adjustment</h3>
-        <p class="modal-message">
-          You are about to update <span class="modal-highlight">{{ getFieldLabel(pendingUpdate.field) }}</span> for 
-          <span class="modal-unit">{{ getUnitName(pendingUpdate.rowId) }}</span> to 
-          <span class="modal-amount">₱{{ formatNum(pendingUpdate.value) }}</span>.
-          This will automatically recalculate remaining budget and utilization rate.
-        </p>
-        
-        <div class="modal-actions">
-          <button @click="cancelModalAction" class="modal-btn modal-btn-cancel">
-            Cancel
-          </button>
-          <button @click="confirmModalAction" class="modal-btn modal-btn-confirm">
-            Commit Update
-          </button>
-        </div>
-      </div>
-    </div>
 
 </template>
 
@@ -196,13 +199,15 @@ const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 
 const budgetRows = ref([]);
-const editingRowId = ref(null);
-const editingFieldName = ref(null);
-const activeEditValue = ref(0);
-const showConfirmModal = ref(false);
-const pendingUpdate = ref({ rowId: null, field: null, value: 0 });
-const inputRefs = {};
-
+const expandedRows = ref(new Set());
+const toggleRowExpand = (id) => {
+  if (expandedRows.value.has(id)) {
+    expandedRows.value.delete(id);
+  } else {
+    expandedRows.value.add(id);
+  }
+};
+const isRowExpanded = (id) => expandedRows.value.has(id);
 const totalAllocatedBudget = ref(0);
 const totalAvailableBudget = ref(0);
 const totalUtilizedAmount = ref(0);
@@ -212,20 +217,6 @@ const overallUtilizationRate = ref('0.0');
 const formatNum = (val) => {
   if (val === undefined || val === null) return '0.00';
   return Number(val).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-};
-
-const calculateRemaining = (allocated, utilized) => {
-  return Math.max(0, (allocated || 0) - (utilized || 0));
-};
-
-const calculateUtilizationRate = (allocated, utilized) => {
-  if (!allocated || allocated === 0) return 0;
-  return Math.min(100, (utilized / allocated) * 100);
-};
-
-const updateRowCalculations = (row) => {
-  row.remaining = Math.max(0, (row.allocated || 0) - (row.utilized || 0) - (row.pending_approved || 0));
-  row.utilizationRate = calculateUtilizationRate(row.allocated, row.utilized);
 };
 
 const getRemainingClass = (remaining) => {
@@ -246,77 +237,6 @@ const getUtilizationTextClass = (rate) => {
   return 'text-healthy';
 };
 
-const getFieldLabel = (field) => {
-  return field === 'allocated' ? 'Total Allocated Budget' : 'Utilized Amount';
-};
-
-const getUnitName = (rowId) => {
-  const row = budgetRows.value.find(r => r.id === rowId);
-  return row ? row.unit_name : 'Unknown Mandate';
-};
-
-const setCellInputRef = (el, id, field) => {
-  if (el) inputRefs[`${id}_${field}`] = el;
-};
-
-const isEditing = (id, field) => editingRowId.value === id && editingFieldName.value === field;
-
-const startEditingCell = (id, field, currentVal) => {
-  editingRowId.value = id;
-  editingFieldName.value = field;
-  activeEditValue.value = currentVal || 0;
-  nextTick(() => {
-    const el = inputRefs[`${id}_${field}`];
-    if (el) el.focus();
-  });
-};
-
-const saveCellAdjustment = (id, field) => {
-  if (activeEditValue.value < 0) activeEditValue.value = 0;
-  
-  pendingUpdate.value = { rowId: id, field, value: activeEditValue.value };
-  showConfirmModal.value = true;
-  editingRowId.value = null;
-  editingFieldName.value = null;
-};
-
-const cancelCellAdjustment = () => {
-  editingRowId.value = null;
-  editingFieldName.value = null;
-};
-
-const confirmModalAction = async () => {
-  showConfirmModal.value = false;
-  const target = budgetRows.value.find(r => r.id === pendingUpdate.value.rowId);
-  
-  if (target) {
-    const oldValue = target[pendingUpdate.value.field];
-    target[pendingUpdate.value.field] = pendingUpdate.value.value;
-    
-    updateRowCalculations(target);
-    
-    try {
-      const postData = new FormData();
-      postData.append('id', pendingUpdate.value.rowId);
-      postData.append('field', pendingUpdate.value.field);
-      postData.append('new_value', pendingUpdate.value.value);
-
-      await api.post('staff/budget-monitoring/update', postData);
-      console.log('Budget update committed successfully');
-      fetchBudgetData(); // Refresh data to ensure alignment
-    } catch (err) { 
-      console.error('Error saving budget update:', err); 
-      // Rollback on error
-      target[pendingUpdate.value.field] = oldValue;
-      updateRowCalculations(target);
-    }
-  }
-};
-
-const cancelModalAction = () => { 
-  showConfirmModal.value = false; 
-};
-
 const fetchBudgetData = async () => {
   try {
     const [monitoringRes, summaryRes] = await Promise.all([
@@ -326,11 +246,6 @@ const fetchBudgetData = async () => {
     
     if (monitoringRes.data) {
       budgetRows.value = monitoringRes.data;
-      
-      // Ensure calculations are correct for each row
-      budgetRows.value.forEach(row => {
-        updateRowCalculations(row);
-      });
     }
 
     if (summaryRes.data && summaryRes.data.success) {
@@ -986,6 +901,85 @@ onMounted(() => {
   .allocation-btn {
     width: 100%;
     justify-content: center;
-  }
+}
+}
+
+/* Expand button styling */
+.expand-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+}
+
+.expand-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #f1f5f9;
+}
+
+/* Detail row and nested table */
+.expandable-detail-row {
+  background: rgba(15, 23, 42, 0.4);
+}
+
+.detail-cell {
+  padding: 1.5rem !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.detail-container {
+  padding: 1rem;
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.detail-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  padding-left: 0.25rem;
+}
+
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.detail-table th {
+  padding: 0.625rem 0.75rem;
+  color: #94a3b8;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.detail-table td {
+  padding: 0.75rem 0.75rem;
+  color: #cbd5e1;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.05);
+}
+
+.detail-table tr:last-child td {
+  border-bottom: none;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(153, 13, 209, 0.2);
+  color: #d8b4fe;
+  border: 1px solid rgba(153, 13, 209, 0.3);
 }
 </style>

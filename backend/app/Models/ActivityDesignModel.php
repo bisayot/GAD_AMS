@@ -29,7 +29,6 @@ class ActivityDesignModel extends Model // No change needed here, class name is 
           "venue_id",
           "assessment_date",
           "target_participants",
-          "proposed_budget",
         "attachment",
         "user_id",
         "status",

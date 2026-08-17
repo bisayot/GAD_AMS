@@ -331,6 +331,15 @@
                                 step="0.01"
                               />
                             </div>
+                            <div v-if="Number(form.budget_items[0].total) > 0" class="budget-allocation-selector-row">
+                              <label class="allocation-label">Charge to GAD Mandate Line:</label>
+                              <select v-model="form.budget_items[0].gpb_budget_line_id" @change="onLineSelected(form.budget_items[0])" class="allocation-select">
+                                <option :value="null">-- Select Budget Line --</option>
+                                <option v-for="bl in selectedMandateBreakdowns" :key="bl.line_id" :value="bl.line_id">
+                                  {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
+                                </option>
+                              </select>
+                            </div>
                           </div>
 
                           <!-- Snacks Row -->
@@ -357,6 +366,15 @@
                                 min="0"
                                 step="0.01"
                               />
+                            </div>
+                            <div v-if="Number(form.budget_items[1].total) > 0" class="budget-allocation-selector-row">
+                              <label class="allocation-label">Charge to GAD Mandate Line:</label>
+                              <select v-model="form.budget_items[1].gpb_budget_line_id" @change="onLineSelected(form.budget_items[1])" class="allocation-select">
+                                <option :value="null">-- Select Budget Line --</option>
+                                <option v-for="bl in selectedMandateBreakdowns" :key="bl.line_id" :value="bl.line_id">
+                                  {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
+                                </option>
+                              </select>
                             </div>
                           </div>
                         </div>
@@ -386,6 +404,15 @@
                                 step="0.01"
                               />
                             </div>
+                            <div v-if="Number(form.budget_items[2].total) > 0" class="budget-allocation-selector-row">
+                              <label class="allocation-label">Charge to GAD Mandate Line:</label>
+                              <select v-model="form.budget_items[2].gpb_budget_line_id" @change="onLineSelected(form.budget_items[2])" class="allocation-select">
+                                <option :value="null">-- Select Budget Line --</option>
+                                <option v-for="bl in selectedMandateBreakdowns" :key="bl.line_id" :value="bl.line_id">
+                                  {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
+                                </option>
+                              </select>
+                            </div>
                           </div>
 
                           <!-- Accommodation -->
@@ -405,6 +432,15 @@
                                 step="0.01"
                               />
                             </div>
+                            <div v-if="Number(form.budget_items[3].total) > 0" class="budget-allocation-selector-row">
+                              <label class="allocation-label">Charge to GAD Mandate Line:</label>
+                              <select v-model="form.budget_items[3].gpb_budget_line_id" @change="onLineSelected(form.budget_items[3])" class="allocation-select">
+                                <option :value="null">-- Select Budget Line --</option>
+                                <option v-for="bl in selectedMandateBreakdowns" :key="bl.line_id" :value="bl.line_id">
+                                  {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
+                                </option>
+                              </select>
+                            </div>
                           </div>
 
                           <!-- Equipment Rental -->
@@ -423,6 +459,15 @@
                                 min="0"
                                 step="0.01"
                               />
+                            </div>
+                            <div v-if="Number(form.budget_items[4].total) > 0" class="budget-allocation-selector-row">
+                              <label class="allocation-label">Charge to GAD Mandate Line:</label>
+                              <select v-model="form.budget_items[4].gpb_budget_line_id" @change="onLineSelected(form.budget_items[4])" class="allocation-select">
+                                <option :value="null">-- Select Budget Line --</option>
+                                <option v-for="bl in selectedMandateBreakdowns" :key="bl.line_id" :value="bl.line_id">
+                                  {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
+                                </option>
+                              </select>
                             </div>
                           </div>
 
@@ -444,6 +489,15 @@
                                 min="0"
                                 step="0.01"
                               />
+                            </div>
+                            <div v-if="Number(form.budget_items[8].total) > 0" class="budget-allocation-selector-row">
+                              <label class="allocation-label">Charge to GAD Mandate Line:</label>
+                              <select v-model="form.budget_items[8].gpb_budget_line_id" @change="onLineSelected(form.budget_items[8])" class="allocation-select">
+                                <option :value="null">-- Select Budget Line --</option>
+                                <option v-for="bl in selectedMandateBreakdowns" :key="bl.line_id" :value="bl.line_id">
+                                  {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
+                                </option>
+                              </select>
                             </div>
                           </div>
                         </div>
@@ -478,6 +532,15 @@
                                 step="0.01"
                               />
                             </div>
+                            <div v-if="Number(form.budget_items[5].total) > 0" class="budget-allocation-selector-row">
+                              <label class="allocation-label">Charge to GAD Mandate Line:</label>
+                              <select v-model="form.budget_items[5].gpb_budget_line_id" @change="onLineSelected(form.budget_items[5])" class="allocation-select">
+                                <option :value="null">-- Select Budget Line --</option>
+                                <option v-for="bl in selectedMandateBreakdowns" :key="bl.line_id" :value="bl.line_id">
+                                  {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
+                                </option>
+                              </select>
+                            </div>
                           </div>
 
                           <!-- Token/s -->
@@ -501,6 +564,15 @@
                                 min="0"
                                 step="0.01"
                               />
+                            </div>
+                            <div v-if="Number(form.budget_items[6].total) > 0" class="budget-allocation-selector-row">
+                              <label class="allocation-label">Charge to GAD Mandate Line:</label>
+                              <select v-model="form.budget_items[6].gpb_budget_line_id" @change="onLineSelected(form.budget_items[6])" class="allocation-select">
+                                <option :value="null">-- Select Budget Line --</option>
+                                <option v-for="bl in selectedMandateBreakdowns" :key="bl.line_id" :value="bl.line_id">
+                                  {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
+                                </option>
+                              </select>
                             </div>
                           </div>
                         </div>
@@ -530,6 +602,15 @@
                                 step="0.01"
                               />
                             </div>
+                            <div v-if="Number(form.budget_items[7].total) > 0" class="budget-allocation-selector-row">
+                              <label class="allocation-label">Charge to GAD Mandate Line:</label>
+                              <select v-model="form.budget_items[7].gpb_budget_line_id" @change="onLineSelected(form.budget_items[7])" class="allocation-select">
+                                <option :value="null">-- Select Budget Line --</option>
+                                <option v-for="bl in selectedMandateBreakdowns" :key="bl.line_id" :value="bl.line_id">
+                                  {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
+                                </option>
+                              </select>
+                            </div>
                           </div>
 
                           <!-- Others -->
@@ -543,10 +624,20 @@
                               </div>
                             </div>
                             <div class="others-breakdown-container">
-                              <div v-for="(o, oIdx) in othersList" :key="oIdx" class="others-breakdown-row">
+                              <div v-for="(o, oIdx) in othersList" :key="oIdx" class="others-breakdown-row" style="flex-wrap: wrap; gap: 10px;">
                                 <input type="text" v-model="o.name" placeholder="Item name (e.g. Coffee)" class="others-input-name" />
                                 <input type="number" v-model.number="o.amount" min="0" placeholder="₱0.00" class="others-input-amount" />
                                 <button type="button" @click="removeOtherItem(oIdx)" class="btn-remove-other" title="Remove">×</button>
+                                
+                                <div v-if="Number(o.amount) > 0" class="budget-allocation-selector-row" style="margin-top: 4px; padding: 6px 8px;">
+                                  <label class="allocation-label" style="font-size: 10px;">Charge to GAD Mandate Line:</label>
+                                  <select v-model="o.gpb_budget_line_id" @change="onLineSelected(o)" class="allocation-select" style="padding: 4px 6px; font-size: 12px;">
+                                    <option :value="null">-- Select Budget Line --</option>
+                                    <option v-for="bl in selectedMandateBreakdowns" :key="bl.line_id" :value="bl.line_id">
+                                      {{ bl.category }} (Available: ₱{{ formatNum(bl.remaining) }})
+                                    </option>
+                                  </select>
+                                </div>
                               </div>
                               <button type="button" @click="addOtherItem" class="btn-add-other" style="width: 100%; justify-content: center;">
                                 <span>+</span> Add Item
@@ -743,16 +834,16 @@ const form = ref({
   target_participants: '',
   proposed_budget: 0,
   budget_items: [
-    { name: 'Meals', total: '' },
-    { name: 'Snacks', total: '' },
-    { name: 'Function Room/Venue', total: '' },
-    { name: 'Accommodation', total: '' },
-    { name: 'Equipment Rental', total: '' },
-    { name: 'Professional Fee/Honoraria', total: '' },
-    { name: 'Token/s', total: '' },
-    { name: 'Materials and Supplies', total: '' },
-    { name: 'Transportation', total: '' },
-    { name: 'Others', total: '' }
+    { name: 'Meals', total: '', gpb_id: null, gpb_budget_line_id: null },
+    { name: 'Snacks', total: '', gpb_id: null, gpb_budget_line_id: null },
+    { name: 'Function Room/Venue', total: '', gpb_id: null, gpb_budget_line_id: null },
+    { name: 'Accommodation', total: '', gpb_id: null, gpb_budget_line_id: null },
+    { name: 'Equipment Rental', total: '', gpb_id: null, gpb_budget_line_id: null },
+    { name: 'Professional Fee/Honoraria', total: '', gpb_id: null, gpb_budget_line_id: null },
+    { name: 'Token/s', total: '', gpb_id: null, gpb_budget_line_id: null },
+    { name: 'Materials and Supplies', total: '', gpb_id: null, gpb_budget_line_id: null },
+    { name: 'Transportation', total: '', gpb_id: null, gpb_budget_line_id: null },
+    { name: 'Others', total: '', gpb_id: null, gpb_budget_line_id: null }
   ]
 });
 
@@ -858,6 +949,93 @@ const fetchActivityClassifications = async () => {
   }
 };
 
+const selectedMandateBreakdowns = ref([]);
+
+const onLineSelected = (item) => {
+  const match = selectedMandateBreakdowns.value.find(bl => bl.line_id === item.gpb_budget_line_id);
+  if (match) {
+    item.gpb_id = match.gpb_id;
+  } else {
+    item.gpb_id = null;
+  }
+};
+
+const autoSelectMandateLines = () => {
+  const breakdowns = selectedMandateBreakdowns.value;
+  if (breakdowns.length === 0) return;
+
+  const itemMatches = {
+    'Meals': ['meal', 'snack', 'catering', 'package'],
+    'Snacks': ['snack', 'meal', 'catering', 'package'],
+    'Function Room/Venue': ['venue', 'rental', 'accommodation', 'package'],
+    'Accommodation': ['accommodation', 'lodging', 'venue', 'package'],
+    'Equipment Rental': ['rental', 'equipment', 'venue', 'package'],
+    'Professional Fee/Honoraria': ['professional', 'fee', 'honoraria', 'pf', 'service'],
+    'Token/s': ['token', 'supplies', 'material'],
+    'Materials and Supplies': ['supplies', 'material', 'equipment', 'book'],
+    'Transportation': ['travel', 'transpo', 'fuel', 'vehicle', 'rental'],
+    'Others': ['other', 'pap', 'activity', 'program', 'attribution', 'ps']
+  };
+
+  form.value.budget_items.forEach(item => {
+    if (!item.gpb_budget_line_id) {
+      const keywords = itemMatches[item.name] || [];
+      let bestMatch = null;
+      for (const kw of keywords) {
+        bestMatch = breakdowns.find(b => b.category.toLowerCase().includes(kw));
+        if (bestMatch) break;
+      }
+      if (!bestMatch && breakdowns.length > 0) {
+        bestMatch = breakdowns.find(b => !b.category.toLowerCase().includes('attribution')) || breakdowns[0];
+      }
+      if (bestMatch) {
+        item.gpb_id = bestMatch.gpb_id;
+        item.gpb_budget_line_id = bestMatch.line_id;
+      }
+    }
+  });
+
+  if (typeof othersList !== 'undefined' && othersList.value) {
+    othersList.value.forEach(item => {
+      if (!item.gpb_budget_line_id) {
+        const keywords = itemMatches['Others'];
+        let bestMatch = null;
+        for (const kw of keywords) {
+          bestMatch = breakdowns.find(b => b.category.toLowerCase().includes(kw));
+          if (bestMatch) break;
+        }
+        if (!bestMatch && breakdowns.length > 0) {
+          bestMatch = breakdowns.find(b => !b.category.toLowerCase().includes('attribution')) || breakdowns[0];
+        }
+        if (bestMatch) {
+          item.gpb_id = bestMatch.gpb_id;
+          item.gpb_budget_line_id = bestMatch.line_id;
+        }
+      }
+    });
+  }
+};
+
+const fetchMandateBreakdowns = async () => {
+  const mandateId = form.value.gad_mandate_id;
+  if (!mandateId || mandateId === 'Other') {
+    selectedMandateBreakdowns.value = [];
+    form.value.budget_items.forEach(item => {
+      item.gpb_id = null;
+      item.gpb_budget_line_id = null;
+    });
+    return;
+  }
+  
+  try {
+    const res = await api.get(`get-mandate-breakdowns?mandates=${mandateId}`);
+    selectedMandateBreakdowns.value = res.data;
+    autoSelectMandateLines();
+  } catch (error) {
+    console.error('Error fetching mandate breakdowns:', error);
+  }
+};
+
 const fetchGADMandates = async () => {
     try {
       let url = 'get-gad-mandates';
@@ -905,6 +1083,7 @@ watch(() => form.value.activity_classification_id, (newVal) => {
   watch(() => form.value.gad_mandate_id, (newVal) => {
   form.value.gender_issue_id = '';
   fetchGenderIssues(newVal);
+  fetchMandateBreakdowns();
 });
 
 watch(() => form.value.budget_items, (newItems) => {
@@ -1065,7 +1244,7 @@ const tokensPax = ref('');
 const othersList = ref([]);
 
 const addOtherItem = () => {
-  othersList.value.push({ name: '', amount: '' });
+  othersList.value.push({ name: '', amount: '', gpb_id: null, gpb_budget_line_id: null });
 };
 
 const removeOtherItem = (index) => {
@@ -1342,7 +1521,10 @@ const submitActivityDesign = async () => {
           item_name: item.name,
           sub_item: null,
           pax: (item.name === 'Professional Fee/Honoraria') ? (typeof pfPax !== 'undefined' ? pfPax?.value : null) : (item.name === 'Token/s') ? (typeof tokensPax !== 'undefined' ? tokensPax?.value : null) : null,
-          amount: Number(item.total) || 0
+          amount: Number(item.total) || 0,
+          gpb_id: item.gpb_id || null,
+          gpb_budget_line_id: item.gpb_budget_line_id || null,
+          allocated_amount: Number(item.total) || 0
         });
       }
     });
@@ -1355,7 +1537,10 @@ const submitActivityDesign = async () => {
             item_name: 'Others',
             sub_item: o.name,
             pax: null,
-            amount: Number(o.amount) || 0
+            amount: Number(o.amount) || 0,
+            gpb_id: o.gpb_id || null,
+            gpb_budget_line_id: o.gpb_budget_line_id || null,
+            allocated_amount: Number(o.amount) || 0
           });
         }
       });
@@ -2355,5 +2540,43 @@ onUnmounted(() => {
   .budget-card-input {
     width: 100%;
   }
+}
+
+.budget-allocation-selector-row {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.06);
+  text-align: left;
+}
+
+.allocation-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.allocation-select {
+  width: 100%;
+  background: #1e1e2f;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: #f1f5f9;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.allocation-select:focus {
+  border-color: #b979cc;
 }
 </style>

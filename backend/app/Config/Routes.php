@@ -108,6 +108,9 @@ $routes->group('api', function($routes) {
     $routes->options('get-gad-mandates', 'AuthController::handleOptions');
     $routes->get('get-gad-mandates', 'ActivityDesignController::getGADMandates');
     
+    $routes->options('get-mandate-breakdowns', 'AuthController::handleOptions');
+    $routes->get('get-mandate-breakdowns', 'ActivityDesignController::getMandateBreakdowns');
+    
     $routes->options('get-gender-issues', 'AuthController::handleOptions');
     $routes->get('get-gender-issues', 'ActivityDesignController::getGenderIssues');
     

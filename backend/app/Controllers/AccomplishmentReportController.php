@@ -746,27 +746,14 @@ class AccomplishmentReportController extends BaseController
                 $adItem = $adItemQuery->get()->getRowArray();
                 
                 if ($adItem) {
-                    $adAllocs = $db->table('budget_item_mandate_allocations')
-                                   ->where('item_type', 'AD')
-                                   ->where('budget_item_id', $adItem['id'])
-                                   ->get()->getResultArray();
-                                   
-                    if (!empty($adAllocs)) {
-                        $db->table('budget_item_mandate_allocations')
-                           ->where('item_type', 'AR')
-                           ->where('budget_item_id', $arItem['id'])
-                           ->delete();
-                           
-                        $adAlloc = $adAllocs[0];
-                        $db->table('budget_item_mandate_allocations')->insert([
-                            'budget_item_id' => $arItem['id'],
-                            'item_type' => 'AR',
-                            'mandate_id' => $adAlloc['mandate_id'],
-                            'gpb_budget_line_id' => $adAlloc['gpb_budget_line_id'],
-                            'allocated_amount' => $arItem['amount'],
-                            'created_at' => date('Y-m-d H:i:s'),
-                            'updated_at' => date('Y-m-d H:i:s')
-                        ]);
+                    if (!empty($adItem['gpb_id']) && $adItem['allocated_amount'] > 0) {
+                        $db->table('accomplishment_budget_items')
+                           ->where('id', $arItem['id'])
+                           ->update([
+                               'gpb_id' => $adItem['gpb_id'],
+                               'gpb_budget_line_id' => $adItem['gpb_budget_line_id'],
+                               'allocated_amount' => $arItem['amount']
+                           ]);
                     }
                 }
             }
