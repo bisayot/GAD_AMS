@@ -1036,14 +1036,20 @@ class ActivityDesignController extends BaseController
 
             // Sum pending for this specific line
             $linePending = 0.0;
-            $adLineAllocations = $db->table('activity_budget_items abi')
+            $adLineBuilder = $db->table('activity_budget_items abi')
                 ->select('abi.allocated_amount, ad.control_number')
                 ->join('activity_design ad', 'ad.act_design_id = abi.act_design_id')
                 ->where('abi.gpb_id', $gpbId)
                 ->where('abi.gpb_budget_line_id', $lineId)
                 ->where('ad.status', 'Approved')
-                ->where('ad.deleted_at', null)
-                ->get()->getResultArray();
+                ->where('ad.deleted_at', null);
+
+            $excludeAdId = $this->request->getGet('exclude_ad');
+            if ($excludeAdId) {
+                $adLineBuilder->where('ad.act_design_id !=', $excludeAdId);
+            }
+
+            $adLineAllocations = $adLineBuilder->get()->getResultArray();
 
             foreach ($adLineAllocations as $alloc) {
                 $hasVerifiedAR = $db->table('accomplishment_report')

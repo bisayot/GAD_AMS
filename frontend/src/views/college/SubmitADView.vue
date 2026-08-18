@@ -1522,6 +1522,74 @@ const submitActivityDesign = async () => {
       return;
     }
   }
+  // Validate GAD Mandate line budget allocations
+  const lineAllocationsSum = {};
+  const itemsToValidate = [];
+
+  // Add standard budget items with amount > 0
+  form.value.budget_items.forEach(item => {
+    const amount = Number(item.total) || 0;
+    if (amount > 0 && item.name !== 'Others') {
+      itemsToValidate.push({
+        name: item.name,
+        amount: amount,
+        gpb_budget_line_id: item.gpb_budget_line_id
+      });
+    }
+  });
+
+  // Add Others list items with amount > 0
+  if (typeof othersList !== 'undefined' && othersList.value) {
+    othersList.value.forEach(o => {
+      const amount = Number(o.amount) || 0;
+      if (amount > 0 && o.name) {
+        itemsToValidate.push({
+          name: `Others (${o.name})`,
+          amount: amount,
+          gpb_budget_line_id: o.gpb_budget_line_id
+        });
+      }
+    });
+  }
+
+  for (const item of itemsToValidate) {
+    if (!item.gpb_budget_line_id) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Budget Allocation',
+        text: `Please select a Charge to GAD Mandate Line for "${item.name}".`,
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
+    const lineId = item.gpb_budget_line_id;
+    lineAllocationsSum[lineId] = (lineAllocationsSum[lineId] || 0) + item.amount;
+  }
+
+  // Verify against remaining balances
+  for (const lineId in lineAllocationsSum) {
+    const match = selectedMandateBreakdowns.value.find(bl => String(bl.line_id) === String(lineId));
+    if (!match) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Budget Line',
+        text: 'The selected GAD budget line is invalid or not found.',
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
+    const requested = lineAllocationsSum[lineId];
+    const available = Number(match.remaining) || 0;
+    if (requested > available) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Budget Limit Exceeded',
+        text: `The total allocated amount of ₱${requested.toLocaleString('en-US', { minimumFractionDigits: 2 })} for the budget line "${match.category}" exceeds the available remaining balance of ₱${available.toLocaleString('en-US', { minimumFractionDigits: 2 })} (under mandate "${match.mandate_title || ''}").`,
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
+  }
 
 
   if (!designFile.value) {
