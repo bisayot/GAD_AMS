@@ -681,6 +681,10 @@ class AccomplishmentReportController extends BaseController
                   }
                 }
 
+                $title = $updateData['activity_title'] ?? $report['activity_title'];
+                \App\Models\ActivityLogModel::log($report['user_id'], 'Update Document', 'resubmitted Accomplishment Report: ' . $title);
+                NotificationService::sendToAdmins('Accomplishment Report Resubmitted', 'Accomplishment Report "' . $title . '" has been resubmitted and is pending review.', '/admin/ar-list', 'info');
+
                 return $this->response->setJSON([
                     'success' => true,
                     'message' => 'Accomplishment Report updated and resubmitted successfully.'

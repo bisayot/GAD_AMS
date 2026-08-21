@@ -88,7 +88,11 @@ const handleNotificationClick = async (notif) => {
       console.error('Failed to mark as read', error);
     }
   }
-  // Dropdown stays open or closed based on user preference, but no routing occurs.
+  
+  if (notif.link) {
+    showNotifications.value = false;
+    router.push(notif.link);
+  }
 };
 
 const getIcon = (type) => {

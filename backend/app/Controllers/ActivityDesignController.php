@@ -586,6 +586,10 @@ class ActivityDesignController extends BaseController
                     }
                 }
 
+                $title = $updateData['activity_title'] ?? $design['activity_title'];
+                \App\Models\ActivityLogModel::log($design['user_id'], 'Update Document', 'resubmitted Activity Design: ' . $title);
+                NotificationService::sendToAdmins('Activity Design Resubmitted', 'Activity Design "' . $title . '" has been resubmitted and is pending review.', '/admin/ad-list', 'info');
+
                 return $this->response->setJSON([
                     'success' => true,
                     'message' => 'Activity Design updated and resubmitted successfully.'
