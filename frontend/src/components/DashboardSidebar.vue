@@ -2,7 +2,8 @@
   <aside 
     :class="[
       'w-64 bg-[#1a1a2e] text-white fixed h-full flex flex-col p-6 shadow-xl z-50 transition-transform duration-300 top-0 left-0',
-      isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      isOpen ? 'translate-x-0' : (desktopHidden ? '-translate-x-full lg:-translate-x-full' : '-translate-x-full lg:translate-x-0'),
+      desktopHidden ? 'lg:hidden' : ''
     ]"
   >
     <div class="sidebar-header relative w-full">
@@ -94,7 +95,8 @@ import { useRoute } from 'vue-router';
 defineProps({
   roleLabel: { type: String, default: 'User' },
   menuItems: { type: Array, required: true },
-  isOpen: { type: Boolean, default: false }
+  isOpen: { type: Boolean, default: false },
+  desktopHidden: { type: Boolean, default: false }
 });
 
 defineEmits(['logout', 'close']);
