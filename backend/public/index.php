@@ -47,9 +47,12 @@ if (getcwd() . DIRECTORY_SEPARATOR !== FCPATH) {
  */
 
 // LOAD OUR PATHS CONFIG FILE
-// This is the line that might need to be changed, depending on your folder structure.
-require FCPATH . '../app/Config/Paths.php';
+// NOTE: On Hostinger, the backend folder is outside public_html.
+// Replace YOUR_HOSTINGER_USERNAME with your actual username (find it in hPanel > File Manager).
+// Example: /home/u123456789/backend/app/Config/Paths.php
+require '/home/u366424097/domains/bsugad.com/backend/app/Config/Paths.php';
 // ^^^ Change this line if you move your application folder
+
 
 $paths = new Paths();
 
