@@ -7,7 +7,7 @@ use CodeIgniter\Router\RouteCollection;
  */
 $routes->get('/', 'Home::index');
 
-$routes->group('api', function($routes) {
+$routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
 
     // ----------------------------------------------------------------
     // AUTH ROUTES (existing)
@@ -349,7 +349,7 @@ $routes->group('api', function($routes) {
     $routes->options('documents/permanently-delete', 'AuthController::handleOptions');
     $routes->post('documents/permanently-delete', 'DocumentTrashController::permanentlyDelete');
 });
-$routes->group('api', function($routes) {
+$routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     // ----------------------------------------------------------------
     // GPB PLAN AND BUDGET ROUTES (new)
     // ----------------------------------------------------------------
@@ -385,7 +385,7 @@ $routes->group('api', function($routes) {
     $routes->post('gpb/export-live', 'GpbLiveExportController::export');
 });
 
-$routes->group('api', function($routes) {
+$routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     $routes->options('gpb/import', 'AuthController::handleOptions');
     $routes->post('gpb/import', 'GpbController::import');
     $routes->options('gpb/item', 'AuthController::handleOptions');
