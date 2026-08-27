@@ -764,6 +764,7 @@ const fileInput = ref(null);
 const userRole = user.value?.role || user.value?.user_role || '';
 const getPdfViewerUrl = (url) => {
   if (!url) return '';
+    if (url.startsWith('blob:')) return url;
   return `/pdfjs/web/viewer.html?file=${encodeURIComponent(url)}&role=${encodeURIComponent(userRole)}`;
 };
 
