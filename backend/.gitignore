@@ -25,3 +25,4 @@ backend/writable/
 
 # Production builds
 frontend/dist/
+.env.hostinger
