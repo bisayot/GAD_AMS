@@ -31,6 +31,7 @@ class ApprovedControlsController extends Controller
         }
 
         $allBudgetItems = [];
+        $allSchedules = [];
         if (!empty($designIds)) {
             $budgetModel = new ActivityBudgetItemsModel();
             $budgetResults = $budgetModel->whereIn('act_design_id', array_unique($designIds))->findAll();
@@ -38,6 +39,12 @@ class ApprovedControlsController extends Controller
             // Group them by act_design_id
             foreach ($budgetResults as $item) {
                 $allBudgetItems[$item['act_design_id']][] = $item;
+            }
+
+            $scheduleModel = new \App\Models\ActivityScheduleModel();
+            $scheduleResults = $scheduleModel->whereIn('act_design_id', array_unique($designIds))->orderBy('schedule_date', 'ASC')->findAll();
+            foreach ($scheduleResults as $sched) {
+                $allSchedules[$sched['act_design_id']][] = $sched;
             }
         }
 
@@ -130,6 +137,12 @@ class ApprovedControlsController extends Controller
 
             } else {
                 $control['budget_items'] = [];
+            }
+
+            if ($id && isset($allSchedules[$id])) {
+                $control['schedules'] = $allSchedules[$id];
+            } else {
+                $control['schedules'] = [];
             }
         }
 

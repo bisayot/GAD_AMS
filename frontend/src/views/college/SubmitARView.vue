@@ -118,11 +118,41 @@
 
                   
                   
+                  <!-- Computed Global Dates -->
+                  <div class="form-sub-grid-ar mb-4 mt-4">
+                    <div class="input-group-ar">
+                      <div class="label-container">
+                        <label class="form-label-ar">Calculated Start Date</label>
+                        <div class="info-btn-wrapper">
+                          <button type="button" class="info-btn" @click.stop="toggleHelp('startDate')">
+                            i
+                          </button>
+                          <transition name="fade-pop">
+                            <div v-if="helpState.startDate" class="simple-popup">
+                              Ideal submission is 15 working days before this date. Strict minimum is 3 working days.
+                            </div>
+                          </transition>
+                        </div>
+                      </div>
+                      <div class="custom-input-field" style="display: flex; align-items: center; gap: 8px; opacity: 0.8; cursor: not-allowed;">
+                        <span class="material-symbols-outlined" style="font-size: 16px; color: #b979cc;">calendar_month</span>
+                        {{ computedStartDate || 'Awaiting schedule...' }}
+                      </div>
+                    </div>
+                    <div class="input-group-ar">
+                      <label class="form-label-ar">Calculated End Date</label>
+                      <div class="custom-input-field" style="display: flex; align-items: center; gap: 8px; opacity: 0.8; cursor: not-allowed;">
+                        <span class="material-symbols-outlined" style="font-size: 16px; color: #b979cc;">event</span>
+                        {{ computedEndDate || 'Awaiting schedule...' }}
+                      </div>
+                    </div>
+                  </div>
+                  
                   <!-- Staggered Schedules Section -->
-                  <div class="form.schedules-container" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
+                  <div class="schedules-container-ar" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
                     <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
                       <div style="display: flex; align-items: center; gap: 16px;">
-                          <label class="form-label !mb-0 flex items-center gap-2">
+                          <label class="form-label-ar !mb-0 flex items-center gap-2">
                             <span class="material-symbols-outlined" style="font-size: 18px;">schedule</span>
                             Activity Schedules *
                           </label>
@@ -1031,6 +1061,40 @@ watch(() => form.value.control_number, async (newVal) => {
     form.value.end_date = selected.end_date;
     form.value.start_time = selected.start_time;
     form.value.end_time = selected.end_time;
+    
+    // Carry over schedule type and schedules
+    form.value.schedule_type = selected.schedule_type || 'continuous';
+    scheduleType.value = selected.schedule_type || 'continuous';
+    
+    if (selected.schedules && selected.schedules.length > 0) {
+      form.value.schedules = selected.schedules.map(sch => {
+        let meals = { breakfast: false, am_snack: false, lunch: false, pm_snack: false, dinner: false };
+        try {
+          if (sch.meals_and_snacks) {
+            meals = typeof sch.meals_and_snacks === 'string' ? JSON.parse(sch.meals_and_snacks) : sch.meals_and_snacks;
+          }
+        } catch (e) {
+          console.error('Error parsing meals', e);
+        }
+        return {
+          date: sch.schedule_date,
+          start_time: sch.start_time ? sch.start_time.substring(0, 5) : '',
+          end_time: sch.end_time ? sch.end_time.substring(0, 5) : '',
+          meals_and_snacks: meals
+        };
+      });
+
+      if (scheduleType.value === 'continuous') {
+        continuousConfig.value.start_date = selected.start_date || '';
+        continuousConfig.value.end_date = selected.end_date || '';
+        continuousConfig.value.start_time = form.value.schedules[0]?.start_time || '';
+        continuousConfig.value.end_time = form.value.schedules[0]?.end_time || '';
+        continuousConfig.value.meals_and_snacks = { ...(form.value.schedules[0]?.meals_and_snacks || {}) };
+      }
+    } else {
+      form.value.schedules = [];
+    }
+    
     form.value.is_inside_bsu = selected.is_inside_bsu == 1 || selected.is_inside_bsu === true;
     form.value.venue = selected.venue_name || selected.venue; 
     form.value.activity_classification = selected.activity_classification || 'N/A';
@@ -1280,6 +1344,21 @@ const continuousConfig = ref({
   start_time: '',
   end_time: '',
   meals_and_snacks: { breakfast: false, am_snack: false, lunch: false, pm_snack: false, dinner: false }
+});
+
+const computedStartDate = computed(() => {
+  if (scheduleType.value === 'continuous') {
+    return continuousConfig.value.start_date;
+  } else {
+    return form.value.start_date;
+  }
+});
+const computedEndDate = computed(() => {
+  if (scheduleType.value === 'continuous') {
+    return continuousConfig.value.end_date;
+  } else {
+    return form.value.end_date;
+  }
 });
 
 
@@ -1635,10 +1714,11 @@ const submitReport = async () => {
     form.value.evaluation_items.forEach(item => {
       evalObj[evalMap[item.area]] = item.rating || 0;
     });
-    formData.append('evaluation_results', JSON.stringify(evalObj));
+        formData.append('evaluation_results', JSON.stringify(evalObj));
+    formData.append('schedules', JSON.stringify(form.value.schedules || []));
 
     Object.keys(form.value).forEach(key => {
-      if (key !== 'budget_items' && key !== 'evaluation_items' && key !== 'venue' && key !== 'is_inside_bsu') {
+      if (key !== 'budget_items' && key !== 'evaluation_items' && key !== 'venue' && key !== 'is_inside_bsu' && key !== 'schedules') {
         formData.append(key, form.value[key]);
       }
     });
@@ -1695,6 +1775,8 @@ const submitReport = async () => {
         act_design_id: null,
         start_date: '',
         end_date: '',
+          schedule_type: 'continuous',
+          schedules: [],
         start_time: '',
         end_time: '',
         venue: '',

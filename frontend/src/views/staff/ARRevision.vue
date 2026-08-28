@@ -1347,7 +1347,8 @@ const submitReport = async () => {
         evalObj[dbKey] = Number(item.rating) || 0;
       }
     });
-    formData.append('evaluation_results', JSON.stringify(evalObj));
+        formData.append('evaluation_results', JSON.stringify(evalObj));
+    formData.append('schedules', JSON.stringify(form.value.schedules || []));
 
         if (form.value.activity_classification_id) formData.append('activity_classification_id', form.value.activity_classification_id);
     if (form.value.form_type) formData.append('form_type', form.value.form_type);
@@ -1359,7 +1360,7 @@ const submitReport = async () => {
     formData.append('custom_gender_issue', customGenderIssue.value);
 
     Object.keys(form.value).forEach(key => {
-      if (key !== 'budget_items' && key !== 'evaluation_items' && key !== 'venue' && key !== 'is_inside_bsu') {
+      if (key !== 'budget_items' && key !== 'evaluation_items' && key !== 'venue' && key !== 'is_inside_bsu' && key !== 'schedules') {
         formData.append(key, form.value[key]);
       }
     });
@@ -1529,6 +1530,27 @@ const getStatusClass = (status) => {
 };
 
 
+
+
+const parseMeals = (str) => {
+  if (!str) return [];
+  try {
+    let m = typeof str === 'string' ? JSON.parse(str) : str;
+    if (Array.isArray(m)) return m;
+    if (typeof m === 'object' && m !== null) {
+      const selected = [];
+      if (m.breakfast) selected.push('Breakfast');
+      if (m.am_snack) selected.push('AM Snack');
+      if (m.lunch) selected.push('Lunch');
+      if (m.pm_snack) selected.push('PM Snack');
+      if (m.dinner) selected.push('Dinner');
+      return selected;
+    }
+    return [];
+  } catch(e) {
+    return [];
+  }
+};
 
 const formatDate = (date) => date ? new Date(date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '---';
 
@@ -2098,4 +2120,28 @@ onMounted(async () => {
   letter-spacing: 0.05em;
   color: #b979cc;
 }
+
+.schedule-dropdown summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: #b979cc;
+  outline: none;
+  font-weight: 500;
+  margin-top: 4px;
+}
+.schedule-dropdown summary:hover {
+  text-decoration: underline;
+}
+.schedule-dropdown[open] summary {
+  margin-bottom: 8px;
+}
+.bbudget-selected-item { 
+  font-size: 12px; 
+  color: #b979cc; 
+  background: rgba(185, 121, 204, 0.1); 
+  padding: 2px 8px; 
+  border-radius: 12px; 
+  border: 1px solid rgba(185, 121, 204, 0.2); 
+}
 </style>
+

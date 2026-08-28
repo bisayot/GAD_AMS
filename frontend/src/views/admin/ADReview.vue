@@ -580,7 +580,7 @@ const validateDeadlineWeekend = () => {
       Swal.fire({
         icon: 'warning',
         title: 'Invalid Date',
-        text: 'Dates cannot exceed the current calendar year.',
+        text: 'Dates cannot exceed the current month.',
         confirmButtonColor: '#f59e0b'
       });
       accomplishmentDeadline.value = '';
@@ -619,7 +619,7 @@ const validateRevisionDeadline = () => {
       Swal.fire({
         icon: 'warning',
         title: 'Invalid Date',
-        text: 'Dates cannot exceed the current calendar year.',
+        text: 'Dates cannot exceed the current month.',
         confirmButtonColor: '#f59e0b'
       });
       revisionDeadline.value = '';

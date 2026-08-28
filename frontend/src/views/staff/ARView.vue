@@ -110,20 +110,31 @@
                   <p class="text-sm-light mt-1">{{ report.activity_design.target_participants }}</p>
                 </div>
                 <div>
-                  <label class="info-label">Start Date</label>
+                  <label class="info-label">Calculated Start Date</label>
                   <p class="text-sm-light mt-1">{{ formatDate(report.activity_design.start_date) }}</p>
                 </div>
                 <div>
-                  <label class="info-label">End Date</label>
+                  <label class="info-label">Calculated End Date</label>
                   <p class="text-sm-light mt-1">{{ formatDate(report.activity_design.end_date) }}</p>
                 </div>
-                <div>
-                  <label class="info-label">Start Time</label>
-                  <p class="text-sm-light mt-1">{{ formatTime(report.activity_design.start_time) }}</p>
-                </div>
-                <div>
-                  <label class="info-label">End Time</label>
-                  <p class="text-sm-light mt-1">{{ formatTime(report.activity_design.end_time) }}</p>
+                <div class="full-width-info">
+                  <label class="info-label">Full Schedule</label>
+                  <details class="schedule-dropdown" v-if="report.activity_design.schedules && report.activity_design.schedules.length > 0">
+                    <summary class="schedule-summary">View Full Schedule</summary>
+                    <div class="mt-2">
+                      <div v-for="(sch, i) in report.activity_design.schedules" :key="i" class="p-2 mb-2" style="background: rgba(255,255,255,0.05); border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);">
+                        <div class="text-sm-light">
+                          <strong>{{ formatDate(sch.schedule_date) }}</strong>: {{ formatTime(sch.start_time) }} - {{ formatTime(sch.end_time) }}
+                          <div class="mt-1" v-if="parseMeals(sch.meals_and_snacks).length > 0">
+                            <span v-for="meal in parseMeals(sch.meals_and_snacks)" :key="meal" class="bbudget-selected-item" style="margin-right: 4px; display: inline-block; margin-top: 4px;">{{ meal }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </details>
+                  <div class="mt-2 text-sm-light" v-else>
+                    {{ formatTime(report.activity_design.start_time) }} - {{ formatTime(report.activity_design.end_time) }}
+                  </div>
                 </div>
                 <div>
                   <label class="info-label">Proposed Budget</label>
@@ -157,9 +168,9 @@
                         <span class="bbudget-subitem-value">₱{{ Number(aDBudget.meals_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span>
                       </div>
                       <div class="bbudget-checks">
-                        <label class="bbudget-check-label"><input type="checkbox" disabled :checked="Number(aDBudget.breakfast_selected)===1" class="bbudget-checkbox" /> Breakfast</label>
-                        <label class="bbudget-check-label"><input type="checkbox" disabled :checked="Number(aDBudget.lunch_selected)===1" class="bbudget-checkbox" /> Lunch</label>
-                        <label class="bbudget-check-label"><input type="checkbox" disabled :checked="Number(aDBudget.dinner_selected)===1" class="bbudget-checkbox" /> Dinner</label>
+                        <span v-if="Number(aDBudget.breakfast_selected)===1" class="bbudget-selected-item">Breakfast</span>
+                        <span v-if="Number(aDBudget.lunch_selected)===1" class="bbudget-selected-item">Lunch</span>
+                        <span v-if="Number(aDBudget.dinner_selected)===1" class="bbudget-selected-item">Dinner</span>
                       </div>
                     </div>
                     <div class="bbudget-subitem">
@@ -168,8 +179,8 @@
                         <span class="bbudget-subitem-value">₱{{ Number(aDBudget.snacks_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span>
                       </div>
                       <div class="bbudget-checks">
-                        <label class="bbudget-check-label"><input type="checkbox" disabled :checked="Number(aDBudget.am_snack_selected)===1" class="bbudget-checkbox" /> AM Snack</label>
-                        <label class="bbudget-check-label"><input type="checkbox" disabled :checked="Number(aDBudget.pm_snack_selected)===1" class="bbudget-checkbox" /> PM Snack</label>
+                        <span v-if="Number(aDBudget.am_snack_selected)===1" class="bbudget-selected-item">AM Snack</span>
+                        <span v-if="Number(aDBudget.pm_snack_selected)===1" class="bbudget-selected-item">PM Snack</span>
                       </div>
                     </div>
                   </div>
@@ -289,20 +300,31 @@
                   <p class="text-sm-light mt-1">{{ report.activity_design.target_participants }}</p>
                 </div>
                 <div>
-                  <label class="info-label">Start Date of Implementation</label>
+                  <label class="info-label">Calculated Start Date</label>
                   <p class="text-sm-light mt-1">{{ formatDate(report.start_date) }}</p>
                 </div>
                 <div>
-                  <label class="info-label">End Date of Implementation</label>
+                  <label class="info-label">Calculated End Date</label>
                   <p class="text-sm-light mt-1">{{ formatDate(report.end_date) }}</p>
                 </div>
-                <div>
-                  <label class="info-label">Start Time</label>
-                  <p class="text-sm-light mt-1">{{ formatTime(report.start_time) }}</p>
-                </div>
-                <div>
-                  <label class="info-label">End Time</label>
-                  <p class="text-sm-light mt-1">{{ formatTime(report.end_time) }}</p>
+                <div class="full-width-info">
+                  <label class="info-label">Full Schedule</label>
+                  <details class="schedule-dropdown" v-if="(report.schedules && report.schedules.length > 0) || (report.activity_design && report.activity_design.schedules && report.activity_design.schedules.length > 0)">
+                    <summary class="schedule-summary">View Full Schedule</summary>
+                    <div class="mt-2">
+                      <div v-for="(sch, i) in (report.schedules && report.schedules.length > 0 ? report.schedules : report.activity_design.schedules)" :key="i" class="p-2 mb-2" style="background: rgba(255,255,255,0.05); border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);">
+                        <div class="text-sm-light">
+                          <strong>{{ formatDate(sch.schedule_date) }}</strong>: {{ formatTime(sch.start_time) }} - {{ formatTime(sch.end_time) }}
+                          <div class="mt-1" v-if="parseMeals(sch.meals_and_snacks).length > 0">
+                            <span v-for="meal in parseMeals(sch.meals_and_snacks)" :key="meal" class="bbudget-selected-item" style="margin-right: 4px; display: inline-block; margin-top: 4px;">{{ meal }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </details>
+                  <div class="mt-2 text-sm-light" v-else>
+                    {{ formatTime(report.start_time) }} - {{ formatTime(report.end_time) }}
+                  </div>
                 </div>
                 <div class="full-width-info">
                   <label class="info-label">Venue</label>
@@ -335,9 +357,9 @@
                         <span class="bbudget-subitem-value">₱{{ Number(aRBudget.meals_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span>
                       </div>
                       <div class="bbudget-checks">
-                        <label class="bbudget-check-label"><input type="checkbox" disabled :checked="Number(aRBudget.breakfast_selected)===1" class="bbudget-checkbox" /> Breakfast</label>
-                        <label class="bbudget-check-label"><input type="checkbox" disabled :checked="Number(aRBudget.lunch_selected)===1" class="bbudget-checkbox" /> Lunch</label>
-                        <label class="bbudget-check-label"><input type="checkbox" disabled :checked="Number(aRBudget.dinner_selected)===1" class="bbudget-checkbox" /> Dinner</label>
+                        <span v-if="Number(aRBudget.breakfast_selected)===1" class="bbudget-selected-item">Breakfast</span>
+                        <span v-if="Number(aRBudget.lunch_selected)===1" class="bbudget-selected-item">Lunch</span>
+                        <span v-if="Number(aRBudget.dinner_selected)===1" class="bbudget-selected-item">Dinner</span>
                       </div>
                     </div>
                     <div class="bbudget-subitem">
@@ -346,8 +368,8 @@
                         <span class="bbudget-subitem-value">₱{{ Number(aRBudget.snacks_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span>
                       </div>
                       <div class="bbudget-checks">
-                        <label class="bbudget-check-label"><input type="checkbox" disabled :checked="Number(aRBudget.am_snack_selected)===1" class="bbudget-checkbox" /> AM Snack</label>
-                        <label class="bbudget-check-label"><input type="checkbox" disabled :checked="Number(aRBudget.pm_snack_selected)===1" class="bbudget-checkbox" /> PM Snack</label>
+                        <span v-if="Number(aRBudget.am_snack_selected)===1" class="bbudget-selected-item">AM Snack</span>
+                        <span v-if="Number(aRBudget.pm_snack_selected)===1" class="bbudget-selected-item">PM Snack</span>
                       </div>
                     </div>
                   </div>
@@ -594,6 +616,27 @@ const fetchReportDetails = async () => {
     error.value = "Failed to load report data.";
   } finally {
     loading.value = false;
+  }
+};
+
+
+const parseMeals = (str) => {
+  if (!str) return [];
+  try {
+    let m = typeof str === 'string' ? JSON.parse(str) : str;
+    if (Array.isArray(m)) return m;
+    if (typeof m === 'object' && m !== null) {
+      const selected = [];
+      if (m.breakfast) selected.push('Breakfast');
+      if (m.am_snack) selected.push('AM Snack');
+      if (m.lunch) selected.push('Lunch');
+      if (m.pm_snack) selected.push('PM Snack');
+      if (m.dinner) selected.push('Dinner');
+      return selected;
+    }
+    return [];
+  } catch(e) {
+    return [];
   }
 };
 
@@ -1017,4 +1060,28 @@ onMounted(() => {
   color: #fb923c;
   border: 1px solid rgba(251, 146, 60, 0.3);
 }
+
+.schedule-dropdown summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: #b979cc;
+  outline: none;
+  font-weight: 500;
+  margin-top: 4px;
+}
+.schedule-dropdown summary:hover {
+  text-decoration: underline;
+}
+.schedule-dropdown[open] summary {
+  margin-bottom: 8px;
+}
+.bbudget-selected-item { 
+  font-size: 12px; 
+  color: #b979cc; 
+  background: rgba(185, 121, 204, 0.1); 
+  padding: 2px 8px; 
+  border-radius: 12px; 
+  border: 1px solid rgba(185, 121, 204, 0.2); 
+}
 </style>
+

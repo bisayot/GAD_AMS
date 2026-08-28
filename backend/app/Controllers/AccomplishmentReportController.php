@@ -295,6 +295,10 @@ class AccomplishmentReportController extends BaseController
 
 
         if ($report) {
+            $db = \Config\Database::connect();
+            $schedules = $db->table('accomplishment_schedules')->where('accomplishment_report_id', $id)->get()->getResultArray();
+            $report['schedules'] = $schedules;
+
             $budgetModel = new \App\Models\AccomplishmentBudgetItemsModel();
             $budgetItems = $budgetModel->where('accomplishment_report_id', $id)->findAll();
             if ($budgetItems) {
@@ -456,6 +460,8 @@ class AccomplishmentReportController extends BaseController
                     } else {
                         $ad['budget_items'] = [];
                     }
+                    $adSchedules = $db->table('activity_schedules')->where('act_design_id', $ad['act_design_id'])->get()->getResultArray();
+                    $ad['schedules'] = $adSchedules;
                     $report['activity_design'] = $ad;
                 }
             }
