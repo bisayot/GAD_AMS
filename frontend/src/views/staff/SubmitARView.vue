@@ -128,8 +128,7 @@
                           </transition>
                         </div>
                       </div>
-                      <input type="date" v-model="form.start_date" :min="minDate" :max="maxDate" required class="custom-input-field code-icon-calendar"
-                      >
+                      <VueDatePicker v-model="form.start_date" :min-date="minDate" :max-date="maxDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" auto-apply required input-class-name="custom-input-field code-icon-calendar" />
                     </div>
                     <div class="input-group-ar">
                       <div class="label-container">
@@ -145,8 +144,7 @@
                           </transition>
                         </div>
                       </div>
-                      <input type="date" v-model="form.end_date" :min="minDate" :max="maxDate" required class="custom-input-field code-icon-calendar"
-                      >
+                      <VueDatePicker v-model="form.end_date" :min-date="minDate" :max-date="maxDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" auto-apply required input-class-name="custom-input-field code-icon-calendar" />
                     </div>
                   </div>
 
@@ -674,6 +672,8 @@
 </template>
 
 <script setup>
+import { useHolidays } from '../../utils/useHolidays';
+const { isDisabledDate } = useHolidays();
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import Swal from 'sweetalert2';
@@ -1135,7 +1135,6 @@ const activePreviewIndex = ref(0);
 const userRole = user.value?.role || user.value?.user_role || '';
 const getPdfViewerUrl = (url) => {
   if (!url) return '';
-    if (url.startsWith('blob:')) return url;
   return `/pdfjs/web/viewer.html?file=${encodeURIComponent(url)}&role=${encodeURIComponent(userRole)}`;
 };
 
@@ -1528,7 +1527,11 @@ const isCurrentYear = (dateString) => {
 
 const isValidTime = (timeStr) => {
   if (!timeStr) return true;
-  return timeStr >= "04:00" && timeStr <= "20:00";
+  const [h, m] = timeStr.split(':').map(Number);
+  if (h < 4 || h > 20 || (h === 20 && m > 0)) {
+    return false;
+  }
+  return true;
 };
 
 watch(() => form.value.start_date, (newDate) => {

@@ -239,11 +239,11 @@
                   </div>
                   <div>
                     <label class="info-label">Start Date of Implementation *</label>
-                    <input type="date" v-model="form.start_date" :min="minDate" :max="maxDate" required class="custom-input-field code-icon-calendar mt-1">
+                    <VueDatePicker v-model="form.start_date" :min-date="minDate" :max-date="maxDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" auto-apply required input-class-name="custom-input-field code-icon-calendar mt-1" />
                   </div>
                   <div>
                     <label class="info-label">End Date of Implementation *</label>
-                    <input type="date" v-model="form.end_date" :min="minDate" :max="maxDate" required class="custom-input-field code-icon-calendar mt-1">
+                    <VueDatePicker v-model="form.end_date" :min-date="minDate" :max-date="maxDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" auto-apply required input-class-name="custom-input-field code-icon-calendar mt-1" />
                   </div>
                   <div>
                     <label class="info-label">Start Time *</label>
@@ -697,6 +697,8 @@
 </template>
 
 <script setup>
+import { useHolidays } from '../../utils/useHolidays';
+const { isDisabledDate } = useHolidays();
 import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -708,7 +710,6 @@ const userRole = user.value?.role || user.value?.user_role || '';
 
 const getPdfViewerUrl = (url) => {
   if (!url) return '';
-    if (url.startsWith('blob:')) return url;
   return `/pdfjs/web/viewer.html?file=${encodeURIComponent(url)}&role=${encodeURIComponent(userRole)}`;
 };
 
@@ -1017,7 +1018,11 @@ const isCurrentYear = (dateString) => {
 
 const isValidTime = (timeStr) => {
   if (!timeStr) return true;
-  return timeStr >= "04:00" && timeStr <= "20:00";
+  const [h, m] = timeStr.split(':').map(Number);
+  if (h < 4 || h > 20 || (h === 20 && m > 0)) {
+    return false;
+  }
+  return true;
 };
 
 watch(() => form.value.start_date, (newDate) => {
@@ -1478,7 +1483,7 @@ const getFileURL = (file) => {
 
 const getExistingFileURL = (filename) => {
   if (!filename) return '';
-  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : 'https://gad-ams-2-1.onrender.com');
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api/', '') : 'https://gad-ams-2-1.onrender.com');
   // Ensuring no double slashes before api
   const formattedBase = base.endsWith('/') ? base.slice(0, -1) : base;
   return `${formattedBase}/api/files/drafts/${filename}`;
@@ -1486,7 +1491,7 @@ const getExistingFileURL = (filename) => {
 
 const previewFile = (filename, folder) => {
   if (!filename) return;
-  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : 'https://gad-ams-2-1.onrender.com');
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api/', '') : 'https://gad-ams-2-1.onrender.com');
   pdfFileUrl.value = `${base}/api/files/${folder}/${filename}`;
   isPdfModalOpen.value = true;
 };
@@ -1499,7 +1504,7 @@ const previewNewFile = (file) => {
 
 const downloadFile = (filename, folder, prefix) => {
   if (!filename) return;
-  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : 'https://gad-ams-2-1.onrender.com');
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api/', '') : 'https://gad-ams-2-1.onrender.com');
   const url = `${base}/api/files/${folder}/${filename}`;
   window.open(url, '_blank');
 };

@@ -60,6 +60,7 @@ class AccomplishmentReportController extends BaseController
                 "end_date"       => $this->request->getPost("end_date"),
                 "start_time"     => $this->request->getPost("start_time"),
                 "end_time"       => $this->request->getPost("end_time"),
+                "schedule_type"  => $this->request->getPost("schedule_type"),
                 "venue"          => $this->request->getPost("venue"),
                 "is_inside_bsu"  => filter_var($this->request->getPost('is_inside_bsu'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0,
                 "attendees"      => $this->request->getPost("attendees"),
@@ -78,6 +79,25 @@ class AccomplishmentReportController extends BaseController
 
             if ($accomplishmentReportModel->insert($data)) {
                 $reportId = $accomplishmentReportModel->getInsertID();
+
+                // Save schedules
+                $schedulesJson = $this->request->getPost('schedules');
+                if (!empty($schedulesJson)) {
+                    $schedulesData = json_decode($schedulesJson, true);
+                    if (is_array($schedulesData) && count($schedulesData) > 0) {
+                        $scheduleModel = new \App\Models\AccomplishmentScheduleModel();
+                        foreach ($schedulesData as &$sch) {
+                            $sch['accomplishment_report_id'] = $reportId;
+                            if (isset($sch['date'])) {
+                                $sch['schedule_date'] = $sch['date'];
+                            }
+                            if (isset($sch['meals_and_snacks']) && is_array($sch['meals_and_snacks'])) {
+                                $sch['meals_and_snacks'] = json_encode($sch['meals_and_snacks']);
+                            }
+                        }
+                        $scheduleModel->insertBatch($schedulesData);
+                    }
+                }
 
                 // Save budget items
                 $budgetItemsJson = $this->request->getPost('budget_items');
@@ -102,7 +122,8 @@ class AccomplishmentReportController extends BaseController
                 if (!empty($evalItemsJson)) {
                     $evalData = json_decode($evalItemsJson, true);
                     if (is_array($evalData)) {
-                        $evalModel = new \App\Models\AccomplishmentEvaluationResultsModel();
+                        $evalModel
+             = new \App\Models\AccomplishmentEvaluationResultsModel();
                         $evalModel->where('accomplishment_report_id', $reportId)->delete();
                         $inserts = [];
                         foreach ($evalData as $key => $score) {
@@ -514,6 +535,7 @@ class AccomplishmentReportController extends BaseController
             'end_date'       => $this->request->getPost('end_date'),
             'start_time'     => $this->request->getPost('start_time'),
             'end_time'       => $this->request->getPost('end_time'),
+            'schedule_type'  => $this->request->getPost('schedule_type'),
             'venue'          => $this->request->getPost('venue'),
             'is_inside_bsu'  => $this->request->getPost('is_inside_bsu') !== null ? (filter_var($this->request->getPost('is_inside_bsu'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0) : null,
             'attendees'      => $this->request->getPost('attendees'),
@@ -552,6 +574,25 @@ class AccomplishmentReportController extends BaseController
 
         try {
             if ($model->update($id, $updateData)) {
+                    // Update schedules
+                    $schedulesJson = $this->request->getPost('schedules');
+                    if (!empty($schedulesJson)) {
+                        $schedulesData = json_decode($schedulesJson, true);
+                        if (is_array($schedulesData) && count($schedulesData) > 0) {
+                            $scheduleModel = new \App\Models\AccomplishmentScheduleModel();
+                            $scheduleModel->where('accomplishment_report_id', $id)->delete();
+                            foreach ($schedulesData as &$sch) {
+                                $sch['accomplishment_report_id'] = $id;
+                                if (isset($sch['date'])) {
+                                    $sch['schedule_date'] = $sch['date'];
+                                }
+                                if (isset($sch['meals_and_snacks']) && is_array($sch['meals_and_snacks'])) {
+                                    $sch['meals_and_snacks'] = json_encode($sch['meals_and_snacks']);
+                                }
+                            }
+                            $scheduleModel->insertBatch($schedulesData);
+                        }
+                    }
                 
                 // Update or Insert budget items
                 $budgetItemsJson = $this->request->getPost('budget_items');

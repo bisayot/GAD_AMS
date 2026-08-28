@@ -143,6 +143,25 @@ class ActivityDesignController extends BaseController
                 }
 
                 // Save budget items
+                // Save staggered schedules if any
+                $schedulesStr = $this->request->getPost("schedules");
+                if ($schedulesStr) {
+                    $schedules = json_decode($schedulesStr, true);
+                    if (is_array($schedules) && count($schedules) > 0) {
+                        $scheduleModel = new \App\Models\ActivityScheduleModel();
+                        foreach ($schedules as &$sch) {
+                            $sch['act_design_id'] = $actDesignId;
+                            if (isset($sch['date'])) {
+                                $sch['schedule_date'] = $sch['date'];
+                            }
+                            if (isset($sch['meals_and_snacks']) && is_array($sch['meals_and_snacks'])) {
+                                $sch['meals_and_snacks'] = json_encode($sch['meals_and_snacks']);
+                            }
+                        }
+                        $scheduleModel->insertBatch($schedules);
+                    }
+                }
+
                 $budgetItemsStr = $this->request->getPost("budget_items");
                 if ($budgetItemsStr) {
                     $budgetItems = json_decode($budgetItemsStr, true);
@@ -327,6 +346,18 @@ class ActivityDesignController extends BaseController
                 $design['materials_others_breakdown'] = json_encode($design['materials_others_breakdown']);
             }
             $design['budget_items'] = $budgetItems;
+
+            // Fetch staggered schedules
+            $scheduleModel = new \App\Models\ActivityScheduleModel();
+            $schedules = $scheduleModel->where('act_design_id', $design['act_design_id'])->orderBy('schedule_date', 'ASC')->findAll();
+            // Decode meals_and_snacks for the frontend
+            foreach ($schedules as &$sch) {
+                if (isset($sch['meals_and_snacks']) && is_string($sch['meals_and_snacks'])) {
+                    $decoded = json_decode($sch['meals_and_snacks'], true);
+                    $sch['meals_and_snacks'] = $decoded !== null ? $decoded : [];
+                }
+            }
+            $design['schedules'] = $schedules;
         }
 
         return $this->response->setJSON(['success' => true, 'data' => $design]);
@@ -516,6 +547,7 @@ class ActivityDesignController extends BaseController
             'venue_id'            => $venueId,
             'proposed_budget'     => $this->request->getPost('proposed_budget'),
             'target_participants' => $this->request->getPost('target_participants'),
+            'schedule_type'       => $this->request->getPost('schedule_type'),
         ];
         
         $status = $this->request->getPost('status') ?? 'Pending';
@@ -568,6 +600,26 @@ class ActivityDesignController extends BaseController
                 }
 
                 // Update or Insert budget items
+                // 2.5 Update staggered schedules
+                $schedulesStr = $this->request->getPost("schedules");
+                if ($schedulesStr) {
+                    $schedules = json_decode($schedulesStr, true);
+                    $scheduleModel = new \App\Models\ActivityScheduleModel();
+                    $scheduleModel->where('act_design_id', $id)->delete();
+                    if (is_array($schedules) && count($schedules) > 0) {
+                        foreach ($schedules as &$sch) {
+                            $sch['act_design_id'] = $id;
+                            if (isset($sch['date'])) {
+                                $sch['schedule_date'] = $sch['date'];
+                            }
+                            if (isset($sch['meals_and_snacks']) && is_array($sch['meals_and_snacks'])) {
+                                $sch['meals_and_snacks'] = json_encode($sch['meals_and_snacks']);
+                            }
+                        }
+                        $scheduleModel->insertBatch($schedules);
+                    }
+                }
+
                 $budgetItemsStr = $this->request->getPost("budget_items");
                 if ($budgetItemsStr) {
                     $budgetItems = json_decode($budgetItemsStr, true);
@@ -588,7 +640,13 @@ class ActivityDesignController extends BaseController
 
                 $title = $updateData['activity_title'] ?? $design['activity_title'];
                 \App\Models\ActivityLogModel::log($design['user_id'], 'Update Document', 'resubmitted Activity Design: ' . $title);
-                NotificationService::sendToAdmins('Activity Design Resubmitted', 'Activity Design "' . $title . '" has been resubmitted and is pending review.', '/admin/ad-list', 'info');
+                
+                if ($design['status'] === 'Approved') {
+                    $submitterName = $db->table('users')->select('full_name')->where('id', $design['user_id'])->get()->getRow()->full_name ?? 'A user';
+                    NotificationService::sendToAdmins('Activity Design Modified', $submitterName . ' modified the approved Activity Design "' . $title . '".', '/admin/ad-list', 'info');
+                } else {
+                    NotificationService::sendToAdmins('Activity Design Resubmitted', 'Activity Design "' . $title . '" has been resubmitted and is pending review.', '/admin/ad-list', 'info');
+                }
 
                 return $this->response->setJSON([
                     'success' => true,
@@ -1164,6 +1222,8 @@ class ActivityDesignController extends BaseController
 
         $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
         \App\Models\ActivityLogModel::log($actionUserId, 'Reject Modification', 'rejected modification request for Activity Design: ' . $design['activity_title']);
+        
+        NotificationService::send($design['user_id'], 'Modification Rejected', 'Your modification request for "' . $design['activity_title'] . '" has been rejected.', '/staff/activity-designs', 'error');
 
         return $this->response->setJSON(['success' => true, 'message' => 'Modification request rejected']);
     }

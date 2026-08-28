@@ -26,10 +26,10 @@ class Paths
      * This must contain the name of your "system" folder. Include
      * the path if the folder is not in the same directory as this file.
      *
-     * NOTE for Hostinger: Replace YOUR_HOSTINGER_USERNAME with your actual
-     * username. Find it in hPanel > File Manager (e.g., u123456789).
+     * Uses a relative path so this works on localhost, Hostinger, and
+     * any other server without modification.
      */
-    public string $systemDirectory = '/home/u366424097/domains/bsugad.com/backend/vendor/codeigniter4/framework/system';
+    public string $systemDirectory = __DIR__ . '/../../vendor/codeigniter4/framework/system';
 
     /**
      * ---------------------------------------------------------------
@@ -43,7 +43,7 @@ class Paths
      *
      * @see http://codeigniter.com/user_guide/general/managing_apps.html
      */
-    public string $appDirectory = '/home/u366424097/domains/bsugad.com/backend/app';
+    public string $appDirectory = __DIR__ . '/..';
 
     /**
      * ---------------------------------------------------------------
@@ -56,7 +56,7 @@ class Paths
      * for maximum security, keeping it out of the app and/or
      * system directories.
      */
-    public string $writableDirectory = '/home/u366424097/domains/bsugad.com/backend/writable';
+    public string $writableDirectory = __DIR__ . '/../../writable';
 
     /**
      * ---------------------------------------------------------------
@@ -65,7 +65,7 @@ class Paths
      *
      * This variable must contain the name of your "tests" directory.
      */
-    public string $testsDirectory = '/home/u366424097/domains/bsugad.com/backend/tests';
+    public string $testsDirectory = __DIR__ . '/../../tests';
 
     /**
      * ---------------------------------------------------------------
@@ -77,7 +77,7 @@ class Paths
      * default this is in `app/Views`. This value
      * is used when no value is provided to `Services::renderer()`.
      */
-    public string $viewDirectory = '/home/u366424097/domains/bsugad.com/backend/app/Views';
+    public string $viewDirectory = __DIR__ . '/../Views';
 
     /**
      * ---------------------------------------------------------------
@@ -89,5 +89,5 @@ class Paths
      * Please consider security implications when changing this
      * value - the directory should not be publicly accessible.
      */
-    public string $envDirectory = '/home/u366424097/domains/bsugad.com/backend';
+    public string $envDirectory = __DIR__ . '/../..';
 }

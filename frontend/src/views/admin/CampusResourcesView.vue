@@ -23,12 +23,21 @@
         <span class="material-symbols-outlined">location_on</span>
         Venues
       </button>
+      <button 
+        class="tab-btn" 
+        :class="{ 'active-tab': activeTab === 'holidays' }"
+        @click="activeTab = 'holidays'"
+      >
+        <span class="material-symbols-outlined">event_busy</span>
+        Holidays
+      </button>
     </div>
 
     <!-- Content Area -->
     <div class="tab-content">
       <OfficeManagementView v-if="activeTab === 'offices'" :is-nested="true" />
       <VenuesManagementView v-if="activeTab === 'venues'" :is-nested="true" />
+      <HolidaysManagementView v-if="activeTab === 'holidays'" />
     </div>
   </div>
 </template>
@@ -37,6 +46,7 @@
 import { ref } from 'vue';
 import OfficeManagementView from './OfficeManagementView.vue';
 import VenuesManagementView from './VenuesManagementView.vue';
+import HolidaysManagementView from './HolidaysManagementView.vue';
 
 const activeTab = ref('offices');
 </script>

@@ -26,6 +26,18 @@
 
     <div v-else class="page-container">
       <div class="layout-grid">
+
+      <!-- Rejection/Revision Note Alert -->
+      <div v-if="(design?.modification_remarks || existingReport?.modification_remarks)" class="mb-6 p-4 rounded-xl" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);">
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+          <span class="material-symbols-outlined" style="color: #f87171; font-size: 24px; margin-top: 2px;">error</span>
+          <div>
+            <h4 style="color: #fca5a5; font-size: 14px; font-weight: bold; margin: 0 0 6px 0; font-family: 'Inter', sans-serif; letter-spacing: 0.5px;">Rejection / Revision Note</h4>
+            <p style="color: #fecaca; font-size: 13px; margin: 0; font-family: 'Inter', sans-serif; line-height: 1.5; white-space: pre-wrap;">{{ design?.modification_remarks || existingReport?.modification_remarks }}</p>
+          </div>
+        </div>
+      </div>
+
         <!-- LEFT SECTION - Edit Form -->
         <section :class="design.status === 'Approved' ? 'flex-100' : 'flex-06'" class="glass-card">
           <div class="report-header">
@@ -98,24 +110,180 @@
                 <span class="material-symbols-outlined icon-pink">calendar_month</span>
                 <h3 class="section-title">Schedule & Venue</h3>
               </div>
-              <div class="grid-2">
-                <div>
-                  <label class="form-label">Start Date</label>
-                  <input v-model="formData.start_date" type="date" class="modal-input" :min="minStartDate">
-                </div>
-                <div>
-                  <label class="form-label">End Date</label>
-                  <input v-model="formData.end_date" type="date" class="modal-input" :min="formData.start_date || minStartDate">
-                </div>
-                <div>
-                  <label class="form-label">Start Time</label>
-                  <input v-model="formData.start_time" type="time" class="modal-input">
-                </div>
-                <div>
-                  <label class="form-label">End Time</label>
-                  <input v-model="formData.end_time" type="time" class="modal-input">
-                </div>
-              </div>
+
+                  <!-- Computed Global Dates -->
+                  <div class="form-sub-grid mb-4 mt-4">
+                    <div class="input-group">
+                      <div class="label-container">
+                        <label class="form-label">Calculated Start Date</label>
+                        <div class="info-btn-wrapper">
+                          <button type="button" class="info-btn" @click.stop="toggleHelp('startDate')">
+                            i
+                          </button>
+                          <transition name="fade-pop">
+                            <div v-if="helpState.startDate" class="simple-popup">
+                              Ideal submission is 15 working days before this date. Strict minimum is 3 working days.
+                            </div>
+                          </transition>
+                        </div>
+                      </div>
+                      <div class="custom-input-field" style="display: flex; align-items: center; gap: 8px; opacity: 0.8; cursor: not-allowed;">
+                        <span class="material-symbols-outlined" style="font-size: 16px; color: #b979cc;">calendar_month</span>
+                        {{ computedStartDate || 'Awaiting schedule...' }}
+                      </div>
+                    </div>
+                    <div class="input-group">
+                      <label class="form-label">Calculated End Date</label>
+                      <div class="custom-input-field" style="display: flex; align-items: center; gap: 8px; opacity: 0.8; cursor: not-allowed;">
+                        <span class="material-symbols-outlined" style="font-size: 16px; color: #b979cc;">event</span>
+                        {{ computedEndDate || 'Awaiting schedule...' }}
+                      </div>
+                    </div>
+                  </div>
+
+<!-- Staggered Schedules Section -->
+                  <div class="schedules-container" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
+                    <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
+                      <div style="display: flex; align-items: center; gap: 16px;">
+                          <label class="form-label !mb-0 flex items-center gap-2">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">schedule</span>
+                            Activity Schedules *
+                          </label>
+                          <div style="display: flex; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 4px; border: 1px solid rgba(255,255,255,0.05);">
+                            <button type="button" @click.prevent="handleScheduleTypeChange('staggered')" :style="{ background: scheduleType === 'staggered' ? 'rgba(185, 121, 204, 0.2)' : 'transparent', color: scheduleType === 'staggered' ? '#e9d5ff' : '#94a3b8', padding: '4px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', border: 'none' }">Non Consecutive</button>
+                            <button type="button" @click.prevent="handleScheduleTypeChange('continuous')" :style="{ background: scheduleType === 'continuous' ? 'rgba(185, 121, 204, 0.2)' : 'transparent', color: scheduleType === 'continuous' ? '#e9d5ff' : '#94a3b8', padding: '4px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', border: 'none' }">Consecutive</button>
+                          </div>
+                      </div>
+                      <button type="button" v-if="scheduleType === 'staggered'" @click.prevent="addSchedule" style="background: rgba(185, 121, 204, 0.2); color: #e9d5ff; border: 1px solid rgba(185, 121, 204, 0.3); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s;">
+                        <span class="material-symbols-outlined" style="font-size: 14px;">add</span> Add Schedule
+                      </button>
+                    </div>
+                    
+                    <div v-if="schedules.length === 0" style="color: #94a3b8; font-size: 13px; font-style: italic; margin-bottom: 8px;">
+                      Please add at least one schedule.
+                    </div>
+                    
+                    
+                    <!-- Continuous Config UI -->
+                    <div v-if="scheduleType === 'continuous'" class="schedule-row mb-3 p-4 bg-white border border-slate-200 rounded-lg relative" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
+                      <div style="display: flex; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+                        <div class="flex-1">
+                          <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Start Date</label>
+                          <VueDatePicker dark v-model="continuousConfig.start_date" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
+<template #dp-input="{ value }">
+<input type="text" :value="value ? String(value).replace(',', '').trim().split(' ')[0] : ''" class="custom-input-field dp-custom-transparent !text-xs !p-2" readonly placeholder="Select Date" />
+</template>
+</VueDatePicker>
+                        </div>
+                        <div class="flex-1">
+                          <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">End Date</label>
+                          <VueDatePicker dark v-model="continuousConfig.end_date" :min-date="continuousConfig.start_date || minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
+<template #dp-input="{ value }">
+<input type="text" :value="value ? String(value).replace(',', '').trim().split(' ')[0] : ''" class="custom-input-field dp-custom-transparent !text-xs !p-2" readonly placeholder="Select Date" />
+</template>
+</VueDatePicker>
+                        </div>
+                        <div class="flex-1">
+                          <div class="label-container" style="margin-bottom: 4px;">
+                            <label class="text-[10px] uppercase font-bold text-slate-500 mb-0">Time From</label>
+                            <div class="info-btn-wrapper">
+                              <button type="button" class="info-btn" @click.stop="toggleHelp('startTime')" style="width: 14px; height: 14px; font-size: 10px;">i</button>
+                              <transition name="fade-pop"><div v-if="helpState.startTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
+                            </div>
+                          </div>
+                          <input type="time" v-model="continuousConfig.start_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="handleTimeChange(continuousConfig)">
+                        </div>
+                        <div class="flex-1">
+                          <div class="label-container" style="margin-bottom: 4px;">
+                            <label class="text-[10px] uppercase font-bold text-slate-500 mb-0">Time To</label>
+                            <div class="info-btn-wrapper">
+                              <button type="button" class="info-btn" @click.stop="toggleHelp('endTime')" style="width: 14px; height: 14px; font-size: 10px;">i</button>
+                              <transition name="fade-pop"><div v-if="helpState.endTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
+                            </div>
+                          </div>
+                          <input type="time" v-model="continuousConfig.end_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="handleTimeChange(continuousConfig)">
+                        </div>
+                      </div>
+                      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.1);">
+                        <span style="font-size: 10px; text-transform: uppercase; font-weight: bold; color: #b979cc; margin-right: 8px;">Meals Applied Daily:</span>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;" :style="{ opacity: (continuousConfig.start_time && Number(continuousConfig.start_time.split(':')[0]) >= 13) ? '0.5' : '1' }">
+                          <input type="checkbox" v-model="continuousConfig.meals_and_snacks.breakfast" :disabled="continuousConfig.start_time && Number(continuousConfig.start_time.split(':')[0]) >= 13" style="accent-color: #b979cc;" /> Breakfast
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;" :style="{ opacity: (continuousConfig.start_time && Number(continuousConfig.start_time.split(':')[0]) >= 13) ? '0.5' : '1' }">
+                          <input type="checkbox" v-model="continuousConfig.meals_and_snacks.am_snack" :disabled="continuousConfig.start_time && Number(continuousConfig.start_time.split(':')[0]) >= 13" style="accent-color: #b979cc;" /> AM Snack
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
+                          <input type="checkbox" v-model="continuousConfig.meals_and_snacks.lunch" style="accent-color: #b979cc;" /> Lunch
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;" :style="{ opacity: (continuousConfig.end_time && (Number(continuousConfig.end_time.split(':')[0]) < 12 || continuousConfig.end_time === '12:00')) ? '0.5' : '1' }">
+                          <input type="checkbox" v-model="continuousConfig.meals_and_snacks.pm_snack" :disabled="continuousConfig.end_time && (Number(continuousConfig.end_time.split(':')[0]) < 12 || continuousConfig.end_time === '12:00')" style="accent-color: #b979cc;" /> PM Snack
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;" :style="{ opacity: (continuousConfig.end_time && (Number(continuousConfig.end_time.split(':')[0]) < 12 || continuousConfig.end_time === '12:00')) ? '0.5' : '1' }">
+                          <input type="checkbox" v-model="continuousConfig.meals_and_snacks.dinner" :disabled="continuousConfig.end_time && (Number(continuousConfig.end_time.split(':')[0]) < 12 || continuousConfig.end_time === '12:00')" style="accent-color: #b979cc;" /> Dinner
+                        </label>
+                      </div>
+                    </div>
+
+                    <!-- Expanded Schedules UI -->
+                    <div v-if="scheduleType === 'continuous' && schedules.length > 0" style="margin-top: 16px; margin-bottom: 8px; color: #b979cc; font-size: 11px; font-weight: bold; display: flex; align-items: center; gap: 4px;">
+                      <span class="material-symbols-outlined" style="font-size: 14px;">info</span>
+                      You can customize the Time and Meals for specific days (e.g., half-day on the last day) below:
+                    </div>
+                    <div v-for="(sch, index) in schedules" :key="index" style="display: flex; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); position: relative;">
+                      <div style="flex: 1;">
+                        <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 6px; display: block;">Date</label>
+                        <VueDatePicker dark v-model="sch.date" :disabled="scheduleType === 'continuous'" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
+<template #dp-input="{ value }">
+<input type="text" :value="value ? String(value).replace(',', '').trim().split(' ')[0] : ''" class="custom-input-field dp-custom-transparent !text-xs !p-2" readonly placeholder="Select Date" />
+</template>
+</VueDatePicker>
+                      </div>
+                      <div style="flex: 1;">
+                        <div class="label-container" style="margin-bottom: 6px;">
+                          <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 0;">Start Time</label>
+                          <div class="info-btn-wrapper">
+                            <button type="button" class="info-btn" @click.stop="toggleHelp('startTime')" style="width: 14px; height: 14px; font-size: 10px;">i</button>
+                            <transition name="fade-pop"><div v-if="helpState.startTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
+                          </div>
+                        </div>
+                        <input type="time" v-model="sch.start_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="validateScheduleTime(index)">
+                      </div>
+                      <div style="flex: 1;">
+                        <div class="label-container" style="margin-bottom: 6px;">
+                          <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 0;">End Time</label>
+                          <div class="info-btn-wrapper">
+                            <button type="button" class="info-btn" @click.stop="toggleHelp('endTime')" style="width: 14px; height: 14px; font-size: 10px;">i</button>
+                            <transition name="fade-pop"><div v-if="helpState.endTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
+                          </div>
+                        </div>
+                        <input type="time" v-model="sch.end_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="validateScheduleTime(index)">
+                      </div>
+                      <button type="button" v-if="scheduleType === 'staggered' && schedules.length > 1" @click.prevent="removeSchedule(index)" style="background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" title="Remove Schedule">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
+                      </button>
+                      <div style="flex-basis: 100%; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 8px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.1);">
+                        <span style="font-size: 10px; text-transform: uppercase; font-weight: bold; color: #b979cc; margin-right: 8px;">Meals Needed:</span>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
+                          <input type="checkbox" v-model="sch.meals_and_snacks.breakfast" :disabled="sch.start_time && Number(sch.start_time.split(':')[0]) >= 13" style="accent-color: #b979cc;" /> Breakfast
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
+                          <input type="checkbox" v-model="sch.meals_and_snacks.am_snack" :disabled="sch.start_time && Number(sch.start_time.split(':')[0]) >= 13" style="accent-color: #b979cc;" /> AM Snack
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
+                          <input type="checkbox" v-model="sch.meals_and_snacks.lunch" style="accent-color: #b979cc;" /> Lunch
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
+                          <input type="checkbox" v-model="sch.meals_and_snacks.pm_snack" :disabled="sch.end_time && (Number(sch.end_time.split(':')[0]) < 12 || sch.end_time === '12:00')" style="accent-color: #b979cc;" /> PM Snack
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
+                          <input type="checkbox" v-model="sch.meals_and_snacks.dinner" :disabled="sch.end_time && (Number(sch.end_time.split(':')[0]) < 12 || sch.end_time === '12:00')" style="accent-color: #b979cc;" /> Dinner
+                        </label>
+                      </div>
+                    </div>
+                    
+                    
+                  </div>
+
               <div class="venue-participants-row">
                 <div class="venue-col">
                   <label class="form-label">Venue</label>
@@ -172,17 +340,12 @@
                       <div class="budget-row-item">
                         <div class="budget-item-info">
                           <div class="budget-item-title">Meals</div>
-                          <div class="budget-sub-controls">
-                            <label class="budget-checkbox-label">
-                              <input type="checkbox" v-model="mealsSelected.breakfast" class="budget-checkbox" /> Breakfast
-                            </label>
-                            <label class="budget-checkbox-label">
-                              <input type="checkbox" v-model="mealsSelected.lunch" class="budget-checkbox" /> Lunch
-                            </label>
-                            <label class="budget-checkbox-label">
-                              <input type="checkbox" v-model="mealsSelected.dinner" class="budget-checkbox" /> Dinner
-                            </label>
-                          </div>
+                          <div class="budget-sub-controls" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <span style="font-size: 11px; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px;" v-if="totalBreakfastDays > 0">Breakfast ({{ totalBreakfastDays }} days)</span>
+                                <span style="font-size: 11px; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px;" v-if="totalLunchDays > 0">Lunch ({{ totalLunchDays }} days)</span>
+                                <span style="font-size: 11px; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px;" v-if="totalDinnerDays > 0">Dinner ({{ totalDinnerDays }} days)</span>
+                                <span style="font-size: 11px; color: #64748b; font-style: italic;" v-if="totalBreakfastDays === 0 && totalLunchDays === 0 && totalDinnerDays === 0">No meals selected in schedules</span>
+                              </div>
                           
                         </div>
                         <div class="budget-item-value">
@@ -202,14 +365,11 @@
                       <div class="budget-row-item">
                         <div class="budget-item-info">
                           <div class="budget-item-title">Snacks</div>
-                          <div class="budget-sub-controls">
-                            <label class="budget-checkbox-label">
-                              <input type="checkbox" v-model="snacksSelected.am" class="budget-checkbox" /> AM Snack
-                            </label>
-                            <label class="budget-checkbox-label">
-                              <input type="checkbox" v-model="snacksSelected.pm" class="budget-checkbox" /> PM Snack
-                            </label>
-                          </div>
+                          <div class="budget-sub-controls" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <span style="font-size: 11px; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px;" v-if="totalAMSnackDays > 0">AM Snack ({{ totalAMSnackDays }} days)</span>
+                                <span style="font-size: 11px; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px;" v-if="totalPMSnackDays > 0">PM Snack ({{ totalPMSnackDays }} days)</span>
+                                <span style="font-size: 11px; color: #64748b; font-style: italic;" v-if="totalAMSnackDays === 0 && totalPMSnackDays === 0">No snacks selected in schedules</span>
+                              </div>
                           
                         </div>
                         <div class="budget-item-value">
@@ -295,15 +455,15 @@
                       <div class="budget-row-item">
                         <div class="budget-item-info">
                           <div class="budget-item-title">Transportation</div>
-                          <div v-if="formData.budget_items[8].total > 20000" class="budget-error-inline">
-                            ⚠️ Cannot exceed ₱20,000 limit.
+                          <div v-if="formData.budget_items[8].total > baselineSettings.transportation_limit" class="budget-error-inline">
+                            ⚠️ Cannot exceed ₱{{ Number(baselineSettings.transportation_limit).toLocaleString('en-US') }} limit.
                           </div>
                         </div>
                         <div class="budget-item-value">
                           <span class="budget-currency-symbol">₱</span>
                           <input 
                             type="number" 
-                            v-model="formData.budget_items[8].total" 
+                            v-model="formData.budget_items[8].total" @change="checkTransportationLimit" 
                             class="budget-card-input"
                             placeholder="0.00"
                             min="0"
@@ -542,6 +702,8 @@
 </template>
 
 <script setup>
+import { useHolidays } from '../../utils/useHolidays';
+const { isDisabledDate, getWorkingDaysDiff, addWorkingDays } = useHolidays();
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '../../api';
@@ -553,7 +715,6 @@ const userRole = user.value?.role || user.value?.user_role || '';
 
 const getPdfViewerUrl = (url) => {
   if (!url) return '';
-    if (url.startsWith('blob:')) return url;
   return `/pdfjs/web/viewer.html?file=${encodeURIComponent(url)}&role=${encodeURIComponent(userRole)}`;
 };
 
@@ -570,6 +731,187 @@ const loading = ref(true);
 const submitting = ref(false);
 const error = ref(null);
 const venues = ref([]);
+
+
+const scheduleType = ref('staggered');
+const continuousConfig = ref({
+  start_date: '',
+  end_date: '',
+  start_time: '',
+  end_time: '',
+  meals_and_snacks: { breakfast: false, am_snack: false, lunch: false, pm_snack: false, dinner: false }
+});
+
+const validateTimeBounds = (timeStr, fieldName, schObj, fieldKey) => {
+  if (!timeStr) return true;
+  const [h, m] = timeStr.split(':').map(Number);
+  if (h < 4 || h > 20 || (h === 20 && m > 0)) {
+    document.activeElement?.blur();
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Time',
+      text: `${fieldName} must be between 04:00 AM and 08:00 PM.`,
+      confirmButtonColor: '#b979cc'
+    });
+    schObj[fieldKey] = '';
+    return false;
+  }
+  return true;
+};
+
+const handleTimeChange = (sch) => {
+  if (sch.start_time && !validateTimeBounds(sch.start_time, 'Start Time', sch, 'start_time')) return;
+  if (sch.end_time && !validateTimeBounds(sch.end_time, 'End Time', sch, 'end_time')) return;
+  
+  if (sch.start_time && sch.end_time) {
+    const startTimeParts = sch.start_time.split(':');
+    const endTimeParts = sch.end_time.split(':');
+    const startMinutes = parseInt(startTimeParts[0]) * 60 + parseInt(startTimeParts[1]);
+    const endMinutes = parseInt(endTimeParts[0]) * 60 + parseInt(endTimeParts[1]);
+    
+    if (endMinutes <= startMinutes) {
+      document.activeElement?.blur();
+      Swal.fire({ icon: 'warning', title: 'Invalid Time Range', text: 'End time must be after start time.', confirmButtonColor: '#b979cc' });
+      sch.end_time = '';
+      return;
+    } else if ((endMinutes - startMinutes) < 60) {
+      document.activeElement?.blur();
+      Swal.fire({ icon: 'warning', title: 'Invalid Time Range', text: 'The activity duration must be at least 1 hour.', confirmButtonColor: '#b979cc' });
+      sch.end_time = '';
+      return;
+    }
+  }
+
+  if (!sch.start_time || !sch.end_time) return;
+  const [startH] = sch.start_time.split(':').map(Number);
+  const [endH, endM] = sch.end_time.split(':').map(Number);
+  if (startH >= 13) {
+    sch.meals_and_snacks.breakfast = false;
+    sch.meals_and_snacks.am_snack = false;
+  }
+  if (endH < 12 || (endH === 12 && endM === 0)) {
+    sch.meals_and_snacks.pm_snack = false;
+    sch.meals_and_snacks.dinner = false;
+  }
+};
+
+const generateConsecutiveSchedules = () => {
+  if (scheduleType.value !== 'continuous') return;
+  if (!continuousConfig.value.start_date || !continuousConfig.value.end_date) {
+    return;
+  }
+  
+  const start = new Date(continuousConfig.value.start_date);
+  const end = new Date(continuousConfig.value.end_date);
+  
+  if (start > end) return;
+  
+  const generated = [];
+  let current = new Date(start);
+  while (current <= end) {
+    if (isDisabledDate(current)) {
+      current.setDate(current.getDate() + 1);
+      continue;
+    }
+    const dateStr = current.toISOString().split('T')[0];
+    
+    // Update existing schedules with the latest master time, overriding any manual edits to ensure consistency when the master config changes.
+    const existing = schedules.value.find(s => s.date === dateStr);
+    if (existing) {
+      generated.push({ 
+        ...existing,
+        start_time: continuousConfig.value.start_time,
+        end_time: continuousConfig.value.end_time,
+        meals_and_snacks: { ...continuousConfig.value.meals_and_snacks }
+      });
+    } else {
+      generated.push({
+        date: dateStr,
+        start_time: continuousConfig.value.start_time,
+        end_time: continuousConfig.value.end_time,
+        meals_and_snacks: { ...continuousConfig.value.meals_and_snacks }
+      });
+    }
+    
+    current.setDate(current.getDate() + 1);
+  }
+  schedules.value = generated;
+};
+
+const handleScheduleTypeChange = (newType) => {
+  if (scheduleType.value === newType) return;
+  scheduleType.value = newType;
+  
+  continuousConfig.value = {
+    start_date: '',
+    end_date: '',
+    start_time: '',
+    end_time: '',
+    meals_and_snacks: { breakfast: false, am_snack: false, pm_snack: false, dinner: false }
+  };
+  
+  schedules.value = [{
+    date: '',
+    start_time: '',
+    end_time: '',
+    meals_and_snacks: { breakfast: false, am_snack: false, pm_snack: false, dinner: false }
+  }];
+};
+
+watch(continuousConfig, () => {
+  if (loadingData.value) return;
+  generateConsecutiveSchedules();
+}, { deep: true });
+
+
+
+const computedStartDate = computed(() => {
+  if (!schedules.value || schedules.value.length === 0) return '';
+  const validDates = schedules.value.map(s => s.date).filter(Boolean);
+  if (validDates.length === 0) return '';
+  return validDates.sort((a, b) => new Date(a) - new Date(b))[0];
+});
+
+const computedEndDate = computed(() => {
+  if (!schedules.value || schedules.value.length === 0) return '';
+  const validDates = schedules.value.map(s => s.date).filter(Boolean);
+  if (validDates.length === 0) return '';
+  return validDates.sort((a, b) => new Date(a) - new Date(b))[validDates.length - 1];
+});
+
+const addSchedule = () => {
+  schedules.value.push({ date: '', start_time: '', end_time: '', meals_and_snacks: { breakfast: false, am_snack: false, lunch: false, pm_snack: false, dinner: false } });
+};
+
+const removeSchedule = (index) => {
+  if (schedules.value.length > 1) {
+    schedules.value.splice(index, 1);
+  }
+};
+
+const validateScheduleTime = (index) => {
+  const sch = schedules.value[index];
+  handleTimeChange(sch);
+};
+
+// Also we need schedules and activeSchedules if not present
+const schedules = ref([]);
+
+const helpState = ref({
+  startTime: false,
+  endTime: false,
+  startDate: false
+});
+
+const toggleHelp = (key) => {
+  helpState.value[key] = !helpState.value[key];
+  setTimeout(() => { helpState.value[key] = false; }, 3000);
+};
+
+const activeSchedules = computed(() => {
+    return schedules.value.filter(s => s.date && s.start_time && s.end_time);
+});
+
 const customVenue = ref('');
 const newFile = ref(null);
 const newFileURL = ref(null);
@@ -580,15 +922,18 @@ const gadMandates = ref([]);
 const genderIssues = ref([]);
 
 
+const maxDateLimit = computed(() => {
+  const currentYear = new Date().getFullYear();
+  return `${currentYear}-12-31`;
+});
 const minStartDate = computed(() => {
-  const d = new Date();
-  const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
-  const phDate = new Date(utc + (3600000 * 8));
-  phDate.setUTCDate(phDate.getUTCDate() + 3);
-  const year = phDate.getUTCFullYear();
-  const month = String(phDate.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(phDate.getUTCDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  const today = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" }));
+  today.setHours(0, 0, 0, 0);
+  const targetDate = addWorkingDays(today, 3);
+  const yearStr = targetDate.getFullYear();
+  const monthStr = String(targetDate.getMonth() + 1).padStart(2, '0');
+  const dayStr = String(targetDate.getDate()).padStart(2, '0');
+  return `${yearStr}-${monthStr}-${dayStr}`;
 });
 
 const formData = ref({
@@ -627,14 +972,35 @@ watch(() => formData.value.budget_items, (newItems) => {
 }, { deep: true });
 
 // Computed Properties for Auto-calculation
+
+
+
+
+const totalBreakfastDays = computed(() => activeSchedules.value.filter(s => s.meals_and_snacks?.breakfast).length);
+const totalAMSnackDays = computed(() => activeSchedules.value.filter(s => s.meals_and_snacks?.am_snack).length);
+const totalLunchDays = computed(() => activeSchedules.value.filter(s => s.meals_and_snacks?.lunch).length);
+const totalPMSnackDays = computed(() => activeSchedules.value.filter(s => s.meals_and_snacks?.pm_snack).length);
+const totalDinnerDays = computed(() => activeSchedules.value.filter(s => s.meals_and_snacks?.dinner).length);
+const totalMealsDays = computed(() => activeSchedules.value.filter(s => s.meals_and_snacks?.breakfast || s.meals_and_snacks?.lunch || s.meals_and_snacks?.dinner).length);
+const totalSnacksDays = computed(() => activeSchedules.value.filter(s => s.meals_and_snacks?.am_snack || s.meals_and_snacks?.pm_snack).length);
+
 const computedDays = computed(() => {
-  if (!formData.value.start_date || !formData.value.end_date) return 1;
-  const start = new Date(formData.value.start_date);
-  const end = new Date(formData.value.end_date);
-  if (isNaN(start.getTime()) || isNaN(end.getTime())) return 1;
-  const diffTime = end.getTime() - start.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-  return diffDays > 0 ? diffDays : 1;
+  let totalDays = 0;
+  activeSchedules.value.forEach(s => {
+    if (s.date && s.start_time && s.end_time) {
+      const [h1, m1] = s.start_time.split(':').map(Number);
+      const [h2, m2] = s.end_time.split(':').map(Number);
+      let hours = (h2 + m2/60) - (h1 + m1/60);
+      if (hours < 0) hours += 24;
+      
+      if (hours <= 4) {
+         totalDays += 0.5;
+      } else {
+         totalDays += 1;
+      }
+    }
+  });
+  return totalDays > 0 ? totalDays : 1;
 });
 
 const baselineSettings = ref({
@@ -668,8 +1034,8 @@ const isOutsideBsu = computed(() => {
 });
 
 // Reactive Sub-controls State
-const mealsSelected = ref({ breakfast: false, lunch: false, dinner: false });
-const snacksSelected = ref({ am: false, pm: false });
+
+
 const pfPax = ref('');
 const tokensPax = ref('');
 const othersList = ref([]);
@@ -687,15 +1053,15 @@ const removeOtherItem = (index) => {
 
 // Reactive Auto-computation Watchers
 watch(
-  [mealsSelected, () => formData.value.target_participants, () => computedDays.value, () => isOutsideBsu.value, () => baselineSettings.value],
+  [activeSchedules, () => formData.value.target_participants, () => isOutsideBsu.value, () => baselineSettings.value],
   () => {
     if (loadingData.value) return;
     const item = formData.value.budget_items.find(i => i.name === 'Meals');
     if (item) {
-      const mealsCount = (mealsSelected.value.breakfast ? 1 : 0) + (mealsSelected.value.lunch ? 1 : 0) + (mealsSelected.value.dinner ? 1 : 0);
+      const mealsCount = totalBreakfastDays.value + totalLunchDays.value + totalDinnerDays.value;
       const mealsRate = isOutsideBsu.value ? baselineSettings.value.meals_outside : baselineSettings.value.meals_inside;
       const pax = Number(formData.value.target_participants) || 0;
-      const calculated = (mealsCount * mealsRate * pax * computedDays.value);
+      const calculated = (mealsCount * mealsRate * pax);
       item.total = calculated || '';
     }
   },
@@ -703,15 +1069,15 @@ watch(
 );
 
 watch(
-  [snacksSelected, () => formData.value.target_participants, () => computedDays.value, () => isOutsideBsu.value, () => baselineSettings.value],
+  [activeSchedules, () => formData.value.target_participants, () => isOutsideBsu.value, () => baselineSettings.value],
   () => {
     if (loadingData.value) return;
     const item = formData.value.budget_items.find(i => i.name === 'Snacks');
     if (item) {
-      const snacksCount = (snacksSelected.value.am ? 1 : 0) + (snacksSelected.value.pm ? 1 : 0);
+      const snacksCount = totalAMSnackDays.value + totalPMSnackDays.value;
       const snacksRate = isOutsideBsu.value ? baselineSettings.value.snacks_outside : baselineSettings.value.snacks_inside;
       const pax = Number(formData.value.target_participants) || 0;
-      const calculated = (snacksCount * snacksRate * pax * computedDays.value);
+      const calculated = (snacksCount * snacksRate * pax);
       item.total = calculated || '';
     }
   },
@@ -857,15 +1223,8 @@ const fetchDesignDetails = async () => {
         const mealsSub = dbMealsItem.sub_item || '';
         const snacksSub = dbSnacksItem.sub_item || '';
         
-        mealsSelected.value = { 
-          breakfast: mealsSub.includes('Breakfast'), 
-          lunch: mealsSub.includes('Lunch'), 
-          dinner: mealsSub.includes('Dinner') 
-        };
-        snacksSelected.value = { 
-          am: snacksSub.includes('AM'), 
-          pm: snacksSub.includes('PM') 
-        };
+        
+        
       pfPax.value = Number(design.value.pf_pax) || '';
       tokensPax.value = Number(design.value.tokens_pax) || '';
       if (design.value.materials_others_breakdown) {
@@ -906,6 +1265,67 @@ const fetchDesignDetails = async () => {
       let tokensVal = Number(design.value.tokens) || getBudgetItemAmount('Token/s') || '';
       let transportation = Number(design.value.transportation) || getBudgetItemAmount('Transportation') || '';
 
+      
+      if (design.value.schedules && design.value.schedules.length > 0) {
+        let parsedSchedules = design.value.schedules.map(s => {
+          let meals = { breakfast: false, am_snack: false, lunch: false, pm_snack: false, dinner: false };
+          try {
+            if (typeof s.meals_and_snacks === 'string') {
+              meals = JSON.parse(s.meals_and_snacks);
+            } else if (typeof s.meals_and_snacks === 'object') {
+              meals = s.meals_and_snacks;
+            }
+          } catch(e) {}
+          return {
+            date: s.schedule_date,
+            start_time: s.start_time,
+            end_time: s.end_time,
+            meals_and_snacks: meals
+          };
+        });
+        schedules.value = parsedSchedules;
+
+        let isContinuous = true;
+        for (let i = 1; i < parsedSchedules.length; i++) {
+            let prevDate = new Date(parsedSchedules[i-1].date);
+            let currDate = new Date(parsedSchedules[i].date);
+            
+            // Expected next date is the next valid working day after prevDate
+            let expectedNextDate = new Date(prevDate);
+            do {
+                expectedNextDate.setDate(expectedNextDate.getDate() + 1);
+            } while (isDisabledDate(expectedNextDate));
+            
+            let expectedStr = expectedNextDate.toISOString().split('T')[0];
+            let currStr = currDate.toISOString().split('T')[0];
+            
+            if (currStr !== expectedStr) {
+                isContinuous = false;
+                break;
+            }
+        }
+        
+        if (isContinuous && parsedSchedules.length > 0) {
+            scheduleType.value = 'continuous';
+            continuousConfig.value = {
+                start_date: parsedSchedules[0].date,
+                end_date: parsedSchedules[parsedSchedules.length - 1].date,
+                start_time: parsedSchedules[0].start_time,
+                end_time: parsedSchedules[0].end_time,
+                meals_and_snacks: { ...parsedSchedules[0].meals_and_snacks }
+            };
+        } else {
+            scheduleType.value = 'staggered';
+        }
+      } else {
+         schedules.value = [{
+            date: design.value.start_date,
+            start_time: design.value.start_time,
+            end_time: design.value.end_time,
+            meals_and_snacks: { breakfast: false, am_snack: false, lunch: false, pm_snack: false, dinner: false }
+         }];
+      }
+      
       formData.value = {
         activity_title: design.value.activity_title,
         office: design.value.office,
@@ -1019,13 +1439,12 @@ const isValidActivityDate = (dateString, checkLeadTime = false) => {
     const targetDate = new Date(dateString + 'T00:00:00');
     const today = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" }));
     today.setHours(0, 0, 0, 0);
-    const diffTime = targetDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffDays = getWorkingDaysDiff(today, targetDate);
     
     if (diffDays < 3) {
-       return { valid: false, reason: `Activities must be scheduled at least 3 days in advance.` };
-    } else if (diffDays < 14) {
-       return { valid: true, reason: `Activities should ideally be scheduled at least 14 days in advance.`, isWarning: true };
+       return { valid: false, reason: `Activities must be scheduled at least 3 working days in advance.` };
+    } else if (diffDays < 15) {
+       return { valid: true, reason: `Activities should ideally be scheduled at least 15 working days in advance.`, isWarning: true };
     }
   }
   return { valid: true, reason: '' };
@@ -1054,10 +1473,40 @@ const isValidActivityDuration = (startDateString, endDateString) => {
 
 const isValidTime = (timeStr) => {
   if (!timeStr) return true;
-  return timeStr >= "04:00" && timeStr <= "20:00";
+  const [h, m] = timeStr.split(':').map(Number);
+  if (h < 4 || h > 20 || (h === 20 && m > 0)) {
+    return false;
+  }
+  return true;
 };
 
-watch(() => formData.value.start_date, (newDate) => {
+watch(() => computedStartDate.value, (newDate, oldDate) => {
+    if (loadingData.value) return;
+    if (newDate && newDate !== oldDate) {
+      const validation = isValidActivityDate(newDate, true);
+      if (!validation.valid) {
+        document.activeElement?.blur();
+        Swal.fire({
+          icon: 'warning',
+          title: 'Invalid Date',
+          text: validation.reason,
+          confirmButtonColor: '#b979cc'
+        });
+        return;
+      } else if (validation.isWarning) {
+        document.activeElement?.blur();
+        Swal.fire({
+          icon: 'info',
+          title: 'Lead Time Warning',
+          text: validation.reason,
+          confirmButtonColor: '#b979cc'
+        });
+      }
+    }
+  });
+  
+  // Disable the old duration check since it's computed dynamically now
+  watch(() => 'dummy', () => {
   if (loadingData.value) return;
   if (newDate) {
     const validation = isValidActivityDate(newDate, true);
@@ -1104,90 +1553,112 @@ watch(() => formData.value.start_date, (newDate) => {
   }
 });
 
-watch(() => formData.value.end_date, (newDate) => {
+// watch(() => formData.value.end_date, (newDate) => {
+//   if (loadingData.value) return;
+//   if (newDate) {
+//     const validation = isValidActivityDate(newDate, false);
+//     if (!validation.valid) {
+//       document.activeElement?.blur();
+//       Swal.fire({
+//         icon: 'warning',
+//         title: 'Invalid Date',
+//         text: validation.reason,
+//         confirmButtonColor: '#b979cc'
+//       });
+//       formData.value.end_date = '';
+//       return;
+//     }
+//     if (formData.value.start_date) {
+//       const durationValidation = isValidActivityDuration(formData.value.start_date, newDate);
+//       if (!durationValidation.valid) {
+//         document.activeElement?.blur();
+//         Swal.fire({
+//           icon: 'warning',
+//           title: 'Invalid Duration',
+//           text: durationValidation.reason,
+//           confirmButtonColor: '#b979cc'
+//         });
+//         formData.value.end_date = '';
+//       } else if (durationValidation.isWarning) {
+//         document.activeElement?.blur();
+//         Swal.fire({
+//           icon: 'info',
+//           title: 'Long Duration',
+//           text: durationValidation.reason,
+//           confirmButtonColor: '#b979cc'
+//         });
+//       }
+//     }
+//   }
+// });
+
+// watch(() => formData.value.start_time, (newTime) => {
+//   if (loadingData.value) return;
+//   if (newTime && !isValidTime(newTime)) {
+//     document.activeElement?.blur();
+//     Swal.fire({
+//       icon: 'warning',
+//       title: 'Invalid Time',
+//       text: 'Must be set between 04:00 AM and 08:00 PM.',
+//       confirmButtonColor: '#b979cc'
+//     });
+//     formData.value.start_time = '';
+//   }
+// });
+
+// watch(() => formData.value.end_time, (newTime) => {
+//   if (loadingData.value) return;
+//   if (newTime && !isValidTime(newTime)) {
+//     document.activeElement?.blur();
+//     Swal.fire({
+//       icon: 'warning',
+//       title: 'Invalid Time',
+//       text: 'Must be set between 04:00 AM and 08:00 PM.',
+//       confirmButtonColor: '#b979cc'
+//     });
+//     formData.value.end_time = '';
+//   }
+// });
+
+watch([() => formData.value.start_time, () => formData.value.end_time], ([newStart, newEnd]) => {
   if (loadingData.value) return;
-  if (newDate) {
-    const validation = isValidActivityDate(newDate, false);
-    if (!validation.valid) {
-      document.activeElement?.blur();
-      Swal.fire({
-        icon: 'warning',
-        title: 'Invalid Date',
-        text: validation.reason,
-        confirmButtonColor: '#b979cc'
-      });
-      formData.value.end_date = '';
-      return;
-    }
-    if (formData.value.start_date) {
-      const durationValidation = isValidActivityDuration(formData.value.start_date, newDate);
-      if (!durationValidation.valid) {
+  if (newStart && newEnd) {
+    if (!formData.value.start_date || !formData.value.end_date || formData.value.start_date === formData.value.end_date) {
+      const startTimeParts = newStart.split(':');
+      const endTimeParts = newEnd.split(':');
+      const startMinutes = parseInt(startTimeParts[0]) * 60 + parseInt(startTimeParts[1]);
+      const endMinutes = parseInt(endTimeParts[0]) * 60 + parseInt(endTimeParts[1]);
+      
+      if (endMinutes <= startMinutes) {
         document.activeElement?.blur();
         Swal.fire({
           icon: 'warning',
-          title: 'Invalid Duration',
-          text: durationValidation.reason,
+          title: 'Invalid Time Range',
+          text: 'End time must be after start time on the same day.',
           confirmButtonColor: '#b979cc'
         });
-        formData.value.end_date = '';
-      } else if (durationValidation.isWarning) {
+        formData.value.end_time = '';
+      } else if ((endMinutes - startMinutes) < 60) {
         document.activeElement?.blur();
         Swal.fire({
-          icon: 'info',
-          title: 'Long Duration',
-          text: durationValidation.reason,
+          icon: 'warning',
+          title: 'Invalid Time Range',
+          text: 'The activity duration must be at least 1 hour.',
           confirmButtonColor: '#b979cc'
         });
+        formData.value.end_time = '';
       }
     }
   }
 });
 
-watch(() => formData.value.start_time, (newTime) => {
-  if (loadingData.value) return;
-  if (newTime && !isValidTime(newTime)) {
-    document.activeElement?.blur();
-    Swal.fire({
-      icon: 'warning',
-      title: 'Invalid Time',
-      text: 'Must be set between 04:00 AM and 08:00 PM.',
-      confirmButtonColor: '#b979cc'
-    });
-    formData.value.start_time = '';
-  }
-});
-
-watch(() => formData.value.end_time, (newTime) => {
-  if (loadingData.value) return;
-  if (newTime && !isValidTime(newTime)) {
-    document.activeElement?.blur();
-    Swal.fire({
-      icon: 'warning',
-      title: 'Invalid Time',
-      text: 'Must be set between 04:00 AM and 08:00 PM.',
-      confirmButtonColor: '#b979cc'
-    });
-    formData.value.end_time = '';
-  }
-});
-
-watch([() => formData.value.start_time, () => formData.value.end_time], ([newStart, newEnd]) => {
-  if (loadingData.value) return;
-  if (newStart && newEnd) {
-    if (newStart >= newEnd) {
-      document.activeElement?.blur();
-      Swal.fire({
-        icon: 'warning',
-        title: 'Invalid Time Range',
-        text: 'End time must be after start time on the same day.',
-        confirmButtonColor: '#b979cc'
-      });
-      formData.value.end_time = '';
-    }
-  }
-});
-
 const handleUpdate = async () => {
+  const sortedSchedules = [...schedules.value].sort((a, b) => new Date(a.date) - new Date(b.date));
+  formData.value.start_date = sortedSchedules[0]?.date || '';
+  formData.value.end_date = sortedSchedules[sortedSchedules.length - 1]?.date || '';
+  formData.value.start_time = sortedSchedules[0]?.start_time || '08:00';
+  formData.value.end_time = sortedSchedules[sortedSchedules.length - 1]?.end_time || '17:00';
+
 
   // Validate Cause of Gender Issue
   if (!formData.value.gender_issue || formData.value.gender_issue.length === 0) {
@@ -1347,6 +1818,8 @@ const handleUpdate = async () => {
     submitData.append('end_time', formData.value.end_time);
     submitData.append('proposed_budget', formData.value.proposed_budget);
     submitData.append('target_participants', formData.value.target_participants);
+    submitData.append('schedule_type', scheduleType.value);
+    submitData.append('schedules', JSON.stringify(schedules.value));
 
     // Venue Logic
     if (formData.value.venue && formData.value.venue !== 'Other') {
@@ -1396,41 +1869,37 @@ const handleUpdate = async () => {
         });
       }
 
-      if (typeof mealsSelected !== 'undefined') {
-          if (mealsSelected.value.breakfast || mealsSelected.value.lunch || mealsSelected.value.dinner) {
-            const selected = [];
-            if (mealsSelected.value.breakfast) selected.push('Breakfast');
-            if (mealsSelected.value.lunch) selected.push('Lunch');
-            if (mealsSelected.value.dinner) selected.push('Dinner');
-            const mealsItem = normalizedBudgetItems.find(i => i.item_name === 'Meals');
-            if (mealsItem) mealsItem.sub_item = selected.join(', ');
-          }
-      }
+      if (totalBreakfastDays.value > 0 || totalLunchDays.value > 0 || totalDinnerDays.value > 0) {
+      const selected = [];
+      if (totalBreakfastDays.value > 0) selected.push('Breakfast');
+      if (totalLunchDays.value > 0) selected.push('Lunch');
+      if (totalDinnerDays.value > 0) selected.push('Dinner');
+      const mealsItem = normalizedBudgetItems.find(i => i.item_name === 'Meals');
+      if (mealsItem) mealsItem.sub_item = selected.join(', ');
+    }
 
-      if (typeof snacksSelected !== 'undefined') {
-          if (snacksSelected.value.am || snacksSelected.value.pm) {
-            const selected = [];
-            if (snacksSelected.value.am) selected.push('AM');
-            if (snacksSelected.value.pm) selected.push('PM');
-            const snacksItem = normalizedBudgetItems.find(i => i.item_name === 'Snacks');
-            if (snacksItem) snacksItem.sub_item = selected.join(', ');
-          }
-      }
+    if (totalAMSnackDays.value > 0 || totalPMSnackDays.value > 0) {
+      const selected = [];
+      if (totalAMSnackDays.value > 0) selected.push('AM');
+      if (totalPMSnackDays.value > 0) selected.push('PM');
+      const snacksItem = normalizedBudgetItems.find(i => i.item_name === 'Snacks');
+      if (snacksItem) snacksItem.sub_item = selected.join(', ');
+    }
 
       const mealsItem = normalizedBudgetItems.find(i => i.item_name === 'Meals');
       if (mealsItem) {
         let selected = [];
-        if (mealsSelected.value.breakfast) selected.push('Breakfast');
-        if (mealsSelected.value.lunch) selected.push('Lunch');
-        if (mealsSelected.value.dinner) selected.push('Dinner');
+
+
+
         mealsItem.sub_item = selected.join(', ');
       }
 
       const snacksItem = normalizedBudgetItems.find(i => i.item_name === 'Snacks');
       if (snacksItem) {
         let selected = [];
-        if (snacksSelected.value.am) selected.push('AM');
-        if (snacksSelected.value.pm) selected.push('PM');
+
+
         snacksItem.sub_item = selected.join(', ');
       }
 
@@ -1487,6 +1956,23 @@ const handleUpdate = async () => {
   fetchActivityClassifications();
   fetchDesignDetails();
 });
+
+const checkTransportationLimit = () => {
+  const transItem = formData.budget_items[8];
+  const limit = Number(baselineSettings.value?.transportation_limit || 20000);
+  
+  if (transItem && Number(transItem.total) > limit) {
+    const role = user.value?.role || 'staff';
+    Swal.fire({
+      icon: 'warning',
+      title: 'Limit Exceeded',
+      html: `Transportation budget cannot exceed the baseline limit of ₱${limit.toLocaleString('en-US')}.<br><br>
+             If you need to request an exemption, please <a href="/${role}/messages" style="color: #b979cc; text-decoration: underline; font-weight: bold;">message the GAD Director/Staff</a>.`,
+      confirmButtonColor: '#b979cc'
+    });
+  }
+};
+
 </script>
 
 <style scoped>
@@ -2107,4 +2593,144 @@ const handleUpdate = async () => {
     box-sizing: border-box;
   }
 }
+
+.custom-input-field {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-size: 14px;
+  color: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.custom-input-field:focus {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: #b979cc;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(153, 13, 209, 0.2);
+}
+
+.custom-input-field::placeholder {
+  color: #94a3b8;
+}
+
+
+.label-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.info-btn {
+  background: rgba(185, 121, 204, 0.08);
+  border: 1px solid rgba(185, 121, 204, 0.35);
+  color: #b979cc;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: bold;
+  font-family: serif;
+  line-height: 1;
+  transition: all 0.25s ease;
+}
+
+.info-btn:hover {
+  background: #b979cc;
+  color: #16213e;
+  border-color: #b979cc;
+  transform: scale(1.15);
+  box-shadow: 0 0 8px rgba(185, 121, 204, 0.4);
+}
+
+.info-btn-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.simple-popup {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  background: #1a1a2e;
+  border: 1px solid #b979cc;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #ffffff;
+  font-size: 12px;
+  width: 240px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  line-height: 1.45;
+  pointer-events: auto;
+  text-transform: none;
+  white-space: normal;
+}
+
+.simple-popup::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: #1a1a2e transparent transparent transparent;
+}
+
+.simple-popup::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 7px;
+  border-style: solid;
+  border-color: #b979cc transparent transparent transparent;
+  z-index: -1;
+}
+
+.fade-pop-enter-active,
+.fade-pop-leave-active {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fade-pop-enter-from,
+.fade-pop-leave-to {
+  opacity: 0;
+  transform: translate(-50%, 8px) scale(0.95);
+}
+
+.fade-pop-enter-to,
+.fade-pop-leave-from {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+
+
+.form-sub-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 20px;
+}
+@media (min-width: 768px) {
+  .form-sub-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 </style>

@@ -190,15 +190,18 @@
         </form>
       </div>
 
+      <!-- Holiday Management (Admin Only) -->
+      <HolidayManager v-if="isAdminOrStaff" />
+
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import api from '../api'; // Adjust path if necessary
 import Swal from 'sweetalert2';
-import { computed } from 'vue';
+import HolidayManager from '../components/HolidayManager.vue';
 
 const user = ref({});
 

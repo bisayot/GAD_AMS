@@ -39,6 +39,21 @@
               <h3 class="font-bold text-xs uppercase tracking-widest mb-4">📅 Proposed Schedule & Venue</h3>
               <div class="grid grid-cols-2 gap-4">
                 <div><label class="text-[9px] font-bold uppercase text-slate-500">Proposed Dates</label><p class="text-xs">Feb 20 – Feb 22, 2026</p></div>
+              <div v-if="design.schedules && design.schedules.length > 0" class="mt-4">
+                <label class="text-[9px] font-bold uppercase text-slate-500 mb-2 block">Detailed Schedules</label>
+                <div class="space-y-2">
+                  <div v-for="(sch, idx) in design.schedules" :key="idx" class="flex justify-between text-xs bg-white p-2 rounded border border-slate-100">
+                    <span class="font-medium text-slate-700">{{ formatDate(sch.schedule_date) }}</span>
+                    <span class="text-slate-500 flex items-center gap-2">
+                      {{ formatTime(sch.start_time) }} - {{ formatTime(sch.end_time) }}
+                      <span :class="['px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider', getDurationLabel(sch.start_time, sch.end_time) === 'Half Day' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700']">
+                        {{ getDurationLabel(sch.start_time, sch.end_time) }}
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
                 <div><label class="text-[9px] font-bold uppercase text-slate-500">Venue</label><p class="text-xs">Lorem Ipsum Convention Center</p></div>
               </div>
             </div>
@@ -62,7 +77,7 @@
         <div class="modal-header"><h3>✏️ Request Revision</h3></div>
         <div class="p-6 space-y-4">
           <textarea v-model="revisionRemarks" class="w-full border p-3 rounded-lg" placeholder="Revision remarks..."></textarea>
-          <input type="date" v-model="revisionDeadline" class="w-full border p-3 rounded-lg">
+          <VueDatePicker v-model="revisionDeadline" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" auto-apply input-class-name="w-full border p-3 rounded-lg" />
         </div>
         <div class="p-4 flex justify-end gap-2">
           <button @click="showRevisionModal = false" class="px-4 py-2 bg-gray-200 rounded-lg">Cancel</button>
@@ -74,12 +89,24 @@
 </template>
 
 <script setup>
+import { useHolidays } from '../../utils/useHolidays';
+const { isDisabledDate, getWorkingDaysDiff, addWorkingDays } = useHolidays();
 import { ref } from 'vue';
 
 const showNotifications = ref(false);
 const showRevisionModal = ref(false);
 const revisionRemarks = ref('');
-const revisionDeadline = ref('');
+const getDefRevDeadline = () => {
+  const d = new Date();
+  const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+  const phDate = new Date(utc + (3600000 * 8));
+  const target = addWorkingDays(phDate, 3);
+  const rYear = target.getFullYear();
+  const rMonth = String(target.getMonth() + 1).padStart(2, '0');
+  const rDay = String(target.getDate()).padStart(2, '0');
+  return `${rYear}-${rMonth}-${rDay}`;
+};
+const revisionDeadline = ref(getDefRevDeadline());
 
 const toggleNotifications = () => showNotifications.value = !showNotifications.value;
 

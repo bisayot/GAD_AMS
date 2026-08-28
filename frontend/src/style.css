@@ -7,6 +7,26 @@
   font-weight: 400;
 }
 
+/* Vue Datepicker System Colorway (Purple) */
+.dp__theme_light {
+  --dp-primary-color: #b979cc;
+  --dp-primary-text-color: #ffffff;
+  --dp-hover-color: #f3e8f5;
+  --dp-hover-text-color: #212121;
+  --dp-hover-icon-color: #959595;
+  --dp-primary-disabled-color: #d8b4e2;
+  --dp-border-color-hover: #b979cc;
+  --dp-border-color-focus: #b979cc;
+  --dp-background-color: #f8fafc;
+  /* Add custom input styling if they meant the input field */
+  --dp-input-padding: 0.5rem;
+}
+
+.dp-custom-transparent {
+  background-color: transparent !important;
+}
+
+
 body {
   margin: 0;
   min-width: 320px;
@@ -37,3 +57,13 @@ body {
   width: max-content !important;
   white-space: nowrap !important;
 }
+/* Force hide the action row (clock icon) in VueDatePicker since all date pickers use auto-apply and do not need time picker */
+.dp--action-row {
+  display: none !important;
+}
+
+/* BRUTAL HIDE OF ACTION ROW */
+.dp--action-row, .dp__action_row, .dp--button-bottom, .dp__button_bottom, .dp--action-extra, .dp__action_extra, .dp--time-overlay-btn { display: none !important; height: 0 !important; overflow: hidden !important; padding: 0 !important; margin: 0 !important; border: none !important; }
+
+/* ULTIMATE NUKE CLOCK ICON */
+.dp--action-row, .dp__action_row, .dp--button-bottom, .dp--overlay-action, button.dp--button.dp--overlay-action, .dp--time-overlay-btn { display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; position: absolute !important; z-index: -9999 !important; }

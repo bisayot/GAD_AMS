@@ -47,10 +47,9 @@ if (getcwd() . DIRECTORY_SEPARATOR !== FCPATH) {
  */
 
 // LOAD OUR PATHS CONFIG FILE
-// NOTE: On Hostinger, the backend folder is outside public_html.
-// Replace YOUR_HOSTINGER_USERNAME with your actual username (find it in hPanel > File Manager).
-// Example: /home/u123456789/backend/app/Config/Paths.php
-require '/home/u366424097/domains/bsugad.com/backend/app/Config/Paths.php';
+// This line uses a relative path from the public/ folder so it works on
+// localhost (XAMPP), Hostinger, and any other server without modification.
+require FCPATH . '../app/Config/Paths.php';
 // ^^^ Change this line if you move your application folder
 
 

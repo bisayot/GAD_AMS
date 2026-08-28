@@ -231,23 +231,57 @@ class AuthController extends ResourceController
         </html>
         ";
 
-        // Use native CodeIgniter SMTP (configured in .env)
-        $emailService = \Config\Services::email();
-        $emailService->setTo($email);
-        $emailService->setSubject('Password Reset Request');
-        $emailService->setMessage($message);
-        
-        try {
-            if ($emailService->send()) {
+        if ($apiKey && $isProduction) {
+            // Render's Free Tier firewall completely blocks native SMTP (Ports 25, 465, 587)
+            // To bypass this, we use Brevo's HTTP REST API over standard Port 443 (HTTPS)
+            $ch = curl_init('https://api.brevo.com/v3/smtp/email');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'accept: application/json',
+                'api-key: ' . trim($apiKey, '"\''),
+                'content-type: application/json'
+            ]);
+            
+            $payload = [
+                'sender'      => ['name' => 'GAD AMS System', 'email' => $fromEmail],
+                'to'          => [['email' => $email]],
+                'subject'     => 'Password Reset Request',
+                'htmlContent' => $message
+            ];
+            
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
+            curl_close($ch);
+
+            if ($httpCode >= 200 && $httpCode < 300) {
                 return $this->respond(['message' => 'If your email is registered, you will receive a reset link shortly.']);
             } else {
-                $error = $emailService->printDebugger(['headers']);
-                log_message('error', 'SMTP Error: ' . $error);
-                return $this->fail('Unable to send reset email. SMTP failed.');
+                log_message('error', 'Brevo API Error: ' . $response . ' cURL Error: ' . $curlError);
+                return $this->fail('Unable to send reset email. HTTP Code: ' . $httpCode . ' Error: ' . $response . ' cURL: ' . $curlError);
             }
-        } catch (\Exception $e) {
-            log_message('error', 'SMTP Exception: ' . $e->getMessage());
-            return $this->fail('Unable to send reset email. System error occurred.');
+        } else {
+            // Fallback to CodeIgniter SMTP (Gmail) for Localhost
+            $emailService = \Config\Services::email();
+            $emailService->setTo($email);
+            $emailService->setSubject('Password Reset Request');
+            $emailService->setMessage($message);
+            
+            try {
+                if ($emailService->send()) {
+                    return $this->respond(['message' => 'If your email is registered, you will receive a reset link shortly.']);
+                } else {
+                    return $this->fail('Unable to send reset email. Local SMTP failed.');
+                }
+            } catch (\Exception $e) {
+                log_message('error', 'Local SMTP Error: ' . $e->getMessage());
+                return $this->fail('Unable to send reset email. Local SMTP exception.');
+            }
         }
     }
 

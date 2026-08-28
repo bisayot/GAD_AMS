@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 17, 2026 at 01:12 PM
+-- Generation Time: Aug 28, 2026 at 07:52 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -52,6 +52,7 @@ CREATE TABLE `accomplishment_report` (
   `end_date` date NOT NULL,
   `start_time` time NOT NULL,
   `end_time` time NOT NULL,
+  `schedule_type` enum('continuous','staggered') DEFAULT 'continuous',
   `venue` varchar(255) NOT NULL,
   `attendees` int(11) NOT NULL,
   `male` int(11) NOT NULL,
@@ -70,6 +71,24 @@ CREATE TABLE `accomplishment_report` (
   `is_archived` tinyint(1) DEFAULT 0,
   `archived_at` datetime DEFAULT NULL,
   `is_inside_bsu` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `accomplishment_schedules`
+--
+
+CREATE TABLE `accomplishment_schedules` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `accomplishment_report_id` int(11) NOT NULL,
+  `schedule_date` date DEFAULT NULL,
+  `start_time` time DEFAULT NULL,
+  `end_time` time DEFAULT NULL,
+  `meals_and_snacks` text DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -184,6 +203,23 @@ CREATE TABLE `activity_logs` (
   `action` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
   `created_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `activity_schedules`
+--
+
+CREATE TABLE `activity_schedules` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `act_design_id` int(11) NOT NULL,
+  `schedule_date` date NOT NULL,
+  `start_time` time NOT NULL,
+  `end_time` time NOT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `meals_and_snacks` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -572,6 +608,45 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `holidays`
+--
+
+CREATE TABLE `holidays` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `date` date NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `type` varchar(50) NOT NULL DEFAULT 'public',
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `holidays`
+--
+
+INSERT INTO `holidays` (`id`, `date`, `name`, `type`, `created_at`, `updated_at`) VALUES
+(1, '2026-01-01', 'New Year\'s Day', 'public', '2026-08-26 03:27:24', '2026-08-26 03:27:24'),
+(2, '2026-02-17', 'Chinese New Year', 'public', '2026-08-26 03:27:24', '2026-08-26 03:27:24'),
+(3, '2026-04-02', 'Maundy Thursday', 'public', '2026-08-26 03:27:24', '2026-08-26 03:27:24'),
+(4, '2026-04-03', 'Good Friday', 'public', '2026-08-26 03:27:24', '2026-08-26 03:27:24'),
+(5, '2026-04-04', 'Holy Saturday', 'public', '2026-08-26 03:27:24', '2026-08-26 03:27:24'),
+(6, '2026-04-09', 'Day of Valor', 'public', '2026-08-26 03:27:24', '2026-08-26 03:27:24'),
+(7, '2026-05-01', 'Labour Day', 'public', '2026-08-26 03:27:24', '2026-08-26 03:27:24'),
+(8, '2026-06-12', 'Independence Day', 'public', '2026-08-26 03:27:24', '2026-08-26 03:27:24'),
+(9, '2026-08-21', 'Ninoy Aquino Day', 'public', '2026-08-26 03:27:24', '2026-08-26 03:27:24'),
+(10, '2026-08-31', 'National Heroes Day', 'public', '2026-08-26 03:27:24', '2026-08-26 03:27:24'),
+(11, '2026-10-31', 'All Saints\' Day Eve', 'public', '2026-08-26 03:27:24', '2026-08-26 03:27:24'),
+(12, '2026-11-01', 'All Saints\' Day', 'public', '2026-08-26 03:27:24', '2026-08-26 03:27:24'),
+(13, '2026-11-30', 'Bonifacio Day', 'public', '2026-08-26 03:27:24', '2026-08-26 03:27:24'),
+(14, '2026-12-08', 'Feast of the Immaculate Conception of Mary', 'public', '2026-08-26 03:27:24', '2026-08-26 03:27:24'),
+(15, '2026-12-24', 'Christmas Eve', 'public', '2026-08-26 03:27:24', '2026-08-26 03:27:24'),
+(16, '2026-12-25', 'Christmas Day', 'public', '2026-08-26 03:27:24', '2026-08-26 03:27:24'),
+(17, '2026-12-30', 'Rizal Day', 'public', '2026-08-26 03:27:24', '2026-08-26 03:27:24'),
+(18, '2026-12-31', 'Last Day of The Year', 'public', '2026-08-26 03:27:24', '2026-08-26 03:27:24');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `messages`
 --
 
@@ -637,7 +712,12 @@ INSERT INTO `migrations` (`id`, `version`, `class`, `group`, `namespace`, `time`
 (24, '2026-07-17-031815', 'App\\Database\\Migrations\\AddIsInsideBsuToVenuesAndSubmissions', 'default', 'App', 1784258396, 22),
 (25, '2026-07-27-021925', 'App\\Database\\Migrations\\AddGpbBudgetLineIdToAllocations', 'default', 'App', 1785118785, 23),
 (26, '2026-08-11-014400', 'App\\Database\\Migrations\\ContactInquiries', 'default', 'App', 1786412667, 24),
-(27, '2026-08-17-053807', 'App\\Database\\Migrations\\CreateNotificationsTable', 'default', 'App', 1786945196, 25);
+(27, '2026-08-17-053807', 'App\\Database\\Migrations\\CreateNotificationsTable', 'default', 'App', 1786945196, 25),
+(28, '2026-08-26-014222', 'App\\Database\\Migrations\\CreateHolidaysTable', 'default', 'App', 1787709151, 26),
+(29, '2026-08-26-021121', 'App\\Database\\Migrations\\CreateActivitySchedulesTable', 'default', 'App', 1787710415, 27),
+(30, '2026-08-26-042227', 'App\\Database\\Migrations\\AddMealsToActivitySchedules', 'default', 'App', 1787718172, 28),
+(32, '2026-08-27-070800', 'App\\Database\\Migrations\\AddScheduleTypeToAccomplishmentReport', 'default', 'App', 1787814897, 29),
+(33, '2026-08-27-070859', 'App\\Database\\Migrations\\CreateAccomplishmentSchedulesTable', 'default', 'App', 1787814897, 29);
 
 -- --------------------------------------------------------
 
@@ -656,6 +736,52 @@ CREATE TABLE `notifications` (
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `notifications`
+--
+
+INSERT INTO `notifications` (`id`, `user_id`, `title`, `message`, `type`, `link`, `is_read`, `created_at`, `updated_at`) VALUES
+(44, 2, 'Activity Design Submitted', 'Your Activity Design \"Test 1\" has been successfully submitted and is pending review.', 'info', '/college/submitted-list', 0, '2026-08-26 08:41:27', '2026-08-26 08:41:27'),
+(45, 1, 'New Activity Design Submitted', 'A new Activity Design \"Test 1\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-26 08:41:34', '2026-08-26 08:41:34'),
+(46, 47, 'New Activity Design Submitted', 'A new Activity Design \"Test 1\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-26 08:41:38', '2026-08-26 08:41:38'),
+(47, 2, 'Activity Design Submitted', 'Your Activity Design \"Test 2\" has been successfully submitted and is pending review.', 'info', '/college/submitted-list', 0, '2026-08-26 14:09:15', '2026-08-26 14:09:15'),
+(48, 1, 'New Activity Design Submitted', 'A new Activity Design \"Test 2\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-26 14:09:22', '2026-08-26 14:09:22'),
+(49, 47, 'New Activity Design Submitted', 'A new Activity Design \"Test 2\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-26 14:09:27', '2026-08-26 14:09:27'),
+(50, 2, 'Activity Design Submitted', 'Your Activity Design \"Test 3\" has been successfully submitted and is pending review.', 'info', '/college/submitted-list', 0, '2026-08-27 00:20:57', '2026-08-27 00:20:57'),
+(51, 1, 'New Activity Design Submitted', 'A new Activity Design \"Test 3\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 00:21:02', '2026-08-27 00:21:02'),
+(52, 47, 'New Activity Design Submitted', 'A new Activity Design \"Test 3\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 00:21:07', '2026-08-27 00:21:07'),
+(53, 2, 'Revision Required', 'Your Activity Design \"Test 3\" requires revision. Remarks: dvsdvs', 'warning', '/college/submitted-list', 0, '2026-08-27 00:27:55', '2026-08-27 00:27:55'),
+(54, 1, 'Activity Design Resubmitted', 'Activity Design \"Test 3 CIS Activity 3\" has been resubmitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 02:34:15', '2026-08-27 02:34:15'),
+(55, 47, 'Activity Design Resubmitted', 'Activity Design \"Test 3 CIS Activity 3\" has been resubmitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 02:34:21', '2026-08-27 02:34:21'),
+(56, 2, 'Revision Required', 'Your Activity Design \"Test 3 CIS Activity 3\" requires revision. Remarks: xvdfvdd', 'warning', '/college/submitted-list', 0, '2026-08-27 02:57:31', '2026-08-27 02:57:31'),
+(57, 1, 'Activity Design Resubmitted', 'Activity Design \"Test 3 CIS Activity 3\" has been resubmitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 02:59:25', '2026-08-27 02:59:25'),
+(58, 47, 'Activity Design Resubmitted', 'Activity Design \"Test 3 CIS Activity 3\" has been resubmitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 02:59:29', '2026-08-27 02:59:29'),
+(59, 2, 'Revision Required', 'Your Activity Design \"Test 3 CIS Activity 3\" requires revision. Remarks: sdvsdvs', 'warning', '/college/submitted-list', 0, '2026-08-27 03:09:54', '2026-08-27 03:09:54'),
+(60, 1, 'Activity Design Resubmitted', 'Activity Design \"Test 3 CIS Activity 3\" has been resubmitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 06:01:26', '2026-08-27 06:01:26'),
+(61, 47, 'Activity Design Resubmitted', 'Activity Design \"Test 3 CIS Activity 3\" has been resubmitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 06:01:32', '2026-08-27 06:01:32'),
+(62, 2, 'Activity Design Approved', 'Your Activity Design \"Test 3 CIS Activity 3\" has been approved.', 'success', '/college/submitted-list', 0, '2026-08-27 06:02:23', '2026-08-27 06:02:23'),
+(63, 1, 'Modification Requested', 'A modification request for Activity Design \"Test 3 CIS Activity 3\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 06:03:17', '2026-08-27 06:03:17'),
+(64, 47, 'Modification Requested', 'A modification request for Activity Design \"Test 3 CIS Activity 3\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 06:03:22', '2026-08-27 06:03:22'),
+(65, 2, 'Modification Requested', 'Your modification request for \"Test 3 CIS Activity 3\" has been sent and is pending review.', 'info', '/college/submitted-list', 0, '2026-08-27 06:03:28', '2026-08-27 06:03:28'),
+(66, 1, 'Modification Requested', 'A modification request for Activity Design \"Test 3 CIS Activity 3\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 06:40:10', '2026-08-27 06:40:10'),
+(67, 47, 'Modification Requested', 'A modification request for Activity Design \"Test 3 CIS Activity 3\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 06:40:16', '2026-08-27 06:40:16'),
+(68, 2, 'Modification Requested', 'Your modification request for \"Test 3 CIS Activity 3\" has been sent and is pending review.', 'info', '/college/submitted-list', 0, '2026-08-27 06:40:22', '2026-08-27 06:40:22'),
+(69, 1, 'Modification Requested', 'A modification request for Activity Design \"Test 3 CIS Activity 3\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 06:52:35', '2026-08-27 06:52:35'),
+(70, 47, 'Modification Requested', 'A modification request for Activity Design \"Test 3 CIS Activity 3\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 06:52:40', '2026-08-27 06:52:40'),
+(71, 2, 'Modification Requested', 'Your modification request for \"Test 3 CIS Activity 3\" has been sent and is pending review.', 'info', '/college/submitted-list', 0, '2026-08-27 06:52:46', '2026-08-27 06:52:46'),
+(72, 2, 'Modification Rejected', 'Your modification request for \"Test 3 CIS Activity 3\" has been rejected.', 'error', '/college/submitted-list', 0, '2026-08-27 06:53:07', '2026-08-27 06:53:07'),
+(73, 1, 'Modification Requested', 'A modification request for Activity Design \"Test 3 CIS Activity 3\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 06:53:30', '2026-08-27 06:53:30'),
+(74, 47, 'Modification Requested', 'A modification request for Activity Design \"Test 3 CIS Activity 3\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 06:53:37', '2026-08-27 06:53:37'),
+(75, 2, 'Modification Requested', 'Your modification request for \"Test 3 CIS Activity 3\" has been sent and is pending review.', 'info', '/college/submitted-list', 0, '2026-08-27 06:53:41', '2026-08-27 06:53:41'),
+(76, 2, 'Modification Approved', 'Your modification request for \"Test 3 CIS Activity 3\" has been approved.', 'success', '/college/submitted-list', 0, '2026-08-27 06:53:57', '2026-08-27 06:53:57'),
+(77, 1, 'Activity Design Modified', 'CA TWG modified the approved Activity Design \"Test 3 CIS Activity 3\".', 'info', '/admin/ad-list', 0, '2026-08-27 06:54:50', '2026-08-27 06:54:50'),
+(78, 47, 'Activity Design Modified', 'CA TWG modified the approved Activity Design \"Test 3 CIS Activity 3\".', 'info', '/admin/ad-list', 0, '2026-08-27 06:54:55', '2026-08-27 06:54:55'),
+(79, 2, 'Activity Design Approved', 'Your Activity Design \"Test 2\" has been approved.', 'success', '/college/submitted-list', 0, '2026-08-27 08:07:10', '2026-08-27 08:07:10'),
+(80, 1, 'Modification Requested', 'A modification request for Activity Design \"Test 2\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 08:07:47', '2026-08-27 08:07:47'),
+(81, 47, 'Modification Requested', 'A modification request for Activity Design \"Test 2\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 08:07:52', '2026-08-27 08:07:52'),
+(82, 2, 'Modification Requested', 'Your modification request for \"Test 2\" has been sent and is pending review.', 'info', '/college/submitted-list', 0, '2026-08-27 08:07:57', '2026-08-27 08:07:57'),
+(83, 2, 'Modification Rejected', 'Your modification request for \"Test 2\" has been rejected.', 'error', '/college/submitted-list', 0, '2026-08-27 08:08:21', '2026-08-27 08:08:21');
 
 -- --------------------------------------------------------
 
@@ -766,7 +892,7 @@ INSERT INTO `settings` (`id`, `key`, `value`, `fiscal_year`, `created_at`, `upda
 (24, 'approvedByName', 'Kenneth Alip Laruan, President', 20264, '2026-07-13 06:29:35', '2026-07-13 06:29:35'),
 (25, 'baseline_amounts', '{\"meals_inside\":220,\"meals_outside\":350,\"snacks_inside\":85,\"snacks_outside\":150,\"pf_honoraria\":2258.25,\"tokens\":1000,\"materials\":1000,\"transportation_limit\":20000}', 0, '2026-07-17 04:01:46', '2026-07-17 04:05:34'),
 (26, 'system_settings', '{\"ad_submission_limit_enabled\":false}', 0, '2026-07-20 02:07:20', '2026-07-26 02:08:04'),
-(27, 'last_cleanup_run', '2026-08-17 01:41:48', 0, '2026-07-23 04:57:55', '2026-08-17 01:41:48');
+(27, 'last_cleanup_run', '2026-08-27 05:56:22', 0, '2026-07-23 04:57:55', '2026-08-27 05:56:22');
 
 -- --------------------------------------------------------
 
@@ -804,8 +930,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `email`, `email_verified_at`, `password`, `reset_token`, `reset_token_expires_at`, `role`, `full_name`, `student_id`, `office_id`, `year_level`, `user_acronym`, `remember_token`, `deleted_at`, `created_at`, `updated_at`, `last_login`, `first_name`, `middle_name`, `last_name`, `profile_role`) VALUES
-(1, 'Gender and Development Office', 'gad.office@bsu.edu.ph', NULL, '$2y$10$a9XVQgTdygySA0E7XCNf4euNdZmuXjqGxSvUbQEzd5X7qiFmPNae6', NULL, NULL, 'admin', 'Jude Tayaben', NULL, 1, NULL, 'GAD', NULL, NULL, '2026-05-25 11:58:10', '2026-08-17 09:07:15', '2026-08-17 09:07:15', '', NULL, '', 'Director'),
-(2, 'College of Agriculture', 'ca@bsu.edu.ph', NULL, '$2y$10$CKShTYh97GNm4C1Y20XFneDWhDBXhvtNyUwftPM9aDAbz4u9mz6Jy', NULL, NULL, 'twg', 'CA TWG', NULL, 2, NULL, 'CA', NULL, NULL, '2026-05-25 11:58:10', '2026-08-17 09:07:37', '2026-08-17 09:07:37', '', NULL, '', 'TWG'),
+(1, 'Gender and Development Office', 'gad.office@bsu.edu.ph', NULL, '$2y$10$a9XVQgTdygySA0E7XCNf4euNdZmuXjqGxSvUbQEzd5X7qiFmPNae6', NULL, NULL, 'admin', 'Jude Tayaben', NULL, 1, NULL, 'GAD', NULL, NULL, '2026-05-25 11:58:10', '2026-08-27 05:56:22', '2026-08-27 05:56:22', '', NULL, '', 'Director'),
+(2, 'College of Agriculture', 'ca@bsu.edu.ph', NULL, '$2y$10$CKShTYh97GNm4C1Y20XFneDWhDBXhvtNyUwftPM9aDAbz4u9mz6Jy', NULL, NULL, 'twg', 'CA TWG', NULL, 2, NULL, 'CA', NULL, NULL, '2026-05-25 11:58:10', '2026-08-27 05:56:38', '2026-08-27 05:56:38', '', NULL, '', 'TWG'),
 (3, 'Registrar\'s Office BSU Buguias Campus', 'buguias.registrar@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'college', 'George Pacyaden', NULL, 3, NULL, 'Buguias-RO', NULL, NULL, '2026-05-25 11:58:10', '2026-07-06 23:38:18', '2026-06-29 04:00:21', '', NULL, '', 'TWG'),
 (4, 'Human Resources and Management Office BSU Bokod Campus', 'bokod.hrmo@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'twg', NULL, NULL, 4, NULL, NULL, 'Bokod-HRMO', NULL, '2026-05-25 11:58:10', '2026-07-06 14:06:16', NULL, '', NULL, '', 'TWG'),
 (5, 'International Relations Office', 'iro@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'twg', NULL, NULL, 5, NULL, 'IRO', NULL, NULL, '2026-05-25 11:58:10', '2026-07-06 14:06:16', NULL, '', NULL, '', 'TWG'),
@@ -850,7 +976,7 @@ INSERT INTO `users` (`id`, `username`, `email`, `email_verified_at`, `password`,
 (44, 'Open University', 'ou@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'twg', NULL, NULL, 44, NULL, 'OU', NULL, NULL, '2026-05-25 11:58:10', '2026-07-06 14:06:16', NULL, '', NULL, '', 'TWG'),
 (45, 'College of Education BSU Bokod Campus', 'bokod.ce@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'twg', NULL, NULL, 45, NULL, 'Bokod-CE', NULL, NULL, '2026-05-25 11:58:10', '2026-07-06 14:06:16', NULL, '', NULL, '', 'TWG'),
 (46, 'College of Forestry', 'cf@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'twg', NULL, NULL, 46, NULL, 'CF', NULL, NULL, '2026-05-25 11:58:10', '2026-07-06 14:06:16', NULL, '', NULL, '', 'TWG'),
-(47, 'gad.staff', 'gad.staff@bsu.edu.ph', NULL, '$2y$12$fbD/jvk.znEQnBmKq4.ebOojmijHJO/zU7.P7Tzo.zV3FgvP8PzNe', NULL, NULL, 'gad_staff', 'GAD Staff', NULL, 1, NULL, 'GAD-STAFF', NULL, NULL, '2026-03-26 15:53:56', '2026-08-17 09:07:23', '2026-08-17 09:07:23', 'GAD', 'Staff', 'User', 'Staff'),
+(47, 'gad.staff', 'gad.staff@bsu.edu.ph', NULL, '$2y$12$fbD/jvk.znEQnBmKq4.ebOojmijHJO/zU7.P7Tzo.zV3FgvP8PzNe', NULL, NULL, 'gad_staff', 'GAD Staff', NULL, 1, NULL, 'GAD-STAFF', NULL, NULL, '2026-03-26 15:53:56', '2026-08-27 05:56:27', '2026-08-27 05:56:27', 'GAD', 'Staff', 'User', 'Staff'),
 (51, 'marksantos', 'marksantos@gmail.com', NULL, '$2y$10$vEdSBaP5YNzsdUal1Ajwhuk/4moO5JVDu.I6VpCEG3N85F3KEimXe', NULL, NULL, 'non-twg', 'Mark Santos', NULL, 32, NULL, NULL, NULL, '2026-08-06 01:58:30', '2026-06-17 12:57:12', '2026-08-06 09:58:30', '2026-06-30 01:05:39', 'Mark', '', 'Santos', 'Non-TWG'),
 (52, 'bisayotduligas', 'bisayotduligas@gmail.com', NULL, '$2y$10$JpRWDi5O/IQLqslAOTtZy.kr77UwS.Dm2vzto7EgK4zJckMIjlcV2', NULL, NULL, 'non-twg', 'Joshua Duligas', NULL, 32, NULL, NULL, NULL, NULL, '2026-06-25 02:46:48', '2026-08-17 09:07:55', '2026-08-17 09:07:55', '', NULL, '', 'Non-TWG');
 
@@ -889,7 +1015,10 @@ INSERT INTO `venues` (`venue_id`, `venue_name`, `is_inside_bsu`) VALUES
 (16, 'Dimas Hall, IHFSA', 1),
 (17, 'OSS Social Hall', 1),
 (18, 'Main Auditorium', 1),
-(37, 'yo', 0);
+(37, 'yo', 0),
+(38, 'CIS', 0),
+(39, 'CIS', 1),
+(40, 'DORGING', 1);
 
 --
 -- Indexes for dumped tables
@@ -908,6 +1037,13 @@ ALTER TABLE `accomplishment_report`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_report_user` (`user_id`),
   ADD KEY `idx_ar_control_number` (`control_number`);
+
+--
+-- Indexes for table `accomplishment_schedules`
+--
+ALTER TABLE `accomplishment_schedules`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `accomplishment_schedules_accomplishment_report_id_foreign` (`accomplishment_report_id`);
 
 --
 -- Indexes for table `activity_budget_items`
@@ -949,6 +1085,13 @@ ALTER TABLE `activity_design_mandates`
 ALTER TABLE `activity_logs`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`);
+
+--
+-- Indexes for table `activity_schedules`
+--
+ALTER TABLE `activity_schedules`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `activity_schedules_act_design_id_foreign` (`act_design_id`);
 
 --
 -- Indexes for table `archived_annual_reports`
@@ -1022,6 +1165,13 @@ ALTER TABLE `gpb_offices_map`
   ADD KEY `office_id` (`office_id`);
 
 --
+-- Indexes for table `holidays`
+--
+ALTER TABLE `holidays`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `date` (`date`);
+
+--
 -- Indexes for table `messages`
 --
 ALTER TABLE `messages`
@@ -1084,10 +1234,16 @@ ALTER TABLE `accomplishment_report`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
 
 --
+-- AUTO_INCREMENT for table `accomplishment_schedules`
+--
+ALTER TABLE `accomplishment_schedules`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `activity_budget_items`
 --
 ALTER TABLE `activity_budget_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=987;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1057;
 
 --
 -- AUTO_INCREMENT for table `activity_classifications`
@@ -1099,25 +1255,31 @@ ALTER TABLE `activity_classifications`
 -- AUTO_INCREMENT for table `activity_design`
 --
 ALTER TABLE `activity_design`
-  MODIFY `act_design_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=121;
+  MODIFY `act_design_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=124;
 
 --
 -- AUTO_INCREMENT for table `activity_design_issues`
 --
 ALTER TABLE `activity_design_issues`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=335;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=342;
 
 --
 -- AUTO_INCREMENT for table `activity_design_mandates`
 --
 ALTER TABLE `activity_design_mandates`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=369;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=380;
 
 --
 -- AUTO_INCREMENT for table `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=586;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=625;
+
+--
+-- AUTO_INCREMENT for table `activity_schedules`
+--
+ALTER TABLE `activity_schedules`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=76;
 
 --
 -- AUTO_INCREMENT for table `archived_annual_reports`
@@ -1180,22 +1342,28 @@ ALTER TABLE `gpb_items`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=131;
 
 --
+-- AUTO_INCREMENT for table `holidays`
+--
+ALTER TABLE `holidays`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+
+--
 -- AUTO_INCREMENT for table `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=728;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=729;
 
 --
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=84;
 
 --
 -- AUTO_INCREMENT for table `office_units`
@@ -1219,7 +1387,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `venues`
 --
 ALTER TABLE `venues`
-  MODIFY `venue_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+  MODIFY `venue_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- Constraints for dumped tables
@@ -1232,11 +1400,23 @@ ALTER TABLE `accomplishment_report`
   ADD CONSTRAINT `fk_report_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
+-- Constraints for table `accomplishment_schedules`
+--
+ALTER TABLE `accomplishment_schedules`
+  ADD CONSTRAINT `accomplishment_schedules_accomplishment_report_id_foreign` FOREIGN KEY (`accomplishment_report_id`) REFERENCES `accomplishment_report` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Constraints for table `activity_design`
 --
 ALTER TABLE `activity_design`
   ADD CONSTRAINT `fk_activity_gpb` FOREIGN KEY (`gpb_id`) REFERENCES `gad_plan_budget` (`gpb_id`) ON DELETE SET NULL,
   ADD CONSTRAINT `fk_activity_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `activity_schedules`
+--
+ALTER TABLE `activity_schedules`
+  ADD CONSTRAINT `activity_schedules_act_design_id_foreign` FOREIGN KEY (`act_design_id`) REFERENCES `activity_design` (`act_design_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `gpb_budget_breakdown`

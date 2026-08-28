@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@fontsource/manrope": "^5.2.8",
+    "@vuepic/vue-datepicker": "^14.0.0",
     "axios": "^1.16.1",
     "chart.js": "^4.5.1",
     "material-symbols": "^0.44.12",

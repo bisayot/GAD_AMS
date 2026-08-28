@@ -116,81 +116,152 @@
                     >
                   </div>
 
-                  <div class="form-sub-grid-ar">
-                    <div class="input-group-ar">
-                      <div class="label-container">
-                        <label class="form-label-ar">Start Date of Implementation *</label>
-                        <div class="info-btn-wrapper">
-                          <button type="button" class="info-btn" @click.stop="toggleHelp('startDate')">
-                            i
-                          </button>
-                          <transition name="fade-pop">
-                            <div v-if="helpState.startDate" class="simple-popup">
-                              Must be scheduled on working days from Monday to Friday.
+                  
+                  
+                  <!-- Staggered Schedules Section -->
+                  <div class="form.schedules-container" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
+                    <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
+                      <div style="display: flex; align-items: center; gap: 16px;">
+                          <label class="form-label !mb-0 flex items-center gap-2">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">schedule</span>
+                            Activity Schedules *
+                          </label>
+                          <div style="display: flex; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 4px; border: 1px solid rgba(255,255,255,0.05);">
+                            <button type="button" @click.prevent="handleScheduleTypeChange('staggered')" :style="{ background: scheduleType === 'staggered' ? 'rgba(185, 121, 204, 0.2)' : 'transparent', color: scheduleType === 'staggered' ? '#e9d5ff' : '#94a3b8', padding: '4px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', border: 'none' }">Non Consecutive</button>
+                            <button type="button" @click.prevent="handleScheduleTypeChange('continuous')" :style="{ background: scheduleType === 'continuous' ? 'rgba(185, 121, 204, 0.2)' : 'transparent', color: scheduleType === 'continuous' ? '#e9d5ff' : '#94a3b8', padding: '4px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', border: 'none' }">Consecutive</button>
+                          </div>
+                      </div>
+                      <button type="button" v-if="scheduleType === 'staggered'" @click.prevent="addSchedule" style="background: rgba(185, 121, 204, 0.2); color: #e9d5ff; border: 1px solid rgba(185, 121, 204, 0.3); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s;">
+                        <span class="material-symbols-outlined" style="font-size: 14px;">add</span> Add Schedule
+                      </button>
+                    </div>
+                    
+                    <div v-if="form.schedules.length === 0" style="color: #94a3b8; font-size: 13px; font-style: italic; margin-bottom: 8px;">
+                      Please add at least one schedule.
+                    </div>
+                    
+                    
+                    <!-- Continuous Config UI -->
+                    <div v-if="scheduleType === 'continuous'" class="schedule-row mb-3 p-4 bg-white border border-slate-200 rounded-lg relative" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
+                      <div style="display: flex; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+                        <div class="flex-1">
+                          <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Start Date</label>
+                          <VueDatePicker dark v-model="continuousConfig.start_date" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
+<template #dp-input="{ value }">
+<input type="text" :value="value ? String(value).replace(',', '').trim().split(' ')[0] : ''" class="custom-input-field dp-custom-transparent !text-xs !p-2" readonly placeholder="Select Date" />
+</template>
+</VueDatePicker>
+                        </div>
+                        <div class="flex-1">
+                          <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">End Date</label>
+                          <VueDatePicker dark v-model="continuousConfig.end_date" :min-date="continuousConfig.start_date || minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
+<template #dp-input="{ value }">
+<input type="text" :value="value ? String(value).replace(',', '').trim().split(' ')[0] : ''" class="custom-input-field dp-custom-transparent !text-xs !p-2" readonly placeholder="Select Date" />
+</template>
+</VueDatePicker>
+                        </div>
+                        <div class="flex-1">
+                          <div class="label-container" style="margin-bottom: 4px;">
+                            <label class="text-[10px] uppercase font-bold text-slate-500 mb-0">Time From</label>
+                            <div class="info-btn-wrapper">
+                              <button type="button" class="info-btn" @click.stop="toggleHelp('startTime')" style="width: 14px; height: 14px; font-size: 10px;">i</button>
+                              <transition name="fade-pop"><div v-if="helpState.startTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                             </div>
-                          </transition>
+                          </div>
+                          <input type="time" v-model="continuousConfig.start_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="handleTimeChange(continuousConfig)">
+                        </div>
+                        <div class="flex-1">
+                          <div class="label-container" style="margin-bottom: 4px;">
+                            <label class="text-[10px] uppercase font-bold text-slate-500 mb-0">Time To</label>
+                            <div class="info-btn-wrapper">
+                              <button type="button" class="info-btn" @click.stop="toggleHelp('endTime')" style="width: 14px; height: 14px; font-size: 10px;">i</button>
+                              <transition name="fade-pop"><div v-if="helpState.endTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
+                            </div>
+                          </div>
+                          <input type="time" v-model="continuousConfig.end_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="handleTimeChange(continuousConfig)">
                         </div>
                       </div>
-                      <input type="date" v-model="form.start_date" :min="minDate" :max="maxDate" required class="custom-input-field code-icon-calendar"
-                      >
-                    </div>
-                    <div class="input-group-ar">
-                      <div class="label-container">
-                        <label class="form-label-ar">End Date of Implementation *</label>
-                        <div class="info-btn-wrapper">
-                          <button type="button" class="info-btn" @click.stop="toggleHelp('endDate')">
-                            i
-                          </button>
-                          <transition name="fade-pop">
-                            <div v-if="helpState.endDate" class="simple-popup">
-                              End date must not exceed a week after the start date.
-                            </div>
-                          </transition>
-                        </div>
+                      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.1);">
+                        <span style="font-size: 10px; text-transform: uppercase; font-weight: bold; color: #b979cc; margin-right: 8px;">Meals Applied Daily:</span>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;" :style="{ opacity: (continuousConfig.start_time && Number(continuousConfig.start_time.split(':')[0]) >= 13) ? '0.5' : '1' }">
+                          <input type="checkbox" v-model="continuousConfig.meals_and_snacks.breakfast" :disabled="continuousConfig.start_time && Number(continuousConfig.start_time.split(':')[0]) >= 13" style="accent-color: #b979cc;" /> Breakfast
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;" :style="{ opacity: (continuousConfig.start_time && Number(continuousConfig.start_time.split(':')[0]) >= 13) ? '0.5' : '1' }">
+                          <input type="checkbox" v-model="continuousConfig.meals_and_snacks.am_snack" :disabled="continuousConfig.start_time && Number(continuousConfig.start_time.split(':')[0]) >= 13" style="accent-color: #b979cc;" /> AM Snack
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
+                          <input type="checkbox" v-model="continuousConfig.meals_and_snacks.lunch" style="accent-color: #b979cc;" /> Lunch
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;" :style="{ opacity: (continuousConfig.end_time && (Number(continuousConfig.end_time.split(':')[0]) < 12 || continuousConfig.end_time === '12:00')) ? '0.5' : '1' }">
+                          <input type="checkbox" v-model="continuousConfig.meals_and_snacks.pm_snack" :disabled="continuousConfig.end_time && (Number(continuousConfig.end_time.split(':')[0]) < 12 || continuousConfig.end_time === '12:00')" style="accent-color: #b979cc;" /> PM Snack
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;" :style="{ opacity: (continuousConfig.end_time && (Number(continuousConfig.end_time.split(':')[0]) < 12 || continuousConfig.end_time === '12:00')) ? '0.5' : '1' }">
+                          <input type="checkbox" v-model="continuousConfig.meals_and_snacks.dinner" :disabled="continuousConfig.end_time && (Number(continuousConfig.end_time.split(':')[0]) < 12 || continuousConfig.end_time === '12:00')" style="accent-color: #b979cc;" /> Dinner
+                        </label>
                       </div>
-                      <input type="date" v-model="form.end_date" :min="minDate" :max="maxDate" required class="custom-input-field code-icon-calendar"
-                      >
                     </div>
+
+                    <!-- Expanded Schedules UI -->
+                    <div v-if="scheduleType === 'continuous' && form.schedules.length > 0" style="margin-top: 16px; margin-bottom: 8px; color: #b979cc; font-size: 11px; font-weight: bold; display: flex; align-items: center; gap: 4px;">
+                      <span class="material-symbols-outlined" style="font-size: 14px;">info</span>
+                      You can customize the Time and Meals for specific days (e.g., half-day on the last day) below:
+                    </div>
+                    <div v-for="(sch, index) in form.schedules" :key="index" style="display: flex; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); position: relative;">
+                      <div style="flex: 1;">
+                        <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 6px; display: block;">Date</label>
+                        <VueDatePicker dark v-model="sch.date" :disabled="scheduleType === 'continuous'" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
+<template #dp-input="{ value }">
+<input type="text" :value="value ? String(value).replace(',', '').trim().split(' ')[0] : ''" class="custom-input-field dp-custom-transparent !text-xs !p-2" readonly placeholder="Select Date" />
+</template>
+</VueDatePicker>
+                      </div>
+                      <div style="flex: 1;">
+                        <div class="label-container" style="margin-bottom: 6px;">
+                          <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 0;">Start Time</label>
+                          <div class="info-btn-wrapper">
+                            <button type="button" class="info-btn" @click.stop="toggleHelp('startTime')" style="width: 14px; height: 14px; font-size: 10px;">i</button>
+                            <transition name="fade-pop"><div v-if="helpState.startTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
+                          </div>
+                        </div>
+                        <input type="time" v-model="sch.start_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="validateScheduleTime(index)">
+                      </div>
+                      <div style="flex: 1;">
+                        <div class="label-container" style="margin-bottom: 6px;">
+                          <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 0;">End Time</label>
+                          <div class="info-btn-wrapper">
+                            <button type="button" class="info-btn" @click.stop="toggleHelp('endTime')" style="width: 14px; height: 14px; font-size: 10px;">i</button>
+                            <transition name="fade-pop"><div v-if="helpState.endTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
+                          </div>
+                        </div>
+                        <input type="time" v-model="sch.end_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="validateScheduleTime(index)">
+                      </div>
+                      <button type="button" v-if="scheduleType === 'staggered' && form.schedules.length > 1" @click.prevent="removeSchedule(index)" style="background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" title="Remove Schedule">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
+                      </button>
+                      <div style="flex-basis: 100%; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 8px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.1);">
+                        <span style="font-size: 10px; text-transform: uppercase; font-weight: bold; color: #b979cc; margin-right: 8px;">Meals Needed:</span>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
+                          <input type="checkbox" v-model="sch.meals_and_snacks.breakfast" :disabled="sch.start_time && Number(sch.start_time.split(':')[0]) >= 13" style="accent-color: #b979cc;" /> Breakfast
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
+                          <input type="checkbox" v-model="sch.meals_and_snacks.am_snack" :disabled="sch.start_time && Number(sch.start_time.split(':')[0]) >= 13" style="accent-color: #b979cc;" /> AM Snack
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
+                          <input type="checkbox" v-model="sch.meals_and_snacks.lunch" style="accent-color: #b979cc;" /> Lunch
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
+                          <input type="checkbox" v-model="sch.meals_and_snacks.pm_snack" :disabled="sch.end_time && (Number(sch.end_time.split(':')[0]) < 12 || sch.end_time === '12:00')" style="accent-color: #b979cc;" /> PM Snack
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
+                          <input type="checkbox" v-model="sch.meals_and_snacks.dinner" :disabled="sch.end_time && (Number(sch.end_time.split(':')[0]) < 12 || sch.end_time === '12:00')" style="accent-color: #b979cc;" /> Dinner
+                        </label>
+                      </div>
+                    </div>
+                    
+                    
                   </div>
 
-                  <div class="form-sub-grid-ar">
-                    <div class="input-group-ar">
-                      <div class="label-container">
-                        <label class="form-label-ar">Start Time *</label>
-                        <div class="info-btn-wrapper">
-                          <button type="button" class="info-btn" @click.stop="toggleHelp('startTime')">
-                            i
-                          </button>
-                          <transition name="fade-pop">
-                            <div v-if="helpState.startTime" class="simple-popup">
-                              Must be set between 04:00 AM and 08:00 PM.
-                            </div>
-                          </transition>
-                        </div>
-                      </div>
-                      <input type="time" v-model="form.start_time" min="04:00" max="20:00" required class="custom-input-field code-icon-clock"
-                      >
-                    </div>
-                    <div class="input-group-ar">
-                      <div class="label-container">
-                        <label class="form-label-ar">End Time *</label>
-                        <div class="info-btn-wrapper">
-                          <button type="button" class="info-btn" @click.stop="toggleHelp('endTime')">
-                            i
-                          </button>
-                          <transition name="fade-pop">
-                            <div v-if="helpState.endTime" class="simple-popup">
-                              Must be after the start time and set between 04:00 AM and 08:00 PM.
-                            </div>
-                          </transition>
-                        </div>
-                      </div>
-                      <input type="time" v-model="form.end_time" min="04:00" max="20:00" required class="custom-input-field code-icon-clock"
-                      >
-                    </div>
-                  </div>
-
-                  <div class="input-group-ar">
+<div class="input-group-ar">
                     <label class="form-label-ar">Venue Location *</label>
                     <div class="toggle-container" style="display: flex; gap: 1rem; align-items: center; height: 42px;">
                       <label style="color: #cbd5e1; font-size: 14px; cursor: pointer;">
@@ -291,17 +362,7 @@
                           <div class="budget-row-item">
                             <div class="budget-item-info">
                               <div class="budget-item-title">Meals</div>
-                              <div class="budget-sub-controls">
-                                <label class="budget-checkbox-label">
-                                  <input type="checkbox" v-model="mealsSelected.breakfast" class="budget-checkbox" /> Breakfast
-                                </label>
-                                <label class="budget-checkbox-label">
-                                  <input type="checkbox" v-model="mealsSelected.lunch" class="budget-checkbox" /> Lunch
-                                </label>
-                                <label class="budget-checkbox-label">
-                                  <input type="checkbox" v-model="mealsSelected.dinner" class="budget-checkbox" /> Dinner
-                                </label>
-                              </div>
+                              
                             </div>
                             <div class="budget-item-value">
                               <span class="budget-currency-symbol">₱</span>
@@ -320,14 +381,7 @@
                           <div class="budget-row-item">
                             <div class="budget-item-info">
                               <div class="budget-item-title">Snacks</div>
-                              <div class="budget-sub-controls">
-                                <label class="budget-checkbox-label">
-                                  <input type="checkbox" v-model="snacksSelected.am" class="budget-checkbox" /> AM Snack
-                                </label>
-                                <label class="budget-checkbox-label">
-                                  <input type="checkbox" v-model="snacksSelected.pm" class="budget-checkbox" /> PM Snack
-                                </label>
-                              </div>
+                              
                             </div>
                             <div class="budget-item-value">
                               <span class="budget-currency-symbol">₱</span>
@@ -679,6 +733,8 @@
 </template>
 
 <script setup>
+import { useHolidays } from '../../utils/useHolidays';
+const { isDisabledDate } = useHolidays();
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import Swal from 'sweetalert2';
@@ -768,6 +824,8 @@ const form = ref({
   act_design_id: null,
   start_date: '',
   end_date: '',
+  schedule_type: 'continuous',
+  schedules: [],
   start_time: '',
   end_time: '',
   venue: '',
@@ -1096,15 +1154,9 @@ const fetchBaselineSettings = async () => {
   }
 };
 
-watch([pfPax, baselineSettings], ([newPax, _]) => {
-  const item = form.value.budget_items.find(i => i.name === 'Professional Fee/Honoraria');
-  if (item) item.total = (Number(newPax) * baselineSettings.value.pf_honoraria) || '';
-}, { deep: true });
 
-watch([tokensPax, baselineSettings], ([newPax, _]) => {
-  const item = form.value.budget_items.find(i => i.name === 'Token/s');
-  if (item) item.total = (Number(newPax) * baselineSettings.value.tokens) || '';
-}, { deep: true });
+
+
 
 // removed buggy watchers
 
@@ -1159,7 +1211,6 @@ const activePreviewIndex = ref(0);
 const userRole = user.value?.role || user.value?.user_role || '';
 const getPdfViewerUrl = (url) => {
   if (!url) return '';
-    if (url.startsWith('blob:')) return url;
   return `/pdfjs/web/viewer.html?file=${encodeURIComponent(url)}&role=${encodeURIComponent(userRole)}`;
 };
 const expandToNewTab = (url) => {
@@ -1220,6 +1271,180 @@ const removeFile = (index) => {
     activePreviewIndex.value--;
   }
 };
+
+
+const scheduleType = ref('continuous');
+const continuousConfig = ref({
+  start_date: '',
+  end_date: '',
+  start_time: '',
+  end_time: '',
+  meals_and_snacks: { breakfast: false, am_snack: false, lunch: false, pm_snack: false, dinner: false }
+});
+
+
+const handleScheduleTypeChange = (newType) => {
+  if (scheduleType.value === newType) return;
+  scheduleType.value = newType;
+  
+  continuousConfig.value = {
+    start_date: '',
+    end_date: '',
+    start_time: '',
+    end_time: '',
+    meals_and_snacks: { breakfast: false, am_snack: false, lunch: false, pm_snack: false, dinner: false }
+  };
+  
+  form.schedules = [{
+    date: '',
+    start_time: '',
+    end_time: '',
+    meals_and_snacks: { breakfast: false, am_snack: false, lunch: false, pm_snack: false, dinner: false }
+  }];
+};
+
+
+const recalculateSchedules = () => {
+  if (scheduleType.value === 'continuous') {
+    if (continuousConfig.value.start_date && continuousConfig.value.end_date) {
+      const start = new Date(continuousConfig.value.start_date);
+      const end = new Date(continuousConfig.value.end_date);
+      
+      const schedules = [];
+      let current = new Date(start);
+      while (current <= end) {
+        // Skip weekends
+        const day = current.getDay();
+        if (day !== 0 && day !== 6) {
+            schedules.push({
+              date: current.toISOString().split('T')[0],
+              start_time: continuousConfig.value.start_time,
+              end_time: continuousConfig.value.end_time,
+              meals_and_snacks: { ...continuousConfig.value.meals_and_snacks }
+            });
+        }
+        current.setDate(current.getDate() + 1);
+      }
+      form.value.schedules = schedules;
+      form.value.start_date = continuousConfig.value.start_date;
+      form.value.end_date = continuousConfig.value.end_date;
+    } else {
+      form.value.schedules = [];
+      form.value.start_date = '';
+      form.value.end_date = '';
+    }
+  } else {
+    // If switched to staggered and schedules is empty, add one
+    if (!form.value.schedules || form.value.schedules.length === 0) {
+      form.value.schedules = [{
+        date: '',
+        start_time: '',
+        end_time: '',
+        meals_and_snacks: { breakfast: false, am_snack: false, lunch: false, pm_snack: false, dinner: false }
+      }];
+    }
+    // Update main start/end dates based on schedules
+    if (form.value.schedules.length > 0) {
+      const dates = form.value.schedules.map(s => s.date).filter(d => d);
+      if (dates.length > 0) {
+        dates.sort();
+        form.value.start_date = dates[0];
+        form.value.end_date = dates[dates.length - 1];
+      }
+    }
+  }
+};
+
+const addSchedule = () => {
+  form.value.schedules.push({
+    date: '',
+    start_time: '',
+    end_time: '',
+    meals_and_snacks: { breakfast: false, am_snack: false, lunch: false, pm_snack: false, dinner: false }
+  });
+};
+
+const removeSchedule = (index) => {
+  form.value.schedules.splice(index, 1);
+  recalculateSchedules();
+};
+
+watch(() => form.value.schedules, () => {
+    if (scheduleType.value === 'staggered') {
+        recalculateSchedules();
+    }
+}, { deep: true });
+
+
+
+const totalBreakfastDays = computed(() => {
+  return form.value.schedules?.filter(s => s.meals_and_snacks?.breakfast).length || 0;
+});
+const totalLunchDays = computed(() => {
+  return form.value.schedules?.filter(s => s.meals_and_snacks?.lunch).length || 0;
+});
+const totalDinnerDays = computed(() => {
+  return form.value.schedules?.filter(s => s.meals_and_snacks?.dinner).length || 0;
+});
+const totalAMSnackDays = computed(() => {
+  return form.value.schedules?.filter(s => s.meals_and_snacks?.am_snack).length || 0;
+});
+const totalPMSnackDays = computed(() => {
+  return form.value.schedules?.filter(s => s.meals_and_snacks?.pm_snack).length || 0;
+});
+
+const isOutsideBsu = computed(() => form.value.is_inside_bsu === false || form.value.is_inside_bsu === 'false');
+
+watch(
+  [() => form.value.schedules, () => form.value.target_participants, isOutsideBsu, baselineSettings],
+  () => {
+    const item = form.value.budget_items.find(i => i.name === 'Meals');
+    if (item && baselineSettings.value) {
+      const mealsCount = totalBreakfastDays.value + totalLunchDays.value + totalDinnerDays.value;
+      const mealsRate = isOutsideBsu.value ? baselineSettings.value.meals_outside : baselineSettings.value.meals_inside;
+      const pax = Number(form.value.target_participants) || 0;
+      const calculated = (mealsCount * mealsRate * pax);
+      item.total = calculated || '';
+    }
+  },
+  { deep: true }
+);
+
+watch(
+  [() => form.value.schedules, () => form.value.target_participants, isOutsideBsu, baselineSettings],
+  () => {
+    const item = form.value.budget_items.find(i => i.name === 'Snacks');
+    if (item && baselineSettings.value) {
+      const snacksCount = totalAMSnackDays.value + totalPMSnackDays.value;
+      const snacksRate = isOutsideBsu.value ? baselineSettings.value.snacks_outside : baselineSettings.value.snacks_inside;
+      const pax = Number(form.value.target_participants) || 0;
+      const calculated = (snacksCount * snacksRate * pax);
+      item.total = calculated || '';
+    }
+  },
+  { deep: true }
+);
+
+watch([pfPax, baselineSettings], ([newPax, _]) => {
+  const item = form.value.budget_items.find(i => i.name === 'Professional Fee/Honoraria');
+  if (item && baselineSettings.value) {
+    item.total = (Number(newPax) * baselineSettings.value.pf_honoraria) || '';
+  }
+}, { deep: true });
+
+watch([tokensPax, baselineSettings], ([newPax, _]) => {
+  const item = form.value.budget_items.find(i => i.name === 'Token/s');
+  if (item && baselineSettings.value) {
+    item.total = (Number(newPax) * baselineSettings.value.tokens) || '';
+  }
+}, { deep: true });
+
+watch([() => form.value.target_participants, baselineSettings], ([newPax, _]) => {
+  const item = form.value.budget_items.find(i => i.name === 'Materials and Supplies');
+  if (item && baselineSettings.value) {
+    item.total = (Number(newPax) * baselineSettings.value.materials) || '';
+  }
+}, { deep: true });
 
 const submitReport = async () => {
   if (!form.value.control_number) {
@@ -1549,7 +1774,11 @@ const isCurrentYear = (dateString) => {
 
 const isValidTime = (timeStr) => {
   if (!timeStr) return true;
-  return timeStr >= "04:00" && timeStr <= "20:00";
+  const [h, m] = timeStr.split(':').map(Number);
+  if (h < 4 || h > 20 || (h === 20 && m > 0)) {
+    return false;
+  }
+  return true;
 };
 
 watch(() => form.value.start_date, (newDate) => {

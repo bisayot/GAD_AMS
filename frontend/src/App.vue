@@ -7,12 +7,19 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import Navbar from './components/Navbar.vue';
 import Footer from './components/Footer.vue';
+import { useHolidays } from './utils/useHolidays';
 
 const route = useRoute();
+const { fetchHolidays } = useHolidays();
+
+onMounted(() => {
+  fetchHolidays();
+});
+
 const isDashboard = computed(() => {
   const path = route.path;
   return path.startsWith('/admin') || path.startsWith('/staff') || path.startsWith('/college');

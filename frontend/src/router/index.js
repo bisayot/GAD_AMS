@@ -49,6 +49,7 @@ const routes = [
       { path: 'user-management', name: 'admin-user-management', component: () => import('../views/admin/UserManagementView.vue') },
       { path: 'activity-logs', name: 'admin-activity-logs', component: () => import('../views/admin/ActivityLogsView.vue') },
       { path: 'campus-resources', name: 'admin-campus-resources', component: () => import('../views/admin/CampusResourcesView.vue') },
+      { path: 'holidays-management', name: 'admin-holidays-management', component: () => import('../views/admin/HolidaysManagementView.vue') },
       { path: 'settings', name: 'admin-settings', component: () => import('../views/UserSettingsView.vue') },
     ]
   },

@@ -95,21 +95,101 @@
                 <h3 class="section-title">Schedule & Venue</h3>
               </div>
               <div class="grid-2">
-                <div>
-                  <label class="info-label">Start Date</label>
-                  <p class="info-value-white">{{ formatDate(design.start_date) }}</p>
-                </div>
-                <div>
-                  <label class="info-label">End Date</label>
-                  <p class="info-value-white">{{ formatDate(design.end_date) }}</p>
-                </div>
-                <div>
-                  <label class="info-label">Start Time</label>
-                  <p class="info-value-white">{{ formatTime(design.start_time) }}</p>
-                </div>
-                <div>
-                  <label class="info-label">End Time</label>
-                  <p class="info-value-white">{{ formatTime(design.end_time) }}</p>
+                                <div class="full-width-info" style="grid-column: span 2;">
+                  <div class="flex gap-4 mb-4">
+                    <div class="flex-1 bg-[#1a1a2e] p-4 rounded-xl border border-pink-500/20 relative overflow-hidden group shadow-lg">
+                      <div class="absolute inset-0 bg-gradient-to-br from-pink-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                      <label class="text-[10px] font-bold text-pink-400 uppercase tracking-wider block mb-2">Calculated Start Date</label>
+                      <p class="text-white font-medium flex items-center gap-3 text-sm"><span class="material-symbols-outlined text-pink-500 bg-pink-500/10 p-1.5 rounded-lg">calendar_month</span> {{ formatDate(design.start_date) || 'Awaiting schedule...' }}</p>
+                    </div>
+                    <div class="flex-1 bg-[#1a1a2e] p-4 rounded-xl border border-purple-500/20 relative overflow-hidden group shadow-lg">
+                      <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                      <label class="text-[10px] font-bold text-purple-400 uppercase tracking-wider block mb-2">Calculated End Date</label>
+                      <p class="text-white font-medium flex items-center gap-3 text-sm"><span class="material-symbols-outlined text-purple-500 bg-purple-500/10 p-1.5 rounded-lg">event</span> {{ formatDate(design.end_date) || 'Awaiting schedule...' }}</p>
+                    </div>
+                  </div>
+                  
+                  <div v-if="design.schedules && design.schedules.length" class="schedules-container" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
+                    <div class="flex justify-between items-center flex-wrap gap-4" style="cursor: pointer;" @click="isSchedulesExpanded = !isSchedulesExpanded">
+                      <div style="display: flex; align-items: center; gap: 16px;">
+                          <label class="form-label !mb-0 flex items-center gap-2 text-purple-300" style="cursor: pointer;">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">schedule</span>
+                            Activity Schedules
+                          </label>
+                          <div style="display: flex; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 4px; border: 1px solid rgba(185,121,204,0.3);">
+                            <span :style="{ background: 'rgba(185, 121, 204, 0.2)', color: '#e9d5ff', padding: '4px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold' }">
+                              {{ design.schedules.length > 1 && design.schedules[0].start_time !== design.schedules[1].start_time ? 'Non Consecutive / Custom' : 'Consecutive Daily' }}
+                            </span>
+                          </div>
+                      </div>
+                      <button type="button" @click.stop="isSchedulesExpanded = !isSchedulesExpanded" style="background: rgba(185, 121, 204, 0.1); color: #e9d5ff; border: 1px solid rgba(185, 121, 204, 0.3); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                        {{ isSchedulesExpanded ? 'Hide Schedules' : 'View Schedules' }} <span class="material-symbols-outlined" style="font-size: 18px;">{{ isSchedulesExpanded ? 'expand_less' : 'expand_more' }}</span>
+                      </button>
+                    </div>
+                    
+                    <transition name="fade">
+                    <div v-if="isSchedulesExpanded" style="margin-top: 16px;">
+                    <div v-for="(sch, index) in design.schedules" :key="index" style="display: flex; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 12px; background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(185,121,204,0.15); transition: all 0.3s;" class="hover:bg-white/5 hover:border-purple-400/30">
+                      <div style="display: flex; align-items: center; gap: 12px; min-width: 140px;">
+                        <span class="material-symbols-outlined text-pink-400 text-lg">calendar_today</span>
+                        <span class="text-white font-medium text-sm">{{ formatDate(sch.schedule_date || sch.date) }}</span>
+                      </div>
+                      <div style="display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.4); padding: 6px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05);">
+                        <span class="material-symbols-outlined text-purple-400 text-lg">schedule</span>
+                        <span class="text-purple-100 font-mono text-sm tracking-wide">{{ formatTime(sch.start_time) }} - {{ formatTime(sch.end_time) }}</span>
+                      </div>
+                      
+                      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; flex: 1; justify-content: flex-end;">
+                        <span v-if="sch.meals_and_snacks && Object.values(sch.meals_and_snacks).some(v => v === true || v === '1' || v === 1)" class="text-[10px] uppercase font-bold text-orange-300 mr-2 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">restaurant</span> Meals:</span>
+                        <template v-if="sch.meals_and_snacks && Object.values(sch.meals_and_snacks).some(v => v === true || v === '1' || v === 1)">
+                          <template v-for="(val, key) in sch.meals_and_snacks" :key="key">
+                            <span v-if="val === true || val === '1' || val === 1" class="text-[10px] bg-orange-500/20 text-orange-200 px-3 py-1 rounded-full uppercase tracking-wider border border-orange-500/30 font-semibold shadow-sm">
+                              {{ key.replace(/_/g, ' ') }}
+                            </span>
+                          </template>
+                        </template>
+                        <span v-else class="text-[11px] text-slate-400 italic flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">no_meals</span> No meals selected</span>
+                      </div>
+                    </div>
+                    </div>
+                    </transition>
+                  </div>
+                  
+                  <div v-else class="schedules-container" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
+                    <div class="flex justify-between items-center flex-wrap gap-4" style="cursor: pointer;" @click="isSchedulesExpanded = !isSchedulesExpanded">
+                      <div style="display: flex; align-items: center; gap: 16px;">
+                          <label class="form-label !mb-0 flex items-center gap-2 text-slate-300" style="cursor: pointer;">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">schedule</span>
+                            Activity Schedules
+                          </label>
+                          <div style="display: flex; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 4px; border: 1px solid rgba(255,255,255,0.05);">
+                            <span style="background: rgba(255,255,255,0.1); color: #cbd5e1; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: bold;">
+                              Legacy Format
+                            </span>
+                          </div>
+                      </div>
+                      <button type="button" @click.stop="isSchedulesExpanded = !isSchedulesExpanded" style="background: rgba(255, 255, 255, 0.05); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.1); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                        {{ isSchedulesExpanded ? 'Hide Schedules' : 'View Schedules' }} <span class="material-symbols-outlined" style="font-size: 18px;">{{ isSchedulesExpanded ? 'expand_less' : 'expand_more' }}</span>
+                      </button>
+                    </div>
+                    
+                    <transition name="fade">
+                    <div v-if="isSchedulesExpanded" style="display: flex; align-items: center; flex-wrap: wrap; gap: 16px; background: rgba(0,0,0,0.3); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-top: 16px;">
+                      <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 200px;">
+                        <span class="material-symbols-outlined text-slate-400 text-lg">calendar_month</span>
+                        <span class="text-white font-medium text-sm">{{ formatDate(design.start_date) }} <span class="text-slate-500 mx-1">to</span> {{ formatDate(design.end_date) }}</span>
+                      </div>
+                      <div style="display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.4); padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05);">
+                        <span class="material-symbols-outlined text-slate-400 text-lg">schedule</span>
+                        <span class="text-slate-200 font-mono text-sm tracking-wide">{{ formatTime(design.start_time) }} - {{ formatTime(design.end_time) }}</span>
+                      </div>
+                      <div style="flex-basis: 100%; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 12px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.1);">
+                        <span style="font-size: 10px; text-transform: uppercase; font-weight: bold; color: #94a3b8; margin-right: 8px;" class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">restaurant</span> Meals Needed:</span>
+                        <span class="text-[11px] text-slate-400 italic">Not specified (Submitted prior to detailed schedules feature)</span>
+                      </div>
+                    </div>
+                    </transition>
+                  </div>
                 </div>
                 <div class="full-width-info">
                   <label class="info-label">Venue</label>
@@ -213,7 +293,7 @@
                 <span class="info-value-white">{{ formatDate(design.accomplishment_deadline) || '---' }}</span>
               </div>
 
-              <div class="info-item">
+                      <div class="info-item">
                 <span class="info-label">Reviewer Remarks</span>
                 <div class="read-only-remarks">
                   {{ design.remarks || 'No remarks provided for this design.' }}
@@ -222,6 +302,12 @@
 
               <div class="action-buttons">
                 <!-- Add Modification Request logic here -->
+                <div v-if="design.status === 'Approved' && design.modification_request_status === 'rejected'" style="margin-bottom: 1rem; border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; padding: 1rem; background: rgba(239,68,68,0.05);">
+                    <div style="color: #ef4444; font-weight: bold; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;"><span class="material-symbols-outlined">cancel</span> Modification Request Rejected</div>
+                    <div style="font-size: 0.85rem; color: #e2e8f0; line-height: 1.4;">
+                      <strong>Reviewer's Note:</strong> {{ design.modification_remarks || 'No reason provided.' }}
+                    </div>
+                </div>
                 <!-- Add Modification Request logic here -->
                 <button v-if="design.status === 'Approved' && (!design.modification_request_status || design.modification_request_status === 'none' || design.modification_request_status === 'rejected')" @click="openModModal" class="btn-approve" style="margin-bottom: 10px; width: 100%;">
                   <span class="material-symbols-outlined" style="font-size: 1.2rem; margin-right: 4px;">edit_note</span> Request Modification
@@ -381,6 +467,7 @@ const route = useRoute();
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 const design = ref({});
+const isSchedulesExpanded = ref(false);
 const loading = ref(true);
 const error = ref(null);
 
@@ -397,7 +484,24 @@ const closeModModal = () => {
 };
 
 const submitModRequest = async () => {
+  if (!modRemarks.value || !modRemarks.value.trim()) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Reason Required',
+      text: 'Please provide a reason for requesting modification.',
+      confirmButtonColor: '#f59e0b'
+    });
+    return;
+  }
   try {
+    Swal.fire({
+      title: 'Processing Request',
+      text: 'Please wait while we notify the staff and director...',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
     const res = await api.post(`activity-designs/${route.params.id}/request-modification`, { remarks: modRemarks.value });
     if (res.data.success) {
       Swal.fire({
@@ -528,7 +632,7 @@ const pdfFileUrl = ref('');
 
 const previewFile = (fileName) => {
   if (!fileName) return;
-  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : 'https://gad-ams-2-1.onrender.com');
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api/', '') : 'https://gad-ams-2-1.onrender.com');
   const folder = Number(design.value.is_archived) === 1 ? 'archived' : 'drafts';
   pdfFileUrl.value = `${base}/api/files/${folder}/${fileName}`;
   isPdfModalOpen.value = true;

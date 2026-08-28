@@ -403,6 +403,24 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     $routes->options('annual-reports/archive/(:num)', 'AuthController::handleOptions');
     $routes->get('annual-reports/archive/(:num)', 'AnnualReportArchiveController::show/$1');
 
+    // Holiday API Routes
+    $routes->group('holidays', function ($routes) {
+        $routes->options('/', 'AuthController::handleOptions');
+        $routes->get('/', 'HolidayController::index');
+
+        $routes->options('create', 'AuthController::handleOptions');
+        $routes->post('create', 'HolidayController::create');
+
+        $routes->options('update/(:num)', 'AuthController::handleOptions');
+        $routes->put('update/(:num)', 'HolidayController::update/$1');
+
+        $routes->options('delete/(:num)', 'AuthController::handleOptions');
+        $routes->delete('delete/(:num)', 'HolidayController::delete/$1');
+
+        $routes->options('sync', 'AuthController::handleOptions');
+        $routes->post('sync', 'HolidayController::sync');
+    });
+
     // Venues Management
     $routes->options('venues', 'AuthController::handleOptions');
     $routes->get('venues', 'VenueController::index');
