@@ -36,8 +36,17 @@ Options -MultiViews
   </FilesMatch>
 </IfModule>
 
-# ─── Vue Router SPA — Redirect all routes to index.html ────────────
+# ─── Routing ────────────────────────────────────────────────────────
+
 RewriteEngine On
+
+# 1. API Routing: Route /api/* to CodeIgniter (prevent infinite loops)
+RewriteCond %{REQUEST_URI} ^/api/
+RewriteCond %{REQUEST_URI} !^/api/index\.php
+RewriteRule ^api/(.*)$ api/index.php/$1 [L,QSA]
+
+# 2. Vue SPA Routing: Route non-API requests to index.html
+RewriteCond %{REQUEST_URI} !^/api/
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ index.html [QSA,L]
+RewriteRule ^ index.html [L,QSA]
