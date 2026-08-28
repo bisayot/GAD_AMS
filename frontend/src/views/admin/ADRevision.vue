@@ -1854,7 +1854,20 @@ const handleUpdate = async () => {
       }
   }, { deep: true });
   
-  onMounted(() => {
+  
+const fetchBaselineSettings = async () => {
+  try {
+    const res = await api.get('/settings/baseline');
+    if (res.data) {
+      baselineSettings.value = res.data;
+    }
+  } catch (err) {
+    console.error('Error fetching baseline settings:', err);
+  }
+};
+
+onMounted(() => {
+    fetchBaselineSettings();
   if (!user.value.id || user.value.role !== 'admin') {
     router.push('/login');
   } else {

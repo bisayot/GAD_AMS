@@ -120,20 +120,31 @@
                     <p class="text-sm-light mt-1">{{ existingReport.activity_design.venue_name || existingReport.activity_design.venue }}</p>
                   </div>
                   <div>
-                    <label class="info-label">Start Date</label>
+                    <label class="info-label">Calculated Start Date</label>
                     <p class="text-sm-light mt-1">{{ formatDate(existingReport.activity_design.start_date) }}</p>
                   </div>
                   <div>
-                    <label class="info-label">End Date</label>
+                    <label class="info-label">Calculated End Date</label>
                     <p class="text-sm-light mt-1">{{ formatDate(existingReport.activity_design.end_date) }}</p>
                   </div>
-                  <div>
-                    <label class="info-label">Start Time</label>
-                    <p class="text-sm-light mt-1">{{ formatTime(existingReport.activity_design.start_time) }}</p>
-                  </div>
-                  <div>
-                    <label class="info-label">End Time</label>
-                    <p class="text-sm-light mt-1">{{ formatTime(existingReport.activity_design.end_time) }}</p>
+                  <div class="full-width-info">
+                    <label class="info-label">Full Schedule</label>
+                    <details class="schedule-dropdown" v-if="existingReport.activity_design.schedules && existingReport.activity_design.schedules.length > 0">
+                      <summary class="schedule-summary">View Full Schedule</summary>
+                      <div class="mt-2">
+                        <div v-for="(sch, i) in existingReport.activity_design.schedules" :key="i" class="p-2 mb-2" style="background: rgba(255,255,255,0.05); border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);">
+                          <div class="text-sm-light">
+                            <strong>{{ formatDate(sch.schedule_date) }}</strong>: {{ formatTime(sch.start_time) }} - {{ formatTime(sch.end_time) }}
+                            <div class="mt-1" v-if="parseMeals(sch.meals_and_snacks).length > 0">
+                              <span v-for="meal in parseMeals(sch.meals_and_snacks)" :key="meal" class="bbudget-selected-item" style="margin-right: 4px; display: inline-block; margin-top: 4px;">{{ meal }}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </details>
+                    <div class="mt-2 text-sm-light" v-else>
+                      {{ formatTime(existingReport.activity_design.start_time) }} - {{ formatTime(existingReport.activity_design.end_time) }}
+                    </div>
                   </div>
                   <div>
                     <label class="info-label">Proposed Budget</label>
@@ -822,7 +833,7 @@
 import { useHolidays } from '../../utils/useHolidays';
 const { isDisabledDate } = useHolidays();
 import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import Swal from 'sweetalert2';
 import api from '../../api';
@@ -931,6 +942,30 @@ const approvedControls = ref([]);
 const loadingControls = ref(false);
 
 const ActClassification = ref([]);
+const baselineSettings = ref({});
+
+const helpState = ref({
+  startDate: false,
+  endDate: false,
+  startTime: false,
+  endTime: false,
+  targetParticipants: false
+});
+
+const toggleHelp = (field) => {
+  const currentVal = helpState.value[field];
+  Object.keys(helpState.value).forEach(key => {
+    helpState.value[key] = false;
+  });
+  helpState.value[field] = !currentVal;
+};
+
+const closeAllHelp = () => {
+  Object.keys(helpState.value).forEach(key => {
+    helpState.value[key] = false;
+  });
+};
+
 const formTypes = ref([]);
 const GADMandates = ref([]);
 const genderIssues = ref([]);
@@ -2007,6 +2042,62 @@ const fetchReportDetails = async () => {
           form.value.rating = 0;
         }
       }
+      // Populate schedules from nested array
+      if (r.schedules && r.schedules.length > 0) {
+        let parsedSchedules = r.schedules.map(s => {
+          let meals = { breakfast: false, am_snack: false, lunch: false, pm_snack: false, dinner: false };
+          try {
+            if (typeof s.meals_and_snacks === 'string') {
+               meals = JSON.parse(s.meals_and_snacks);
+            } else if (typeof s.meals_and_snacks === 'object' && s.meals_and_snacks !== null) {
+               meals = s.meals_and_snacks;
+            }
+          } catch(e) {}
+          return {
+            date: s.schedule_date || s.date,
+            start_time: s.start_time,
+            end_time: s.end_time,
+            meals_and_snacks: meals
+          };
+        });
+        
+        let isContinuous = true;
+        for (let i = 1; i < parsedSchedules.length; i++) {
+            let prevDate = new Date(parsedSchedules[i-1].date);
+            let currDate = new Date(parsedSchedules[i].date);
+            let expectedNextDate = new Date(prevDate);
+            expectedNextDate.setDate(expectedNextDate.getDate() + 1);
+            while (expectedNextDate.getDay() === 0 || expectedNextDate.getDay() === 6 || (typeof isDisabledDate === 'function' && isDisabledDate(expectedNextDate))) {
+                expectedNextDate.setDate(expectedNextDate.getDate() + 1);
+            }
+            if (currDate.toISOString().split('T')[0] !== expectedNextDate.toISOString().split('T')[0]) {
+                isContinuous = false;
+                break;
+            }
+            if (parsedSchedules[i].start_time !== parsedSchedules[0].start_time ||
+                parsedSchedules[i].end_time !== parsedSchedules[0].end_time ||
+                JSON.stringify(parsedSchedules[i].meals_and_snacks) !== JSON.stringify(parsedSchedules[0].meals_and_snacks)) {
+                isContinuous = false;
+                break;
+            }
+        }
+        
+        if (isContinuous && parsedSchedules.length > 0) {
+            scheduleType.value = 'continuous';
+            continuousConfig.value = {
+                start_date: parsedSchedules[0].date,
+                end_date: parsedSchedules[parsedSchedules.length - 1].date,
+                start_time: parsedSchedules[0].start_time,
+                end_time: parsedSchedules[0].end_time,
+                meals_and_snacks: { ...parsedSchedules[0].meals_and_snacks }
+            };
+            form.value.schedules = parsedSchedules;
+        } else {
+            scheduleType.value = 'staggered';
+            form.value.schedules = parsedSchedules;
+        }
+      }
+
       loadingData.value = false; // Re-enable watchers
     }
   } catch (err) {
@@ -2017,13 +2108,31 @@ const fetchReportDetails = async () => {
   }
 };
 
+
+const fetchBaselineSettings = async () => {
+  try {
+    const res = await api.get('/settings/baseline');
+    if (res.data) {
+      baselineSettings.value = res.data;
+    }
+  } catch (err) {
+    console.error('Error fetching baseline settings:', err);
+  }
+};
+
 onMounted(async () => {
+    fetchBaselineSettings();
   if (!user.value.id || !['twg', 'non-twg'].includes(user.value.role)) {
     router.push('/login');
   } else {
     await fetchData();
     fetchReportDetails();
   }
+  document.addEventListener('click', closeAllHelp);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeAllHelp);
 });
 
 </script>
