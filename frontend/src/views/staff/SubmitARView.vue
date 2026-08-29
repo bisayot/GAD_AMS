@@ -387,17 +387,7 @@
                           <div class="budget-row-item">
                             <div class="budget-item-info">
                               <div class="budget-item-title">Meals</div>
-                              <div class="budget-sub-controls">
-                                <label class="budget-checkbox-label">
-                                  <input type="checkbox" v-model="mealsSelected.breakfast" class="budget-checkbox" /> Breakfast
-                                </label>
-                                <label class="budget-checkbox-label">
-                                  <input type="checkbox" v-model="mealsSelected.lunch" class="budget-checkbox" /> Lunch
-                                </label>
-                                <label class="budget-checkbox-label">
-                                  <input type="checkbox" v-model="mealsSelected.dinner" class="budget-checkbox" /> Dinner
-                                </label>
-                              </div>
+
                             </div>
                             <div class="budget-item-value">
                               <span class="budget-currency-symbol">₱</span>
@@ -416,14 +406,7 @@
                           <div class="budget-row-item">
                             <div class="budget-item-info">
                               <div class="budget-item-title">Snacks</div>
-                              <div class="budget-sub-controls">
-                                <label class="budget-checkbox-label">
-                                  <input type="checkbox" v-model="snacksSelected.am" class="budget-checkbox" /> AM Snack
-                                </label>
-                                <label class="budget-checkbox-label">
-                                  <input type="checkbox" v-model="snacksSelected.pm" class="budget-checkbox" /> PM Snack
-                                </label>
-                              </div>
+
                             </div>
                             <div class="budget-item-value">
                               <span class="budget-currency-symbol">₱</span>
@@ -1786,8 +1769,11 @@ const isValidTime = (timeStr) => {
 };
 
 watch(() => form.value.start_date, (newDate) => {
+  if (typeof loadingData !== 'undefined' && loadingData.value) return;
   if (newDate) {
-    if (newDate < minDate.value) {
+    const d1 = newDate.substring(0, 10);
+    const d2 = minDate.value ? minDate.value.substring(0, 10) : '';
+    if (d1 < d2) {
       document.activeElement?.blur();
       Swal.fire({ icon: 'warning', title: 'Invalid Date', text: 'Start date cannot be earlier than the approved Activity Design start date.', confirmButtonColor: '#b979cc' });
       form.value.start_date = '';
@@ -1808,8 +1794,11 @@ watch(() => form.value.start_date, (newDate) => {
 });
 
 watch(() => form.value.end_date, (newDate) => {
+  if (typeof loadingData !== 'undefined' && loadingData.value) return;
   if (newDate) {
-    if (newDate < minDate.value) {
+    const d1 = newDate.substring(0, 10);
+    const d2 = minDate.value ? minDate.value.substring(0, 10) : '';
+    if (d1 < d2) {
       document.activeElement?.blur();
       Swal.fire({ icon: 'warning', title: 'Invalid Date', text: 'End date cannot be earlier than the approved Activity Design start date.', confirmButtonColor: '#b979cc' });
       form.value.end_date = '';
@@ -1888,7 +1877,7 @@ const baselineSettings = ref({});
 
 const fetchBaselineSettings = async () => {
   try {
-    const res = await api.get('baseline-settings');
+    const res = await api.get('settings/baseline');
     if (res.data) {
       baselineSettings.value = res.data;
     }

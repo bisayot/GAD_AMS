@@ -1097,15 +1097,7 @@ watch(() => form.value.budget_items, (newItems) => {
   form.value.proposed_budget = total;
 }, { deep: true });
 
-watch(pfPax, (newPax) => {
-  const item = form.value.budget_items.find(i => i.name === 'Professional Fee/Honoraria' || i.name === 'Professional Fee/Honoraria');
-  if (item) item.total = (Number(newPax) * 2258.25) || '';
-});
 
-watch(tokensPax, (newPax) => {
-  const item = form.value.budget_items.find(i => i.name === 'Token/s');
-  if (item) item.total = (Number(newPax) * 1000) || '';
-});
 
 const fetchVenues = async () => {
   try {
@@ -1181,8 +1173,11 @@ const isValidTime = (timeStr) => {
 };
 
 watch(() => form.value.start_date, (newDate) => {
+  if (typeof loadingData !== 'undefined' && loadingData.value) return;
   if (newDate) {
-    if (newDate < minDate.value) {
+    const d1 = newDate.substring(0, 10);
+    const d2 = minDate.value ? minDate.value.substring(0, 10) : '';
+    if (d1 < d2) {
       document.activeElement?.blur();
       Swal.fire({ icon: 'warning', title: 'Invalid Date', text: 'Start date cannot be earlier than the approved Activity Design start date.', confirmButtonColor: '#b979cc' });
       form.value.start_date = '';
@@ -1203,8 +1198,11 @@ watch(() => form.value.start_date, (newDate) => {
 });
 
 watch(() => form.value.end_date, (newDate) => {
+  if (typeof loadingData !== 'undefined' && loadingData.value) return;
   if (newDate) {
-    if (newDate < minDate.value) {
+    const d1 = newDate.substring(0, 10);
+    const d2 = minDate.value ? minDate.value.substring(0, 10) : '';
+    if (d1 < d2) {
       document.activeElement?.blur();
       Swal.fire({ icon: 'warning', title: 'Invalid Date', text: 'End date cannot be earlier than the approved Activity Design start date.', confirmButtonColor: '#b979cc' });
       form.value.end_date = '';
@@ -1485,56 +1483,7 @@ const totalPMSnackDays = computed(() => {
 
 const isOutsideBsu = computed(() => form.value.is_inside_bsu === false || form.value.is_inside_bsu === 'false');
 
-watch(
-  [() => form.value.schedules, () => form.value.target_participants, isOutsideBsu, baselineSettings],
-  () => {
-    const item = form.value.budget_items.find(i => i.name === 'Meals');
-    if (item && baselineSettings.value) {
-      const mealsCount = totalBreakfastDays.value + totalLunchDays.value + totalDinnerDays.value;
-      const mealsRate = isOutsideBsu.value ? baselineSettings.value.meals_outside : baselineSettings.value.meals_inside;
-      const pax = Number(form.value.target_participants) || 0;
-      const calculated = (mealsCount * mealsRate * pax);
-      item.total = calculated || '';
-    }
-  },
-  { deep: true }
-);
 
-watch(
-  [() => form.value.schedules, () => form.value.target_participants, isOutsideBsu, baselineSettings],
-  () => {
-    const item = form.value.budget_items.find(i => i.name === 'Snacks');
-    if (item && baselineSettings.value) {
-      const snacksCount = totalAMSnackDays.value + totalPMSnackDays.value;
-      const snacksRate = isOutsideBsu.value ? baselineSettings.value.snacks_outside : baselineSettings.value.snacks_inside;
-      const pax = Number(form.value.target_participants) || 0;
-      const calculated = (snacksCount * snacksRate * pax);
-      item.total = calculated || '';
-    }
-  },
-  { deep: true }
-);
-
-watch([pfPax, baselineSettings], ([newPax, _]) => {
-  const item = form.value.budget_items.find(i => i.name === 'Professional Fee/Honoraria');
-  if (item && baselineSettings.value) {
-    item.total = (Number(newPax) * baselineSettings.value.pf_honoraria) || '';
-  }
-}, { deep: true });
-
-watch([tokensPax, baselineSettings], ([newPax, _]) => {
-  const item = form.value.budget_items.find(i => i.name === 'Token/s');
-  if (item && baselineSettings.value) {
-    item.total = (Number(newPax) * baselineSettings.value.tokens) || '';
-  }
-}, { deep: true });
-
-watch([() => form.value.target_participants, baselineSettings], ([newPax, _]) => {
-  const item = form.value.budget_items.find(i => i.name === 'Materials and Supplies');
-  if (item && baselineSettings.value) {
-    item.total = (Number(newPax) * baselineSettings.value.materials) || '';
-  }
-}, { deep: true });
 
 const submitReport = async () => {
   isSubmitting.value = true;
