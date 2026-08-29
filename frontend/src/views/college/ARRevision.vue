@@ -2101,30 +2101,12 @@ const fetchReportDetails = async () => {
           };
         });
         
-        let isContinuous = true;
-        for (let i = 1; i < parsedSchedules.length; i++) {
-            let prevDate = new Date(parsedSchedules[i-1].date + "T00:00:00");
-            let currDate = new Date(parsedSchedules[i].date + "T00:00:00");
-            let expectedNextDate = new Date(prevDate);
-            expectedNextDate.setDate(expectedNextDate.getDate() + 1);
-            while (typeof isDisabledDate === 'function' && isDisabledDate(expectedNextDate)) {
-                expectedNextDate.setDate(expectedNextDate.getDate() + 1);
-            }
-            let expectedNextDateStr = expectedNextDate.getFullYear() + '-' + String(expectedNextDate.getMonth() + 1).padStart(2, '0') + '-' + String(expectedNextDate.getDate()).padStart(2, '0');
-            
-            if (parsedSchedules[i].date !== expectedNextDateStr) {
-                isContinuous = false;
-                break;
-            }
-            if (parsedSchedules[i].start_time !== parsedSchedules[0].start_time ||
-                parsedSchedules[i].end_time !== parsedSchedules[0].end_time ||
-                JSON.stringify(parsedSchedules[i].meals_and_snacks) !== JSON.stringify(parsedSchedules[0].meals_and_snacks)) {
-                isContinuous = false;
-                break;
-            }
-        }
+        // Use the saved schedule_type from the database directly instead of
+        // re-detecting it heuristically (which was fragile and caused the
+        // consecutive → non-consecutive mismatch when holidays weren't yet loaded).
+        const savedScheduleType = r.schedule_type || 'continuous';
         
-        if (isContinuous && parsedSchedules.length > 0) {
+        if (savedScheduleType === 'continuous' && parsedSchedules.length > 0) {
             scheduleType.value = 'continuous';
             continuousConfig.value = {
                 start_date: parsedSchedules[0].date,
@@ -2168,7 +2150,7 @@ onMounted(async () => {
     router.push('/login');
   } else {
     await fetchData();
-    fetchReportDetails();
+    await fetchReportDetails();
   }
   document.addEventListener('click', closeAllHelp);
 });
