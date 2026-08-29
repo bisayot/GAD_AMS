@@ -664,7 +664,7 @@
 
 <script setup>
 import { useHolidays } from '../../utils/useHolidays';
-const { isDisabledDate, getWorkingDaysDiff, addWorkingDays } = useHolidays();
+const { isDisabledDate, fetchHolidays, getWorkingDaysDiff, addWorkingDays } = useHolidays();
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import Swal from 'sweetalert2';
@@ -721,30 +721,7 @@ const closeAllHelp = () => {
   });
 };
 
-const philippineHolidays = ref([]);
 
-const fetchHolidays = async () => {
-  try {
-    const year = new Date().getFullYear();
-    const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/PH`);
-    const data = await response.json();
-    philippineHolidays.value = data.map(h => h.date);
-  } catch (error) {
-    console.error('Failed to fetch holidays:', error);
-  }
-};
-
-const holidays = philippineHolidays;
-
-const isWeekend = (dateString) => {
-  const date = new Date(dateString + 'T00:00:00');
-  const dayOfWeek = date.getDay();
-  return dayOfWeek === 0 || dayOfWeek === 5 || dayOfWeek === 6;
-};
-
-const isHoliday = (dateString) => {
-  return holidays.value.includes(dateString);
-};
 
 const isCurrentYear = (dateString) => {
   const date = new Date(dateString + 'T00:00:00');

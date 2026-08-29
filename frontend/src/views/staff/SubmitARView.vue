@@ -757,7 +757,7 @@
 
 <script setup>
 import { useHolidays } from '../../utils/useHolidays';
-const { isDisabledDate } = useHolidays();
+const { isDisabledDate, fetchHolidays } = useHolidays();
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import Swal from 'sweetalert2';
@@ -805,30 +805,7 @@ const closeAllHelp = () => {
   });
 };
 
-const philippineHolidays = ref([]);
 
-const fetchHolidays = async () => {
-  try {
-    const year = new Date().getFullYear();
-    const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/PH`);
-    const data = await response.json();
-    philippineHolidays.value = data.map(h => h.date)
-  } catch (error) {
-    console.error('Failed to fetch holidays:', error);
-  }
-};
-
-const holidays = philippineHolidays;
-
-const isWeekend = (dateString) => {
-  const date = new Date(dateString + 'T00:00:00');
-  const dayOfWeek = date.getDay();
-  return dayOfWeek === 0 || dayOfWeek === 5 || dayOfWeek === 6;
-};
-
-const isHoliday = (dateString) => {
-  return holidays.value.includes(dateString);
-};
 
 // Validations are minimal since AD is already approved
 const pfPax = ref('');
@@ -1406,7 +1383,7 @@ const submitReport = async () => {
     let curr = new Date(startDateObj);
     while (curr <= endDateObj) {
       const day = curr.getDay();
-      if (day !== 0 && day !== 6 && !isHoliday(curr.toISOString().split('T')[0])) {
+      if (!isDisabledDate(curr)) {
         generated.push({
           date: curr.toISOString().split('T')[0],
           start_time: continuousConfig.value.start_time,

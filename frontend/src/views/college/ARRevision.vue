@@ -1040,7 +1040,7 @@ const fetchGenderIssues = async (mandateIds) => {
       ids = [ids];
     }
     try {
-      await fetchHolidays();
+      
       const idString = ids.join(',');
       let url = `get-gender-issues?mandates=${idString}`;
       if (form.value && form.value.activity_classification_id) {
@@ -2017,7 +2017,7 @@ const fetchReportDetails = async () => {
         let ob = [];
         if (b.materials_others_breakdown) {
           try {
-      await fetchHolidays(); ob = JSON.parse(b.materials_others_breakdown); } catch(e){}
+       ob = JSON.parse(b.materials_others_breakdown); } catch(e){}
         }
         
         // Fall back to meals_and_snacks if meals_total/snacks_total not stored separately (older records)
@@ -2086,7 +2086,7 @@ const fetchReportDetails = async () => {
         let parsedSchedules = r.schedules.map(s => {
           let meals = { breakfast: false, am_snack: false, lunch: false, pm_snack: false, dinner: false };
           try {
-      await fetchHolidays();
+      
             if (typeof s.meals_and_snacks === 'string') {
                meals = JSON.parse(s.meals_and_snacks);
             } else if (typeof s.meals_and_snacks === 'object' && s.meals_and_snacks !== null) {
