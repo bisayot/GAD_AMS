@@ -1864,7 +1864,7 @@ const fetchBaselineSettings = async () => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
     fetchBaselineSettings();
   if (!user.value.id || user.value.role !== 'admin') {
     router.push('/login');

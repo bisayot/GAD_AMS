@@ -1518,7 +1518,6 @@ const submitReport = async () => {
     }
   }
 
-  if (scheduleType.value === 'staggered') return;
   if (form.value.start_time && form.value.end_time && (!form.value.start_date || !form.value.end_date || form.value.start_date === form.value.end_date)) {
     const startTimeParts = form.value.start_time.split(':');
     const endTimeParts = form.value.end_time.split(':');

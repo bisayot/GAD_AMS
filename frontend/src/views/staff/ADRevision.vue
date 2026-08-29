@@ -1920,7 +1920,7 @@ const handleUpdate = async () => {
       }
   }, { deep: true });
   
-  onMounted(() => {
+  onMounted(async () => {
   if (!user.value.id || user.value.role !== 'gad_staff') {
     router.push('/login');
   } else {

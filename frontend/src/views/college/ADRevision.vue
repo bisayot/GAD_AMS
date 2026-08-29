@@ -1937,7 +1937,7 @@ const handleUpdate = async () => {
       }
   }, { deep: true });
   
-  onMounted(() => {
+  onMounted(async () => {
   fetchVenues();
   fetchFormTypes();
   fetchActivityClassifications();
