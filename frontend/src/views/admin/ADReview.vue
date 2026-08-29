@@ -1034,20 +1034,11 @@ const parsedBudget = computed(() => {
       children: [
         { 
           name: 'Meals', 
-          value: mealsVal,
-          subOptions: [
-            { label: 'Breakfast', checked: Number(d.breakfast_selected) === 1 },
-            { label: 'Lunch', checked: Number(d.lunch_selected) === 1 },
-            { label: 'Dinner', checked: Number(d.dinner_selected) === 1 }
-          ]
+          value: mealsVal
         },
         { 
           name: 'Snacks', 
-          value: snacksVal,
-          subOptions: [
-            { label: 'AM Snack', checked: Number(d.am_snack_selected) === 1 },
-            { label: 'PM Snack', checked: Number(d.pm_snack_selected) === 1 }
-          ]
+          value: snacksVal
         }
       ]
     },

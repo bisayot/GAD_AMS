@@ -23,12 +23,12 @@
           <div class="assessment-card-custom">
             <div class="assessment-header">
               <div class="assessment-icon">📋</div>
-              <div class="assessment-title">Evaluator's Remarks / Comments or You can also put your remarks/comments in the pdf file itself before sending revision</div>
+              <div class="assessment-title">Evaluator's Remarks / Comments</div>
             </div>
 
             <div class="assessment-form">
               <div class="info-item">
-                <span class="info-label">Evaluator's Remarks / Comments or You can also put your remarks/comments in the pdf file itself before sending revision</span>
+                <span class="info-label">Evaluator's Remarks / Comments</span>
                 <div class="read-only-remarks">
                   {{ existingReport?.remarks || 'No remarks recorded for this accomplishment report.' }}
                 </div>
@@ -2118,14 +2118,16 @@ const fetchReportDetails = async () => {
         
         let isContinuous = true;
         for (let i = 1; i < parsedSchedules.length; i++) {
-            let prevDate = new Date(parsedSchedules[i-1].date);
-            let currDate = new Date(parsedSchedules[i].date);
+            let prevDate = new Date(parsedSchedules[i-1].date + "T00:00:00");
+            let currDate = new Date(parsedSchedules[i].date + "T00:00:00");
             let expectedNextDate = new Date(prevDate);
             expectedNextDate.setDate(expectedNextDate.getDate() + 1);
-            while (expectedNextDate.getDay() === 0 || expectedNextDate.getDay() === 6 || (typeof isDisabledDate === 'function' && isDisabledDate(expectedNextDate))) {
+            while (typeof isDisabledDate === 'function' && isDisabledDate(expectedNextDate)) {
                 expectedNextDate.setDate(expectedNextDate.getDate() + 1);
             }
-            if (currDate.toISOString().split('T')[0] !== expectedNextDate.toISOString().split('T')[0]) {
+            let expectedNextDateStr = expectedNextDate.getFullYear() + '-' + String(expectedNextDate.getMonth() + 1).padStart(2, '0') + '-' + String(expectedNextDate.getDate()).padStart(2, '0');
+            
+            if (parsedSchedules[i].date !== expectedNextDateStr) {
                 isContinuous = false;
                 break;
             }

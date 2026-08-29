@@ -1290,8 +1290,8 @@ const fetchDesignDetails = async () => {
 
         let isContinuous = true;
         for (let i = 1; i < parsedSchedules.length; i++) {
-            let prevDate = new Date(parsedSchedules[i-1].date);
-            let currDate = new Date(parsedSchedules[i].date);
+            let prevDate = new Date(parsedSchedules[i-1].date + "T00:00:00");
+            let currDate = new Date(parsedSchedules[i].date + "T00:00:00");
             
             // Expected next date is the next valid working day after prevDate
             let expectedNextDate = new Date(prevDate);
@@ -1299,8 +1299,8 @@ const fetchDesignDetails = async () => {
                 expectedNextDate.setDate(expectedNextDate.getDate() + 1);
             } while (isDisabledDate(expectedNextDate));
             
-            let expectedStr = expectedNextDate.toISOString().split('T')[0];
-            let currStr = currDate.toISOString().split('T')[0];
+            let expectedStr = expectedNextDate.getFullYear() + '-' + String(expectedNextDate.getMonth() + 1).padStart(2, '0') + '-' + String(expectedNextDate.getDate()).padStart(2, '0');
+            let currStr = parsedSchedules[i].date;
             
             if (currStr !== expectedStr) {
                 isContinuous = false;

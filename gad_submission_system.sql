@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 28, 2026 at 07:52 AM
+-- Generation Time: Aug 29, 2026 at 03:54 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -736,52 +736,6 @@ CREATE TABLE `notifications` (
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `notifications`
---
-
-INSERT INTO `notifications` (`id`, `user_id`, `title`, `message`, `type`, `link`, `is_read`, `created_at`, `updated_at`) VALUES
-(44, 2, 'Activity Design Submitted', 'Your Activity Design \"Test 1\" has been successfully submitted and is pending review.', 'info', '/college/submitted-list', 0, '2026-08-26 08:41:27', '2026-08-26 08:41:27'),
-(45, 1, 'New Activity Design Submitted', 'A new Activity Design \"Test 1\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-26 08:41:34', '2026-08-26 08:41:34'),
-(46, 47, 'New Activity Design Submitted', 'A new Activity Design \"Test 1\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-26 08:41:38', '2026-08-26 08:41:38'),
-(47, 2, 'Activity Design Submitted', 'Your Activity Design \"Test 2\" has been successfully submitted and is pending review.', 'info', '/college/submitted-list', 0, '2026-08-26 14:09:15', '2026-08-26 14:09:15'),
-(48, 1, 'New Activity Design Submitted', 'A new Activity Design \"Test 2\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-26 14:09:22', '2026-08-26 14:09:22'),
-(49, 47, 'New Activity Design Submitted', 'A new Activity Design \"Test 2\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-26 14:09:27', '2026-08-26 14:09:27'),
-(50, 2, 'Activity Design Submitted', 'Your Activity Design \"Test 3\" has been successfully submitted and is pending review.', 'info', '/college/submitted-list', 0, '2026-08-27 00:20:57', '2026-08-27 00:20:57'),
-(51, 1, 'New Activity Design Submitted', 'A new Activity Design \"Test 3\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 00:21:02', '2026-08-27 00:21:02'),
-(52, 47, 'New Activity Design Submitted', 'A new Activity Design \"Test 3\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 00:21:07', '2026-08-27 00:21:07'),
-(53, 2, 'Revision Required', 'Your Activity Design \"Test 3\" requires revision. Remarks: dvsdvs', 'warning', '/college/submitted-list', 0, '2026-08-27 00:27:55', '2026-08-27 00:27:55'),
-(54, 1, 'Activity Design Resubmitted', 'Activity Design \"Test 3 CIS Activity 3\" has been resubmitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 02:34:15', '2026-08-27 02:34:15'),
-(55, 47, 'Activity Design Resubmitted', 'Activity Design \"Test 3 CIS Activity 3\" has been resubmitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 02:34:21', '2026-08-27 02:34:21'),
-(56, 2, 'Revision Required', 'Your Activity Design \"Test 3 CIS Activity 3\" requires revision. Remarks: xvdfvdd', 'warning', '/college/submitted-list', 0, '2026-08-27 02:57:31', '2026-08-27 02:57:31'),
-(57, 1, 'Activity Design Resubmitted', 'Activity Design \"Test 3 CIS Activity 3\" has been resubmitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 02:59:25', '2026-08-27 02:59:25'),
-(58, 47, 'Activity Design Resubmitted', 'Activity Design \"Test 3 CIS Activity 3\" has been resubmitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 02:59:29', '2026-08-27 02:59:29'),
-(59, 2, 'Revision Required', 'Your Activity Design \"Test 3 CIS Activity 3\" requires revision. Remarks: sdvsdvs', 'warning', '/college/submitted-list', 0, '2026-08-27 03:09:54', '2026-08-27 03:09:54'),
-(60, 1, 'Activity Design Resubmitted', 'Activity Design \"Test 3 CIS Activity 3\" has been resubmitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 06:01:26', '2026-08-27 06:01:26'),
-(61, 47, 'Activity Design Resubmitted', 'Activity Design \"Test 3 CIS Activity 3\" has been resubmitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 06:01:32', '2026-08-27 06:01:32'),
-(62, 2, 'Activity Design Approved', 'Your Activity Design \"Test 3 CIS Activity 3\" has been approved.', 'success', '/college/submitted-list', 0, '2026-08-27 06:02:23', '2026-08-27 06:02:23'),
-(63, 1, 'Modification Requested', 'A modification request for Activity Design \"Test 3 CIS Activity 3\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 06:03:17', '2026-08-27 06:03:17'),
-(64, 47, 'Modification Requested', 'A modification request for Activity Design \"Test 3 CIS Activity 3\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 06:03:22', '2026-08-27 06:03:22'),
-(65, 2, 'Modification Requested', 'Your modification request for \"Test 3 CIS Activity 3\" has been sent and is pending review.', 'info', '/college/submitted-list', 0, '2026-08-27 06:03:28', '2026-08-27 06:03:28'),
-(66, 1, 'Modification Requested', 'A modification request for Activity Design \"Test 3 CIS Activity 3\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 06:40:10', '2026-08-27 06:40:10'),
-(67, 47, 'Modification Requested', 'A modification request for Activity Design \"Test 3 CIS Activity 3\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 06:40:16', '2026-08-27 06:40:16'),
-(68, 2, 'Modification Requested', 'Your modification request for \"Test 3 CIS Activity 3\" has been sent and is pending review.', 'info', '/college/submitted-list', 0, '2026-08-27 06:40:22', '2026-08-27 06:40:22'),
-(69, 1, 'Modification Requested', 'A modification request for Activity Design \"Test 3 CIS Activity 3\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 06:52:35', '2026-08-27 06:52:35'),
-(70, 47, 'Modification Requested', 'A modification request for Activity Design \"Test 3 CIS Activity 3\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 06:52:40', '2026-08-27 06:52:40'),
-(71, 2, 'Modification Requested', 'Your modification request for \"Test 3 CIS Activity 3\" has been sent and is pending review.', 'info', '/college/submitted-list', 0, '2026-08-27 06:52:46', '2026-08-27 06:52:46'),
-(72, 2, 'Modification Rejected', 'Your modification request for \"Test 3 CIS Activity 3\" has been rejected.', 'error', '/college/submitted-list', 0, '2026-08-27 06:53:07', '2026-08-27 06:53:07'),
-(73, 1, 'Modification Requested', 'A modification request for Activity Design \"Test 3 CIS Activity 3\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 06:53:30', '2026-08-27 06:53:30'),
-(74, 47, 'Modification Requested', 'A modification request for Activity Design \"Test 3 CIS Activity 3\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 06:53:37', '2026-08-27 06:53:37'),
-(75, 2, 'Modification Requested', 'Your modification request for \"Test 3 CIS Activity 3\" has been sent and is pending review.', 'info', '/college/submitted-list', 0, '2026-08-27 06:53:41', '2026-08-27 06:53:41'),
-(76, 2, 'Modification Approved', 'Your modification request for \"Test 3 CIS Activity 3\" has been approved.', 'success', '/college/submitted-list', 0, '2026-08-27 06:53:57', '2026-08-27 06:53:57'),
-(77, 1, 'Activity Design Modified', 'CA TWG modified the approved Activity Design \"Test 3 CIS Activity 3\".', 'info', '/admin/ad-list', 0, '2026-08-27 06:54:50', '2026-08-27 06:54:50'),
-(78, 47, 'Activity Design Modified', 'CA TWG modified the approved Activity Design \"Test 3 CIS Activity 3\".', 'info', '/admin/ad-list', 0, '2026-08-27 06:54:55', '2026-08-27 06:54:55'),
-(79, 2, 'Activity Design Approved', 'Your Activity Design \"Test 2\" has been approved.', 'success', '/college/submitted-list', 0, '2026-08-27 08:07:10', '2026-08-27 08:07:10'),
-(80, 1, 'Modification Requested', 'A modification request for Activity Design \"Test 2\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 08:07:47', '2026-08-27 08:07:47'),
-(81, 47, 'Modification Requested', 'A modification request for Activity Design \"Test 2\" has been submitted and is pending review.', 'info', '/admin/ad-list', 0, '2026-08-27 08:07:52', '2026-08-27 08:07:52'),
-(82, 2, 'Modification Requested', 'Your modification request for \"Test 2\" has been sent and is pending review.', 'info', '/college/submitted-list', 0, '2026-08-27 08:07:57', '2026-08-27 08:07:57'),
-(83, 2, 'Modification Rejected', 'Your modification request for \"Test 2\" has been rejected.', 'error', '/college/submitted-list', 0, '2026-08-27 08:08:21', '2026-08-27 08:08:21');
 
 -- --------------------------------------------------------
 
