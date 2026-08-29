@@ -297,7 +297,7 @@
                       </button>
                     </div>
                     
-                    <div v-if="form.schedules.length === 0" style="color: #94a3b8; font-size: 13px; font-style: italic; margin-bottom: 8px;">
+                    <div v-if="!form.schedules?.length" style="color: #94a3b8; font-size: 13px; font-style: italic; margin-bottom: 8px;">
                       Please add at least one schedule.
                     </div>
                     

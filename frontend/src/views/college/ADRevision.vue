@@ -1285,27 +1285,12 @@ const fetchDesignDetails = async () => {
         });
         schedules.value = parsedSchedules;
 
-        let isContinuous = true;
-        for (let i = 1; i < parsedSchedules.length; i++) {
-            let prevDate = new Date(parsedSchedules[i-1].date + "T00:00:00");
-            let currDate = new Date(parsedSchedules[i].date + "T00:00:00");
-            
-            // Expected next date is the next valid working day after prevDate
-            let expectedNextDate = new Date(prevDate);
-            do {
-                expectedNextDate.setDate(expectedNextDate.getDate() + 1);
-            } while (isDisabledDate(expectedNextDate));
-            
-            let expectedStr = expectedNextDate.getFullYear() + '-' + String(expectedNextDate.getMonth() + 1).padStart(2, '0') + '-' + String(expectedNextDate.getDate()).padStart(2, '0');
-            let currStr = parsedSchedules[i].date;
-            
-            if (currStr !== expectedStr) {
-                isContinuous = false;
-                break;
-            }
-        }
+        // Use the saved schedule_type from the database directly instead of
+        // re-detecting it heuristically (which was fragile and caused the
+        // consecutive → non-consecutive mismatch when holidays fell between dates).
+        const savedScheduleType = design.value.schedule_type || 'continuous';
         
-        if (isContinuous && parsedSchedules.length > 0) {
+        if (savedScheduleType === 'continuous' && parsedSchedules.length > 0) {
             scheduleType.value = 'continuous';
             continuousConfig.value = {
                 start_date: parsedSchedules[0].date,
@@ -1956,7 +1941,7 @@ const handleUpdate = async () => {
   fetchVenues();
   fetchFormTypes();
   fetchActivityClassifications();
-  fetchDesignDetails();
+  await fetchDesignDetails();
 });
 
 const checkTransportationLimit = () => {
