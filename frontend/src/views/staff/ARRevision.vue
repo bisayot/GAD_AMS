@@ -590,7 +590,6 @@
                           </div>
                         </div>
 
-                        <!-- Transportation -->
                         <div class="budget-row-item">
                           <div class="budget-item-info">
                             <div class="budget-item-title">Transportation</div>
@@ -599,7 +598,13 @@
                             <span class="budget-currency-symbol">₱</span>
                             <input 
                               type="number" 
-                              v-model="form.budget_items[8].total" @input="checkTransportationLimit"
+                              v-model="form.budget_items[8].total"
+                              @input="checkTransportationLimit"
+                              class="budget-card-input"
+                              placeholder="0.00"
+                              min="0"
+                              step="0.01"
+                            />
                           </div>
                         </div>
                       </div>
@@ -1486,6 +1491,7 @@ const isOutsideBsu = computed(() => form.value.is_inside_bsu === false || form.v
 watch(
   [() => form.value.schedules, () => form.value.target_participants, isOutsideBsu, baselineSettings],
   () => {
+    if (loadingData.value) return; // Don't overwrite loaded actual values during data population
     const item = form.value.budget_items.find(i => i.name === 'Meals');
     if (item && baselineSettings.value) {
       const mealsCount = totalBreakfastDays.value + totalLunchDays.value + totalDinnerDays.value;
@@ -1501,6 +1507,7 @@ watch(
 watch(
   [() => form.value.schedules, () => form.value.target_participants, isOutsideBsu, baselineSettings],
   () => {
+    if (loadingData.value) return; // Don't overwrite loaded actual values during data population
     const item = form.value.budget_items.find(i => i.name === 'Snacks');
     if (item && baselineSettings.value) {
       const snacksCount = totalAMSnackDays.value + totalPMSnackDays.value;
@@ -1514,6 +1521,7 @@ watch(
 );
 
 watch([pfPax, baselineSettings], ([newPax, _]) => {
+  if (loadingData.value) return; // Don't overwrite loaded actual values during data population
   const item = form.value.budget_items.find(i => i.name === 'Professional Fee/Honoraria');
   if (item && baselineSettings.value) {
     item.total = (Number(newPax) * baselineSettings.value.pf_honoraria) || '';
@@ -1521,6 +1529,7 @@ watch([pfPax, baselineSettings], ([newPax, _]) => {
 }, { deep: true });
 
 watch([tokensPax, baselineSettings], ([newPax, _]) => {
+  if (loadingData.value) return; // Don't overwrite loaded actual values during data population
   const item = form.value.budget_items.find(i => i.name === 'Token/s');
   if (item && baselineSettings.value) {
     item.total = (Number(newPax) * baselineSettings.value.tokens) || '';
@@ -1528,6 +1537,7 @@ watch([tokensPax, baselineSettings], ([newPax, _]) => {
 }, { deep: true });
 
 watch([() => form.value.target_participants, baselineSettings], ([newPax, _]) => {
+  if (loadingData.value) return; // Don't overwrite loaded actual values during data population
   const item = form.value.budget_items.find(i => i.name === 'Materials and Supplies');
   if (item && baselineSettings.value) {
     item.total = (Number(newPax) * baselineSettings.value.materials) || '';
@@ -1776,7 +1786,7 @@ const submitReport = async () => {
         text: 'Accomplishment report submitted successfully!',
         confirmButtonColor: '#b979cc'
       }).then(() => {
-        router.push('/college/submitted-list');
+        router.push('/staff/ar-list');
       });
       form.value = {
         activity_title: '',
@@ -2104,10 +2114,10 @@ const fetchReportDetails = async () => {
           { name: 'Function Room/Venue', total: b.function_room_venue || 0, breakdown: null },
           { name: 'Accommodation', total: b.accommodation || 0, breakdown: null },
           { name: 'Equipment Rental', total: b.equipment_rental || 0, breakdown: null },
-          { name: 'Transportation', total: b.transportation || 0, breakdown: null },
           { name: 'Professional Fee/Honoraria', total: b.professional_fee_honoria || 0, breakdown: null },
           { name: 'Token/s', total: b.tokens || 0, breakdown: null },
           { name: 'Materials and Supplies', total: b.materials_and_supplies || 0, breakdown: null },
+          { name: 'Transportation', total: b.transportation || 0, breakdown: null },
           { name: 'Others', total: b.others_total || 0, breakdown: null }
         ];
         
