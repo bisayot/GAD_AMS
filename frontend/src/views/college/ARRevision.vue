@@ -23,12 +23,12 @@
           <div class="assessment-card-custom">
             <div class="assessment-header">
               <div class="assessment-icon">📋</div>
-              <div class="assessment-title">Revision Remarks / Comments or You can also put your remarks/comments in the pdf file itself before sending revision</div>
+              <div class="assessment-title">Evaluator's Remarks / Comments or You can also put your remarks/comments in the pdf file itself before sending revision</div>
             </div>
 
             <div class="assessment-form">
               <div class="info-item">
-                <span class="info-label">Revision Remarks / Comments or You can also put your remarks/comments in the pdf file itself before sending revision</span>
+                <span class="info-label">Evaluator's Remarks / Comments or You can also put your remarks/comments in the pdf file itself before sending revision</span>
                 <div class="read-only-remarks">
                   {{ existingReport?.remarks || 'No remarks recorded for this accomplishment report.' }}
                 </div>
@@ -1211,6 +1211,7 @@ watch(() => form.value.start_time, (newTime) => {
     Swal.fire({ icon: 'warning', title: 'Invalid Time', text: 'Must be set between 04:00 AM and 08:00 PM.', confirmButtonColor: '#b979cc' });
     form.value.start_time = '';
   }
+  if (scheduleType.value === 'staggered') return;
   if (form.value.start_time && form.value.end_time && (!form.value.start_date || !form.value.end_date || form.value.start_date === form.value.end_date)) {
     const startTimeParts = form.value.start_time.split(':');
     const endTimeParts = form.value.end_time.split(':');
@@ -1235,6 +1236,7 @@ watch(() => form.value.end_time, (newTime) => {
     Swal.fire({ icon: 'warning', title: 'Invalid Time', text: 'Must be set between 04:00 AM and 08:00 PM.', confirmButtonColor: '#b979cc' });
     form.value.end_time = '';
   }
+  if (scheduleType.value === 'staggered') return;
   if (form.value.start_time && form.value.end_time && (!form.value.start_date || !form.value.end_date || form.value.start_date === form.value.end_date)) {
     const startTimeParts = form.value.start_time.split(':');
     const endTimeParts = form.value.end_time.split(':');
@@ -1510,6 +1512,58 @@ watch([() => form.value.target_participants, baselineSettings], ([newPax, _]) =>
 
 const submitReport = async () => {
   isSubmitting.value = true;
+  
+  if (scheduleType.value === 'continuous') {
+    if (!continuousConfig.value.start_date || !continuousConfig.value.end_date || !continuousConfig.value.start_time || !continuousConfig.value.end_time) {
+      isSubmitting.value = false;
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Schedule Data',
+        text: 'Please complete all required fields for the continuous schedule.',
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
+    const startDateObj = new Date(continuousConfig.value.start_date + 'T00:00:00');
+    const endDateObj = new Date(continuousConfig.value.end_date + 'T00:00:00');
+    if (endDateObj < startDateObj) {
+      isSubmitting.value = false;
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Duration',
+        text: 'End date cannot be before start date.',
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
+    
+    const generated = [];
+    let curr = new Date(startDateObj);
+    while (curr <= endDateObj) {
+      const day = curr.getDay();
+      if (day !== 0 && day !== 6 && (!isDisabledDate || !isDisabledDate(curr))) {
+        generated.push({
+          date: curr.toISOString().split('T')[0],
+          start_time: continuousConfig.value.start_time,
+          end_time: continuousConfig.value.end_time,
+          meals_and_snacks: { ...continuousConfig.value.meals_and_snacks }
+        });
+      }
+      curr.setDate(curr.getDate() + 1);
+    }
+    if (generated.length === 0) {
+      isSubmitting.value = false;
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Schedule',
+        text: 'No valid working days found in the selected date range.',
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
+    form.value.schedules = generated;
+  }
+
   if (uploadedFiles.value.length === 0) {
     const confirm = await Swal.fire({
       title: 'No new file selected',
@@ -1535,6 +1589,7 @@ const submitReport = async () => {
     return;
   }
 
+  if (scheduleType.value === 'staggered') return;
   if (form.value.start_time && form.value.end_time && (!form.value.start_date || !form.value.end_date || form.value.start_date === form.value.end_date)) {
     const startTimeParts = form.value.start_time.split(':');
     const endTimeParts = form.value.end_time.split(':');

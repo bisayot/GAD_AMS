@@ -23,12 +23,12 @@
           <div class="assessment-card-custom">
             <div class="assessment-header">
               <div class="assessment-icon">📋</div>
-              <div class="assessment-title">Revision Remarks / Comments or You can also put your remarks/comments in the pdf file itself before sending revision</div>
+              <div class="assessment-title">Evaluator's Remarks / Comments</div>
             </div>
 
             <div class="assessment-form">
               <div class="info-item">
-                <span class="info-label">Revision Remarks / Comments or You can also put your remarks/comments in the pdf file itself before sending revision</span>
+                <span class="info-label">Evaluator's Remarks / Comments</span>
                 <div class="read-only-remarks">
                   {{ existingReport?.remarks || 'No remarks recorded for this accomplishment report.' }}
                 </div>
@@ -259,6 +259,25 @@
                   <div>
                     <label class="info-label">Target Participants</label>
                     <p class="text-sm-light mt-1">{{ existingReport?.activity_design?.target_participants || '---' }}</p>
+                  </div>
+                  <!-- Computed Global Dates -->
+                  <div class="form-sub-grid-ar mb-4 mt-4" style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="input-group-ar">
+                      <div class="label-container">
+                        <label class="info-label">Calculated Start Date</label>
+                      </div>
+                      <div class="custom-input-field" style="display: flex; align-items: center; gap: 8px; opacity: 0.8; cursor: not-allowed; margin-top: 4px;">
+                        <span class="material-symbols-outlined" style="font-size: 16px; color: #b979cc;">calendar_month</span>
+                        {{ computedStartDate || 'Awaiting schedule...' }}
+                      </div>
+                    </div>
+                    <div class="input-group-ar">
+                      <label class="info-label">Calculated End Date</label>
+                      <div class="custom-input-field" style="display: flex; align-items: center; gap: 8px; opacity: 0.8; cursor: not-allowed; margin-top: 4px;">
+                        <span class="material-symbols-outlined" style="font-size: 16px; color: #b979cc;">event</span>
+                        {{ computedEndDate || 'Awaiting schedule...' }}
+                      </div>
+                    </div>
                   </div>
                   <div style="grid-column: 1 / -1; width: 100%;">
 <div class="form.schedules-container" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
@@ -580,12 +599,7 @@
                             <span class="budget-currency-symbol">₱</span>
                             <input 
                               type="number" 
-                              v-model="form.budget_items[5].total" 
-                              class="budget-card-input"
-                              placeholder="0.00"
-                              min="0"
-                              step="0.01"
-                            />
+                              v-model="form.budget_items[8].total" @input="checkTransportationLimit"
                           </div>
                         </div>
                       </div>
@@ -613,7 +627,7 @@
                             <span class="budget-currency-symbol">₱</span>
                             <input 
                               type="number" 
-                              v-model="form.budget_items[6].total" 
+                              v-model="form.budget_items[5].total" 
                               class="budget-card-input"
                               placeholder="0.00"
                               min="0"
@@ -637,7 +651,7 @@
                             <span class="budget-currency-symbol">₱</span>
                             <input 
                               type="number" 
-                              v-model="form.budget_items[7].total" 
+                              v-model="form.budget_items[6].total" 
                               class="budget-card-input"
                               placeholder="0.00"
                               min="0"
@@ -664,7 +678,7 @@
                             <span class="budget-currency-symbol">₱</span>
                             <input 
                               type="number" 
-                              v-model="form.budget_items[8].total" 
+                              v-model="form.budget_items[7].total" 
                               class="budget-card-input"
                               placeholder="0.00"
                               min="0"
@@ -1211,6 +1225,7 @@ watch(() => form.value.start_time, (newTime) => {
     Swal.fire({ icon: 'warning', title: 'Invalid Time', text: 'Must be set between 04:00 AM and 08:00 PM.', confirmButtonColor: '#b979cc' });
     form.value.start_time = '';
   }
+  if (scheduleType.value === 'staggered') return;
   if (form.value.start_time && form.value.end_time && (!form.value.start_date || !form.value.end_date || form.value.start_date === form.value.end_date)) {
     const startTimeParts = form.value.start_time.split(':');
     const endTimeParts = form.value.end_time.split(':');
@@ -1235,6 +1250,7 @@ watch(() => form.value.end_time, (newTime) => {
     Swal.fire({ icon: 'warning', title: 'Invalid Time', text: 'Must be set between 04:00 AM and 08:00 PM.', confirmButtonColor: '#b979cc' });
     form.value.end_time = '';
   }
+  if (scheduleType.value === 'staggered') return;
   if (form.value.start_time && form.value.end_time && (!form.value.start_date || !form.value.end_date || form.value.start_date === form.value.end_date)) {
     const startTimeParts = form.value.start_time.split(':');
     const endTimeParts = form.value.end_time.split(':');
@@ -1510,6 +1526,58 @@ watch([() => form.value.target_participants, baselineSettings], ([newPax, _]) =>
 
 const submitReport = async () => {
   isSubmitting.value = true;
+  
+  if (scheduleType.value === 'continuous') {
+    if (!continuousConfig.value.start_date || !continuousConfig.value.end_date || !continuousConfig.value.start_time || !continuousConfig.value.end_time) {
+      isSubmitting.value = false;
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Schedule Data',
+        text: 'Please complete all required fields for the continuous schedule.',
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
+    const startDateObj = new Date(continuousConfig.value.start_date + 'T00:00:00');
+    const endDateObj = new Date(continuousConfig.value.end_date + 'T00:00:00');
+    if (endDateObj < startDateObj) {
+      isSubmitting.value = false;
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Duration',
+        text: 'End date cannot be before start date.',
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
+    
+    const generated = [];
+    let curr = new Date(startDateObj);
+    while (curr <= endDateObj) {
+      const day = curr.getDay();
+      if (day !== 0 && day !== 6 && (!isDisabledDate || !isDisabledDate(curr))) {
+        generated.push({
+          date: curr.toISOString().split('T')[0],
+          start_time: continuousConfig.value.start_time,
+          end_time: continuousConfig.value.end_time,
+          meals_and_snacks: { ...continuousConfig.value.meals_and_snacks }
+        });
+      }
+      curr.setDate(curr.getDate() + 1);
+    }
+    if (generated.length === 0) {
+      isSubmitting.value = false;
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Schedule',
+        text: 'No valid working days found in the selected date range.',
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
+    form.value.schedules = generated;
+  }
+
   if (uploadedFiles.value.length === 0) {
     const confirm = await Swal.fire({
       title: 'No new file selected',
@@ -1535,6 +1603,7 @@ const submitReport = async () => {
     return;
   }
 
+  if (scheduleType.value === 'staggered') return;
   if (form.value.start_time && form.value.end_time && (!form.value.start_date || !form.value.end_date || form.value.start_date === form.value.end_date)) {
     const startTimeParts = form.value.start_time.split(':');
     const endTimeParts = form.value.end_time.split(':');
@@ -1862,6 +1931,41 @@ const parseMeals = (str) => {
 
 const formatDate = (date) => date ? new Date(date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '---';
 
+const isPastStartDate = computed(() => {
+  if (!form.value.start_date) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const startDate = new Date(form.value.start_date);
+  startDate.setHours(0, 0, 0, 0);
+  return startDate < today;
+});
+
+const checkTransportationLimit = () => {
+  const transItem = form.value.budget_items?.[8];
+  const limit = Number(baselineSettings.value?.transportation_limit || 20000);
+  
+  if (transItem && Number(transItem.total) > limit) {
+    transItem.total = limit;
+    const role = user.value?.role || 'staff';
+    Swal.fire({
+      icon: 'warning',
+      title: 'Limit Exceeded',
+      html: `Transportation budget cannot exceed the baseline limit of ₱${limit.toLocaleString('en-US')}.<br><br>
+             If you need to request an exemption, please <a href="/${role}/messages" style="color: #b979cc; text-decoration: underline; font-weight: bold;">message the GAD Director/Staff</a>.`,
+      confirmButtonColor: '#b979cc'
+    });
+  }
+};
+
+const handleSave = async (submit = false) => {
+
+const computedStartDate = computed(() => {
+  return form.value.start_date ? formatDate(form.value.start_date) : '';
+});
+const computedEndDate = computed(() => {
+  return form.value.end_date ? formatDate(form.value.end_date) : '';
+});
+
 const formatTime = (time) => {
   if (!time) return '---';
   const [h, m] = time.split(':');
@@ -2055,8 +2159,8 @@ const fetchReportDetails = async () => {
           } catch(e) {}
           return {
             date: s.schedule_date || s.date,
-            start_time: s.start_time,
-            end_time: s.end_time,
+            start_time: s.start_time ? s.start_time.substring(0, 5) : '',
+            end_time: s.end_time ? s.end_time.substring(0, 5) : '',
             meals_and_snacks: meals
           };
         });

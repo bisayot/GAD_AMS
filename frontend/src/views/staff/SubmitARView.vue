@@ -510,7 +510,7 @@
                               <span class="budget-currency-symbol">₱</span>
                               <input 
                                 type="number" 
-                                v-model="form.budget_items[8].total" 
+                                v-model="form.budget_items[8].total" @input="checkTransportationLimit" 
                                 class="budget-card-input"
                                 placeholder="0.00"
                                 min="0"
@@ -1397,6 +1397,54 @@ const removeFile = (index) => {
 };
 
 const submitReport = async () => {
+  if (scheduleType.value === 'continuous') {
+    if (!continuousConfig.value.start_date || !continuousConfig.value.end_date || !continuousConfig.value.start_time || !continuousConfig.value.end_time) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Schedule Data',
+        text: 'Please complete all required fields for the continuous schedule.',
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
+    const startDateObj = new Date(continuousConfig.value.start_date + 'T00:00:00');
+    const endDateObj = new Date(continuousConfig.value.end_date + 'T00:00:00');
+    if (endDateObj < startDateObj) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Duration',
+        text: 'End date cannot be before start date.',
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
+    
+    const generated = [];
+    let curr = new Date(startDateObj);
+    while (curr <= endDateObj) {
+      const day = curr.getDay();
+      if (day !== 0 && day !== 6 && !isHoliday(curr.toISOString().split('T')[0])) {
+        generated.push({
+          date: curr.toISOString().split('T')[0],
+          start_time: continuousConfig.value.start_time,
+          end_time: continuousConfig.value.end_time,
+          meals_and_snacks: { ...continuousConfig.value.meals_and_snacks }
+        });
+      }
+      curr.setDate(curr.getDate() + 1);
+    }
+    if (generated.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Schedule',
+        text: 'No valid working days found in the selected date range.',
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
+    form.value.schedules = generated;
+  }
+
   if (!form.value.control_number) {
     Swal.fire({
       icon: 'warning',
@@ -1453,6 +1501,7 @@ const submitReport = async () => {
     }
   }
 
+  if (scheduleType.value === 'staggered') return;
   if (form.value.start_time && form.value.end_time && (!form.value.start_date || !form.value.end_date || form.value.start_date === form.value.end_date)) {
     const startTimeParts = form.value.start_time.split(':');
     const endTimeParts = form.value.end_time.split(':');
@@ -1786,6 +1835,7 @@ watch(() => form.value.start_time, (newTime) => {
     Swal.fire({ icon: 'warning', title: 'Invalid Time', text: 'Must be set between 04:00 AM and 08:00 PM.', confirmButtonColor: '#b979cc' });
     form.value.start_time = '';
   }
+  if (scheduleType.value === 'staggered') return;
   if (form.value.start_time && form.value.end_time && (!form.value.start_date || !form.value.end_date || form.value.start_date === form.value.end_date)) {
     const startTimeParts = form.value.start_time.split(':');
     const endTimeParts = form.value.end_time.split(':');
@@ -1810,6 +1860,7 @@ watch(() => form.value.end_time, (newTime) => {
     Swal.fire({ icon: 'warning', title: 'Invalid Time', text: 'Must be set between 04:00 AM and 08:00 PM.', confirmButtonColor: '#b979cc' });
     form.value.end_time = '';
   }
+  if (scheduleType.value === 'staggered') return;
   if (form.value.start_time && form.value.end_time && (!form.value.start_date || !form.value.end_date || form.value.start_date === form.value.end_date)) {
     const startTimeParts = form.value.start_time.split(':');
     const endTimeParts = form.value.end_time.split(':');
@@ -1833,10 +1884,41 @@ watch(() => form.value.end_time, (newTime) => {
 
 
 
+const baselineSettings = ref({});
+
+const fetchBaselineSettings = async () => {
+  try {
+    const res = await api.get('baseline-settings');
+    if (res.data) {
+      baselineSettings.value = res.data;
+    }
+  } catch (error) {
+    console.error('Failed to fetch baseline settings:', error);
+  }
+};
+
+const checkTransportationLimit = () => {
+  const transItem = form.value.budget_items?.[8];
+  const limit = Number(baselineSettings.value?.transportation_limit || 20000);
+  
+  if (transItem && Number(transItem.total) > limit) {
+    transItem.total = limit;
+    const role = user.value?.role || 'staff';
+    Swal.fire({
+      icon: 'warning',
+      title: 'Limit Exceeded',
+      html: `Transportation budget cannot exceed the baseline limit of ₱${limit.toLocaleString('en-US')}.<br><br>
+             If you need to request an exemption, please <a href="/${role}/messages" style="color: #b979cc; text-decoration: underline; font-weight: bold;">message the GAD Director/Staff</a>.`,
+      confirmButtonColor: '#b979cc'
+    });
+  }
+};
+
 onMounted(() => {
   if (!user.value.id) {
     router.push('/login');
   } else {
+    fetchBaselineSettings();
     fetchApprovedControls();
     fetchHolidays();
     fetchGADMandates();

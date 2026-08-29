@@ -463,7 +463,7 @@
                           <span class="budget-currency-symbol">₱</span>
                           <input 
                             type="number" 
-                            v-model="formData.budget_items[8].total" @change="checkTransportationLimit" 
+                            v-model="formData.budget_items[8].total" @input="checkTransportationLimit" 
                             class="budget-card-input"
                             placeholder="0.00"
                             min="0"
@@ -1622,6 +1622,8 @@ watch(() => computedStartDate.value, (newDate, oldDate) => {
 
 watch([() => formData.value.start_time, () => formData.value.end_time], ([newStart, newEnd]) => {
   if (loadingData.value) return;
+  if (scheduleType.value === 'staggered') return;
+  if (formData.value.start_date && formData.value.end_date && formData.value.start_date !== formData.value.end_date) return;
   if (newStart && newEnd) {
     if (!formData.value.start_date || !formData.value.end_date || formData.value.start_date === formData.value.end_date) {
       const startTimeParts = newStart.split(':');
@@ -1958,11 +1960,12 @@ const handleUpdate = async () => {
 });
 
 const checkTransportationLimit = () => {
-  const transItem = formData.budget_items[8];
+  const transItem = formData.value.budget_items?.[8];
   const limit = Number(baselineSettings.value?.transportation_limit || 20000);
   
   if (transItem && Number(transItem.total) > limit) {
-    const role = user.value?.role || 'staff';
+    transItem.total = limit;
+    const role = user.value?.role || 'college';
     Swal.fire({
       icon: 'warning',
       title: 'Limit Exceeded',

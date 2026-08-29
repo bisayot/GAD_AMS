@@ -508,7 +508,7 @@
                               <span class="budget-currency-symbol">₱</span>
                               <input 
                                 type="number" 
-                                v-model="form.budget_items[8].total" @change="checkTransportationLimit" 
+                                v-model="form.budget_items[8].total" @input="checkTransportationLimit" 
                                 class="budget-card-input"
                                 placeholder="0.00"
                                 min="0"
@@ -1296,6 +1296,8 @@ watch(() => form.value.end_time, (newTime) => {
 });
 
 watch([() => form.value.start_time, () => form.value.end_time], ([newStart, newEnd]) => {
+  if (scheduleType.value === 'staggered') return;
+  if (form.value.start_date && form.value.end_date && form.value.start_date !== form.value.end_date) return;
   if (newStart && newEnd) {
     if (newStart >= newEnd) {
       document.activeElement?.blur();
@@ -1730,10 +1732,11 @@ onUnmounted(() => {
 });
 
 const checkTransportationLimit = () => {
-  const transItem = form.budget_items?.[8];
+  const transItem = form.value.budget_items?.[8];
   const limit = Number(baselineSettings.value?.transportation_limit ?? 20000);
   
   if (transItem && Number(transItem.total) > limit) {
+    transItem.total = limit;
     const role = user.value?.role || 'staff';
     Swal.fire({
       icon: 'warning',

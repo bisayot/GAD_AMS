@@ -498,7 +498,7 @@
                               <span class="budget-currency-symbol">₱</span>
                               <input 
                                 type="number" 
-                                v-model="form.budget_items[8].total" 
+                                v-model="form.budget_items[8].total" @input="checkTransportationLimit" 
                                 class="budget-card-input"
                                 placeholder="0.00"
                                 min="0"
@@ -1583,6 +1583,7 @@ const submitReport = async () => {
     }
   }
 
+  if (scheduleType.value === 'staggered') return;
   if (form.value.start_time && form.value.end_time && (!form.value.start_date || !form.value.end_date || form.value.start_date === form.value.end_date)) {
     const startTimeParts = form.value.start_time.split(':');
     const endTimeParts = form.value.end_time.split(':');
@@ -1913,6 +1914,7 @@ watch(() => form.value.start_time, (newTime) => {
     Swal.fire({ icon: 'warning', title: 'Invalid Time', text: 'Must be set between 04:00 AM and 08:00 PM.', confirmButtonColor: '#b979cc' });
     form.value.start_time = '';
   }
+  if (scheduleType.value === 'staggered') return;
   if (form.value.start_time && form.value.end_time && (!form.value.start_date || !form.value.end_date || form.value.start_date === form.value.end_date)) {
     const startTimeParts = form.value.start_time.split(':');
     const endTimeParts = form.value.end_time.split(':');
@@ -1937,6 +1939,7 @@ watch(() => form.value.end_time, (newTime) => {
     Swal.fire({ icon: 'warning', title: 'Invalid Time', text: 'Must be set between 04:00 AM and 08:00 PM.', confirmButtonColor: '#b979cc' });
     form.value.end_time = '';
   }
+  if (scheduleType.value === 'staggered') return;
   if (form.value.start_time && form.value.end_time && (!form.value.start_date || !form.value.end_date || form.value.start_date === form.value.end_date)) {
     const startTimeParts = form.value.start_time.split(':');
     const endTimeParts = form.value.end_time.split(':');
@@ -1954,6 +1957,23 @@ watch(() => form.value.end_time, (newTime) => {
     }
   }
 });
+
+const checkTransportationLimit = () => {
+  const transItem = form.value.budget_items?.[8];
+  const limit = Number(baselineSettings.value?.transportation_limit || 20000);
+  
+  if (transItem && Number(transItem.total) > limit) {
+    transItem.total = limit;
+    const role = user.value?.role || 'college';
+    Swal.fire({
+      icon: 'warning',
+      title: 'Limit Exceeded',
+      html: `Transportation budget cannot exceed the baseline limit of ₱${limit.toLocaleString('en-US')}.<br><br>
+             If you need to request an exemption, please <a href="/${role}/messages" style="color: #b979cc; text-decoration: underline; font-weight: bold;">message the GAD Director/Staff</a>.`,
+      confirmButtonColor: '#b979cc'
+    });
+  }
+};
 
 onMounted(() => {
   if (!user.value.id) {
