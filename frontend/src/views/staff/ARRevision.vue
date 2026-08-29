@@ -325,7 +325,7 @@
                           <div class="label-container" style="margin-bottom: 4px;">
                             <label class="text-[10px] uppercase font-bold text-slate-500 mb-0">Time From</label>
                             <div class="info-btn-wrapper">
-                              <button type="button" class="info-btn" @click.stop="toggleHelp('startTime')" style="width: 14px; height: 14px; font-size: 10px;">i</button>
+                              <span class="material-symbols-outlined" @click.stop="toggleHelp('startTime')" style="font-size: 14px; cursor: pointer; color: #94a3b8; transition: color 0.2s;" onmouseover="this.style.color='#b979cc'" onmouseout="this.style.color='#94a3b8'">info</span>
                               <transition name="fade-pop"><div v-if="helpState.startTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                             </div>
                           </div>
@@ -335,7 +335,7 @@
                           <div class="label-container" style="margin-bottom: 4px;">
                             <label class="text-[10px] uppercase font-bold text-slate-500 mb-0">Time To</label>
                             <div class="info-btn-wrapper">
-                              <button type="button" class="info-btn" @click.stop="toggleHelp('endTime')" style="width: 14px; height: 14px; font-size: 10px;">i</button>
+                              <span class="material-symbols-outlined" @click.stop="toggleHelp('endTime')" style="font-size: 14px; cursor: pointer; color: #94a3b8; transition: color 0.2s;" onmouseover="this.style.color='#b979cc'" onmouseout="this.style.color='#94a3b8'">info</span>
                               <transition name="fade-pop"><div v-if="helpState.endTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                             </div>
                           </div>
@@ -380,7 +380,7 @@
                         <div class="label-container" style="margin-bottom: 6px;">
                           <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 0;">Start Time</label>
                           <div class="info-btn-wrapper">
-                            <button type="button" class="info-btn" @click.stop="toggleHelp('startTime')" style="width: 14px; height: 14px; font-size: 10px;">i</button>
+                            <span class="material-symbols-outlined" @click.stop="toggleHelp('startTime')" style="font-size: 14px; cursor: pointer; color: #94a3b8; transition: color 0.2s;" onmouseover="this.style.color='#b979cc'" onmouseout="this.style.color='#94a3b8'">info</span>
                             <transition name="fade-pop"><div v-if="helpState.startTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                           </div>
                         </div>
@@ -390,7 +390,7 @@
                         <div class="label-container" style="margin-bottom: 6px;">
                           <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 0;">End Time</label>
                           <div class="info-btn-wrapper">
-                            <button type="button" class="info-btn" @click.stop="toggleHelp('endTime')" style="width: 14px; height: 14px; font-size: 10px;">i</button>
+                            <span class="material-symbols-outlined" @click.stop="toggleHelp('endTime')" style="font-size: 14px; cursor: pointer; color: #94a3b8; transition: color 0.2s;" onmouseover="this.style.color='#b979cc'" onmouseout="this.style.color='#94a3b8'">info</span>
                             <transition name="fade-pop"><div v-if="helpState.endTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                           </div>
                         </div>
@@ -1382,6 +1382,13 @@ const handleScheduleTypeChange = (newType) => {
 };
 
 
+
+watch(continuousConfig, () => {
+  if (scheduleType.value === 'continuous') {
+    recalculateSchedules();
+  }
+}, { deep: true });
+
 const recalculateSchedules = () => {
   if (scheduleType.value === 'continuous') {
     if (continuousConfig.value.start_date && continuousConfig.value.end_date) {
@@ -1393,7 +1400,7 @@ const recalculateSchedules = () => {
       while (current <= end) {
         // Skip weekends
         const day = current.getDay();
-        if (day !== 0 && day !== 6) {
+        if (!isDisabledDate || !isDisabledDate(current)) {
             schedules.push({
               date: current.toISOString().split('T')[0],
               start_time: continuousConfig.value.start_time,
@@ -1555,7 +1562,7 @@ const submitReport = async () => {
     let curr = new Date(startDateObj);
     while (curr <= endDateObj) {
       const day = curr.getDay();
-      if (day !== 0 && day !== 6 && (!isDisabledDate || !isDisabledDate(curr))) {
+      if (!isDisabledDate || !isDisabledDate(curr)) {
         generated.push({
           date: curr.toISOString().split('T')[0],
           start_time: continuousConfig.value.start_time,

@@ -260,6 +260,25 @@
                     <label class="info-label">Target Participants</label>
                     <p class="text-sm-light mt-1">{{ existingReport?.activity_design?.target_participants || '---' }}</p>
                   </div>
+                  <!-- Computed Global Dates -->
+                  <div class="form-sub-grid-ar mb-4 mt-4" style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="input-group-ar">
+                      <div class="label-container">
+                        <label class="info-label">Calculated Start Date</label>
+                      </div>
+                      <div class="custom-input-field" style="display: flex; align-items: center; gap: 8px; opacity: 0.8; cursor: not-allowed; margin-top: 4px;">
+                        <span class="material-symbols-outlined" style="font-size: 16px; color: #b979cc;">calendar_month</span>
+                        {{ computedStartDate || 'Awaiting schedule...' }}
+                      </div>
+                    </div>
+                    <div class="input-group-ar">
+                      <label class="info-label">Calculated End Date</label>
+                      <div class="custom-input-field" style="display: flex; align-items: center; gap: 8px; opacity: 0.8; cursor: not-allowed; margin-top: 4px;">
+                        <span class="material-symbols-outlined" style="font-size: 16px; color: #b979cc;">event</span>
+                        {{ computedEndDate || 'Awaiting schedule...' }}
+                      </div>
+                    </div>
+                  </div>
                   <div style="grid-column: 1 / -1; width: 100%;">
 <div class="form.schedules-container" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
                     <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
@@ -306,7 +325,7 @@
                           <div class="label-container" style="margin-bottom: 4px;">
                             <label class="text-[10px] uppercase font-bold text-slate-500 mb-0">Time From</label>
                             <div class="info-btn-wrapper">
-                              <button type="button" class="info-btn" @click.stop="toggleHelp('startTime')" style="width: 14px; height: 14px; font-size: 10px;">i</button>
+                              <span class="material-symbols-outlined" @click.stop="toggleHelp('startTime')" style="font-size: 14px; cursor: pointer; color: #94a3b8; transition: color 0.2s;" onmouseover="this.style.color='#b979cc'" onmouseout="this.style.color='#94a3b8'">info</span>
                               <transition name="fade-pop"><div v-if="helpState.startTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                             </div>
                           </div>
@@ -316,7 +335,7 @@
                           <div class="label-container" style="margin-bottom: 4px;">
                             <label class="text-[10px] uppercase font-bold text-slate-500 mb-0">Time To</label>
                             <div class="info-btn-wrapper">
-                              <button type="button" class="info-btn" @click.stop="toggleHelp('endTime')" style="width: 14px; height: 14px; font-size: 10px;">i</button>
+                              <span class="material-symbols-outlined" @click.stop="toggleHelp('endTime')" style="font-size: 14px; cursor: pointer; color: #94a3b8; transition: color 0.2s;" onmouseover="this.style.color='#b979cc'" onmouseout="this.style.color='#94a3b8'">info</span>
                               <transition name="fade-pop"><div v-if="helpState.endTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                             </div>
                           </div>
@@ -361,7 +380,7 @@
                         <div class="label-container" style="margin-bottom: 6px;">
                           <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 0;">Start Time</label>
                           <div class="info-btn-wrapper">
-                            <button type="button" class="info-btn" @click.stop="toggleHelp('startTime')" style="width: 14px; height: 14px; font-size: 10px;">i</button>
+                            <span class="material-symbols-outlined" @click.stop="toggleHelp('startTime')" style="font-size: 14px; cursor: pointer; color: #94a3b8; transition: color 0.2s;" onmouseover="this.style.color='#b979cc'" onmouseout="this.style.color='#94a3b8'">info</span>
                             <transition name="fade-pop"><div v-if="helpState.startTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                           </div>
                         </div>
@@ -371,7 +390,7 @@
                         <div class="label-container" style="margin-bottom: 6px;">
                           <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 0;">End Time</label>
                           <div class="info-btn-wrapper">
-                            <button type="button" class="info-btn" @click.stop="toggleHelp('endTime')" style="width: 14px; height: 14px; font-size: 10px;">i</button>
+                            <span class="material-symbols-outlined" @click.stop="toggleHelp('endTime')" style="font-size: 14px; cursor: pointer; color: #94a3b8; transition: color 0.2s;" onmouseover="this.style.color='#b979cc'" onmouseout="this.style.color='#94a3b8'">info</span>
                             <transition name="fade-pop"><div v-if="helpState.endTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                           </div>
                         </div>
@@ -1368,6 +1387,13 @@ const handleScheduleTypeChange = (newType) => {
 };
 
 
+
+watch(continuousConfig, () => {
+  if (scheduleType.value === 'continuous') {
+    recalculateSchedules();
+  }
+}, { deep: true });
+
 const recalculateSchedules = () => {
   if (scheduleType.value === 'continuous') {
     if (continuousConfig.value.start_date && continuousConfig.value.end_date) {
@@ -1379,7 +1405,7 @@ const recalculateSchedules = () => {
       while (current <= end) {
         // Skip weekends
         const day = current.getDay();
-        if (day !== 0 && day !== 6) {
+        if (!isDisabledDate || !isDisabledDate(current)) {
             schedules.push({
               date: current.toISOString().split('T')[0],
               start_time: continuousConfig.value.start_time,
@@ -1541,7 +1567,7 @@ const submitReport = async () => {
     let curr = new Date(startDateObj);
     while (curr <= endDateObj) {
       const day = curr.getDay();
-      if (day !== 0 && day !== 6 && (!isDisabledDate || !isDisabledDate(curr))) {
+      if (!isDisabledDate || !isDisabledDate(curr)) {
         generated.push({
           date: curr.toISOString().split('T')[0],
           start_time: continuousConfig.value.start_time,
@@ -1923,6 +1949,13 @@ const formatTime = (time) => {
   return `${h % 12 || 12}:${m} ${h >= 12 ? 'PM' : 'AM'}`;
 };
 
+
+const computedStartDate = computed(() => {
+  return form.value.start_date ? formatDate(form.value.start_date) : '';
+});
+const computedEndDate = computed(() => {
+  return form.value.end_date ? formatDate(form.value.end_date) : '';
+});
 
 const aDBudget = computed(() => {
   if (!existingReport.value?.activity_design || !existingReport.value.activity_design.budget_items || existingReport.value.activity_design.budget_items.length === 0) return null;
