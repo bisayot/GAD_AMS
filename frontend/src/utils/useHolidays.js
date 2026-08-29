@@ -14,11 +14,37 @@ export function useHolidays() {
 
     isFetching.value = true;
     try {
-      const res = await api.get(`/holidays?year=${year}`);
-      if (res.data && res.data.status === 'success') {
-        holidays.value = res.data.data; // Array of holiday objects
-        lastFetchedYear.value = year;
+      let dbHolidays = [];
+      try {
+        const res = await api.get(`/holidays?year=${year}`);
+        if (res.data && res.data.status === 'success') {
+          dbHolidays = res.data.data;
+        }
+      } catch (err) {
+        console.warn('Failed to fetch holidays from backend API', err);
       }
+
+      let apiHolidays = [];
+      try {
+        const nagerRes = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/PH`);
+        if (nagerRes.ok) {
+          const nagerData = await nagerRes.json();
+          apiHolidays = nagerData.map(h => ({ date: h.date, name: h.localName || h.name }));
+        }
+      } catch (err) {
+        console.warn('Failed to fetch holidays from date.nager.at', err);
+      }
+
+      const merged = [...dbHolidays];
+      const existingDates = new Set(merged.map(h => h.date));
+      for (const ah of apiHolidays) {
+        if (!existingDates.has(ah.date)) {
+          merged.push(ah);
+        }
+      }
+
+      holidays.value = merged;
+      lastFetchedYear.value = year;
     } catch (error) {
       console.error('Failed to fetch holidays', error);
     } finally {

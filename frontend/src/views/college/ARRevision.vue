@@ -850,7 +850,7 @@
 
 <script setup>
 import { useHolidays } from '../../utils/useHolidays';
-const { isDisabledDate } = useHolidays();
+const { isDisabledDate, fetchHolidays } = useHolidays();
 import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
@@ -1040,6 +1040,7 @@ const fetchGenderIssues = async (mandateIds) => {
       ids = [ids];
     }
     try {
+      await fetchHolidays();
       const idString = ids.join(',');
       let url = `get-gender-issues?mandates=${idString}`;
       if (form.value && form.value.activity_classification_id) {
@@ -1146,7 +1147,7 @@ const loadingData = ref(false);
 
 const minDate = computed(() => {
   if (existingReport.value?.activity_design?.start_date) {
-    return existingReport.value.activity_design.start_date;
+    return existingReport.value.activity_design.start_date.substring(0, 10);
   }
   const currentYear = new Date().getFullYear();
   return `${currentYear}-01-01`;
@@ -2015,7 +2016,8 @@ const fetchReportDetails = async () => {
         const b = r.budget_items[0];
         let ob = [];
         if (b.materials_others_breakdown) {
-          try { ob = JSON.parse(b.materials_others_breakdown); } catch(e){}
+          try {
+      await fetchHolidays(); ob = JSON.parse(b.materials_others_breakdown); } catch(e){}
         }
         
         // Fall back to meals_and_snacks if meals_total/snacks_total not stored separately (older records)
@@ -2084,6 +2086,7 @@ const fetchReportDetails = async () => {
         let parsedSchedules = r.schedules.map(s => {
           let meals = { breakfast: false, am_snack: false, lunch: false, pm_snack: false, dinner: false };
           try {
+      await fetchHolidays();
             if (typeof s.meals_and_snacks === 'string') {
                meals = JSON.parse(s.meals_and_snacks);
             } else if (typeof s.meals_and_snacks === 'object' && s.meals_and_snacks !== null) {

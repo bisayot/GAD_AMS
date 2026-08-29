@@ -845,7 +845,7 @@
 
 <script setup>
 import { useHolidays } from '../../utils/useHolidays';
-const { isDisabledDate } = useHolidays();
+const { isDisabledDate, fetchHolidays } = useHolidays();
 import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
@@ -1013,6 +1013,7 @@ const handleMandateChange = async () => {
 
 const fetchData = async () => {
   try {
+    await fetchHolidays();
     const [actRes, formRes] = await Promise.all([
       api.get('get-activity-classifications'),
       api.get('get-form-types')
@@ -1149,7 +1150,7 @@ const loadingData = ref(false);
 
 const minDate = computed(() => {
   if (existingReport.value?.activity_design?.start_date) {
-    return existingReport.value.activity_design.start_date;
+    return existingReport.value.activity_design.start_date.substring(0, 10);
   }
   const currentYear = new Date().getFullYear();
   return `${currentYear}-01-01`;
@@ -1176,20 +1177,21 @@ const isValidTime = (timeStr) => {
 };
 
 watch(() => form.value.start_date, (newDate) => {
+  if (loadingData.value) return;
   if (newDate) {
-    if (newDate < minDate.value) {
+    if (newDate.substring(0, 10) < minDate.value) {
       document.activeElement?.blur();
       Swal.fire({ icon: 'warning', title: 'Invalid Date', text: 'Start date cannot be earlier than the approved Activity Design start date.', confirmButtonColor: '#b979cc' });
       form.value.start_date = '';
       return;
     }
-    if (!isCurrentYear(newDate)) {
+    if (!isCurrentYear(newDate.substring(0, 10))) {
       document.activeElement?.blur();
       Swal.fire({ icon: 'warning', title: 'Invalid Date', text: 'Activity must be within the current year.', confirmButtonColor: '#b979cc' });
       form.value.start_date = '';
       return;
     }
-    if (form.value.end_date && form.value.end_date < newDate) {
+    if (form.value.end_date && form.value.end_date.substring(0, 10) < newDate.substring(0, 10)) {
         document.activeElement?.blur();
         Swal.fire({ icon: 'warning', title: 'Invalid Duration', text: 'End date cannot be before start date.', confirmButtonColor: '#b979cc' });
         form.value.start_date = '';
@@ -1198,20 +1200,21 @@ watch(() => form.value.start_date, (newDate) => {
 });
 
 watch(() => form.value.end_date, (newDate) => {
+  if (loadingData.value) return;
   if (newDate) {
-    if (newDate < minDate.value) {
+    if (newDate.substring(0, 10) < minDate.value) {
       document.activeElement?.blur();
       Swal.fire({ icon: 'warning', title: 'Invalid Date', text: 'End date cannot be earlier than the approved Activity Design start date.', confirmButtonColor: '#b979cc' });
       form.value.end_date = '';
       return;
     }
-    if (!isCurrentYear(newDate)) {
+    if (!isCurrentYear(newDate.substring(0, 10))) {
       document.activeElement?.blur();
       Swal.fire({ icon: 'warning', title: 'Invalid Date', text: 'Activity must be within the current year.', confirmButtonColor: '#b979cc' });
       form.value.end_date = '';
       return;
     }
-    if (form.value.start_date && newDate < form.value.start_date) {
+    if (form.value.start_date && newDate.substring(0, 10) < form.value.start_date.substring(0, 10)) {
         document.activeElement?.blur();
         Swal.fire({ icon: 'warning', title: 'Invalid Duration', text: 'End date cannot be before start date.', confirmButtonColor: '#b979cc' });
         form.value.end_date = '';
@@ -2209,13 +2212,13 @@ const fetchReportDetails = async () => {
         }
       }
 
-      loadingData.value = false; // Re-enable watchers
+      setTimeout(() => { loadingData.value = false; }, 100); // Re-enable watchers
     }
   } catch (err) {
     console.error(err);
   } finally {
     loading.value = false;
-    loadingData.value = false;
+    setTimeout(() => { loadingData.value = false; }, 100);
   }
 };
 
@@ -2233,7 +2236,7 @@ const fetchBaselineSettings = async () => {
 
 onMounted(async () => {
     fetchBaselineSettings();
-  if (!user.value.id || !['twg', 'non-twg'].includes(user.value.role)) {
+  if (!user.value.id || user.value.role !== 'gad_staff') {
     router.push('/login');
   } else {
     await fetchData();

@@ -1791,7 +1791,7 @@ const minDate = computed(() => {
   if (form.value.control_number) {
     const selected = approvedControls.value.find(c => c.control_number === form.value.control_number);
     if (selected && selected.start_date) {
-      return selected.start_date;
+      return selected.start_date.substring(0, 10);
     }
   }
   const currentYear = new Date().getFullYear();
