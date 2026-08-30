@@ -969,10 +969,13 @@ const formatStatus = (status) => {
 const isNonConsecutive = (schedules) => {
   if (!schedules || schedules.length <= 1) return false;
   for (let i = 0; i < schedules.length - 1; i++) {
-    const d1 = new Date(schedules[i].schedule_date);
-    const d2 = new Date(schedules[i + 1].schedule_date);
+    const d1 = new Date(schedules[i].schedule_date || schedules[i].date);
+    const d2 = new Date(schedules[i + 1].schedule_date || schedules[i + 1].date);
     const diffDays = Math.round(Math.abs((d2 - d1) / (1000 * 60 * 60 * 24)));
-    if (diffDays !== 1) return true;
+    if (diffDays !== 1) {
+      const wdDiff = getWorkingDaysDiff(d1, d2);
+      if (wdDiff !== 1) return true;
+    }
     if (schedules[i].start_time !== schedules[i+1].start_time || schedules[i].end_time !== schedules[i+1].end_time) return true;
   }
   return false;
@@ -1102,7 +1105,7 @@ const pdfFileUrl = ref('');
 
 const getPdfjsUrl = () => {
   if (!design.value || !design.value.attachment) return '#';
-  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api/', '') : 'https://gad-ams-2-1.onrender.com');
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : 'https://gad-ams-2-1.onrender.com');
   const fileUrl = `${base}/api/files/drafts/${design.value.attachment}`;
   const userRole = user.value?.role || user.value?.user_role || '';
   return `/pdfjs/web/viewer.html?file=${encodeURIComponent(fileUrl)}&role=${encodeURIComponent(userRole)}`;
@@ -1110,7 +1113,7 @@ const getPdfjsUrl = () => {
 
 const previewFile = (fileName) => {
   if (!fileName) return;
-  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api/', '') : 'https://gad-ams-2-1.onrender.com');
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : 'https://gad-ams-2-1.onrender.com');
   pdfFileUrl.value = `${base}/api/files/drafts/${fileName}`;
   isPdfModalOpen.value = true;
 };

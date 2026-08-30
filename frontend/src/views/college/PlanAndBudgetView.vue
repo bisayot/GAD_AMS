@@ -1070,7 +1070,7 @@ export default {
                if (parsed.length > 0) fileName = parsed[0];
            } catch(e) {}
         }
-        pdfFileUrl.value = `http://localhost:8080/api/files/archived/${fileName}`;
+        pdfFileUrl.value = `${import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '')}/api/files/archived/${fileName}`;
         isPdfModalOpen.value = true;
       }
     };

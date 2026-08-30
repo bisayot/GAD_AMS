@@ -1822,7 +1822,7 @@ const getFileURL = (file) => {
 
 const getExistingFileURL = (filename) => {
   if (!filename) return '';
-  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api/', '') : 'https://gad-ams-2-1.onrender.com');
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : 'https://gad-ams-2-1.onrender.com');
   // Ensuring no double slashes before api
   const formattedBase = base.endsWith('/') ? base.slice(0, -1) : base;
   return `${formattedBase}/api/files/drafts/${filename}`;
@@ -1830,7 +1830,7 @@ const getExistingFileURL = (filename) => {
 
 const previewFile = (filename, folder) => {
   if (!filename) return;
-  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api/', '') : 'https://gad-ams-2-1.onrender.com');
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : 'https://gad-ams-2-1.onrender.com');
   pdfFileUrl.value = `${base}/api/files/${folder}/${filename}`;
   isPdfModalOpen.value = true;
 };
@@ -1843,7 +1843,7 @@ const previewNewFile = (file) => {
 
 const downloadFile = (filename, folder, prefix) => {
   if (!filename) return;
-  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api/', '') : 'https://gad-ams-2-1.onrender.com');
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : 'https://gad-ams-2-1.onrender.com');
   const url = `${base}/api/files/${folder}/${filename}`;
   window.open(url, '_blank');
 };

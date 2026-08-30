@@ -453,11 +453,13 @@ import { useRoute, useRouter } from 'vue-router';
 import api from '../../api';
 import Swal from 'sweetalert2';
 import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
+import { useHolidays } from '../../utils/useHolidays';
 
 const route = useRoute();
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 const design = ref({});
+const { getWorkingDaysDiff } = useHolidays();
 const isSchedulesExpanded = ref(false);
 const loading = ref(true);
 const error = ref(null);
@@ -596,10 +598,13 @@ const formatStatus = (status) => {
 const isNonConsecutive = (schedules) => {
   if (!schedules || schedules.length <= 1) return false;
   for (let i = 0; i < schedules.length - 1; i++) {
-    const d1 = new Date(schedules[i].schedule_date);
-    const d2 = new Date(schedules[i + 1].schedule_date);
+    const d1 = new Date(schedules[i].schedule_date || schedules[i].date);
+    const d2 = new Date(schedules[i + 1].schedule_date || schedules[i + 1].date);
     const diffDays = Math.round(Math.abs((d2 - d1) / (1000 * 60 * 60 * 24)));
-    if (diffDays !== 1) return true;
+    if (diffDays !== 1) {
+      const wdDiff = getWorkingDaysDiff(d1, d2);
+      if (wdDiff !== 1) return true;
+    }
     if (schedules[i].start_time !== schedules[i+1].start_time || schedules[i].end_time !== schedules[i+1].end_time) return true;
   }
   return false;
@@ -635,7 +640,7 @@ const pdfFileUrl = ref('');
 
 const previewFile = (fileName) => {
   if (!fileName) return;
-  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace('/api/', '') : 'https://gad-ams-2-1.onrender.com');
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : 'https://gad-ams-2-1.onrender.com');
   const folder = Number(design.value.is_archived) === 1 ? 'archived' : 'drafts';
   pdfFileUrl.value = `${base}/api/files/${folder}/${fileName}`;
   isPdfModalOpen.value = true;
