@@ -63,9 +63,9 @@ class DataRetentionService
                 $db->query("
                     UPDATE messages 
                     SET deleted_by_sender_at = NOW(), deleted_by_recipient_at = NOW() 
-                    WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)
+                    WHERE created_at < DATE_SUB(NOW(), INTERVAL $messagesTtlDays DAY)
                     AND (deleted_by_sender_at IS NULL OR deleted_by_recipient_at IS NULL)
-                ", [$messagesTtlDays]);
+                ");
                 $totalDeleted['messages_trashed'] = $db->affectedRows();
             }
 
@@ -73,8 +73,8 @@ class DataRetentionService
             if ($trashTtlDays > 0) {
                 $db->query("
                     DELETE FROM messages 
-                    WHERE (deleted_by_sender_at IS NOT NULL AND deleted_by_sender_at < DATE_SUB(NOW(), INTERVAL ? DAY))
-                       OR (deleted_by_recipient_at IS NOT NULL AND deleted_by_recipient_at < DATE_SUB(NOW(), INTERVAL ? DAY))
+                    WHERE (deleted_by_sender_at IS NOT NULL AND deleted_by_sender_at < DATE_SUB(NOW(), INTERVAL $trashTtlDays DAY))
+                       OR (deleted_by_recipient_at IS NOT NULL AND deleted_by_recipient_at < DATE_SUB(NOW(), INTERVAL $trashTtlDays DAY))
                 ", [$trashTtlDays, $trashTtlDays]);
                 $totalDeleted['messages_deleted'] = $db->affectedRows();
             }
@@ -103,10 +103,11 @@ class DataRetentionService
             // D. Permanently delete Soft-Deleted documents (Trashbin)
             if ($trashTtlDays > 0) {
                 // Activity Designs
-                $oldADs = $db->query("
+                $query = $db->query("
                     SELECT activity_title FROM activity_design 
-                    WHERE deleted_at IS NOT NULL AND deleted_at < DATE_SUB(NOW(), INTERVAL ? DAY)
-                ", [$trashTtlDays])->getResultArray();
+                    WHERE deleted_at IS NOT NULL AND deleted_at < DATE_SUB(NOW(), INTERVAL $trashTtlDays DAY)
+                ");
+                $oldADs = $query ? $query->getResultArray() : [];
                 
                 foreach ($oldADs as $ad) {
                     $detailedLogs[] = "Automatically permanently deleted Activity Design: " . ($ad['activity_title'] ?? 'Untitled');
@@ -114,15 +115,16 @@ class DataRetentionService
 
                 $db->query("
                     DELETE FROM activity_design 
-                    WHERE deleted_at IS NOT NULL AND deleted_at < DATE_SUB(NOW(), INTERVAL ? DAY)
-                ", [$trashTtlDays]);
+                    WHERE deleted_at IS NOT NULL AND deleted_at < DATE_SUB(NOW(), INTERVAL $trashTtlDays DAY)
+                ");
                 $totalDeleted['soft_deleted_docs_purged'] += $db->affectedRows();
                 
                 // Accomplishment Reports
-                $oldARs = $db->query("
+                $query = $db->query("
                     SELECT activity_title FROM accomplishment_report 
-                    WHERE deleted_at IS NOT NULL AND deleted_at < DATE_SUB(NOW(), INTERVAL ? DAY)
-                ", [$trashTtlDays])->getResultArray();
+                    WHERE deleted_at IS NOT NULL AND deleted_at < DATE_SUB(NOW(), INTERVAL $trashTtlDays DAY)
+                ");
+                $oldARs = $query ? $query->getResultArray() : [];
                 
                 foreach ($oldARs as $ar) {
                     $detailedLogs[] = "Automatically permanently deleted Accomplishment Report: " . ($ar['activity_title'] ?? 'Untitled');
@@ -130,18 +132,19 @@ class DataRetentionService
 
                 $db->query("
                     DELETE FROM accomplishment_report 
-                    WHERE deleted_at IS NOT NULL AND deleted_at < DATE_SUB(NOW(), INTERVAL ? DAY)
-                ", [$trashTtlDays]);
+                    WHERE deleted_at IS NOT NULL AND deleted_at < DATE_SUB(NOW(), INTERVAL $trashTtlDays DAY)
+                ");
                 $totalDeleted['soft_deleted_docs_purged'] += $db->affectedRows();
             }
 
             // E. Delete old Archived Documents
             if ($archivesTtlDays > 0) {
                 // Activity Designs marked as archived
-                $oldArchivedADs = $db->query("
+                $query = $db->query("
                     SELECT activity_title FROM activity_design 
-                    WHERE is_archived = 1 AND archived_at < DATE_SUB(NOW(), INTERVAL ? DAY)
-                ", [$archivesTtlDays])->getResultArray();
+                    WHERE is_archived = 1 AND archived_at < DATE_SUB(NOW(), INTERVAL $archivesTtlDays DAY)
+                ");
+                $oldArchivedADs = $query ? $query->getResultArray() : [];
                 
                 foreach ($oldArchivedADs as $ad) {
                     $detailedLogs[] = "Automatically deleted Archived Activity Design: " . ($ad['activity_title'] ?? 'Untitled');
@@ -149,17 +152,18 @@ class DataRetentionService
 
                 $db->query("
                     DELETE FROM activity_design 
-                    WHERE is_archived = 1 AND archived_at < DATE_SUB(NOW(), INTERVAL ? DAY)
-                ", [$archivesTtlDays]);
+                    WHERE is_archived = 1 AND archived_at < DATE_SUB(NOW(), INTERVAL $archivesTtlDays DAY)
+                ");
                 $totalDeleted['archived_docs_deleted'] += $db->affectedRows();
                 
 
 
                 // Archived Annual Reports table
-                $oldAnnual = $db->query("
+                $query = $db->query("
                     SELECT fiscal_year FROM archived_annual_reports 
-                    WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)
-                ", [$archivesTtlDays])->getResultArray();
+                    WHERE created_at < DATE_SUB(NOW(), INTERVAL $archivesTtlDays DAY)
+                ");
+                $oldAnnual = $query ? $query->getResultArray() : [];
                 
                 foreach ($oldAnnual as $ann) {
                     $detailedLogs[] = "Automatically deleted Archived Annual Report: FY " . ($ann['fiscal_year'] ?? 'Unknown');
@@ -167,21 +171,22 @@ class DataRetentionService
 
                 $db->query("
                     DELETE FROM archived_annual_reports 
-                    WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)
-                ", [$archivesTtlDays]);
+                    WHERE created_at < DATE_SUB(NOW(), INTERVAL $archivesTtlDays DAY)
+                ");
                 $totalDeleted['archived_docs_deleted'] += $db->affectedRows();
             }
 
             // Delete old Drafts (Pending, Revision, Disapproved)
             if ($draftsTtlDays > 0) {
                 // Activity Designs
-                $oldDraftADs = $db->query("
+                $query = $db->query("
                     SELECT activity_title FROM activity_design 
                     WHERE status IN ('Pending', 'Revision', 'Disapproved') 
                     AND is_archived = 0 
                     AND deleted_at IS NULL
-                    AND COALESCE(updated_at, created_at) < DATE_SUB(NOW(), INTERVAL ? DAY)
-                ", [$draftsTtlDays])->getResultArray();
+                    AND COALESCE(updated_at, created_at) < DATE_SUB(NOW(), INTERVAL $draftsTtlDays DAY)
+                ");
+                $oldDraftADs = $query ? $query->getResultArray() : [];
                 
                 foreach ($oldDraftADs as $ad) {
                     $detailedLogs[] = "Automatically deleted Draft Activity Design: " . ($ad['activity_title'] ?? 'Untitled');
@@ -192,18 +197,19 @@ class DataRetentionService
                     WHERE status IN ('Pending', 'Revision', 'Disapproved') 
                     AND is_archived = 0 
                     AND deleted_at IS NULL
-                    AND COALESCE(updated_at, created_at) < DATE_SUB(NOW(), INTERVAL ? DAY)
-                ", [$draftsTtlDays]);
+                    AND COALESCE(updated_at, created_at) < DATE_SUB(NOW(), INTERVAL $draftsTtlDays DAY)
+                ");
                 $totalDeleted['draft_docs_deleted'] += $db->affectedRows();
                 
                 // Accomplishment Reports
-                $oldDraftARs = $db->query("
+                $query = $db->query("
                     SELECT activity_title FROM accomplishment_report 
                     WHERE status IN ('Pending', 'Revision', 'Disapproved') 
                     AND is_archived = 0 
                     AND deleted_at IS NULL
-                    AND COALESCE(updated_at, created_at) < DATE_SUB(NOW(), INTERVAL ? DAY)
-                ", [$draftsTtlDays])->getResultArray();
+                    AND COALESCE(updated_at, created_at) < DATE_SUB(NOW(), INTERVAL $draftsTtlDays DAY)
+                ");
+                $oldDraftARs = $query ? $query->getResultArray() : [];
                 
                 foreach ($oldDraftARs as $ar) {
                     $detailedLogs[] = "Automatically deleted Draft Accomplishment Report: " . ($ar['activity_title'] ?? 'Untitled');
@@ -214,8 +220,8 @@ class DataRetentionService
                     WHERE status IN ('Pending', 'Revision', 'Disapproved') 
                     AND is_archived = 0 
                     AND deleted_at IS NULL
-                    AND COALESCE(updated_at, created_at) < DATE_SUB(NOW(), INTERVAL ? DAY)
-                ", [$draftsTtlDays]);
+                    AND COALESCE(updated_at, created_at) < DATE_SUB(NOW(), INTERVAL $draftsTtlDays DAY)
+                ");
                 $totalDeleted['draft_docs_deleted'] += $db->affectedRows();
             }
 
@@ -223,8 +229,8 @@ class DataRetentionService
             if ($notificationsTtlDays > 0) {
                 $db->query("
                     DELETE FROM notifications 
-                    WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)
-                ", [$notificationsTtlDays]);
+                    WHERE created_at < DATE_SUB(NOW(), INTERVAL $notificationsTtlDays DAY)
+                ");
                 $totalDeleted['notifications_deleted'] = $db->affectedRows();
             }
 

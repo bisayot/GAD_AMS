@@ -115,6 +115,7 @@ class ActivityDesignController extends BaseController
                 "is_inside_bsu"              => $isInsideBsu,
                 "target_participants"        => $this->request->getPost("target_participants"),
                 "proposed_budget"            => $this->request->getPost("proposed_budget"),
+                "schedule_type"              => $this->request->getPost("schedule_type"),
                 "user_id"                    => $this->request->getPost("user_id"),
                 "attachment"                 => $fileName,
                 "status"                     => "Pending",

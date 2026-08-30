@@ -1585,6 +1585,7 @@ const submitActivityDesign = async () => {
 
     formData.append('target_participants', form.value.target_participants);
     formData.append('schedules', JSON.stringify(schedules.value));
+    formData.append('schedule_type', scheduleType.value);
     formData.append('proposed_budget', form.value.proposed_budget);
     
     const transItem = form.value.budget_items.find(i => i.name === 'Transportation');

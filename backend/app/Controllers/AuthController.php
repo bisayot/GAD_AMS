@@ -67,7 +67,7 @@ class AuthController extends ResourceController
         if (in_array(strtolower($user['role']), ['admin', 'gad_staff', 'superadmin'])) {
             try {
                 \App\Libraries\DataRetentionService::runCleanup();
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 log_message('error', 'Auto-cleanup failed during login: ' . $e->getMessage());
             }
         }
