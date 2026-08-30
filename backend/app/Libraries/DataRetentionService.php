@@ -39,6 +39,7 @@ class DataRetentionService
         $logsTtlDays = isset($settings['activity_logs_ttl_days']) ? (int)$settings['activity_logs_ttl_days'] : 365;
         $archivesTtlDays = isset($settings['archived_documents_ttl_days']) ? (int)$settings['archived_documents_ttl_days'] : 1825;
         $notificationsTtlDays = isset($settings['notifications_ttl_days']) ? (int)$settings['notifications_ttl_days'] : 30;
+        $draftsTtlDays = isset($settings['drafts_ttl_days']) ? (int)$settings['drafts_ttl_days'] : 365;
 
         $db = \Config\Database::connect();
         
@@ -48,7 +49,8 @@ class DataRetentionService
             'logs_deleted' => 0,
             'archived_docs_deleted' => 0,
             'soft_deleted_docs_purged' => 0,
-            'notifications_deleted' => 0
+            'notifications_deleted' => 0,
+            'draft_docs_deleted' => 0
         ];
         
         $detailedLogs = [];
@@ -151,21 +153,7 @@ class DataRetentionService
                 ", [$archivesTtlDays]);
                 $totalDeleted['archived_docs_deleted'] += $db->affectedRows();
                 
-                // Accomplishment Reports marked as archived
-                $oldArchivedARs = $db->query("
-                    SELECT activity_title FROM accomplishment_report 
-                    WHERE is_archived = 1 AND archived_at < DATE_SUB(NOW(), INTERVAL ? DAY)
-                ", [$archivesTtlDays])->getResultArray();
-                
-                foreach ($oldArchivedARs as $ar) {
-                    $detailedLogs[] = "Automatically deleted Archived Accomplishment Report: " . ($ar['activity_title'] ?? 'Untitled');
-                }
 
-                $db->query("
-                    DELETE FROM accomplishment_report 
-                    WHERE is_archived = 1 AND archived_at < DATE_SUB(NOW(), INTERVAL ? DAY)
-                ", [$archivesTtlDays]);
-                $totalDeleted['archived_docs_deleted'] += $db->affectedRows();
 
                 // Archived Annual Reports table
                 $oldAnnual = $db->query("
@@ -182,6 +170,53 @@ class DataRetentionService
                     WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)
                 ", [$archivesTtlDays]);
                 $totalDeleted['archived_docs_deleted'] += $db->affectedRows();
+            }
+
+            // Delete old Drafts (Pending, Revision, Disapproved)
+            if ($draftsTtlDays > 0) {
+                // Activity Designs
+                $oldDraftADs = $db->query("
+                    SELECT activity_title FROM activity_design 
+                    WHERE status IN ('Pending', 'Revision', 'Disapproved') 
+                    AND is_archived = 0 
+                    AND deleted_at IS NULL
+                    AND COALESCE(updated_at, created_at) < DATE_SUB(NOW(), INTERVAL ? DAY)
+                ", [$draftsTtlDays])->getResultArray();
+                
+                foreach ($oldDraftADs as $ad) {
+                    $detailedLogs[] = "Automatically deleted Draft Activity Design: " . ($ad['activity_title'] ?? 'Untitled');
+                }
+
+                $db->query("
+                    DELETE FROM activity_design 
+                    WHERE status IN ('Pending', 'Revision', 'Disapproved') 
+                    AND is_archived = 0 
+                    AND deleted_at IS NULL
+                    AND COALESCE(updated_at, created_at) < DATE_SUB(NOW(), INTERVAL ? DAY)
+                ", [$draftsTtlDays]);
+                $totalDeleted['draft_docs_deleted'] += $db->affectedRows();
+                
+                // Accomplishment Reports
+                $oldDraftARs = $db->query("
+                    SELECT activity_title FROM accomplishment_report 
+                    WHERE status IN ('Pending', 'Revision', 'Disapproved') 
+                    AND is_archived = 0 
+                    AND deleted_at IS NULL
+                    AND COALESCE(updated_at, created_at) < DATE_SUB(NOW(), INTERVAL ? DAY)
+                ", [$draftsTtlDays])->getResultArray();
+                
+                foreach ($oldDraftARs as $ar) {
+                    $detailedLogs[] = "Automatically deleted Draft Accomplishment Report: " . ($ar['activity_title'] ?? 'Untitled');
+                }
+
+                $db->query("
+                    DELETE FROM accomplishment_report 
+                    WHERE status IN ('Pending', 'Revision', 'Disapproved') 
+                    AND is_archived = 0 
+                    AND deleted_at IS NULL
+                    AND COALESCE(updated_at, created_at) < DATE_SUB(NOW(), INTERVAL ? DAY)
+                ", [$draftsTtlDays]);
+                $totalDeleted['draft_docs_deleted'] += $db->affectedRows();
             }
 
             // F. Delete old Notifications
@@ -202,12 +237,13 @@ class DataRetentionService
                 // Log the action if something was actually deleted
                 if (array_sum($totalDeleted) > 0) {
                     $logMsg = sprintf(
-                        "System Cleanup: Trashed %d msgs, Purged %d msgs, %d logs, %d soft-deleted docs, %d archived docs, %d notifications.",
+                        "System Cleanup: Trashed %d msgs, Purged %d msgs, %d logs, %d soft-deleted docs, %d archived docs, %d draft docs, %d notifications.",
                         $totalDeleted['messages_trashed'],
                         $totalDeleted['messages_deleted'],
                         $totalDeleted['logs_deleted'],
                         $totalDeleted['soft_deleted_docs_purged'],
                         $totalDeleted['archived_docs_deleted'],
+                        $totalDeleted['draft_docs_deleted'],
                         $totalDeleted['notifications_deleted']
                     );
                     // Fetch first admin user to attach the log to

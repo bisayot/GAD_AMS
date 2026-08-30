@@ -134,7 +134,7 @@ const form = ref({
 const fetchHolidays = async () => {
   loading.value = true;
   try {
-    const response = await api.get(/holidays?year=);
+    const response = await api.get(`/holidays?year=${selectedYear.value}`);
     if (response.data.status === 'success') {
       holidays.value = response.data.data;
     }

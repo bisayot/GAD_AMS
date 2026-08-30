@@ -175,7 +175,19 @@
                 min="0"
                 required
               />
-              <span class="text-xs text-slate-500">Old historical records</span>
+              <span class="text-xs text-slate-500">Applies to Activity Designs (Accomplishment reports are permanent)</span>
+            </div>
+
+            <div class="input-wrapper">
+              <label class="input-label">Drafts TTL (Days)</label>
+              <input 
+                type="number" 
+                v-model.number="retentionForm.drafts_ttl_days" 
+                class="custom-input" 
+                min="0"
+                required
+              />
+              <span class="text-xs text-slate-500">Pending, revision, disapproved documents</span>
             </div>
           </div>
           
@@ -204,7 +216,7 @@ const user = ref({});
 // Check if user is admin or staff to show system settings
 const isAdminOrStaff = computed(() => {
   const role = user.value.role ? user.value.role.toLowerCase() : '';
-  return role === 'admin' || role === 'gad_staff' || role === 'superadmin';
+  return role === 'admin' || role === 'gad_staff' || role === 'superadmin' || role === 'director';
 });
 
 const nameForm = ref({ full_name: '' });
@@ -230,7 +242,8 @@ const retentionForm = ref({
   trash_ttl_days: 30,
   messages_ttl_days: 365,
   activity_logs_ttl_days: 365,
-  archived_documents_ttl_days: 1825
+  archived_documents_ttl_days: 1825,
+  drafts_ttl_days: 365
 });
 const isUpdatingRetention = ref(false);
 const retentionSuccess = ref('');
@@ -265,7 +278,8 @@ onMounted(async () => {
           trash_ttl_days: res.data.trash_ttl_days ?? 30,
           messages_ttl_days: res.data.messages_ttl_days ?? 365,
           activity_logs_ttl_days: res.data.activity_logs_ttl_days ?? 365,
-          archived_documents_ttl_days: res.data.archived_documents_ttl_days ?? 1825
+          archived_documents_ttl_days: res.data.archived_documents_ttl_days ?? 1825,
+          drafts_ttl_days: res.data.drafts_ttl_days ?? 365
         };
       }
     } catch (error) {

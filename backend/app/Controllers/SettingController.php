@@ -71,7 +71,8 @@ class SettingController extends ResourceController
             'trash_ttl_days' => 30,
             'messages_ttl_days' => 365,
             'activity_logs_ttl_days' => 365,
-            'archived_documents_ttl_days' => 1825
+            'archived_documents_ttl_days' => 1825,
+            'drafts_ttl_days' => 365
         ];
 
         if ($setting && isset($setting['value'])) {
