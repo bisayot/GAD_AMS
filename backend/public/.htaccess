@@ -1,6 +1,12 @@
 # Disable directory browsing
 Options -Indexes
 
+# ─── Fix MIME Types ────────────────────────────────────────────────
+<IfModule mod_mime.c>
+  AddType application/javascript .js .mjs
+</IfModule>
+
+
 # ----------------------------------------------------------------------
 # Rewrite engine
 # ----------------------------------------------------------------------

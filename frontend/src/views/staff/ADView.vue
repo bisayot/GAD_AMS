@@ -118,7 +118,7 @@
                           </label>
                           <div style="display: flex; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 4px; border: 1px solid rgba(185,121,204,0.3);">
                             <span :style="{ background: 'rgba(185, 121, 204, 0.2)', color: '#e9d5ff', padding: '4px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold' }">
-                              {{ design.schedules.length > 1 && design.schedules[0].start_time !== design.schedules[1].start_time ? 'Non Consecutive / Custom' : 'Consecutive Daily' }}
+                              {{ isNonConsecutive(design.schedules) ? 'Non Consecutive / Custom' : 'Consecutive Daily' }}
                             </span>
                           </div>
                       </div>
@@ -706,6 +706,18 @@ const formatStatus = (status) => {
   if (!status) return 'Unknown';
   if (status.toLowerCase() === 'revision required') return 'For Revision';
   return status.charAt(0).toUpperCase() + status.slice(1);
+};
+
+const isNonConsecutive = (schedules) => {
+  if (!schedules || schedules.length <= 1) return false;
+  for (let i = 0; i < schedules.length - 1; i++) {
+    const d1 = new Date(schedules[i].schedule_date);
+    const d2 = new Date(schedules[i + 1].schedule_date);
+    const diffDays = Math.round(Math.abs((d2 - d1) / (1000 * 60 * 60 * 24)));
+    if (diffDays !== 1) return true;
+    if (schedules[i].start_time !== schedules[i+1].start_time || schedules[i].end_time !== schedules[i+1].end_time) return true;
+  }
+  return false;
 };
 
 

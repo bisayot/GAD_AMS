@@ -103,6 +103,8 @@ class NotificationService
             <p style='font-size: 12px; color: #888;'>This is an automated message from the GAD AMS System. Please do not reply.</p>
         </div>";
 
+        /* 
+        // --- RENDER WORKAROUND (COMMENTED OUT) ---
         // Check if we are in production and have a Brevo API key. Render blocks standard SMTP ports.
         $apiKey = env('BREVO_API_KEY') ?: getenv('BREVO_API_KEY');
         $isProduction = env('CI_ENVIRONMENT') === 'production' || getenv('CI_ENVIRONMENT') === 'production';
@@ -141,18 +143,27 @@ class NotificationService
                 log_message('error', 'Brevo API Notification Error: ' . $response . ' cURL: ' . $curlError);
             }
         } else {
-            $email = \Config\Services::email();
-            $email->setTo($to);
-            $email->setSubject($title);
-            $email->setMessage($htmlMessage);
-            
-            // We catch errors silently to not break the API if email fails
-            try {
-                $email->send();
-            } catch (\Exception $e) {
-                log_message('error', 'Failed to send notification email: ' . $e->getMessage());
+        */
+
+        $email = \Config\Services::email();
+        $email->setTo($to);
+        $email->setFrom(
+            env('FROM_EMAIL') ?: getenv('FROM_EMAIL') ?: 'gadims.bsu.bsit@gmail.com',
+            'GAD AMS System'
+        );
+        $email->setSubject($title);
+        $email->setMessage($htmlMessage);
+        
+        // We catch errors silently to not break the API if email fails
+        try {
+            if (!$email->send()) {
+                log_message('error', 'Failed to send notification email: ' . $email->printDebugger(['headers']));
             }
+        } catch (\Exception $e) {
+            log_message('error', 'Exception sending notification email: ' . $e->getMessage());
         }
+
+        /* } // End Render Workaround */
     }
 
     /**

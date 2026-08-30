@@ -1,5 +1,11 @@
 Options -MultiViews
 
+# ─── Fix MIME Types ────────────────────────────────────────────────
+<IfModule mod_mime.c>
+  AddType application/javascript .js .mjs
+</IfModule>
+
+
 # ─── Enable Gzip Compression ───────────────────────────────────────
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/plain text/xml

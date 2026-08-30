@@ -18,7 +18,7 @@ class FileStorage
      */
     public static function isCloud(): bool
     {
-        return env('CI_ENVIRONMENT') === 'production' || env('USE_CLOUD_STORAGE') === true || env('USE_CLOUD_STORAGE') === 'true';
+        return env('USE_CLOUD_STORAGE') === true || env('USE_CLOUD_STORAGE') === 'true';
     }
 
     private static function getClient(): S3Client
