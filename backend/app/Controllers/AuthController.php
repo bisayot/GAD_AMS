@@ -231,6 +231,8 @@ class AuthController extends ResourceController
         </html>
         ";
 
+        /*
+        // --- RENDER WORKAROUND (COMMENTED OUT) ---
         if ($apiKey && $isProduction) {
             // Render's Free Tier firewall completely blocks native SMTP (Ports 25, 465, 587)
             // To bypass this, we use Brevo's HTTP REST API over standard Port 443 (HTTPS)
@@ -266,7 +268,8 @@ class AuthController extends ResourceController
                 return $this->fail('Unable to send reset email. HTTP Code: ' . $httpCode . ' Error: ' . $response . ' cURL: ' . $curlError);
             }
         } else {
-            // Fallback to CodeIgniter SMTP (Gmail) for Localhost
+        */
+            // Fallback to CodeIgniter SMTP
             $emailService = \Config\Services::email();
             $emailService->setTo($email);
             $emailService->setSubject('Password Reset Request');
@@ -282,7 +285,7 @@ class AuthController extends ResourceController
                 log_message('error', 'Local SMTP Error: ' . $e->getMessage());
                 return $this->fail('Unable to send reset email. Local SMTP exception.');
             }
-        }
+        // }
     }
 
     public function resetPassword()
