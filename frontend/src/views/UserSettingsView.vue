@@ -139,7 +139,7 @@
                 min="0"
                 required
               />
-              <span class="text-xs text-slate-500">Soft-deleted documents</span>
+              <span class="text-xs text-slate-500">All data in trashbin</span>
             </div>
             
             <div class="input-wrapper">

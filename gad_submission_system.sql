@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.2
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1:3306
--- Generation Time: Aug 30, 2026 at 10:45 AM
--- Server version: 11.8.8-MariaDB-log
--- PHP Version: 7.2.34
+-- Host: 127.0.0.1
+-- Generation Time: Aug 31, 2026 at 02:40 AM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `u366424097_gadams`
+-- Database: `gad_submission_system`
 --
 
 -- --------------------------------------------------------
@@ -205,6 +205,14 @@ CREATE TABLE `activity_logs` (
   `description` text DEFAULT NULL,
   `created_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `activity_logs`
+--
+
+INSERT INTO `activity_logs` (`id`, `user_id`, `action`, `description`, `created_at`) VALUES
+(1, 47, 'Login', 'GAD Staff logged in', '2026-08-30 13:15:25'),
+(2, 47, 'Login', 'GAD Staff logged in', '2026-08-31 00:14:11');
 
 -- --------------------------------------------------------
 
@@ -718,7 +726,26 @@ INSERT INTO `migrations` (`id`, `version`, `class`, `group`, `namespace`, `time`
 (29, '2026-08-26-021121', 'App\\Database\\Migrations\\CreateActivitySchedulesTable', 'default', 'App', 1787710415, 27),
 (30, '2026-08-26-042227', 'App\\Database\\Migrations\\AddMealsToActivitySchedules', 'default', 'App', 1787718172, 28),
 (32, '2026-08-27-070800', 'App\\Database\\Migrations\\AddScheduleTypeToAccomplishmentReport', 'default', 'App', 1787814897, 29),
-(33, '2026-08-27-070859', 'App\\Database\\Migrations\\CreateAccomplishmentSchedulesTable', 'default', 'App', 1787814897, 29);
+(33, '2026-08-27-070859', 'App\\Database\\Migrations\\CreateAccomplishmentSchedulesTable', 'default', 'App', 1787814897, 29),
+(34, '2026-08-30-210000', 'App\\Database\\Migrations\\CreateNewsIecTable', 'default', 'App', 1788095560, 30);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `news_iec`
+--
+
+CREATE TABLE `news_iec` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` text DEFAULT NULL,
+  `image_path` text DEFAULT NULL,
+  `tags` varchar(255) DEFAULT NULL,
+  `category` enum('News','IEC') NOT NULL DEFAULT 'News',
+  `published_by` int(11) UNSIGNED NOT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -931,7 +958,7 @@ INSERT INTO `users` (`id`, `username`, `email`, `email_verified_at`, `password`,
 (44, 'Open University', 'ou@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'twg', NULL, NULL, 44, NULL, 'OU', NULL, NULL, '2026-05-25 11:58:10', '2026-07-06 14:06:16', NULL, '', NULL, '', 'TWG'),
 (45, 'College of Education BSU Bokod Campus', 'bokod.ce@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'twg', NULL, NULL, 45, NULL, 'Bokod-CE', NULL, NULL, '2026-05-25 11:58:10', '2026-07-06 14:06:16', NULL, '', NULL, '', 'TWG'),
 (46, 'College of Forestry', 'cf@bsu.edu.ph', NULL, '$2y$10$tTZl3CqrG5J/qcGZS5Z/8uMPrk0kJdcGCQb/qnI.tOWHlpdscXa7m', NULL, NULL, 'twg', NULL, NULL, 46, NULL, 'CF', NULL, NULL, '2026-05-25 11:58:10', '2026-07-06 14:06:16', NULL, '', NULL, '', 'TWG'),
-(47, 'gad.staff', 'gad.staff@bsu.edu.ph', NULL, '$2y$12$fbD/jvk.znEQnBmKq4.ebOojmijHJO/zU7.P7Tzo.zV3FgvP8PzNe', NULL, NULL, 'gad_staff', 'GAD Staff', NULL, 1, NULL, 'GAD-STAFF', NULL, NULL, '2026-03-26 15:53:56', '2026-08-30 09:33:00', '2026-08-30 09:33:00', 'GAD', 'Staff', 'User', 'Staff'),
+(47, 'gad.staff', 'gad.staff@bsu.edu.ph', NULL, '$2y$12$fbD/jvk.znEQnBmKq4.ebOojmijHJO/zU7.P7Tzo.zV3FgvP8PzNe', NULL, NULL, 'gad_staff', 'GAD Staff', NULL, 1, NULL, 'GAD-STAFF', NULL, NULL, '2026-03-26 15:53:56', '2026-08-31 00:14:11', '2026-08-31 00:14:11', 'GAD', 'Staff', 'User', 'Staff'),
 (51, 'marksantos', 'marksantos@gmail.com', NULL, '$2y$10$vEdSBaP5YNzsdUal1Ajwhuk/4moO5JVDu.I6VpCEG3N85F3KEimXe', NULL, NULL, 'non-twg', 'Mark Santos', NULL, 32, NULL, NULL, NULL, '2026-08-06 01:58:30', '2026-06-17 12:57:12', '2026-08-06 09:58:30', '2026-06-30 01:05:39', 'Mark', '', 'Santos', 'Non-TWG'),
 (52, 'bisayotduligas', 'bisayotduligas@gmail.com', NULL, '$2y$10$JpRWDi5O/IQLqslAOTtZy.kr77UwS.Dm2vzto7EgK4zJckMIjlcV2', NULL, NULL, 'non-twg', 'Joshua Duligas', NULL, 32, NULL, NULL, NULL, NULL, '2026-06-25 02:46:48', '2026-08-17 09:07:55', '2026-08-17 09:07:55', '', NULL, '', 'Non-TWG');
 
@@ -1140,6 +1167,12 @@ ALTER TABLE `migrations`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `news_iec`
+--
+ALTER TABLE `news_iec`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `notifications`
 --
 ALTER TABLE `notifications`
@@ -1229,7 +1262,7 @@ ALTER TABLE `activity_design_mandates`
 -- AUTO_INCREMENT for table `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `activity_schedules`
@@ -1313,7 +1346,13 @@ ALTER TABLE `messages`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+
+--
+-- AUTO_INCREMENT for table `news_iec`
+--
+ALTER TABLE `news_iec`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `notifications`

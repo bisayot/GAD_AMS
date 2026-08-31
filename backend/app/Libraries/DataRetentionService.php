@@ -35,11 +35,11 @@ class DataRetentionService
             : [];
             
         $trashTtlDays = isset($settings['trash_ttl_days']) ? (int)$settings['trash_ttl_days'] : 30;
-        $messagesTtlDays = isset($settings['messages_ttl_days']) ? (int)$settings['messages_ttl_days'] : 365;
-        $logsTtlDays = isset($settings['activity_logs_ttl_days']) ? (int)$settings['activity_logs_ttl_days'] : 365;
-        $archivesTtlDays = isset($settings['archived_documents_ttl_days']) ? (int)$settings['archived_documents_ttl_days'] : 1825;
+        $messagesTtlDays = isset($settings['messages_ttl_days']) ? (int)$settings['messages_ttl_days'] : 0;
+        $logsTtlDays = isset($settings['activity_logs_ttl_days']) ? (int)$settings['activity_logs_ttl_days'] : 0;
+        $archivesTtlDays = isset($settings['archived_documents_ttl_days']) ? (int)$settings['archived_documents_ttl_days'] : 0;
         $notificationsTtlDays = isset($settings['notifications_ttl_days']) ? (int)$settings['notifications_ttl_days'] : 30;
-        $draftsTtlDays = isset($settings['drafts_ttl_days']) ? (int)$settings['drafts_ttl_days'] : 365;
+        $draftsTtlDays = isset($settings['drafts_ttl_days']) ? (int)$settings['drafts_ttl_days'] : 0;
 
         $db = \Config\Database::connect();
         
@@ -104,13 +104,20 @@ class DataRetentionService
             if ($trashTtlDays > 0) {
                 // Activity Designs
                 $query = $db->query("
-                    SELECT activity_title FROM activity_design 
+                    SELECT activity_title, attachment, is_archived FROM activity_design 
                     WHERE deleted_at IS NOT NULL AND deleted_at < DATE_SUB(NOW(), INTERVAL $trashTtlDays DAY)
                 ");
                 $oldADs = $query ? $query->getResultArray() : [];
                 
                 foreach ($oldADs as $ad) {
                     $detailedLogs[] = "Automatically permanently deleted Activity Design: " . ($ad['activity_title'] ?? 'Untitled');
+                    if (!empty($ad['attachment'])) {
+                        if (isset($ad['is_archived']) && $ad['is_archived'] == 1) {
+                            \App\Libraries\FileStorage::deleteFromArchived($ad['attachment']);
+                        } else {
+                            \App\Libraries\FileStorage::deleteFromDrafts($ad['attachment']);
+                        }
+                    }
                 }
 
                 $db->query("
@@ -121,13 +128,20 @@ class DataRetentionService
                 
                 // Accomplishment Reports
                 $query = $db->query("
-                    SELECT activity_title FROM accomplishment_report 
+                    SELECT activity_title, attachment, is_archived FROM accomplishment_report 
                     WHERE deleted_at IS NOT NULL AND deleted_at < DATE_SUB(NOW(), INTERVAL $trashTtlDays DAY)
                 ");
                 $oldARs = $query ? $query->getResultArray() : [];
                 
                 foreach ($oldARs as $ar) {
                     $detailedLogs[] = "Automatically permanently deleted Accomplishment Report: " . ($ar['activity_title'] ?? 'Untitled');
+                    if (!empty($ar['attachment'])) {
+                        if (isset($ar['is_archived']) && $ar['is_archived'] == 1) {
+                            \App\Libraries\FileStorage::deleteFromArchived($ar['attachment']);
+                        } else {
+                            \App\Libraries\FileStorage::deleteFromDrafts($ar['attachment']);
+                        }
+                    }
                 }
 
                 $db->query("
@@ -141,13 +155,16 @@ class DataRetentionService
             if ($archivesTtlDays > 0) {
                 // Activity Designs marked as archived
                 $query = $db->query("
-                    SELECT activity_title FROM activity_design 
+                    SELECT activity_title, attachment FROM activity_design 
                     WHERE is_archived = 1 AND archived_at < DATE_SUB(NOW(), INTERVAL $archivesTtlDays DAY)
                 ");
                 $oldArchivedADs = $query ? $query->getResultArray() : [];
                 
                 foreach ($oldArchivedADs as $ad) {
                     $detailedLogs[] = "Automatically deleted Archived Activity Design: " . ($ad['activity_title'] ?? 'Untitled');
+                    if (!empty($ad['attachment'])) {
+                        \App\Libraries\FileStorage::deleteFromArchived($ad['attachment']);
+                    }
                 }
 
                 $db->query("
@@ -180,7 +197,7 @@ class DataRetentionService
             if ($draftsTtlDays > 0) {
                 // Activity Designs
                 $query = $db->query("
-                    SELECT activity_title FROM activity_design 
+                    SELECT activity_title, attachment FROM activity_design 
                     WHERE status IN ('Pending', 'Revision', 'Disapproved') 
                     AND is_archived = 0 
                     AND deleted_at IS NULL
@@ -190,6 +207,9 @@ class DataRetentionService
                 
                 foreach ($oldDraftADs as $ad) {
                     $detailedLogs[] = "Automatically deleted Draft Activity Design: " . ($ad['activity_title'] ?? 'Untitled');
+                    if (!empty($ad['attachment'])) {
+                        \App\Libraries\FileStorage::deleteFromDrafts($ad['attachment']);
+                    }
                 }
 
                 $db->query("
@@ -203,7 +223,7 @@ class DataRetentionService
                 
                 // Accomplishment Reports
                 $query = $db->query("
-                    SELECT activity_title FROM accomplishment_report 
+                    SELECT activity_title, attachment FROM accomplishment_report 
                     WHERE status IN ('Pending', 'Revision', 'Disapproved') 
                     AND is_archived = 0 
                     AND deleted_at IS NULL
@@ -213,6 +233,9 @@ class DataRetentionService
                 
                 foreach ($oldDraftARs as $ar) {
                     $detailedLogs[] = "Automatically deleted Draft Accomplishment Report: " . ($ar['activity_title'] ?? 'Untitled');
+                    if (!empty($ar['attachment'])) {
+                        \App\Libraries\FileStorage::deleteFromDrafts($ar['attachment']);
+                    }
                 }
 
                 $db->query("

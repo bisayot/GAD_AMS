@@ -69,10 +69,10 @@ class SettingController extends ResourceController
         $defaults = [
             'ad_submission_limit_enabled' => true,
             'trash_ttl_days' => 30,
-            'messages_ttl_days' => 365,
-            'activity_logs_ttl_days' => 365,
-            'archived_documents_ttl_days' => 1825,
-            'drafts_ttl_days' => 365
+            'messages_ttl_days' => 0,
+            'activity_logs_ttl_days' => 0,
+            'archived_documents_ttl_days' => 0,
+            'drafts_ttl_days' => 0
         ];
 
         if ($setting && isset($setting['value'])) {
