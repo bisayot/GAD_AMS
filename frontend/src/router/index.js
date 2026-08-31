@@ -11,6 +11,7 @@ const routes = [
   { path: '/about', name: 'about', component: () => import('../views/AboutView.vue') },
   { path: '/resources', name: 'resources', component: () => import('../views/ResourcesView.vue') },
   { path: '/gad-corner', name: 'gad-corner', component: () => import('../views/GADCornerView.vue') },
+  { path: '/gad-corner/:id', name: 'gad-corner-post', component: () => import('../views/GadCornerPostView.vue') },
   { path: '/contact', name: 'contact', component: () => import('../views/ContactView.vue') },
 
   // Legacy bookmarks → nested routes
@@ -114,6 +115,7 @@ const routes = [
       { path: 'activity-logs', name: 'staff-activity-logs', component: () => import('../views/staff/ActivityLogsView.vue') },
       { path: 'campus-resources', name: 'staff-campus-resources', component: () => import('../views/staff/CampusResourcesView.vue') },
       { path: 'settings', name: 'staff-settings', component: () => import('../views/UserSettingsView.vue') },
+      { path: 'publish-news-iec', name: 'staff-publish-news-iec', component: () => import('../views/staff/PublishNewsIecView.vue') },
     ]
   },
 ]

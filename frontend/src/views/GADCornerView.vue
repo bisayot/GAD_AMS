@@ -10,8 +10,77 @@
       </div>
     </section>
 
+    <!-- News & IEC Materials Section -->
+    <section class="py-16 px-12 ">
+      <div class="max-w-7xl mx-auto space-y-12">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div class="space-y-4">
+            <span class="inline-block px-4 py-1.5 rounded-full bg-white/10 text-white font-label text-xs font-bold uppercase tracking-widest">Public Information</span>
+            <h2 class="text-4xl font-headline font-extrabold text-white tracking-tight">News & IEC Materials</h2>
+            <p class="text-slate-300 text-lg max-w-lg leading-relaxed">
+              Stay updated with the latest news, announcements, and Information, Education, and Communication (IEC) materials from the GAD Office.
+            </p>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+            <select v-model="filterNewsCategory" class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-purple-500 outline-none">
+              <option value="All" class="bg-[#1a1a2e]">All Categories</option>
+              <option value="News" class="bg-[#1a1a2e]">News</option>
+              <option value="IEC" class="bg-[#1a1a2e]">IEC Materials</option>
+            </select>
+            <div class="relative w-full sm:w-64">
+              <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+              <input v-model="searchNewsQuery" class="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 text-white placeholder:text-slate-500 shadow-sm" placeholder="Search news and IEC materials..." type="text"/>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="loadingNewsIec" class="text-center py-8 text-slate-400">Loading updates...</div>
+        <div v-else-if="filteredNewsIecItems.length === 0" class="text-center py-8 text-slate-400">No news or IEC materials found.</div>
+        
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
+          <div v-for="item in filteredNewsIecItems" :key="item.id" @click="openNewsModal(item)" class="group cursor-pointer bg-white/5 rounded-2xl border border-white/10 hover:shadow-xl hover:border-purple-500/50 transition-all duration-300 overflow-hidden flex flex-col h-full">
+            <div class="relative h-48 w-full bg-[#1a1a2e] border-b border-white/10 overflow-hidden">
+              <template v-if="parseImages(item.image_path).length > 0">
+                <img v-for="(img, idx) in parseImages(item.image_path)" :key="idx" 
+                     :src="`${apiBaseUrl}files/news-iec/${img}`" 
+                     class="absolute inset-0 object-cover w-full h-full group-hover:scale-105 transition-all duration-1000"
+                     :class="{'opacity-100 z-10': idx === (globalTick % parseImages(item.image_path).length), 'opacity-0 z-0': idx !== (globalTick % parseImages(item.image_path).length)}" />
+              </template>
+              <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#1a1a2e] to-[#16213e]">
+                <span class="material-symbols-outlined text-4xl text-white/20">newspaper</span>
+              </div>
+              <div class="absolute top-4 right-4 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest backdrop-blur-md z-20"
+                   :class="item.category === 'News' ? 'bg-blue-900/50 text-blue-200 border border-blue-500/30' : 'bg-emerald-900/50 text-emerald-200 border border-emerald-500/30'">
+                {{ item.category }}
+              </div>
+            </div>
+            
+            <!-- Tags directly below image -->
+            <div v-if="item.tags" class="px-6 pt-4 flex flex-wrap gap-2">
+              <span v-for="tag in item.tags.split(',').filter(t => t.trim())" :key="tag" class="text-[11px] font-label font-bold text-purple-400 bg-purple-900/20 px-2.5 py-1 rounded-full">
+                #{{ tag.trim() }}
+              </span>
+            </div>
+            <div class="p-6 flex flex-col flex-grow">
+              <h3 class="font-headline font-bold text-xl mb-3 text-white group-hover:text-purple-400 transition-colors line-clamp-2">{{ item.title }}</h3>
+              <p class="text-sm text-slate-300 leading-relaxed mb-6 line-clamp-3" v-html="linkify(item.description)"></p>
+              
+              <div class="mt-auto flex items-center justify-between text-xs text-slate-400 border-t border-white/5 pt-4">
+                <span class="flex items-center gap-1 font-label">
+                  <span class="material-symbols-outlined text-[14px]">calendar_today</span>
+                  {{ new Date(item.created_at).toLocaleDateString() }}
+                </span>
+                
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
     <!-- Accomplishment Reports Section -->
-    <section class="py-16 px-12">
+    <section class="py-16 px-12 border-t border-white/10">
       <div class="max-w-7xl mx-auto space-y-12">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div class="space-y-4">
@@ -94,100 +163,7 @@
 
 
 
-    <!-- Resources Section added here -->
-    <section class="py-16 px-12 border-t border-white/10">
-      <div class="max-w-7xl mx-auto space-y-12">
-        <div class="space-y-4">
-          <span class="inline-block px-4 py-1.5 rounded-full bg-white/10 text-white font-label text-xs font-bold uppercase tracking-widest">Legal Frameworks</span>
-          <h2 class="text-4xl font-headline font-extrabold text-white tracking-tight">Resources & Mandates</h2>
-          <p class="text-slate-300 text-lg max-w-lg leading-relaxed">
-            Access the fundamental legal documents, international treaties, and institutional policies that shape the Gender and Development landscape at Benguet State University.
-          </p>
-        </div>
-
-        <!-- Filter & Search Bar -->
-        <div class="bg-white/5 p-6 rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-white/10 flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div class="relative w-full md:max-w-md">
-            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-            <input v-model="searchQuery" class="w-full pl-12 pr-4 py-3 bg-white/5 border-none rounded-lg focus:ring-2 focus:ring-purple-500 text-white placeholder:text-slate-500" placeholder="Search laws, policies, or mandates..." type="text"/>
-          </div>
-          <div class="flex gap-3 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
-            <button v-for="cat in categories" :key="cat" @click="activeCategory = cat" :class="activeCategory === cat ? 'bg-primary text-white' : 'bg-surface-container-high text-on-surface/70 hover:bg-primary-fixed'" class="px-5 py-2 rounded-full transition-colors font-label text-sm whitespace-nowrap">
-              {{ cat }}
-            </button>
-          </div>
-        </div>
-
-        <!-- Bento Grid Layout -->
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-8 mb-20">
-          <!-- International Mandates -->
-          <div class="md:col-span-12 lg:col-span-8 space-y-8">
-            <div class="flex items-center gap-4 mb-2">
-              <h3 class="text-2xl font-headline font-bold text-white">International Mandates</h3>
-              <div class="h-px flex-grow bg-white/10"></div>
-            </div>
-            <div class="grid md:grid-cols-2 gap-6">
-              <div v-for="mandate in filteredMandates" :key="mandate.title" class="group bg-white/5 p-8 rounded-xl border border-white/10 hover:shadow-xl transition-all duration-300">
-                <div class="flex justify-between items-start mb-6">
-                  <div class="w-12 h-12 academic-gradient rounded-lg flex items-center justify-center text-white">
-                    <span class="material-symbols-outlined">{{ mandate.icon }}</span>
-                  </div>
-                  <span class="material-symbols-outlined text-slate-400 group-hover:text-purple-400 transition-colors">{{ mandate.fileIcon }}</span>
-                </div>
-                <h4 class="text-xl font-headline font-bold mb-3 group-hover:text-purple-400 transition-colors">{{ mandate.title }}</h4>
-                <p class="text-sm text-slate-300 leading-relaxed mb-6">{{ mandate.description }}</p>
-                <div class="flex items-center justify-between mt-auto">
-                  <span class="text-xs font-label uppercase tracking-widest font-bold text-purple-400">{{ mandate.type }}</span>
-                  <a class="text-purple-400 font-label text-sm font-bold underline underline-offset-4 decoration-2" href="#">{{ mandate.action }}</a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Sidebar / National Focus -->
-          <div class="md:col-span-12 lg:col-span-4 bg-primary text-white p-8 rounded-xl relative overflow-hidden flex flex-col">
-            <div class="relative z-10">
-              <h3 class="text-2xl font-headline font-bold mb-6">National Policy Spotlight</h3>
-              <ul class="space-y-6">
-                <li v-for="policy in nationalPolicies" :key="policy.id" class="group cursor-pointer">
-                  <p class="text-primary-fixed font-bold text-xs uppercase tracking-widest mb-1">{{ policy.id }}</p>
-                  <p class="font-headline font-semibold text-lg group-hover:translate-x-1 transition-transform">{{ policy.title }}</p>
-                </li>
-              </ul>
-              <button class="mt-12 w-full py-4 rounded-full bg-white text-primary font-bold font-headline text-sm hover:bg-primary-fixed transition-colors">View All National Laws</button>
-            </div>
-            <div class="absolute -bottom-10 -right-10 w-48 h-48 bg-primary-container rounded-full opacity-30 blur-3xl"></div>
-          </div>
-        </div>
-
-        <!-- Institutional Policies -->
-        <div class="md:col-span-12 mb-20">
-          <div class="flex items-center gap-4 mb-8">
-            <h3 class="text-2xl font-headline font-bold text-white">Institutional Policies</h3>
-            <div class="h-px flex-grow bg-white/10"></div>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div v-for="policy in institutionalPolicies" :key="policy.title" class="flex flex-col gap-4 p-1 bg-white/5 rounded-2xl">
-              <div class="bg-white/5 p-6 rounded-xl h-full border border-white/10">
-                <div class="flex items-center gap-3 mb-4">
-                  <span class="material-symbols-outlined text-purple-400">{{ policy.icon }}</span>
-                  <span class="font-label text-xs font-bold text-purple-400 uppercase tracking-widest">{{ policy.tag }}</span>
-                </div>
-                <h4 class="font-headline font-bold text-lg mb-2 text-white">{{ policy.title }}</h4>
-                <p class="text-sm text-slate-300 mb-6">{{ policy.description }}</p>
-                <div class="flex items-center gap-4 text-xs font-bold text-purple-400">
-                  <span class="material-symbols-outlined text-lg">{{ policy.actionIcon }}</span>
-                  <span>{{ policy.actionText }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-
-      </div>
-    </section>
-
+    <!-- Modals -->
     <!-- Modals -->
     <PdfPreviewModal :isOpen="isPdfPreviewOpen" :fileUrl="currentPdfUrl" @close="isPdfPreviewOpen = false" />
     <HtmlPreviewModal :isOpen="isHtmlPreviewOpen" :htmlContent="currentHtmlContent" :title="currentHtmlTitle" :loading="isHtmlLoading" @close="isHtmlPreviewOpen = false" />
@@ -202,12 +178,15 @@ const socialLinks = [
   { icon: 'rss_feed' }
 ];
 
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import api from '../api';
 import Swal from 'sweetalert2';
 import PdfPreviewModal from '../components/PdfPreviewModal.vue';
 import HtmlPreviewModal from '../components/HtmlPreviewModal.vue';
 
+const route = useRoute();
+const router = useRouter();
 const isPdfPreviewOpen = ref(false);
 const currentPdfUrl = ref('');
 
@@ -221,6 +200,74 @@ const verifiedReports = ref([]);
 const archivedReports = ref([]);
 const loadingReports = ref(true);
 const loadingArchives = ref(true);
+
+const newsIecItems = ref([]);
+const searchNewsQuery = ref('');
+const filterNewsCategory = ref('All');
+
+
+
+
+const parseImages = (val) => {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  if (typeof val === 'string') {
+    try {
+      let parsed = JSON.parse(val);
+      if (typeof parsed === 'string') {
+        parsed = JSON.parse(parsed);
+      }
+      if (Array.isArray(parsed)) return parsed;
+    } catch(e) {
+      // Fallback below
+    }
+  }
+  return [val];
+};
+
+const filteredNewsIecItems = computed(() => {
+  let items = newsIecItems.value;
+  if (filterNewsCategory.value !== 'All') {
+    items = items.filter(item => item.category === filterNewsCategory.value);
+  }
+  if (searchNewsQuery.value) {
+    const q = searchNewsQuery.value.toLowerCase();
+    items = items.filter(item => 
+      item.title?.toLowerCase().includes(q) || 
+      item.description?.toLowerCase().includes(q) ||
+      item.tags?.toLowerCase().includes(q)
+    );
+  }
+  return items;
+});
+
+const linkify = (text) => {
+  if (!text) return '';
+  const urlRegex = /(https?:\/\/[^\s]+|(?:www\.)?[a-zA-Z0-9-]+\.(?:com|org|net|edu|gov|ph|io|co|info|me)(?:\/[^\s]*)?)/ig;
+  return text.replace(urlRegex, function(url) {
+    let href = url;
+    if (!/^https?:\/\//i.test(href)) {
+      href = 'https://' + href;
+    }
+    return `<a href="${href}" target="_blank" class="text-blue-400 hover:underline break-all">${url}</a>`;
+  });
+};
+
+const openNewsModal = (item) => {
+  router.push(`/gad-corner/${item.id}`);
+};
+
+
+
+
+
+
+
+const globalTick = ref(0);
+let tickInterval;
+
+const loadingNewsIec = ref(true);
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/';
 
 const filteredVerifiedReports = computed(() => {
   if (!searchReportsQuery.value) return verifiedReports.value;
@@ -276,9 +323,30 @@ const fetchArchivedReports = async () => {
   }
 };
 
+const fetchNewsIec = async () => {
+  try {
+    const res = await api.get('news-iec');
+    if (res.data && res.data.success) {
+      newsIecItems.value = res.data.data;
+      
+      if (route.query.post) {
+        router.push(`/gad-corner/${route.query.post}`);
+      }
+    }
+  } catch (err) {
+    console.error("Failed to fetch news & iec:", err);
+  } finally {
+    loadingNewsIec.value = false;
+  }
+};
+
 onMounted(() => {
+  tickInterval = setInterval(() => {
+    globalTick.value++;
+  }, 3000);
   fetchAccomplishmentReports();
   fetchArchivedReports();
+  fetchNewsIec();
 });
 
 const viewPdf = (report) => {
@@ -322,72 +390,10 @@ const viewHtmlReport = async (archive) => {
   }
 };
 
-const searchQuery = ref('');
-const activeCategory = ref('All Resources');
-const categories = ['All Resources', 'International', 'National', 'Institutional'];
-
-const mandates = [
-  { 
-    title: 'CEDAW', 
-    description: 'Convention on the Elimination of All Forms of Discrimination Against Women. Often described as an international bill of rights for women.', 
-    icon: 'public', 
-    fileIcon: 'picture_as_pdf', 
-    type: 'UN Treaty', 
-    action: 'Download Document',
-    category: 'International'
-  },
-  { 
-    title: 'BPFA', 
-    description: "Beijing Platform for Action. An agenda for women's empowerment that aims at accelerating the implementation of the Nairobi Forward-looking Strategies.", 
-    icon: 'flag', 
-    fileIcon: 'link', 
-    type: 'Strategic Agenda', 
-    action: 'View Reference',
-    category: 'International'
-  }
-];
-
-const nationalPolicies = [
-  { id: 'Republic Act 9710', title: 'Magna Carta of Women' },
-  { id: 'Administrative Order', title: 'GAD Budget Guidelines' },
-  { id: 'Republic Act 7877', title: 'Anti-Sexual Harassment Act' }
-];
-
-const institutionalPolicies = [
-  {
-    title: 'BSU GAD Guidelines',
-    description: 'Internal operational frameworks for gender mainstreaming across all BSU campuses.',
-    icon: 'school',
-    tag: 'BSU Specific',
-    actionIcon: 'download',
-    actionText: 'PDF (2.4 MB)'
-  },
-  {
-    title: 'Safe Spaces Act Implementation',
-    description: 'Localized implementation protocols for the BSU community regarding safe spaces.',
-    icon: 'policy',
-    tag: 'Code of Conduct',
-    actionIcon: 'open_in_new',
-    actionText: 'External Portal'
-  },
-  {
-    title: 'GAD 5-Year Strategic Roadmap',
-    description: 'Future objectives and developmental milestones for gender parity at BSU.',
-    icon: 'history_edu',
-    tag: 'Strategic Plan',
-    actionIcon: 'download',
-    actionText: 'PDF (5.1 MB)'
-  }
-];
-
-const filteredMandates = computed(() => {
-  return mandates.filter(m => {
-    const matchesSearch = m.title.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
-                         m.description.toLowerCase().includes(searchQuery.value.toLowerCase());
-    const matchesCategory = activeCategory.value === 'All Resources' || m.category === activeCategory.value;
-    return matchesSearch && matchesCategory;
-  });
+onUnmounted(() => {
+  if (tickInterval) clearInterval(tickInterval);
 });
+
 </script>
 
 <style scoped>

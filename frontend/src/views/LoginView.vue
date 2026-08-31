@@ -23,6 +23,9 @@
             <div v-if="error" class="rounded-md bg-red-900/50 border border-red-500/50 text-red-200 px-3 py-2 text-sm mb-3">
               {{ error }}
             </div>
+            <div v-if="successMsg" class="rounded-md bg-emerald-900/50 border border-emerald-500/50 text-emerald-200 px-3 py-2 text-sm mb-3 text-center">
+              {{ successMsg }}
+            </div>
 
             <!-- Identity Input -->
             <div class="space-y-2">
@@ -115,7 +118,7 @@
   </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 // Use the relative path to step up out of the 'views' folder and find api.js
 import api from '../api'; 
@@ -127,9 +130,20 @@ const identity = ref('');
 const password = ref('');
 const loading = ref(false);
 const error = ref('');
+const successMsg = ref('');
 const showPassword = ref(false);
 const turnstileToken = ref('');
 const turnstileRef = ref(null);
+
+onMounted(() => {
+  if (route.query.registered === 'true') {
+    successMsg.value = 'Registration successful! You can now log in.';
+    // Clean up the URL query parameter
+    const newQuery = { ...route.query };
+    delete newQuery.registered;
+    router.replace({ path: '/login', query: newQuery });
+  }
+});
 
 const onTurnstileVerify = (token) => {
   turnstileToken.value = token;

@@ -8,14 +8,6 @@
         <button @click="showPrivacyModal = true" class="!text-white hover:!text-purple-400 transition-all opacity-80 hover:opacity-100 font-bold">Privacy Policy</button>
         <button @click="showTermsModal = true" class="!text-white hover:!text-purple-400 transition-all opacity-80 hover:opacity-100 font-bold">Terms of Service</button>
         <router-link class="!text-white hover:!text-purple-400 transition-all opacity-80 hover:opacity-100 font-bold" to="/contact">Contact Directory</router-link>
-        
-        <button @click="isStatusModalOpen = true" class="!text-white hover:!text-emerald-300 font-bold transition-all flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-900/30 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
-          <span class="relative flex h-2.5 w-2.5">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-          </span>
-          System Status
-        </button>
       </div>
     </div>
     
@@ -73,15 +65,12 @@
       </div>
     </div>
 
-    <SystemStatusModal :isOpen="isStatusModalOpen" @close="isStatusModalOpen = false" />
   </footer>
 </template>
 
 <script setup>
 import { ref } from 'vue';
-import SystemStatusModal from './SystemStatusModal.vue';
 
-const isStatusModalOpen = ref(false);
 const showPrivacyModal = ref(false);
 const showTermsModal = ref(false);
 </script>

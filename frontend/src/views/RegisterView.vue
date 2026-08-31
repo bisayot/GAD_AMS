@@ -356,7 +356,7 @@ const handleRegister = async () => {
 
     await api.post('register', payload);
     
-    router.push('/login');
+    router.push('/login?registered=true');
 
   } catch (err) {
     console.error("Registration Error", err);

@@ -337,8 +337,13 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     // ----------------------------------------------------------------
     $routes->options('files/drafts/(:segment)', 'AuthController::handleOptions');
     $routes->get('files/drafts/(:segment)', 'FileController::serveDraft/$1');
+
     $routes->options('files/archived/(:segment)', 'AuthController::handleOptions');
     $routes->get('files/archived/(:segment)', 'FileController::serveArchived/$1');
+
+    $routes->options('files/news-iec/(:segment)', 'AuthController::handleOptions');
+    $routes->get('files/news-iec/(:segment)', 'FileController::serveNewsIec/$1');
+
     $routes->options('files/overwrite/(:segment)/(:segment)', 'AuthController::handleOptions');
     $routes->post('files/overwrite/(:segment)/(:segment)', 'FileController::overwrite/$1/$2');
     // Document Trash Endpoints
@@ -383,6 +388,16 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     
     $routes->options('gpb/export-live', 'AuthController::handleOptions');
     $routes->post('gpb/export-live', 'GpbLiveExportController::export');
+
+    // ----------------------------------------------------------------
+    // NEWS & IEC ROUTES (new)
+    // ----------------------------------------------------------------
+    $routes->options('news-iec', 'AuthController::handleOptions');
+    $routes->get('news-iec', 'NewsIecController::index');
+    $routes->post('news-iec', 'NewsIecController::create');
+    $routes->options('news-iec/(:num)', 'AuthController::handleOptions');
+    $routes->get('news-iec/(:num)', 'NewsIecController::show/$1');
+    $routes->delete('news-iec/(:num)', 'NewsIecController::delete/$1');
 });
 
 $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {

@@ -29,6 +29,27 @@ class FileController extends BaseController
         return $this->serveFile(FileStorage::archivedPath(), $filename);
     }
 
+    public function serveNewsIec(string $filename)
+    {
+        $directory = WRITEPATH . 'uploads' . DIRECTORY_SEPARATOR . 'newsiec images';
+        $filename = basename($filename);
+        $filepath = $directory . DIRECTORY_SEPARATOR . $filename;
+
+        if (!file_exists($filepath)) {
+            return $this->response
+                ->setStatusCode(404)
+                ->setJSON(['success' => false, 'message' => 'File not found']);
+        }
+
+        $mime = mime_content_type($filepath) ?: 'application/octet-stream';
+
+        return $this->response
+            ->setHeader('Content-Type', $mime)
+            ->setHeader('Content-Disposition', 'inline; filename="' . $filename . '"')
+            ->setHeader('Cache-Control', 'public, max-age=3600')
+            ->setBody(file_get_contents($filepath));
+    }
+
     private function serveFile(string $directory, string $filename)
     {
         // Sanitize filename — no path traversal
