@@ -41,7 +41,19 @@ class FileController extends BaseController
                 ->setJSON(['success' => false, 'message' => 'File not found']);
         }
 
-        $mime = mime_content_type($filepath) ?: 'application/octet-stream';
+        $mime = 'application/octet-stream';
+        if (function_exists('mime_content_type')) {
+            $mime = @mime_content_type($filepath);
+        }
+        if (!$mime || $mime === 'application/octet-stream') {
+            $ext = strtolower(pathinfo($filepath, PATHINFO_EXTENSION));
+            $mimes = [
+                'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg',
+                'png' => 'image/png', 'gif' => 'image/gif',
+                'webp' => 'image/webp', 'svg' => 'image/svg+xml'
+            ];
+            $mime = $mimes[$ext] ?? 'application/octet-stream';
+        }
 
         return $this->response
             ->setHeader('Content-Type', $mime)

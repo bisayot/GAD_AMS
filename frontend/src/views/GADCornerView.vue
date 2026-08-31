@@ -267,7 +267,9 @@ const globalTick = ref(0);
 let tickInterval;
 
 const loadingNewsIec = ref(true);
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/';
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL 
+  ? (import.meta.env.VITE_API_BASE_URL.endsWith('/') ? import.meta.env.VITE_API_BASE_URL : import.meta.env.VITE_API_BASE_URL + '/') 
+  : 'http://localhost:8080/api/';
 
 const filteredVerifiedReports = computed(() => {
   if (!searchReportsQuery.value) return verifiedReports.value;
@@ -355,7 +357,7 @@ const viewPdf = (report) => {
       const attachments = JSON.parse(report.attachment);
       if (attachments && attachments.length > 0) {
         const folder = report.is_archived ? 'archived' : 'drafts';
-        currentPdfUrl.value = `${import.meta.env.VITE_API_BASE_URL || 'https://gad-ams-2-1.onrender.com/api/'}files/${folder}/${attachments[0]}`;
+        currentPdfUrl.value = `${import.meta.env.VITE_API_BASE_URL ? (import.meta.env.VITE_API_BASE_URL.endsWith('/') ? import.meta.env.VITE_API_BASE_URL : import.meta.env.VITE_API_BASE_URL + '/') : 'http://localhost:8080/api/'}files/${folder}/${attachments[0]}`;
         isPdfPreviewOpen.value = true;
         return;
       }

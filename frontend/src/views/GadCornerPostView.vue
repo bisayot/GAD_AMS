@@ -115,7 +115,9 @@ import api from '../api';
 import Swal from 'sweetalert2';
 
 const route = useRoute();
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/';
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL 
+  ? (import.meta.env.VITE_API_BASE_URL.endsWith('/') ? import.meta.env.VITE_API_BASE_URL : import.meta.env.VITE_API_BASE_URL + '/') 
+  : 'http://localhost:8080/api/';
 
 const loading = ref(true);
 const post = ref(null);
