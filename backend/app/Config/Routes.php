@@ -344,6 +344,10 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     $routes->options('files/news-iec/(:segment)', 'AuthController::handleOptions');
     $routes->get('files/news-iec/(:segment)', 'FileController::serveNewsIec/$1');
 
+    // Share link for Facebook / Open Graph Meta Tags
+    $routes->options('share/news-iec/(:num)', 'AuthController::handleOptions');
+    $routes->get('share/news-iec/(:num)', 'ShareController::newsIec/$1');
+
     $routes->options('files/overwrite/(:segment)/(:segment)', 'AuthController::handleOptions');
     $routes->post('files/overwrite/(:segment)/(:segment)', 'FileController::overwrite/$1/$2');
     // Document Trash Endpoints

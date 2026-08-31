@@ -12,7 +12,7 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="input-group md:col-span-2">
               <label class="input-label">Title <span class="text-red-400">*</span></label>
-              <input v-model="form.title" type="text" class="custom-input" placeholder="Enter title" required />
+              <textarea v-model="form.title" class="custom-input resize-none overflow-hidden" rows="1" placeholder="Enter title" required @input="autoResize" style="min-height: 48px;"></textarea>
             </div>
 
             <div class="input-group md:col-span-2">
@@ -28,7 +28,22 @@
 
             <div class="input-group md:col-span-2">
               <label class="input-label">Description (Optional)</label>
-              <textarea v-model="form.description" rows="4" class="custom-input" placeholder="Enter description..."></textarea>
+              
+              <div class="relative w-full">
+                <!-- Highlighted Text Overlay -->
+                <div class="absolute inset-0 custom-input pointer-events-none whitespace-pre-wrap break-words overflow-hidden" style="color: white; border-color: transparent; background: transparent;" v-html="highlightedDescription"></div>
+                <!-- Actual Textarea -->
+                <textarea 
+                  v-model="form.description" 
+                  rows="4" 
+                  class="custom-input relative z-10 w-full bg-transparent resize-none overflow-hidden" 
+                  style="color: transparent; caret-color: white;"
+                  @scroll="syncScroll"
+                  @input="autoResize"
+                  ref="descTextarea"
+                  placeholder="Enter description..."
+                ></textarea>
+              </div>
             </div>
 
             <div class="input-group md:col-span-2">
@@ -66,9 +81,14 @@
                   <button @click.prevent="removeTag(index)" class="hover:text-red-400">&times;</button>
                 </span>
               </div>
-              <div class="flex gap-2">
-                <input v-model="currentTagInput" @keydown.enter.prevent="addTag" type="text" class="custom-input flex-grow" placeholder="Add a tag..." />
-                <button v-if="currentTagInput.trim()" @click.prevent="addTag" class="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-xl transition-colors font-bold text-sm">Add</button>
+              <div class="relative flex items-center w-full">
+                <input v-model="currentTagInput" @keydown.enter.prevent="addTag" type="text" class="custom-input w-full pr-24" placeholder="Add a tag..." />
+                <button 
+                  @click.prevent="addTag" 
+                  :disabled="!currentTagInput.trim()" 
+                  class="absolute right-2 px-4 py-1.5 rounded-lg font-bold text-sm shadow-md"
+                  :style="currentTagInput.trim() ? 'background-color: #9333ea !important; color: white !important;' : 'background-color: #475569 !important; color: white !important; opacity: 0.5;'"
+                >Add</button>
               </div>
             </div>
           </div>
@@ -88,7 +108,7 @@
 
       <!-- Live Preview Modal -->
       <div v-if="showPreview" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" style="margin-left: 0;">
-        <div class="form-container max-w-md w-full shadow-2xl relative" style="padding: 2rem;">
+        <div class="form-container max-w-4xl w-full shadow-2xl relative max-h-[90vh] overflow-y-auto" style="padding: 2rem;">
           <div class="flex justify-between items-center mb-6">
             <h3 class="text-xl font-headline font-bold text-white">Live Preview</h3>
             <button @click="showPreview = false" class="text-slate-400 hover:text-white transition-colors">
@@ -96,54 +116,62 @@
             </button>
           </div>
           
-          <!-- Card exactly as it appears in GAD Corner -->
-          <div class="group bg-white/5 rounded-2xl border border-white/10 shadow-xl overflow-hidden flex flex-col h-full mx-auto" style="min-height: 380px;">
-            <div class="relative h-48 w-full bg-[#1a1a2e] border-b border-white/10 overflow-hidden">
-              <img v-if="previewImageUrls.length > 0" :src="previewImageUrls[currentPreviewIndex]" class="object-cover w-full h-full transition-all duration-500" />
-              <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#1a1a2e] to-[#16213e]">
-                <span class="material-symbols-outlined text-4xl text-white/20">newspaper</span>
-              </div>
-              
-              <button v-if="previewImageUrls.length > 0" @click.prevent="removeImage(currentPreviewIndex)" class="absolute top-4 left-4 bg-red-600/80 text-white p-1.5 rounded-full hover:bg-red-500 transition-colors backdrop-blur-sm shadow-md z-30 flex items-center justify-center">
-                <span class="material-symbols-outlined text-[16px]">delete</span>
-              </button>
-              <!-- Carousel Arrows -->
-              <div v-if="previewImageUrls.length > 1" class="absolute inset-0 flex items-center justify-between px-2">
-                <button @click.prevent="prevImage" class="bg-black/50 text-white p-1 rounded-full hover:bg-black/80 transition-colors backdrop-blur-sm shadow-md">
-                  <span class="material-symbols-outlined text-sm">chevron_left</span>
-                </button>
-                <button @click.prevent="nextImage" class="bg-black/50 text-white p-1 rounded-full hover:bg-black/80 transition-colors backdrop-blur-sm shadow-md">
-                  <span class="material-symbols-outlined text-sm">chevron_right</span>
-                </button>
-              </div>
-              <!-- Dots indicator -->
-              <div v-if="previewImageUrls.length > 1" class="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
-                <div v-for="(_, idx) in previewImageUrls" :key="idx" 
-                     class="w-1.5 h-1.5 rounded-full transition-colors shadow-sm"
-                     :class="idx === currentPreviewIndex ? 'bg-white' : 'bg-white/40'">
-                </div>
-              </div>
-
-              <div class="absolute top-4 right-4 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest backdrop-blur-md z-20"
+          <!-- Full Post Preview -->
+          <div class="bg-[#16213e] rounded-2xl border border-white/10 shadow-2xl overflow-hidden mb-8">
+            <!-- Header: Title and Date -->
+            <div class="p-8 md:p-12 pb-8 relative">
+              <div class="absolute top-8 right-8 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest backdrop-blur-md z-20"
                    :class="form.category === 'News' ? 'bg-blue-900/50 text-blue-200 border border-blue-500/30' : 'bg-emerald-900/50 text-emerald-200 border border-emerald-500/30'">
                 {{ form.category }}
               </div>
-            </div>
-            
-            <!-- Tags below image -->
-            <div v-if="tagsList.length > 0" class="px-6 pt-4 flex flex-wrap gap-2 bg-[#1a1a2e]">
-              <span v-for="tag in tagsList" :key="tag" class="text-[11px] font-label font-bold text-purple-400 bg-purple-900/20 px-2.5 py-1 rounded-full">
-                #{{ tag }}
-              </span>
-            </div>
-            <div class="p-6 flex flex-col flex-grow bg-[#1a1a2e]">
-              <h3 class="font-headline font-bold text-xl mb-3 text-white group-hover:text-purple-400 transition-colors line-clamp-2">{{ form.title || 'Untitled Material' }}</h3>
-              <p class="text-sm text-slate-300 leading-relaxed mb-6 line-clamp-3" v-html="linkify(form.description) || 'No description provided.'"></p>
+              <h1 class="text-3xl md:text-5xl font-headline font-extrabold text-white mb-6 leading-tight pr-24">{{ form.title || 'Untitled Material' }}</h1>
               
-              <div class="mt-auto flex items-center justify-between text-xs text-slate-400 border-t border-white/5 pt-4">
+              <div class="flex items-center gap-4 text-sm text-slate-400">
                 <span class="flex items-center gap-1 font-label">
-                  <span class="material-symbols-outlined text-[14px]">calendar_today</span>
+                  <span class="material-symbols-outlined text-[16px]">calendar_today</span>
                   {{ new Date().toLocaleDateString() }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Image Carousel -->
+            <div class="relative h-64 sm:h-96 md:h-[500px] w-full bg-black/50 border-y border-white/10">
+              <img v-if="previewImageUrls.length > 0" :src="previewImageUrls[currentPreviewIndex]" class="object-contain w-full h-full transition-all duration-300" />
+              <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#1a1a2e] to-[#16213e]">
+                <span class="material-symbols-outlined text-6xl text-white/20">newspaper</span>
+              </div>
+              
+              <button v-if="previewImageUrls.length > 0" @click.prevent="removeImage(currentPreviewIndex)" class="absolute top-4 left-4 bg-red-600/80 text-white p-2 rounded-full hover:bg-red-500 transition-colors backdrop-blur-sm shadow-md z-30 flex items-center justify-center">
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+              
+              <!-- Carousel Arrows -->
+              <div v-if="previewImageUrls.length > 1" class="absolute inset-0 flex items-center justify-between px-4">
+                <button @click.prevent="prevImage" class="bg-black/50 text-white p-2 rounded-full hover:bg-black/80 transition-colors backdrop-blur-sm shadow-md">
+                  <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+                <button @click.prevent="nextImage" class="bg-black/50 text-white p-2 rounded-full hover:bg-black/80 transition-colors backdrop-blur-sm shadow-md">
+                  <span class="material-symbols-outlined">chevron_right</span>
+                </button>
+              </div>
+              <!-- Dots indicator -->
+              <div v-if="previewImageUrls.length > 1" class="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+                <div v-for="(_, idx) in previewImageUrls" :key="idx" 
+                     class="w-2 h-2 rounded-full transition-colors shadow-sm cursor-pointer"
+                     :class="idx === currentPreviewIndex ? 'bg-white' : 'bg-white/40'"
+                     @click="currentPreviewIndex = idx">
+                </div>
+              </div>
+            </div>
+
+            <!-- Body: Description and Tags -->
+            <div class="p-8 md:p-12 pt-8">
+              <div class="text-slate-200 leading-relaxed whitespace-pre-wrap text-lg md:text-xl font-light" v-html="linkify(form.description) || '<span class=\'text-slate-500\'>No description provided.</span>'"></div>
+
+              <!-- Tags -->
+              <div v-if="tagsList.length > 0" class="flex flex-wrap gap-2 mt-10 pt-6 border-t border-white/10">
+                <span v-for="tag in tagsList" :key="tag" class="text-xs font-label font-bold text-purple-400 bg-purple-900/20 px-3 py-1.5 rounded-full border border-purple-500/20">
+                  #{{ tag }}
                 </span>
               </div>
             </div>
@@ -187,8 +215,8 @@
                 <td class="table-cell title-cell">{{ item.title }}</td>
                 <td class="table-cell date-cell">{{ new Date(item.created_at).toLocaleDateString() }}</td>
                 <td class="table-cell text-right">
-                  <button @click="deleteItem(item.id)" class="text-red-400 hover:text-red-300 transition-colors" title="Delete">
-                    <span class="material-symbols-outlined text-sm">delete</span>
+                  <button @click="deleteItem(item.id)" class="transition-colors" title="Delete">
+                    <span class="material-symbols-outlined text-sm" style="color: white !important;">delete</span>
                   </button>
                 </td>
               </tr>
@@ -201,7 +229,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import api from '../../api';
 import Swal from 'sweetalert2';
 
@@ -225,6 +253,43 @@ const addTag = () => {
 const removeTag = (idx) => {
   tagsList.value.splice(idx, 1);
 };
+
+const descTextarea = ref(null);
+const autoResize = (event) => {
+  const el = event.target;
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+};
+
+const syncScroll = (e) => {
+  const overlay = e.target.previousElementSibling;
+  if (overlay) {
+    overlay.scrollTop = e.target.scrollTop;
+    overlay.scrollLeft = e.target.scrollLeft;
+  }
+};
+const highlightedDescription = computed(() => {
+  let text = form.value.description || '';
+  if (!text) {
+    // Return placeholder formatting if empty
+    return '<span class="text-slate-500">Enter description...</span>';
+  }
+  // Escape HTML first to prevent XSS and formatting issues
+  const escapeHTML = (str) => str.replace(/[&<>'"]/g, 
+    tag => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+    }[tag] || tag)
+  );
+  text = escapeHTML(text);
+  
+  // Highlight links
+  const urlRegex = /(https?:\/\/[^\s]+|(?:www\.)?[a-zA-Z0-9-]+\.(?:com|org|net|edu|gov|ph|io|co|info|me)(?:\/[^\s]*)?)/ig;
+  return text.replace(urlRegex, (url) => `<span class="text-purple-400 underline">${url}</span>`);
+});
 
 const linkify = (text) => {
   if (!text) return '';
@@ -365,6 +430,7 @@ const submitPublish = async () => {
     });
 
     if (res.data && res.data.success) {
+      const apiBaseUrl = api.defaults.baseURL.endsWith('/') ? api.defaults.baseURL : api.defaults.baseURL + '/';
       const shareLink = `${window.location.origin}/gad-corner/${res.data.id}`;
       Swal.fire({ 
         icon: 'success', 

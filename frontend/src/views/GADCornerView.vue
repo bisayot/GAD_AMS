@@ -37,9 +37,26 @@
         <div v-if="loadingNewsIec" class="text-center py-8 text-slate-400">Loading updates...</div>
         <div v-else-if="filteredNewsIecItems.length === 0" class="text-center py-8 text-slate-400">No news or IEC materials found.</div>
         
-        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
-          <div v-for="item in filteredNewsIecItems" :key="item.id" @click="openNewsModal(item)" class="group cursor-pointer bg-white/5 rounded-2xl border border-white/10 hover:shadow-xl hover:border-purple-500/50 transition-all duration-300 overflow-hidden flex flex-col h-full">
-            <div class="relative h-48 w-full bg-[#1a1a2e] border-b border-white/10 overflow-hidden">
+        <div v-else class="mb-20">
+          <!-- Massive Tag Header -->
+          <div v-if="activeTag" class="mb-10">
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-headline font-black text-white mb-6 tracking-tight flex items-center gap-2">
+              <span class="text-purple-500">#</span>{{ activeTag }}
+            </h1>
+            <div class="h-px w-full bg-white/20"></div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div v-for="item in filteredNewsIecItems" :key="item.id" @click="openNewsModal(item)" class="group cursor-pointer bg-white/5 rounded-2xl border border-white/10 hover:shadow-xl hover:border-purple-500/50 transition-all duration-300 overflow-hidden flex flex-col h-full">
+            <div class="p-6 pb-4">
+              <h3 class="font-headline font-bold text-xl mb-3 text-white group-hover:text-purple-400 transition-colors line-clamp-2">{{ item.title }}</h3>
+              <span class="flex items-center gap-1 font-label text-xs text-slate-400">
+                <span class="material-symbols-outlined text-[14px]">calendar_today</span>
+                {{ new Date(item.created_at).toLocaleDateString() }}
+              </span>
+            </div>
+            
+            <div class="relative h-48 w-full bg-[#1a1a2e] border-y border-white/10 overflow-hidden shrink-0">
               <template v-if="parseImages(item.image_path).length > 0">
                 <img v-for="(img, idx) in parseImages(item.image_path)" :key="idx" 
                      :src="`${apiBaseUrl}files/news-iec/${img}`" 
@@ -55,24 +72,17 @@
               </div>
             </div>
             
-            <!-- Tags directly below image -->
-            <div v-if="item.tags" class="px-6 pt-4 flex flex-wrap gap-2">
-              <span v-for="tag in item.tags.split(',').filter(t => t.trim())" :key="tag" class="text-[11px] font-label font-bold text-purple-400 bg-purple-900/20 px-2.5 py-1 rounded-full">
-                #{{ tag.trim() }}
-              </span>
-            </div>
-            <div class="p-6 flex flex-col flex-grow">
-              <h3 class="font-headline font-bold text-xl mb-3 text-white group-hover:text-purple-400 transition-colors line-clamp-2">{{ item.title }}</h3>
-              <p class="text-sm text-slate-300 leading-relaxed mb-6 line-clamp-3" v-html="linkify(item.description)"></p>
+            <div class="p-6 pt-5 flex flex-col flex-grow">
+              <p class="text-sm text-slate-300 leading-relaxed line-clamp-3 mb-4" v-html="linkify(item.description)"></p>
               
-              <div class="mt-auto flex items-center justify-between text-xs text-slate-400 border-t border-white/5 pt-4">
-                <span class="flex items-center gap-1 font-label">
-                  <span class="material-symbols-outlined text-[14px]">calendar_today</span>
-                  {{ new Date(item.created_at).toLocaleDateString() }}
-                </span>
-                
+              <!-- Tags directly below description -->
+              <div v-if="item.tags" class="mt-auto pt-4 border-t border-white/5 flex flex-wrap gap-2">
+                <button v-for="tag in item.tags.split(',').filter(t => t.trim())" :key="tag" @click.stop="searchNewsQuery = tag.trim(); document.getElementById('news-section').scrollIntoView({behavior:'smooth'})" class="text-[11px] font-label font-bold text-purple-400 bg-purple-900/20 hover:bg-purple-900/40 px-2.5 py-1 rounded-full transition-colors z-30 relative">
+                  #{{ tag.trim() }}
+                </button>
               </div>
             </div>
+          </div>
           </div>
         </div>
       </div>
@@ -178,7 +188,7 @@ const socialLinks = [
   { icon: 'rss_feed' }
 ];
 
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '../api';
 import Swal from 'sweetalert2';
@@ -203,10 +213,14 @@ const loadingArchives = ref(true);
 
 const newsIecItems = ref([]);
 const searchNewsQuery = ref('');
+const activeTag = ref('');
 const filterNewsCategory = ref('All');
 
-
-
+watch(searchNewsQuery, (newVal) => {
+  if (newVal !== activeTag.value) {
+    activeTag.value = '';
+  }
+});
 
 const parseImages = (val) => {
   if (!val) return [];
@@ -343,6 +357,10 @@ const fetchNewsIec = async () => {
 };
 
 onMounted(() => {
+  if (route.query.tag) {
+    searchNewsQuery.value = route.query.tag;
+    activeTag.value = route.query.tag;
+  }
   tickInterval = setInterval(() => {
     globalTick.value++;
   }, 3000);

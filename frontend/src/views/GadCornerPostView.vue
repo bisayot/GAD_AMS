@@ -34,6 +34,17 @@
 
       <!-- Main Content Card -->
       <div class="bg-[#16213e] rounded-2xl border border-white/10 shadow-2xl overflow-hidden mb-16">
+        <div class="p-8 md:p-12 pb-6">
+          <h1 class="text-3xl md:text-5xl font-headline font-extrabold text-white mb-6 leading-tight">{{ post.title }}</h1>
+          
+          <div class="flex items-center gap-4 text-sm text-slate-400 mb-6">
+            <span class="flex items-center gap-1 font-label">
+              <span class="material-symbols-outlined text-[16px]">calendar_today</span>
+              {{ new Date(post.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) }}
+            </span>
+          </div>
+        </div>
+
         <!-- Carousel -->
         <div v-if="parsedImages.length > 0" class="relative h-64 sm:h-96 md:h-[500px] w-full bg-black/50">
           <img :src="`${apiBaseUrl}files/news-iec/${parsedImages[currentImageIndex]}`" 
@@ -57,24 +68,20 @@
           </div>
         </div>
 
-        <div class="p-8 md:p-12">
-          <!-- Tags -->
-          <div v-if="post.tags" class="flex flex-wrap gap-2 mb-6">
-            <span v-for="tag in post.tags.split(',').filter(t => t.trim())" :key="tag" class="text-xs font-label font-bold text-purple-400 bg-purple-900/20 px-3 py-1.5 rounded-full border border-purple-500/20">
-              #{{ tag.trim() }}
-            </span>
-          </div>
+        <div class="p-8 md:p-12 pt-8">
+          <div class="text-slate-200 leading-relaxed whitespace-pre-wrap text-lg md:text-xl font-light mb-10" v-html="linkify(post.description)"></div>
 
-          <h1 class="text-3xl md:text-5xl font-headline font-extrabold text-white mb-6 leading-tight">{{ post.title }}</h1>
-          
-          <div class="flex items-center gap-4 text-sm text-slate-400 mb-10 pb-6 border-b border-white/10">
-            <span class="flex items-center gap-1 font-label">
-              <span class="material-symbols-outlined text-[16px]">calendar_today</span>
-              {{ new Date(post.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) }}
-            </span>
+          <!-- Tags -->
+          <div v-if="post.tags" class="flex flex-wrap gap-2 pt-6 border-t border-white/10">
+            <router-link 
+              :to="`/gad-corner?tag=${tag.trim()}`" 
+              v-for="tag in post.tags.split(',').filter(t => t.trim())" 
+              :key="tag" 
+              class="text-xs font-label font-bold text-purple-400 hover:text-white bg-purple-900/20 hover:bg-purple-600 px-3 py-1.5 rounded-full border border-purple-500/20 transition-colors cursor-pointer"
+            >
+              #{{ tag.trim() }}
+            </router-link>
           </div>
-          
-          <div class="text-slate-200 leading-relaxed whitespace-pre-wrap text-lg md:text-xl font-light" v-html="linkify(post.description)"></div>
         </div>
       </div>
 
@@ -110,11 +117,19 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import api from '../api';
 import Swal from 'sweetalert2';
 
 const route = useRoute();
+const router = useRouter();
+
+const searchTag = (tag) => {
+  router.push({
+    path: '/gad-corner',
+    query: { search: tag.trim() }
+  });
+};
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL 
   ? (import.meta.env.VITE_API_BASE_URL.endsWith('/') ? import.meta.env.VITE_API_BASE_URL : import.meta.env.VITE_API_BASE_URL + '/') 
   : 'http://localhost:8080/api/';
@@ -178,7 +193,7 @@ const prevImage = () => {
 };
 
 const copyShareLink = () => {
-  const link = window.location.href;
+  const link = `${window.location.origin}/gad-corner/${post.value.id}`;
   navigator.clipboard.writeText(link).then(() => {
     Swal.fire({
       toast: true,

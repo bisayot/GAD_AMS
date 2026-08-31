@@ -50,11 +50,11 @@
             </td>
             <td class="p-4 text-right">
               <div class="flex items-center justify-end gap-2">
-                <button @click="openModal(holiday)" class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-purple-400 hover:bg-purple-900/50 rounded-lg transition-colors">
-                  <span class="material-symbols-outlined text-[18px]">edit</span>
+                <button @click="openModal(holiday)" class="w-8 h-8 flex items-center justify-center text-white hover:text-purple-400 hover:bg-purple-900/50 rounded-lg transition-colors">
+                  <span class="material-symbols-outlined text-[18px] text-white">edit</span>
                 </button>
-                <button @click="deleteHoliday(holiday.id)" class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-red-400 hover:bg-red-900/50 rounded-lg transition-colors">
-                  <span class="material-symbols-outlined text-[18px]">delete</span>
+                <button @click="deleteHoliday(holiday.id)" class="w-8 h-8 flex items-center justify-center text-white hover:text-red-400 hover:bg-red-900/50 rounded-lg transition-colors">
+                  <span class="material-symbols-outlined text-[18px] text-white">delete</span>
                 </button>
               </div>
             </td>
@@ -77,7 +77,11 @@
           <div class="space-y-4">
             <div>
               <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Holiday Date</label>
-              <VueDatePicker v-model="form.date" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" auto-apply required input-class-name="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-sm" />
+              <VueDatePicker v-model="form.date" dark :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-sm">
+                <template #dp-input="{ value }">
+                  <input type="text" :value="value ? String(value).replace(',', '').trim().split(' ')[0] : ''" class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-sm" readonly placeholder="Select Date" required />
+                </template>
+              </VueDatePicker>
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Holiday Name</label>

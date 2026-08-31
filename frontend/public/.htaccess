@@ -51,8 +51,8 @@ RewriteCond %{REQUEST_URI} ^/api/
 RewriteCond %{REQUEST_URI} !^/api/index\.php
 RewriteRule ^api/(.*)$ api/index.php/$1 [L,QSA]
 
-# 2. Vue SPA Routing: Route non-API requests to index.html
+# 3. Vue SPA Routing: Route non-API requests to index.php
 RewriteCond %{REQUEST_URI} !^/api/
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ index.html [L,QSA]
+RewriteRule ^ index.php [L,QSA]

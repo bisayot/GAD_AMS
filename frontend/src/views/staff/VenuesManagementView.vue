@@ -52,11 +52,11 @@
             </td>
             <td class="p-4">
               <div class="flex justify-end items-center gap-2">
-                <button class="btn-icon text-blue-400 hover:bg-blue-500/20" @click="openEditModal(venue)" title="Edit">
-                  <span class="material-symbols-outlined text-[1.2rem]">edit</span>
+                <button class="btn-icon text-white hover:text-blue-400 hover:bg-blue-500/20" @click="openEditModal(venue)" title="Edit">
+                  <span class="material-symbols-outlined text-[1.2rem] text-white">edit</span>
                 </button>
-                <button class="btn-icon text-red-400 hover:bg-red-500/20" @click="confirmDelete(venue.venue_id)" title="Delete">
-                  <span class="material-symbols-outlined text-[1.2rem]">delete</span>
+                <button class="btn-icon text-white hover:text-red-400 hover:bg-red-500/20" @click="confirmDelete(venue.venue_id)" title="Delete">
+                  <span class="material-symbols-outlined text-[1.2rem] text-white">delete</span>
                 </button>
               </div>
             </td>

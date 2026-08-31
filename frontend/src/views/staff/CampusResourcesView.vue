@@ -83,8 +83,8 @@ const activeTab = ref('offices');
   background: transparent;
   border: none;
   border-bottom: 3px solid transparent;
-  color: #64748b;
-  font-weight: 700;
+  color: #1e293b; /* Darker black-like color for contrast */
+  font-weight: 800;
   font-size: 18px;
   cursor: pointer;
   transition: all 0.2s;
@@ -92,14 +92,14 @@ const activeTab = ref('offices');
 }
 
 .tab-btn:hover {
-  color: #990dd1;
-  background: rgba(153, 13, 209, 0.05);
+  color: #000000;
+  background: rgba(0, 0, 0, 0.05);
   border-radius: 8px 8px 0 0;
 }
 
 .tab-btn.active-tab {
-  color: #990dd1;
-  border-bottom-color: #990dd1;
+  color: #000000;
+  border-bottom-color: #000000;
 }
 
 .tab-btn .material-symbols-outlined {
