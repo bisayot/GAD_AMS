@@ -35,11 +35,11 @@ class DataRetentionService
             : [];
             
         $trashTtlDays = isset($settings['trash_ttl_days']) ? (int)$settings['trash_ttl_days'] : 30;
-        $messagesTtlDays = isset($settings['messages_ttl_days']) ? (int)$settings['messages_ttl_days'] : 0;
-        $logsTtlDays = isset($settings['activity_logs_ttl_days']) ? (int)$settings['activity_logs_ttl_days'] : 0;
-        $archivesTtlDays = isset($settings['archived_documents_ttl_days']) ? (int)$settings['archived_documents_ttl_days'] : 0;
+        $messagesTtlDays = isset($settings['messages_ttl_days']) ? (int)$settings['messages_ttl_days'] : 365;
+        $logsTtlDays = isset($settings['activity_logs_ttl_days']) ? (int)$settings['activity_logs_ttl_days'] : 365;
+        $archivesTtlDays = isset($settings['archived_documents_ttl_days']) ? (int)$settings['archived_documents_ttl_days'] : 1825;
         $notificationsTtlDays = isset($settings['notifications_ttl_days']) ? (int)$settings['notifications_ttl_days'] : 30;
-        $draftsTtlDays = isset($settings['drafts_ttl_days']) ? (int)$settings['drafts_ttl_days'] : 0;
+        $draftsTtlDays = isset($settings['drafts_ttl_days']) ? (int)$settings['drafts_ttl_days'] : 365;
 
         $db = \Config\Database::connect();
         
