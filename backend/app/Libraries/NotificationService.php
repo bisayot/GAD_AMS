@@ -21,8 +21,10 @@ class NotificationService
     {
         if (empty($link)) return $link;
 
-        if (in_array($role, ['admin', 'gad_staff'])) {
+        if ($role === 'admin') {
             $prefix = '/admin';
+        } elseif ($role === 'gad_staff') {
+            $prefix = '/staff';
         } elseif (in_array($role, ['college', 'twg', 'non-twg'])) {
             $prefix = '/college';
         } else {
