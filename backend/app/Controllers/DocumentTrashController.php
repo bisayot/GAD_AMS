@@ -71,23 +71,37 @@ class DocumentTrashController extends BaseController
 
     private function autoCleanup($db, $table)
     {
+        $idColumn = $table === 'activity_design' ? 'act_design_id' : 'id';
+        
         // Find documents deleted more than 30 days ago
         $oldRecords = $db->table($table)
             ->where('deleted_at IS NOT NULL')
             ->where('deleted_at <', date('Y-m-d H:i:s', strtotime('-30 days')))
             ->get()->getResultArray();
 
+        $idsToDelete = [];
         foreach ($oldRecords as $record) {
+            $idsToDelete[] = $record[$idColumn];
             if (!empty($record['attachment'])) {
                 FileStorage::deleteFromDrafts($record['attachment']);
             }
         }
 
-        // Hard delete them
-        $db->table($table)
-            ->where('deleted_at IS NOT NULL')
-            ->where('deleted_at <', date('Y-m-d H:i:s', strtotime('-30 days')))
-            ->delete();
+        if (!empty($idsToDelete)) {
+            if ($table === 'activity_design') {
+                $db->table('activity_budget_items')->whereIn('act_design_id', $idsToDelete)->delete();
+                $db->table('activity_design_mandates')->whereIn('act_design_id', $idsToDelete)->delete();
+                $db->table('activity_design_issues')->whereIn('act_design_id', $idsToDelete)->delete();
+                $db->table('activity_schedules')->whereIn('act_design_id', $idsToDelete)->delete();
+            } else if ($table === 'accomplishment_report') {
+                $db->table('accomplishment_budget_items')->whereIn('accomplishment_report_id', $idsToDelete)->delete();
+                $db->table('accomplishment_evaluation_results')->whereIn('accomplishment_report_id', $idsToDelete)->delete();
+                $db->table('accomplishment_schedules')->whereIn('accomplishment_report_id', $idsToDelete)->delete();
+            }
+
+            // Hard delete them
+            $db->table($table)->whereIn($idColumn, $idsToDelete)->delete();
+        }
     }
 
     public function permanentlyDelete()
@@ -130,6 +144,12 @@ class DocumentTrashController extends BaseController
                 }
             }
             if (!empty($validDesignIds)) {
+                $db = \Config\Database::connect();
+                $db->table('activity_budget_items')->whereIn('act_design_id', $validDesignIds)->delete();
+                $db->table('activity_design_mandates')->whereIn('act_design_id', $validDesignIds)->delete();
+                $db->table('activity_design_issues')->whereIn('act_design_id', $validDesignIds)->delete();
+                $db->table('activity_schedules')->whereIn('act_design_id', $validDesignIds)->delete();
+                
                 $adModel->delete($validDesignIds, true); // true = purge
             }
         }
@@ -147,6 +167,11 @@ class DocumentTrashController extends BaseController
                 }
             }
             if (!empty($validReportIds)) {
+                $db = \Config\Database::connect();
+                $db->table('accomplishment_budget_items')->whereIn('accomplishment_report_id', $validReportIds)->delete();
+                $db->table('accomplishment_evaluation_results')->whereIn('accomplishment_report_id', $validReportIds)->delete();
+                $db->table('accomplishment_schedules')->whereIn('accomplishment_report_id', $validReportIds)->delete();
+                
                 $arModel->delete($validReportIds, true);
             }
         }
