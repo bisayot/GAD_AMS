@@ -155,7 +155,7 @@
             </div>
             
             <div class="input-wrapper">
-              <label class="input-label">Activity Logs TTL (Days)</label>
+              <label class="input-label">Main Logs TTL (Days)</label>
               <input 
                 type="number" 
                 v-model.number="retentionForm.activity_logs_ttl_days" 
@@ -164,6 +164,18 @@
                 required
               />
               <span class="text-xs text-slate-500">System activity logs</span>
+            </div>
+
+            <div class="input-wrapper">
+              <label class="input-label">Operational Logs TTL (Days)</label>
+              <input 
+                type="number" 
+                v-model.number="retentionForm.operational_logs_ttl_days" 
+                class="custom-input" 
+                min="0"
+                required
+              />
+              <span class="text-xs text-slate-500">Logins, logouts, user management</span>
             </div>
 
             <div class="input-wrapper">
@@ -242,6 +254,7 @@ const retentionForm = ref({
   trash_ttl_days: 30,
   messages_ttl_days: 365,
   activity_logs_ttl_days: 365,
+  operational_logs_ttl_days: 90,
   archived_documents_ttl_days: 1825,
   drafts_ttl_days: 365
 });
@@ -278,6 +291,7 @@ onMounted(async () => {
           trash_ttl_days: res.data.trash_ttl_days ?? 30,
           messages_ttl_days: res.data.messages_ttl_days ?? 365,
           activity_logs_ttl_days: res.data.activity_logs_ttl_days ?? 365,
+          operational_logs_ttl_days: res.data.operational_logs_ttl_days ?? 90,
           archived_documents_ttl_days: res.data.archived_documents_ttl_days ?? 1825,
           drafts_ttl_days: res.data.drafts_ttl_days ?? 365
         };

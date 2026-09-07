@@ -2,7 +2,7 @@
   <aside 
     :class="[
       'w-64 bg-[#1a1a2e] text-white fixed h-full flex flex-col p-6 shadow-xl z-50 transition-transform duration-300 top-0 left-0',
-      isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      isOpen ? 'translate-x-0' : '-translate-x-full'
     ]"
   >
     <div class="sidebar-header relative w-full">
@@ -14,8 +14,8 @@
           <div class="logo-dept">Gender and Development Office</div>
         </div>
       </div>
-      <button @click="$emit('close')" class="lg:hidden absolute top-0 -right-2 text-slate-400 hover:text-white p-1 flex items-center justify-center">
-        <span class="material-symbols-outlined text-lg">close</span>
+      <button @click="$emit('close')" class="absolute -top-2 -right-2 w-8 h-8 flex items-center justify-center rounded-full text-white transition-all shadow-md hover:opacity-80" style="background-color: #ef4444;">
+        <span class="material-symbols-outlined text-sm font-bold">close</span>
       </button>
     </div>
 

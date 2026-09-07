@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-slate-50 flex">
     <!-- Mobile Sidebar Overlay -->
-    <div v-if="isSidebarOpen" @click="isSidebarOpen = false" class="fixed inset-0 bg-black/50 z-40 lg:hidden"></div>
+    <div v-if="isSidebarOpen" @click="isSidebarOpen = false" class="fixed inset-0 bg-black/50 z-40"></div>
 
     <DashboardSidebar
       :isOpen="isSidebarOpen"
@@ -11,7 +11,7 @@
       @logout="handleLogout"
     />
 
-    <div class="flex-grow flex flex-col lg:ml-64 min-h-screen transition-all duration-300 w-full relative">
+    <div class="flex-grow flex flex-col min-h-screen transition-all duration-300 w-full relative">
       <header 
         :class="[
           'h-20 bg-[#1a1a2e] border-b border-purple-900/30 flex items-center justify-between px-6 sticky top-0 z-30 transition-transform duration-300',
@@ -19,7 +19,7 @@
         ]"
       >
         <div class="flex items-center">
-          <button @click="isSidebarOpen = true" class="lg:hidden hover:text-primary transition-colors flex items-center" style="color: white !important;">
+          <button @click="isSidebarOpen = true" class="hover:text-primary transition-colors flex items-center" style="color: white !important;">
             <span class="material-symbols-outlined text-3xl" style="color: white !important;">menu</span>
           </button>
         </div>

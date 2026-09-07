@@ -37,6 +37,7 @@ class DataRetentionService
         $trashTtlDays = isset($settings['trash_ttl_days']) ? (int)$settings['trash_ttl_days'] : 30;
         $messagesTtlDays = isset($settings['messages_ttl_days']) ? (int)$settings['messages_ttl_days'] : 365;
         $logsTtlDays = isset($settings['activity_logs_ttl_days']) ? (int)$settings['activity_logs_ttl_days'] : 365;
+        $operationalLogsTtlDays = isset($settings['operational_logs_ttl_days']) ? (int)$settings['operational_logs_ttl_days'] : 90;
         $archivesTtlDays = isset($settings['archived_documents_ttl_days']) ? (int)$settings['archived_documents_ttl_days'] : 1825;
         $notificationsTtlDays = isset($settings['notifications_ttl_days']) ? (int)$settings['notifications_ttl_days'] : 30;
         $draftsTtlDays = isset($settings['drafts_ttl_days']) ? (int)$settings['drafts_ttl_days'] : 365;
@@ -80,22 +81,28 @@ class DataRetentionService
             }
 
             // C. Delete old Activity Logs (Split into Operational and Main)
-            if ($logsTtlDays > 0) {
+            if ($logsTtlDays > 0 || $operationalLogsTtlDays > 0) {
                 $operationalActions = ['Login', 'Logout', 'Register User', 'Suspend User', 'Restore User', 'Delete User'];
                 
-                // C1. Delete Operational Logs older than 90 days
-                $db->table('activity_logs')
-                   ->whereIn('action', $operationalActions)
-                   ->where('created_at <', date('Y-m-d H:i:s', strtotime('-90 days')))
-                   ->delete();
-                $opDeleted = $db->affectedRows();
+                $opDeleted = 0;
+                // C1. Delete Operational Logs older than configured TTL
+                if ($operationalLogsTtlDays > 0) {
+                    $db->table('activity_logs')
+                       ->whereIn('action', $operationalActions)
+                       ->where('created_at <', date('Y-m-d H:i:s', strtotime("-{$operationalLogsTtlDays} days")))
+                       ->delete();
+                    $opDeleted = $db->affectedRows();
+                }
 
+                $mainDeleted = 0;
                 // C2. Delete Main Logs older than the configured TTL (usually 1 year)
-                $db->table('activity_logs')
-                   ->whereNotIn('action', $operationalActions)
-                   ->where('created_at <', date('Y-m-d H:i:s', strtotime("-{$logsTtlDays} days")))
-                   ->delete();
-                $mainDeleted = $db->affectedRows();
+                if ($logsTtlDays > 0) {
+                    $db->table('activity_logs')
+                       ->whereNotIn('action', $operationalActions)
+                       ->where('created_at <', date('Y-m-d H:i:s', strtotime("-{$logsTtlDays} days")))
+                       ->delete();
+                    $mainDeleted = $db->affectedRows();
+                }
                 
                 $totalDeleted['logs_deleted'] = $opDeleted + $mainDeleted;
             }

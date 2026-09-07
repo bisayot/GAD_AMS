@@ -71,6 +71,7 @@ class SettingController extends ResourceController
             'trash_ttl_days' => 30,
             'messages_ttl_days' => 365,
             'activity_logs_ttl_days' => 365,
+            'operational_logs_ttl_days' => 90,
             'archived_documents_ttl_days' => 1825,
             'drafts_ttl_days' => 365
         ];

@@ -53,17 +53,44 @@ body {
 }
 
 /* Ensure all badges do not stretch horizontally */
-[class*="-badge"], [class*="badge-"] {
+[class*="-badge"],
+[class*="badge-"] {
   width: max-content !important;
   white-space: nowrap !important;
 }
+
 /* Force hide the action row (clock icon) in VueDatePicker since all date pickers use auto-apply and do not need time picker */
 .dp--action-row {
   display: none !important;
 }
 
 /* BRUTAL HIDE OF ACTION ROW */
-.dp--action-row, .dp__action_row, .dp--button-bottom, .dp__button_bottom, .dp--action-extra, .dp__action_extra, .dp--time-overlay-btn { display: none !important; height: 0 !important; overflow: hidden !important; padding: 0 !important; margin: 0 !important; border: none !important; }
+.dp--action-row,
+.dp__action_row,
+.dp--button-bottom,
+.dp__button_bottom,
+.dp--action-extra,
+.dp__action_extra,
+.dp--time-overlay-btn {
+  display: none !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+}
 
 /* ULTIMATE NUKE CLOCK ICON */
-.dp--action-row, .dp__action_row, .dp--button-bottom, .dp--overlay-action, button.dp--button.dp--overlay-action, .dp--time-overlay-btn { display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; position: absolute !important; z-index: -9999 !important; }
+.dp--action-row,
+.dp__action_row,
+.dp--button-bottom,
+.dp--overlay-action,
+button.dp--button.dp--overlay-action,
+.dp--time-overlay-btn {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  z-index: -9999 !important;
+}
