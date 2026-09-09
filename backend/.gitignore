@@ -4,6 +4,10 @@ vendor/
 
 # Configuration files
 .env
+.env.production
+.env.localhost
+.env.*
+*.env
 config/config.php
 
 # Log files
