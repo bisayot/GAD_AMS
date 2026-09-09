@@ -43,6 +43,19 @@
         </div>
       </div>
 
+    <!-- Info Banner -->
+    <div class="mb-6 p-4 bg-purple-500/10 border border-purple-500/20 rounded-xl flex items-start gap-3">
+      <span class="material-symbols-outlined text-purple-400 text-[24px]">info</span>
+      <div class="text-sm text-slate-300 leading-relaxed">
+        <p class="font-bold text-white mb-1">Replying to Inquiries</p>
+        <ul class="list-disc list-inside space-y-1">
+          <li>Use <strong class="text-purple-300">System Reply</strong> for quick, text-only responses directly from the dashboard.</li>
+          <li>Use <strong class="text-red-300">Gmail Reply</strong> if you need to attach files alongside text or want a continuous conversation.</li>
+          <li class="mt-2 text-purple-200"><strong>Note on System Reply:</strong> It sends a one-way email. The inquirer will be instructed to email <strong>gad.office@bsu.edu.ph</strong> directly to continue the conversation.</li>
+        </ul>
+      </div>
+    </div>
+
     <!-- Main Content -->
     <div class="glass-card overflow-hidden rounded-[2rem]">
       <!-- Loading State -->
@@ -103,16 +116,26 @@
               <button 
                 v-if="!inquiry.status.startsWith('replied')"
                 @click="openReplyModal(inquiry)"
-                class="text-sm px-3 py-1 btn-primary flex items-center gap-1"
-                title="Reply"
+                class="text-sm px-3 py-1 btn-primary flex items-center gap-1 !text-white"
+                title="Reply via System"
               >
-                <span class="material-symbols-outlined text-[16px]">reply</span> Reply
+                <span class="material-symbols-outlined text-[16px]">reply</span> System Reply
+              </button>
+
+              <button 
+                v-if="!inquiry.status.startsWith('replied')"
+                @click="openGmail(inquiry)"
+                class="text-sm px-3 py-1 rounded transition-colors flex items-center gap-1 font-medium"
+                style="background-color: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.2);"
+                title="Reply via Gmail"
+              >
+                <span class="material-symbols-outlined text-[16px]">mail</span> Gmail Reply
               </button>
               
               <button 
                 v-if="inquiry.status === 'new'"
                 @click="markAsRead(inquiry)"
-                class="text-sm px-3 py-1.5 bg-slate-600 rounded text-white hover:bg-slate-500 transition-colors flex items-center gap-1 shadow-sm"
+                class="text-sm px-3 py-1.5 bg-slate-600 rounded !text-white hover:bg-slate-500 transition-colors flex items-center gap-1 shadow-sm"
                 title="Mark as Read"
               >
                 <span class="material-symbols-outlined text-[16px]">done</span> Mark Read
@@ -120,7 +143,8 @@
 
               <button 
                 @click="deleteInquiry(inquiry)"
-                class="text-sm px-3 py-1.5 bg-red-600 rounded text-white hover:bg-red-500 transition-colors flex items-center gap-1 shadow-sm"
+                class="text-sm px-3 py-1.5 rounded transition-colors flex items-center gap-1 shadow-sm font-medium"
+                style="background-color: #dc2626; color: white;"
                 title="Delete Inquiry"
               >
                 <span class="material-symbols-outlined text-[16px]">delete</span> Delete
@@ -154,7 +178,7 @@
           <div class="mb-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg text-sm text-amber-200 flex items-start gap-3">
             <span class="material-symbols-outlined text-amber-400 text-[20px]">warning</span>
             <p class="leading-relaxed">
-              <strong>Note:</strong> Our system uses a free email service with daily limits. If sending fails, please close this and reply manually using your own email client.
+              <strong>Note:</strong> If sending fails, please close this and reply manually using your own email client.
             </p>
           </div>
           
@@ -226,6 +250,26 @@ const formatDate = (dateString) => {
     hour: '2-digit',
     minute: '2-digit'
   });
+};
+
+const openGmail = (inquiry) => {
+  const to = encodeURIComponent(inquiry.email);
+  const subject = encodeURIComponent(`Re: ${inquiry.subject} [${formatTicketNumber(inquiry.id)}]`);
+  const body = encodeURIComponent(`Hello ${inquiry.name},\n\n\n\n---\nOriginal message:\n${inquiry.message}`);
+  
+  // Construct the Gmail compose URL
+  const composeUrl = `https://mail.google.com/mail/?view=cm&to=${to}&su=${subject}&body=${body}`;
+  
+  // Wrap it in the Google Account Chooser URL so they can select which email to send from
+  const accountChooserUrl = `https://accounts.google.com/AccountChooser?continue=${encodeURIComponent(composeUrl)}`;
+  
+  // Open in a small popup window instead of a full new tab
+  const width = 800;
+  const height = 650;
+  const left = (window.innerWidth - width) / 2;
+  const top = (window.innerHeight - height) / 2;
+  
+  window.open(accountChooserUrl, 'GmailCompose', `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`);
 };
 
 const fetchInquiries = async () => {

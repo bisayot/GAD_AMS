@@ -60,7 +60,7 @@
         <div v-if="emailLimitReached" class="mt-6 p-4 bg-purple-500/10 rounded-lg border border-purple-500/20 flex items-start gap-3">
           <span class="material-symbols-outlined text-purple-400 text-[20px]">info</span>
           <p class="text-sm text-slate-300 leading-relaxed">
-            Not receiving the email? Our system uses a free email service with daily limits. If it fails, please email us directly at <a href="mailto:gad.office@bsu.edu.ph" class="text-purple-400 font-bold hover:underline">gad.office@bsu.edu.ph</a> for a manual reset.
+            Not receiving the email? Please email us directly at <a href="mailto:gad.office@bsu.edu.ph" class="text-purple-400 font-bold hover:underline">gad.office@bsu.edu.ph</a> for a manual reset.
           </p>
         </div>
 

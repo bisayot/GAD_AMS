@@ -154,7 +154,10 @@ class ContactController extends BaseController
 
         // Send Email using Brevo REST API to bypass Render's SMTP block
         $apiKey = getenv('BREVO_API_KEY') ?: env('BREVO_API_KEY') ?: getenv('SMTP_PASS') ?: env('SMTP_PASS') ?: env('email.SMTPPass') ?: '';
+        $apiKey = trim($apiKey, '"\'');
+        
         $senderEmail = getenv('FROM_EMAIL') ?: env('FROM_EMAIL') ?: env('email.fromEmail') ?: 'gadims.bsu.bsit@gmail.com';
+        $senderEmail = trim($senderEmail, '"\'');
         
         $ticketNumber = 'INQ-' . str_pad($inquiry['id'], 5, '0', STR_PAD_LEFT);
 
@@ -207,7 +210,7 @@ class ContactController extends BaseController
             ]);
         } else {
             log_message('error', 'Brevo API Error in ContactReply: ' . $response . ' cURL Error: ' . $curlError);
-            return $this->failServerError('Failed to send email. You might have reached your daily limit.');
+            return $this->failServerError('Brevo API Error: ' . $response . ' | cURL Error: ' . $curlError);
         }
     }
 
