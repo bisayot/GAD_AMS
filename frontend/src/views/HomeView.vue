@@ -184,6 +184,7 @@
           <p class="about-body mx-auto text-base mt-4 mb-10 max-w-4xl">Budget numbers update on their own as funds are used. The GAD Director still reviews and approves everything, but this system just removes the paper-based revision and guesswork around getting things there and finding out where they stand. Visitors can also check completed activities and summary reports on the page without needing to log in.</p>
           <div class="about-btns justify-center flex gap-4 mt-8">
             <button class="btn-primary px-8 py-4 text-sm tracking-widest shadow-lg hover:shadow-purple-500/25" @click="$router.push('/register')">Access System</button>
+            <button class="btn-outline px-8 py-4 text-sm tracking-widest" @click="showPrivacyModal = true">Privacy Policy</button>
           </div>
         </div>
       </div>
@@ -215,6 +216,12 @@
         </div>
       </div>
     </div>
+
+    <!-- Privacy Policy Modal -->
+    <PrivacyPolicyModal 
+      v-if="showPrivacyModal" 
+      @close="showPrivacyModal = false" 
+    />
   </div>
 </template>
 
@@ -224,6 +231,7 @@ import { useRouter } from 'vue-router';
 import api from '../api';
 import { Doughnut } from 'vue-chartjs';
 import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from 'chart.js';
+import PrivacyPolicyModal from '../components/PrivacyPolicyModal.vue';
 
 ChartJS.register(Title, Tooltip, Legend, ArcElement);
 
@@ -246,6 +254,7 @@ const displayOffices = ref([]);
 const isAnimating = ref(false);
 const showSplash = ref(true);
 const showGuidelinesModal = ref(false);
+const showPrivacyModal = ref(false);
 const $router = useRouter();
 
 // Hover effect states

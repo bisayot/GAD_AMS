@@ -37,13 +37,13 @@
                   <div>
                     <h3 class="subsection-title">2.1 Logging In</h3>
                     <p class="subsection-text">
-                      Access the system via your web browser using the provided URL. Enter your username and password credentials provided by the system administrator.
+                      Access the system via your web browser using the provided URL (bsugad.com). Enter your email and password credentials provided by the system administrator.
                     </p>
                   </div>
                   <div>
                     <h3 class="subsection-title">2.2 Navigating the Dashboard</h3>
                     <p class="subsection-text">
-                      After logging in, you will be directed to the Staff Dashboard. The left sidebar contains all main navigation menus including Dashboard, GAD Programs, Mandates Management, Budget Monitoring, and Reports.
+                      After logging in, you will be directed to the Staff Dashboard. The left sidebar contains all main navigation menus including but not limited to Dashboard, Communications, Submitted List, Activity Design List, Accomplishment Report List, Plan and Budget and Report Monitoring.
                     </p>
                   </div>
                 </div>
@@ -55,10 +55,11 @@
                   The dashboard provides a quick overview of key metrics and pending activities:
                 </p>
                 <ul class="styled-list">
-                  <li><strong>Pending Activities</strong> - Shows number of activity designs awaiting review</li>
-                  <li><strong>Activity Designs</strong> - Count of submitted activity designs</li>
-                  <li><strong>Accomplishment Reports</strong> - Count of submitted accomplishment reports</li>
-                  <li><strong>GAD Budget</strong> - Displays current budget allocation and utilization</li>
+                  <li><strong>Pending Activity Designs</strong> - Shows number of activity designs awaiting review</li>
+                  <li><strong>Pending Accomplishment Reports</strong> - Shows number of accomplishment reports awaiting review</li>
+                  <li><strong>Total GAD Budget</strong> - Displays current total budget</li>
+                  <li><strong>Remaining Balance</strong> - Displays the remaining budget after an accomplishment report is verified</li>
+                  <li><strong>Gad Allocation</strong> - Displays the allocation based on the GAD plan and budget</li>
                   <li><strong>Calendar Widget</strong> - Shows upcoming deadlines and scheduled activities</li>
                   <li><strong>Recent Activity Logs</strong> - Tracks recent system activities</li>
                 </ul>
@@ -70,19 +71,20 @@
                 <div class="subsection">
                   <h3 class="subsection-title">4.1 Activity Design Submission</h3>
                   <ol class="styled-list numeric">
-                    <li>Click the "New Submission" button on the sidebar or the floating action button</li>
+                    <li>Click the "New Submission" button on the sidebar</li>
                     <li>Select "Activity Design" from the options</li>
                     <li>Fill out the form with:
                       <ul class="nested-list">
-                        <li>Nature of Transaction (Employee, INSET, Extension, or Student Activity)</li>
+                        <li>Form Type (Employee, INSET, Extension, or External Training)</li>
+                        <li>Activity Classification (client, organization, attributed)</li>
                         <li>Activity Title</li>
-                        <li>Start and End Dates</li>
-                        <li>Start and End Times</li>
-                        <li>Venue</li>
-                        <li>Target Participants (max 6 digits)</li>
-                        <li>Proposed Budget</li>
-                        <li>Upload Activity Design file (PDF/DOCX)</li>
-                        <li>Proponent Information</li>
+                        <li>Gender issue/GAD mandate</li>
+                        <li>Cause of gender issue</li>
+                        <li>Calculated Start and End Dates (Base from activity schedules input)</li>
+                        <li>Venue Location</li>
+                        <li>Target Participants</li>
+                        <li>Proposed Budgetary Requirements</li>
+                        <li>Upload Activity Design file (PDF)</li>
                       </ul>
                     </li>
                     <li>Click "Submit Activity Design" to complete the submission</li>
@@ -92,20 +94,24 @@
                 <div class="subsection">
                   <h3 class="subsection-title">4.2 Accomplishment Report Submission</h3>
                   <ol class="styled-list numeric">
-                    <li>Click the "New Submission" button on the sidebar or the floating action button</li>
+                    <li>Click the "New Submission" button on the sidebar </li>
                     <li>Select "Accomplishment Report" from the options</li>
                     <li>Fill out the form with:
                       <ul class="nested-list">
+                        <li>Activity Design Control Number (Base from approved activity design, Some fields will be Populated after selection)</li>
                         <li>Activity Title</li>
-                        <li>Control Number (select from approved activity designs dropdown)</li>
-                        <li>Start and End Dates</li>
-                        <li>Start and End Times</li>
-                        <li>Venue</li>
-                        <li>Number of Attendees (max 6 digits)</li>
-                        <li>Male/Female Participant Breakdown</li>
+                        <li>Form Type</li>
+                        <li>Activity Classification</li>
+                        <li>Gender issue/GAD mandate</li>
+                        <li>Cause of gender issue</li>
+                        <li>Target Participants</li>
+                        <li>Calculated Start and End Dates</li>
+                        <li>Venue Location</li>
+                        <li>Number of Attendees</li>
+                        <li>Male/Female Participant</li>
                         <li>Activity Rating (0-100% with criteria table)</li>
-                        <li>Upload Report & Attachments (multiple files accepted)</li>
-                        <li>Proponent Information</li>
+                        <li>Upload Report & Attachments (eg. Attendance) (multiple files accepted)</li>
+                        <li>Actual Budgetary Expenditure</li>
                       </ul>
                     </li>
                     <li>Click "Submit Accomplishment Report" to complete the submission</li>
@@ -115,57 +121,71 @@
 
               <div id="viewing" class="manual-section">
                 <h2 class="section-title">5. Viewing Submissions</h2>
-                <p class="subsection-text">
-                  As a GAD Staff user, you have monitoring access to view all submissions:
-                </p>
+                <p class="subsection-text">As a GAD Staff user, you have monitoring access to view all submissions:</p>
                 <ul class="styled-list">
-                  <li><span class="bold-text">Activity Designs:</span> Navigate to "Submitted Activity Designs" from the sidebar to view all submitted designs. Click "View" on any row to see the complete details.</li>
-                  <li><span class="bold-text">Accomplishment Reports:</span> Navigate to "Submitted Accomplishment Reports" to view all reports. Click "View" to see the complete report with ratings and attachments.</li>
-                  <li><span class="bold-text">Filters:</span> Use the filter bar to sort by status, form type, office, or search by title/control number.</li>
+                  <li><strong>Activity Designs:</strong> Navigate to "Submitted Activity Designs" from the sidebar to view all submitted designs. Click "View" on any row to see the complete details.</li>
+                  <li><strong>Accomplishment Reports:</strong> Navigate to "Submitted Accomplishment Reports" to view all reports. Click "View" to see the complete report with ratings and attachments.</li>
+                  <li><strong>Submitted List:</strong> Shows the Total submission across all users and shows how many users are from each college/office/unit and their user roles</li>
+                  <li><strong>Filters:</strong> Use the filter bar to sort by status, form type, office, or search by title/control number.</li>
                 </ul>
                 <div class="note-box">
-                  Note: Staff users can only view documents (preview only). No download buttons are available for uploaded files.
+                  Note: There is also a modification request modal in activity design submission for the approval on approved activity design modification.
                 </div>
               </div>
 
-              <div id="mandates" class="manual-section">
-                <h2 class="section-title">6. GAD Mandates Management</h2>
-                <p class="subsection-text">This section displays all GAD mandates where the GAD Office is the responsible unit:</p>
+              <div id="plan-budget" class="manual-section">
+                <h2 class="section-title">6. Plan and Budget (Editable)</h2>
+                <p class="subsection-text">This section displays the full GAD plan and budget</p>
                 <ul class="styled-list">
-                  <li>View the complete list of 22 GAD Office mandates</li>
-                  <li>Filter mandates by status (In Progress, Completed, Upcoming)</li>
-                  <li>Search for specific mandates by title</li>
-                  <li>Access the GAD Plan & Budget document (PDF viewer)</li>
-                  <li>Assign mandates to accomplishment reports</li>
+                  <li>An editable budget distribution for the tracking of expenses per GAD mandates, in budget distribution staff can also set the budget line classification for every field in budgetary requirements</li>
+                  <li>Baseline Amounts modal for setting some budget limit or budget average for budgetary requirements</li>
+                  <li>Import EXCEL for easier importing of the approved GAD plan and budget items (conversion from PDF to EXCEL is also shown in the modal)</li>
                 </ul>
               </div>
 
-              <div id="budget" class="manual-section">
-                <h2 class="section-title">7. Budget Monitoring</h2>
-                <p class="subsection-text">The budget monitoring page provides:</p>
+              <div id="report-monitoring" class="manual-section">
+                <h2 class="section-title">7. Report Monitoring</h2>
+                <p class="subsection-text">The report monitoring follows the GAD accomplishment report form:</p>
                 <ul class="styled-list">
-                  <li>Total GAD Budget overview</li>
-                  <li>GAD Office Budget breakdown by category</li>
-                  <li>Balance available for implementation</li>
-                  <li>Mandate-based budget utilization tracking with progress bars</li>
-                  <li>Recent budget utilization logs</li>
-                  <li>Expense category split summary</li>
+                  <li>Every GAD plan and budget item added in GAD plan and budget page will also automatically appear in the page</li>
+                  <li>The actual expenses will also be calculated and entered based on the GAD plan and budget section and budget distribution in the GAD plan and budget page</li>
+                  <li>The gender of participants will also be automatically inputted base from the approved accomplishment reports</li>
+                  <li>After the report has been verified the user can now archive the annual accomplishment report</li>
                 </ul>
               </div>
-
-              <div id="reports" class="manual-section">
-                <h2 class="section-title">8. Reports</h2>
-                <p class="subsection-text">Generate and view annual reports:</p>
+              
+              <div id="communications" class="manual-section">
+                <h2 class="section-title">8. Communications</h2>
                 <ul class="styled-list">
-                  <li><span class="bold-text">Annual Report:</span> Comprehensive report of GAD accomplishments with sex-disaggregated data</li>
-                  <li><span class="bold-text">GAD Plan & Budget:</span> View the GPB document in table or PDF format</li>
-                  <li><span class="bold-text">Export to Excel:</span> Download report data for offline analysis</li>
-                  <li><span class="bold-text">Year Selection:</span> Switch between different fiscal years (2024-2026)</li>
+                  <li><strong>Messages:</strong> To message director/twg/non-twg</li>
+                  <li><strong>Inquiries:</strong> To reply inquiries from outside users</li>
+                  <li><strong>Publish IEC/News:</strong> Page to create post that will be published and seen at GAD corner at home page</li>
                 </ul>
+              </div>
+              
+              <div id="system-controls" class="manual-section">
+                <h2 class="section-title">9. System Controls and Legal and Guides</h2>
+                <ul class="styled-list">
+                  <li><strong>Campus Resources Page:</strong> An editable section for offices and units, venues, holidays</li>
+                  <li><strong>User Management:</strong> View, edit, suspend, add users. Also added a toggle switch for the ad submission Mon-Fri.</li>
+                  <li><strong>Document Trash Bin:</strong> Soft deleted documents</li>
+                  <li><strong>User Manual and Data Privacy:</strong> Legal and Guides</li>
+                </ul>
+                <div class="note-box">
+                  <p>Note: On the settings part there is a Data Retention Policies area where the user can modify:</p>
+                  <ul class="nested-list">
+                    <li>Trashbin TTL (Days) - All data in trashbin</li>
+                    <li>Messages TTL (Days) - Auto-move to trash</li>
+                    <li>Main Logs TTL (Days) - System activity logs</li>
+                    <li>Operational Logs TTL (Days) - Logins, logouts, user management</li>
+                    <li>Archived Documents TTL (Days) - Applies to Activity Designs (Accomplishment reports are permanent)</li>
+                    <li>Drafts TTL (Days) - Pending, revision, disapproved documents</li>
+                  </ul>
+                </div>
               </div>
 
               <div id="faq" class="manual-section">
-                <h2 class="section-title">9. Frequently Asked Questions</h2>
+                <h2 class="section-title">10. Frequently Asked Questions</h2>
                 <div class="faq-list">
                   <div class="faq-item" v-for="(faq, idx) in faqs" :key="idx">
                     <h3 class="faq-question">Q: {{ faq.q }}</h3>
@@ -175,16 +195,16 @@
               </div>
 
               <div id="support" class="manual-section">
-                <h2 class="section-title">10. Technical Support</h2>
+                <h2 class="section-title">11. Technical Support</h2>
                 <p class="subsection-text">For technical assistance, bug reports, or system inquiries, please contact:</p>
                 <div class="support-box">
                   <p class="support-title">GAD-AMS System Administrator</p>
                   <p class="support-text">Gender and Development Office</p>
                   <p class="support-text">Benguet State University</p>
-                  <p class="support-email">Email: gad.ims@bsu.edu.ph</p>
+                  <p class="support-email">Email: gad.office@bsu.edu.ph</p>
                   <p class="support-text">Tel: (074) 422-2401 loc 123</p>
                 </div>
-                <p class="version-info">System Version: 1.0 | Last Updated: January 2026</p>
+                <p class="version-info">System Version: 1.0 | Last Updated: September 2026</p>
               </div>
 
             </div>
@@ -214,29 +234,30 @@ const tocSections = [
   { id: 'dashboard', label: '3. Dashboard Overview' },
   { id: 'submissions', label: '4. Submitting Forms' },
   { id: 'viewing', label: '5. Viewing Submissions' },
-  { id: 'mandates', label: '6. GAD Mandates Management' },
-  { id: 'budget', label: '7. Budget Monitoring' },
-  { id: 'reports', label: '8. Reports' },
-  { id: 'faq', label: '9. Frequently Asked Questions' },
-  { id: 'support', label: '10. Technical Support' }
+  { id: 'plan-budget', label: '6. Plan and Budget' },
+  { id: 'report-monitoring', label: '7. Report Monitoring' },
+  { id: 'communications', label: '8. Communications' },
+  { id: 'system-controls', label: '9. System Controls' },
+  { id: 'faq', label: '10. FAQs' },
+  { id: 'support', label: '11. Technical Support' }
 ];
 
 const faqs = [
   { 
     q: 'What should I do if I encounter an error while submitting a form?', 
-    a: 'Check that all required fields are filled out correctly. Ensure file sizes are within limits (10MB for activity designs, 15MB per file for reports). If the issue persists, contact technical support.' 
+    a: 'Check that all required fields are filled out correctly. If the issue persists, contact gad.office@bsu.edu.ph.' 
   },
   { 
     q: 'Can I edit a submission after it has been submitted?', 
-    a: 'As a monitoring user, you cannot edit submissions. If changes are needed, please contact the GAD Office administrator.' 
+    a: 'Only if an activity design or accomplishment report is in revision mode or an approved activity design needs some modification.' 
   },
   { 
     q: 'How do I view the full content of uploaded files?', 
-    a: 'Click the "Preview" button on any document to view it in the browser. Download buttons are not available for staff users.' 
+    a: 'Click on any document to view it in the browser.' 
   },
   { 
     q: 'What does the "Archive" section contain?', 
-    a: 'The archive contains cancelled activity designs and completed activities (both designs and accomplishment reports). You can filter by status and type.' 
+    a: 'The archive contains approved and verified activity designs and accomplishment reports. You can filter by status and type.' 
   },
   { 
     q: 'How do I interpret the Activity Rating?', 
@@ -251,17 +272,6 @@ const scrollToSection = (id) => {
     const yOffset = -96; 
     const y = element.getBoundingClientRect().top + window.scrollY + yOffset;
     window.scrollTo({ top: y, behavior: 'smooth' });
-  }
-};
-
-const handleLogout = async () => {
-  try {
-    await api.get('logout');
-    localStorage.removeItem('user');
-    router.push('/login');
-  } catch (err) {
-    localStorage.removeItem('user');
-    router.push('/login');
   }
 };
 

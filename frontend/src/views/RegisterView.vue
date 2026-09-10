@@ -148,20 +148,16 @@
           <TurnstileWidget ref="turnstileRef" @verify="onTurnstileVerify" />
 
           <!-- Privacy Policy Checkbox -->
-          <div class="flex items-start gap-3 pt-2">
-            <div class="flex items-center h-5">
-              <input id="privacy" v-model="form.privacyAccepted" type="checkbox" class="w-4 h-4 bg-white/10 border-white/20 rounded text-purple-500 focus:ring-purple-500" required />
-            </div>
-            <div class="text-sm">
-              <label for="privacy" class="text-slate-300 font-medium">
-                I agree to the 
-                <button type="button" @click="showPrivacyModal = true" class="text-purple-400 hover:underline font-bold">Privacy Policy</button>
-              </label>
-            </div>
+          <div class="flex items-center gap-3 pt-2">
+            <input id="privacy" v-model="form.privacyAccepted" type="checkbox" class="w-5 h-5 bg-white/10 border-white/20 rounded text-purple-500 focus:ring-purple-500 flex-shrink-0 cursor-pointer" required />
+            <label for="privacy" class="text-sm text-slate-300 font-medium cursor-pointer flex items-center gap-1.5 flex-wrap">
+              <span>I agree to the</span>
+              <button type="button" @click.stop.prevent="showPrivacyModal = true" class="text-purple-400 hover:underline font-bold">Privacy Policy</button>
+            </label>
           </div>
 
           <div class="flex flex-col gap-4 pt-4">
-            <button :disabled="loading" class="w-full bg-gradient-to-br from-purple-600 to-purple-800 text-white py-4 rounded-full font-bold uppercase transition-all shadow-lg hover:opacity-90 border border-purple-500/50" type="submit">
+            <button :disabled="loading" class="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 text-white rounded-full font-bold uppercase shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:shadow-[0_0_30px_rgba(168,85,247,0.7)] hover:-translate-y-1 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300" type="submit">
               {{ loading ? 'Processing...' : 'Register' }}
             </button>
             <button type="button" @click="router.back()" class="w-full border border-white/20 text-white py-4 rounded-full font-bold uppercase hover:bg-white/10 transition-all">
@@ -173,38 +169,12 @@
     </div>
 
     <!-- Privacy Policy Modal -->
-    <div v-if="showPrivacyModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fade-in">
-      <div class="bg-[#1a1a2e] rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh] border border-white/10">
-        <div class="p-6 border-b border-white/10 flex justify-between items-center">
-          <h2 class="text-2xl font-headline font-bold text-purple-400">Privacy Policy</h2>
-          <button type="button" @click="showPrivacyModal = false" class="text-slate-400 hover:text-white transition-colors">
-            <span class="material-symbols-outlined">close</span>
-          </button>
-        </div>
-        
-        <div class="p-6 overflow-y-auto font-body text-slate-300 space-y-4 text-left">
-          <p class="font-bold text-white">Data Privacy Act of 2012 (RA 10173) Consent</p>
-          <p>
-            By registering for an account on the Benguet State University Gender and Development (BSU GAD) Portal, you acknowledge and agree to the following terms regarding the collection, use, and processing of your personal data:
-          </p>
-          <ul class="list-disc pl-5 space-y-2">
-            <li><strong>Purpose of Data Collection:</strong> Your personal information (e.g., name, institutional email, office/department, and role) will be collected and processed solely for the purpose of managing user access, facilitating system functionalities, and maintaining official records within the GAD Portal.</li>
-            <li><strong>Data Protection:</strong> We are committed to safeguarding your personal information. Appropriate security measures are in place to prevent unauthorized access, disclosure, modification, or destruction of your data.</li>
-            <li><strong>Data Sharing:</strong> Your personal data will only be accessible to authorized personnel of the BSU GAD Office and system administrators. It will not be shared with third parties without your explicit consent, except as required by law.</li>
-            <li><strong>User Rights:</strong> You have the right to access, correct, or request the deletion of your personal data stored in the portal. You may also withdraw your consent at any time, which may result in the deactivation of your account.</li>
-          </ul>
-          <p>
-            By clicking "I agree," you signify your understanding of this privacy policy and give your explicit consent to the BSU GAD Office to process your personal data in accordance with the aforementioned terms and the provisions of the Data Privacy Act of 2012.
-          </p>
-        </div>
-
-        <div class="p-6 border-t border-white/10 bg-white/5 rounded-b-2xl flex justify-end">
-          <button type="button" @click="acceptPrivacy" class="bg-gradient-to-br from-purple-600 to-purple-800 border border-purple-500/50 text-white px-6 py-2 rounded-full font-bold uppercase transition-all shadow-md hover:shadow-lg hover:opacity-90">
-            I Understand & Agree
-          </button>
-        </div>
-      </div>
-    </div>
+    <PrivacyPolicyModal 
+      v-if="showPrivacyModal" 
+      :show-accept="true" 
+      @close="showPrivacyModal = false" 
+      @accept="acceptPrivacy" 
+    />
   </div>
 </template>
 
@@ -213,6 +183,7 @@ import { reactive, ref, onMounted, computed, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../api';
 import TurnstileWidget from '../components/TurnstileWidget.vue';
+import PrivacyPolicyModal from '../components/PrivacyPolicyModal.vue';
 
 const router = useRouter();
 const loading = ref(false);

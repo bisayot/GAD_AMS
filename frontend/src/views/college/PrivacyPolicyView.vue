@@ -48,10 +48,10 @@
                   The GAD-AMS collects the following types of personal information:
                 </p>
                 <ul class="styled-list">
-                  <li>Full name and contact information (<span class="highlight-text">email address, office/department</span>)</li>
+                  <li>Full name and contact information (email address, office/department)</li>
                   <li>Activity design and accomplishment report submissions</li>
                   <li>Budget utilization data and financial information</li>
-                  <li>Attendance records and participant demographics (<span class="highlight-text">sex-disaggregated data</span>)</li>
+                  <li>Attendance records and participant demographics (sex-disaggregated data)</li>
                   <li>User activity logs and system access records</li>
                 </ul>
               </div>
@@ -63,17 +63,20 @@
                 </p>
                 <ul class="styled-list">
                   <li>Processing and evaluation of GAD activity designs and accomplishment reports</li>
-                  <li>Generation of GAD Plan and Budget (GPB) reports</li>
+                  <li>Generation of GAD Plan and Budget reports</li>
                   <li>Monitoring and evaluation of GAD program implementation</li>
-                  <li>Compliance with government reporting requirements (<span class="highlight-text">PCW, CHED, DBM</span>)</li>
+                  <li>Compliance with government reporting requirements to the Philippine Commission on Women (PCW), Commission on Higher Education (CHED), and Department of Budget and Management (DBM)</li>
                   <li>Research and statistical analysis for GAD program improvement</li>
                 </ul>
+                <p class="section-text" style="margin-top: 1rem;">
+                  Providing this information is necessary to use GAD-AMS. Without it, you will not be able to submit, process, or monitor Activity Designs, Accomplishment Reports, or related GAD records.
+                </p>
               </div>
 
               <div id="data-sharing" class="policy-section">
                 <h2 class="section-heading">4. Data Sharing and Disclosure</h2>
                 <p class="section-text">
-                  BSU may share aggregated, anonymized data with government agencies such as the Philippine Commission on Women (PCW), Commission on Higher Education (CHED), and Department of Budget and Management (DBM) for reporting purposes. Personal information is not shared with third parties without your explicit consent, unless required by law.
+                  BSU may share aggregated, anonymized data with government agencies such as PCW, CHED, and DBM for reporting purposes. Personal information is not shared with third parties without your explicit consent, unless required by law.
                 </p>
               </div>
 
@@ -87,26 +90,12 @@
               <div id="data-retention" class="policy-section">
                 <h2 class="section-heading">6. Data Retention</h2>
                 <p class="section-text">
-                  Personal information is retained only for as long as necessary to fulfill the purposes for which it was collected, or as required by applicable laws and regulations. GAD records are typically retained for a period of ten (10) years in accordance with government archival requirements.
+                  Personal information is retained only for as long as necessary to fulfill the purposes for which it was collected, or as required by applicable laws and regulations. Retention periods for system records (including trash bin data, messages, activity logs, and archived documents) are governed by configurable retention settings maintained by the GAD-AMS Administrator. Approved Accomplishment Reports are retained permanently in accordance with government archival requirements; other record types are retained only for their configured retention period before deletion.
                 </p>
-              </div>
-
-              <div id="your-rights" class="policy-section">
-                <h2 class="section-heading">7. Your Rights</h2>
-                <p class="section-text">
-                  Under the Data Privacy Act, you have the right to:
-                </p>
-                <ul class="styled-list">
-                  <li>Access your personal information</li>
-                  <li>Rectify inaccurate or incomplete data</li>
-                  <li>Request deletion or blocking of your data</li>
-                  <li>Object to the processing of your data</li>
-                  <li>Data portability</li>
-                </ul>
               </div>
 
               <div id="contact" class="policy-section">
-                <h2 class="section-heading">8. Contact Information</h2>
+                <h2 class="section-heading">7. Contact Information</h2>
                 <p class="section-text">For questions, concerns, or requests regarding your personal data, please contact:</p>
                 
                 <div class="contact-box">
@@ -119,11 +108,11 @@
               </div>
 
               <div id="updates" class="policy-section">
-                <h2 class="section-heading">9. Updates to this Statement</h2>
+                <h2 class="section-heading">8. Updates to this Statement</h2>
                 <p class="section-text">
                   This Data Privacy Statement may be updated periodically. Users will be notified of significant changes through the system or via email. The effective date of the current version is displayed below.
                 </p>
-                <p class="effective-date">Effective Date: January 1, 2026</p>
+                <p class="effective-date">Effective Date: September 1, 2026</p>
               </div>
 
             </div>
@@ -154,9 +143,8 @@ const tocSections = [
   { id: 'data-sharing', label: '4. Data Sharing and Disclosure' },
   { id: 'data-security', label: '5. Data Security' },
   { id: 'data-retention', label: '6. Data Retention' },
-  { id: 'your-rights', label: '7. Your Rights' },
-  { id: 'contact', label: '8. Contact Information' },
-  { id: 'updates', label: '9. Updates to this Statement' }
+  { id: 'contact', label: '7. Contact Information' },
+  { id: 'updates', label: '8. Updates to this Statement' }
 ];
 
 const scrollToSection = (id) => {
@@ -211,6 +199,7 @@ onMounted(() => {
   gap: 2rem;
 }
 
+/* Sidebar Table of Contents */
 .sidebar-container {
   width: 256px;
   flex-shrink: 0;

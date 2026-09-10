@@ -12,32 +12,10 @@
     </div>
     
     <!-- Privacy Policy Modal -->
-    <div v-if="showPrivacyModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fade-in">
-      <div class="bg-[#1a1a2e] rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh] border border-white/10">
-        <div class="p-6 border-b border-white/10 flex justify-between items-center">
-          <h2 class="text-2xl font-headline font-bold text-purple-400">Privacy Policy</h2>
-          <button type="button" @click="showPrivacyModal = false" class="!text-white hover:!text-purple-400 rounded-full w-8 h-8 flex items-center justify-center transition-all" style="background-color: rgba(255, 255, 255, 0.1);">
-            <span class="material-symbols-outlined text-sm !text-white">close</span>
-          </button>
-        </div>
-        
-        <div class="p-6 overflow-y-auto font-body text-slate-300 space-y-4 text-left">
-          <p class="font-bold text-white">Data Privacy Act of 2012 (RA 10173) Notice</p>
-          <p>
-            By using the Benguet State University Gender and Development (BSU GAD) Portal, you acknowledge the following terms regarding the collection, use, and processing of your personal data:
-          </p>
-          <ul class="list-disc pl-5 space-y-2">
-            <li><strong>Purpose of Data Collection:</strong> Your personal information (e.g., name, institutional email, office/department, and role) will be collected and processed solely for the purpose of managing user access, facilitating system functionalities, and maintaining official records within the GAD Portal.</li>
-            <li><strong>Data Protection:</strong> We are committed to safeguarding your personal information. Appropriate security measures are in place to prevent unauthorized access, disclosure, modification, or destruction of your data.</li>
-            <li><strong>Data Sharing:</strong> Your personal data will only be accessible to authorized personnel of the BSU GAD Office and system administrators. It will not be shared with third parties without your explicit consent, except as required by law.</li>
-            <li><strong>User Rights:</strong> You have the right to access, correct, or request the deletion of your personal data stored in the portal.</li>
-          </ul>
-        </div>
-        <div class="p-6 border-t border-white/10 bg-white/5 rounded-b-2xl flex justify-end">
-          <button @click="showPrivacyModal = false" class="bg-gradient-to-br from-purple-600 to-purple-800 border border-purple-500/50 !text-white px-6 py-2 rounded-full font-bold uppercase transition-all shadow-md hover:shadow-lg hover:opacity-90">Close</button>
-        </div>
-      </div>
-    </div>
+    <PrivacyPolicyModal 
+      v-if="showPrivacyModal" 
+      @close="showPrivacyModal = false" 
+    />
 
     <!-- Terms of Service Modal -->
     <div v-if="showTermsModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fade-in">
@@ -70,6 +48,7 @@
 
 <script setup>
 import { ref } from 'vue';
+import PrivacyPolicyModal from './PrivacyPolicyModal.vue';
 
 const showPrivacyModal = ref(false);
 const showTermsModal = ref(false);

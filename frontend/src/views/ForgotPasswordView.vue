@@ -49,7 +49,7 @@
           <!-- CTA -->
           <button 
             :disabled="loading"
-            class="w-full py-4 px-6 bg-gradient-to-br from-purple-600 to-purple-800 text-white font-headline font-bold rounded-full shadow-lg hover:opacity-90 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 border border-purple-500/50" 
+            class="w-full py-4 px-6 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 text-white font-headline font-bold rounded-full shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:shadow-[0_0_30px_rgba(168,85,247,0.7)] hover:-translate-y-1 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2"
             type="submit"
           >
             {{ loading ? 'Sending...' : 'Send Reset Link' }}

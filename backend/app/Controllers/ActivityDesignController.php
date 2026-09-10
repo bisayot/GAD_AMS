@@ -406,9 +406,13 @@ class ActivityDesignController extends BaseController
             }
 
             $roleLower = strtolower($u['user_role']);
+            if ($roleLower === 'admin' || $roleLower === 'director') {
+                continue;
+            }
+            
             if ($roleLower === 'twg') {
                 $officeStats[$officeId]['twg_count']++;
-            } elseif ($roleLower === 'staff') {
+            } elseif ($roleLower === 'staff' || $roleLower === 'gad_staff') {
                 $officeStats[$officeId]['staff_count']++;
             } else {
                 $officeStats[$officeId]['nontwg_count']++;
