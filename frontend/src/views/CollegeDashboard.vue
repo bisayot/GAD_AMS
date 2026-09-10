@@ -14,20 +14,20 @@
     <div class="flex-grow flex flex-col min-h-screen transition-all duration-300 w-full relative">
       <header 
         :class="[
-          'h-20 bg-[#1a1a2e] border-b border-purple-900/30 flex items-center justify-between px-6 sticky top-0 z-30 transition-transform duration-300',
+          'h-20 bg-transparent flex items-center justify-between px-6 sticky top-0 z-30 pointer-events-none transition-transform duration-300',
           isHeaderHidden ? '-translate-y-full' : 'translate-y-0'
         ]"
       >
-        <div class="flex items-center">
-          <button @click="isSidebarOpen = true" class="hover:text-primary transition-colors flex items-center" style="color: white !important;">
-            <span class="material-symbols-outlined text-3xl" style="color: white !important;">menu</span>
+        <div class="flex items-center pointer-events-auto">
+          <button @click="isSidebarOpen = true" class="hover:text-purple-300 transition-colors flex items-center backdrop-blur-md p-2 rounded-xl shadow-lg border border-purple-500/30" style="background-color: #1a1a2e !important; color: #ffffff !important;">
+            <span class="material-symbols-outlined text-3xl">menu</span>
           </button>
         </div>
         
-        <div v-if="user.user_role" class="flex items-center gap-4">
+        <div v-if="user.user_role" class="flex items-center gap-4 pointer-events-auto">
           <NotificationDropdown />
-          <div class="px-4 py-1.5 bg-primary/20 border border-primary/50 rounded-full flex items-center gap-2 shadow-sm backdrop-blur-md">
-            <span class="material-symbols-outlined text-primary text-[18px]">badge</span>
+          <div class="px-4 py-1.5 bg-[#1a1a2e] border border-purple-500/30 rounded-full flex items-center gap-2 shadow-lg backdrop-blur-md">
+            <span class="material-symbols-outlined text-purple-400 text-[18px]">badge</span>
             <span class="text-white text-xs font-bold uppercase tracking-wider">{{ user.user_role }}</span>
           </div>
         </div>

@@ -1,9 +1,24 @@
 <template>
   <div class="staff-dashboard-content">
     
-    <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
-      <h1 class="text-3xl font-bold text-slate-900">Welcome, {{ displayName }} to your Dashboard!</h1>
-      <p class="text-slate-500 mt-2">Manage your GAD programs, monitor activity designs, and oversee budget utilization from here.</p>
+    <div 
+      ref="welcomeBanner"
+      class="relative overflow-hidden bg-[#0f172a] p-8 rounded-[2rem] shadow-xl border border-purple-500/20 mb-8 mt-2 group"
+      @mousemove="handleMouseMove"
+      @mouseleave="handleMouseLeave"
+    >
+      <div 
+        class="pointer-events-none absolute inset-0 transition-opacity duration-300 opacity-0 group-hover:opacity-100 z-0"
+        :style="{
+          background: `radial-gradient(600px circle at ${mouseX}px ${mouseY}px, rgba(168, 85, 247, 0.4), transparent 40%)`
+        }"
+      ></div>
+      <div class="absolute top-0 right-0 -mt-16 -mr-16 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute bottom-0 left-0 -mb-16 -ml-16 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="relative z-10">
+        <h1 class="text-3xl font-headline font-bold text-white mb-2">Welcome, <span class="text-purple-300">{{ displayName }}</span> to your Dashboard!</h1>
+        <p class="text-white font-medium font-body text-lg max-w-2xl">Manage your GAD programs, monitor activity designs, and oversee budget utilization from here.</p>
+      </div>
     </div>
 
     <section class="stats-section">
@@ -267,7 +282,25 @@ ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
 
 
 const router = useRouter();
-const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+const welcomeBanner = ref(null);
+const mouseX = ref(-1000);
+const mouseY = ref(-1000);
+
+const handleMouseMove = (e) => {
+  if (welcomeBanner.value) {
+    const rect = welcomeBanner.value.getBoundingClientRect();
+    mouseX.value = e.clientX - rect.left;
+    mouseY.value = e.clientY - rect.top;
+  }
+};
+
+const handleMouseLeave = () => {
+  mouseX.value = -1000;
+  mouseY.value = -1000;
+};
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
 const displayName = computed(() => {
   if (user.full_name && user.full_name.trim() !== '') {

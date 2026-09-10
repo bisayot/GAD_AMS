@@ -125,25 +125,26 @@ onUnmounted(() => {
 <style scoped>
 .action-btn {
   padding: 0.5rem;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(185, 121, 204, 0.15);
+  background: #1a1a2e;
+  border: 1px solid rgba(168, 85, 247, 0.3);
   border-radius: 9999px;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 .action-btn:hover {
-  background: rgba(0, 0, 0, 0.5);
-  border-color: rgba(185, 121, 204, 0.3);
+  background: #23233e;
+  border-color: rgba(168, 85, 247, 0.5);
   transform: scale(0.95);
 }
 
 .action-btn .material-symbols-outlined {
   font-size: 1.25rem;
-  color: #cbd5e1;
+  color: white;
 }
 
 .notification-wrapper {
@@ -280,7 +281,7 @@ onUnmounted(() => {
 .notif-content p {
   margin: 0 0 0.5rem 0;
   font-size: 0.85rem;
-  color: #cbd5e1;
+  color: #475569;
   line-height: 1.4;
 }
 

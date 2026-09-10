@@ -316,7 +316,7 @@ onMounted(() => {
   top: 6rem;
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   backdrop-filter: blur(10px);
-  border-radius: 0.5rem;
+  border-radius:  2rem;
   border: 1px solid rgba(185, 121, 204, 0.15);
   padding: 1rem;
 }
@@ -370,13 +370,13 @@ onMounted(() => {
 /* Content Area */
 .content-area {
   flex: 1;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: transparent;
 }
 
 .manual-container {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   backdrop-filter: blur(10px);
-  border-radius: 0.5rem;
+  border-radius:  2rem;
   border: 1px solid rgba(185, 121, 204, 0.15);
   padding: 2rem;
 }
