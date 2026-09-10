@@ -66,7 +66,7 @@
 
         <div class="mt-8 pt-8 border-t border-white/10 text-center">
           <p class="text-sm text-slate-300 font-body">
-            Remembered your password?
+            Remembered your passwordd?
             <router-link class="text-purple-400 font-bold hover:underline underline-offset-4 decoration-2 ml-1" to="/login">Back to Login</router-link>
           </p>
         </div>
