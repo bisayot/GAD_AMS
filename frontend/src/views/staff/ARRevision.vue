@@ -282,7 +282,7 @@
                   <div style="grid-column: 1 / -1; width: 100%;">
 <div class="form.schedules-container" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
                     <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
-                      <div style="display: flex; align-items: center; gap: 16px;">
+                      <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
                           <label class="form-label !mb-0 flex items-center gap-2">
                             <span class="material-symbols-outlined" style="font-size: 18px;">schedule</span>
                             Activity Schedules *
@@ -2393,8 +2393,8 @@ onUnmounted(() => {
 .code-icon-clock::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; opacity: 0.7; }
 
 /* Tables */
-.table-responsive { overflow-x: auto; border-radius: 12px; border: 1px solid rgba(185,121,204,0.15); background: rgba(0,0,0,0.2); }
-.custom-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.table-responsive { border-radius: 12px; border: 1px solid rgba(185,121,204,0.15); background: rgba(0,0,0,0.2); overflow-x: auto; }
+.custom-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 500px; }
 .custom-table th { background: rgba(185,121,204,0.1); color: #b979cc; font-weight: 700; text-transform: uppercase; padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(185,121,204,0.15); }
 .custom-table td { padding: 12px 16px; color: #cbd5e1; border-bottom: 1px solid rgba(185,121,204,0.05); }
 .custom-table tbody tr:last-child td { border-bottom: none; }

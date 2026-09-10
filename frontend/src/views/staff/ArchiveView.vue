@@ -798,7 +798,7 @@ onMounted(() => {
 }
 
 .overflow-x-auto {
-  overflow-x: auto;
+  /* overflow removed for full panning */
 }
 
 .data-table-inner {

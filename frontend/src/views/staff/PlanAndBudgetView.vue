@@ -1,6 +1,6 @@
 <template>
   <div class="app-wrapper app" style="background: #ffffff;">
-    <div style="margin: 32px 32px 0 32px; border-radius: 16px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); background: var(--surface); display: flex; flex-direction: column;">
+    <div style="margin: 32px 32px 0 32px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); background: var(--surface); display: flex; flex-direction: column;">
       <!-- TOP BAR -->
       <header class="topbar">
         <div class="topbar-brand">

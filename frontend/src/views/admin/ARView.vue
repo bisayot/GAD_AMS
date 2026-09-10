@@ -808,13 +808,14 @@ onMounted(() => {
 .text-white { color: white; }
 
 .table-responsive {
-  overflow-x: auto;
+  /* overflow removed for full panning */
   border-radius: 12px;
   border: 1px solid rgba(185, 121, 204, 0.15);
   background: rgba(0, 0, 0, 0.2);
 }
 .custom-table {
   width: 100%;
+  min-width: 500px;
   border-collapse: collapse;
   font-size: 13px;
 }

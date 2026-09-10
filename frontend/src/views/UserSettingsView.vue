@@ -1,8 +1,8 @@
 <template>
   <div class="settings-container">
     <div class="settings-header">
-      <h1 class="text-3xl font-bold text-slate-900">Account Settings</h1>
-      <p class="text-slate-500 mt-2">Manage your email address and update your password.</p>
+      <h1 class="text-3xl font-bold text-white">Account Settings</h1>
+      <p class="text-purple-200 mt-2">Manage your email address and update your password.</p>
     </div>
 
     <div class="settings-content mt-6">
@@ -461,11 +461,26 @@ const updateRetentionSettings = async () => {
 .settings-header {
   width: 100%;
   max-width: 800px;
-  background: white;
+  background: linear-gradient(135deg, #2e1065, #1e1b4b);
   padding: 2rem;
-  border-radius: 1rem;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  border-radius: 1.25rem;
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(168, 85, 247, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.settings-header::before {
+  content: '';
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 150px;
+  height: 150px;
+  background: rgba(168, 85, 247, 0.1);
+  border-radius: 50%;
+  filter: blur(20px);
+  pointer-events: none;
 }
 
 .settings-content {

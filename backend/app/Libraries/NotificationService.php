@@ -49,7 +49,7 @@ class NotificationService
         return $link;
     }
 
-    public static function send($userId, $title, $message, $link = null, $type = 'info')
+    public static function send($userId, $title, $message, $link = null, $type = 'info', $skipEmail = false)
     {
         $userModel = new UserModel();
         $user = $userModel->find($userId);
@@ -70,11 +70,59 @@ class NotificationService
         ]);
 
         // 2. Send email
-        if ($user && !empty($user['email'])) {
+        if (!$skipEmail && $user && !empty($user['email'])) {
             self::sendEmail($user['email'], $user['first_name'], $title, $message, $link);
         }
 
         return true;
+    }
+
+    /**
+     * Send a mass email using BCC to avoid looping and timeout issues.
+     */
+    public static function sendMassEmailBcc($bccList, $title, $message, $link = null)
+    {
+        if (empty($bccList)) return;
+
+        $htmlMessage = "
+        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee;'>
+            <h2 style='color: #990dd1;'>GAD AMS Notification</h2>
+            <p>Hi User,</p>
+            <p><strong>" . htmlspecialchars($title) . "</strong></p>
+            <p>" . nl2br(htmlspecialchars($message)) . "</p>";
+        
+        if (!empty($link)) {
+            $frontendUrl = env('FRONTEND_URL') ?: getenv('FRONTEND_URL') ?: 'http://localhost:5173';
+            $fullLink = rtrim($frontendUrl, '/') . '/' . ltrim($link, '/');
+            $htmlMessage .= "
+            <div style='margin-top: 20px;'>
+                <a href='" . htmlspecialchars($fullLink) . "' style='display: inline-block; padding: 10px 20px; background-color: #990dd1; color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: bold;'>View Details</a>
+            </div>";
+        }
+
+        $htmlMessage .= "
+            <br><br>
+            <hr style='border: 0; border-top: 1px solid #eee;'>
+            <p style='font-size: 12px; color: #888;'>This is an automated message from the GAD AMS System. Please do not reply.</p>
+        </div>";
+
+        $emailService = \Config\Services::email();
+        $fromEmail = env('FROM_EMAIL') ?: getenv('FROM_EMAIL') ?: 'gadims.bsu.bsit@gmail.com';
+        
+        $emailService->clear(); // Clear any previous email settings
+        $emailService->setTo($fromEmail); // To address is required, so we send it to ourselves
+        $emailService->setBCC($bccList);
+        $emailService->setFrom($fromEmail, 'GAD AMS System');
+        $emailService->setSubject($title);
+        $emailService->setMessage($htmlMessage);
+        
+        try {
+            if (!$emailService->send()) {
+                log_message('error', 'Failed to send mass BCC email: ' . $emailService->printDebugger(['headers']));
+            }
+        } catch (\Exception $e) {
+            log_message('error', 'Exception sending mass BCC email: ' . $e->getMessage());
+        }
     }
 
     /**

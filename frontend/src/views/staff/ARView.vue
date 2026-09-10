@@ -954,6 +954,7 @@ onMounted(() => {
 }
 .custom-table {
   width: 100%;
+  min-width: 500px;
   border-collapse: collapse;
   font-size: 13px;
 }

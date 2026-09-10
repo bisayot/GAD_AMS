@@ -33,7 +33,7 @@
         </div>
       </header>
 
-      <main :class="['flex-grow w-full overflow-x-hidden', $route.path.includes('/plan-and-budget') ? 'p-0' : 'p-4 md:p-10']">
+      <main :class="['flex-grow w-full', $route.path.includes('/plan-and-budget') ? 'p-0' : 'p-4 md:p-10']">
         <router-view />
       </main>
     </div>

@@ -38,7 +38,7 @@
 
       <div class="table-card">
         <div class="table-header-section">
-          <h3 class="table-title">Your Submissions</h3>
+          <h3 class="table-title">Recent Pending Activities</h3>
           <router-link to="/college/submit">
             <button class="new-submission-btn">
               <span class="material-symbols-outlined">add</span>
@@ -46,15 +46,14 @@
             </button>
           </router-link>
         </div>
-        
-        <div class="table-responsive">
+        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
           <table class="data-table">
             <thead>
               <tr class="table-header-row">
-                <th class="table-header-cell">Control No.</th>
-                <th class="table-header-cell">Title</th>
-                <th class="table-header-cell">Status</th>
-                <th class="table-header-cell text-right">Actions</th>
+                <th class="table-header-cell">Activity Title</th>
+                <th class="table-header-cell">Office / Unit</th>
+                <th class="table-header-cell">Type</th>
+                <th class="table-header-cell">Date Submitted</th>
               </tr>
             </thead>
             <tbody class="table-body">
@@ -62,23 +61,19 @@
                 <td colspan="4" class="empty-cell">
                   <div class="empty-content">
                     <span class="material-symbols-outlined empty-icon">history_edu</span>
-                    <p>No submissions recorded yet</p>
+                    <p>No pending activities found</p>
                   </div>
                 </td>
               </tr>
-              <tr v-else v-for="sub in submissions" :key="sub.id" class="clickable-row">
-                <td class="control-number-cell">{{ sub.control }}</td>
-                <td class="title-cell">{{ sub.title }}</td>
-                <td class="status-cell">
-                  <span :class="['status-pill', sub.statusClass]">
-                    {{ sub.status }}
+              <tr v-else v-for="sub in submissions" :key="sub.id" @click="viewSubmission(sub)" class="clickable-row">
+                <td class="activity-title-cell">{{ sub.title }}</td>
+                <td class="office-cell">{{ sub.office }}</td>
+                <td class="type-cell">
+                  <span class="type-badge" :class="sub.type === 'design' ? 'type-badge-design' : 'type-badge-report'">
+                    {{ sub.typeName }}
                   </span>
                 </td>
-                <td class="actions-cell text-right">
-                  <button class="view-button" @click="viewSubmission(sub)">
-                    <span class="material-symbols-outlined view-icon">visibility</span>
-                  </button>
-                </td>
+                <td class="date-cell">{{ sub.date }}</td>
               </tr>
             </tbody>
           </table>
@@ -363,15 +358,19 @@ const fetchSubmissions = async () => {
       const designs = adRes.data.data;
       adCount = designs.length;
       designs.forEach(d => {
-        if (isPendingOrRevision(d.status)) pendingCount++;
-        allSubmissions.push({
-          id: d.act_design_id,
-          control: d.control || 'N/A',
-          title: d.title,
-          status: formatStatus(d.status),
-          statusClass: getStatusClass(d.status),
-          type: 'design'
-        });
+        if (isPendingOrRevision(d.status)) {
+          pendingCount++;
+          allSubmissions.push({
+            id: d.act_design_id,
+            title: d.title || d.activity_title,
+            office: d.office || user.value?.office || 'N/A',
+            typeName: 'Activity Design',
+            date: d.date || d.start_date || (d.created_at ? new Date(d.created_at).toLocaleDateString() : ''),
+            status: formatStatus(d.status),
+            statusClass: getStatusClass(d.status),
+            type: 'design'
+          });
+        }
       });
     }
 
@@ -379,15 +378,19 @@ const fetchSubmissions = async () => {
       const reports = arRes.data.data;
       arCount = reports.length;
       reports.forEach(r => {
-        if (isPendingOrRevision(r.status)) pendingCount++;
-        allSubmissions.push({
-          id: r.id,
-          control: r.control || 'N/A',
-          title: r.title,
-          status: formatStatus(r.status),
-          statusClass: getStatusClass(r.status),
-          type: 'report'
-        });
+        if (isPendingOrRevision(r.status)) {
+          pendingCount++;
+          allSubmissions.push({
+            id: r.id,
+            title: r.title || r.activity_title,
+            office: r.office || user.value?.office || 'N/A',
+            typeName: 'Acc. Report',
+            date: r.date || r.start_date || (r.created_at ? new Date(r.created_at).toLocaleDateString() : ''),
+            status: formatStatus(r.status),
+            statusClass: getStatusClass(r.status),
+            type: 'report'
+          });
+        }
       });
     }
 
@@ -675,6 +678,18 @@ onMounted(() => {
   gap: 1rem;
 }
 
+@media (max-width: 1024px) {
+  .stats-section {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+  .stat-card {
+    min-width: 240px;
+    flex-shrink: 0;
+  }
+}
+
 .stat-card {
   padding: 1rem;
   border-radius: 0.75rem;
@@ -750,7 +765,7 @@ onMounted(() => {
 }
 
 .table-responsive {
-  overflow-x: auto;
+  /* overflow removed for full panning */
 }
 
 .data-table {
@@ -1016,9 +1031,55 @@ onMounted(() => {
   line-height: 1.4;
 }
 
-.deadline-control-text {
-  font-size: 1rem;
+/* Table Specific CSS */
+.activity-title-cell {
+  padding: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  transition: color 0.2s ease;
+}
+
+.table-row:hover .activity-title-cell, .clickable-row:hover .activity-title-cell {
+  color: #c084fc;
+}
+
+.office-cell {
+  padding: 1rem;
+  font-size: 1.1rem;
+  color: #94a3b8;
+}
+
+.type-cell {
+  padding: 1rem;
+}
+
+.type-badge {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  display: inline-block;
+}
+
+.type-badge-design {
+  background: rgba(153, 13, 209, 0.2);
   color: #b979cc;
-  margin: 0;
+  border: 1px solid rgba(153, 13, 209, 0.3);
+}
+
+.type-badge-report {
+  background: rgba(6, 182, 212, 0.1);
+  color: #22d3ee;
+  border: 1px solid rgba(6, 182, 212, 0.2);
+}
+
+.date-cell {
+  padding: 1rem;
+  font-size: 1rem;
+  font-family: monospace;
+  color: #94a3b8;
 }
 </style>

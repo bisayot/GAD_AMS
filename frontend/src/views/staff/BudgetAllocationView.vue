@@ -717,7 +717,7 @@ onMounted(() => {
 }
 
 .table-wrapper {
-  overflow-x: auto;
+  /* overflow removed for full panning */
 }
 
 .logs-table {

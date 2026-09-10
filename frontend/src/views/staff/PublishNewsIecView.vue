@@ -685,7 +685,7 @@ const deleteItem = (id) => {
 }
 
 .table-wrapper {
-  overflow-x: auto;
+  /* overflow removed for full panning */
 }
 
 .data-table {

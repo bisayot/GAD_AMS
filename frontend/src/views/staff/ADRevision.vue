@@ -144,7 +144,7 @@
 <!-- Staggered Schedules Section -->
                   <div class="schedules-container" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
                     <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
-                      <div style="display: flex; align-items: center; gap: 16px;">
+                      <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
                           <label class="form-label !mb-0 flex items-center gap-2">
                             <span class="material-symbols-outlined" style="font-size: 18px;">schedule</span>
                             Activity Schedules *
@@ -1487,6 +1487,7 @@ watch(() => computedStartDate.value, (newDate, oldDate) => {
           icon: 'info',
           title: 'Lead Time Warning',
           text: validation.reason,
+          confirmButtonText: 'Ignore',
           confirmButtonColor: '#b979cc'
         });
       }
@@ -1514,6 +1515,7 @@ watch(() => computedStartDate.value, (newDate, oldDate) => {
         icon: 'info',
         title: 'Lead Time Warning',
         text: validation.reason,
+        confirmButtonText: 'Ignore',
         confirmButtonColor: '#b979cc'
       });
     }
@@ -2054,7 +2056,6 @@ const checkTransportationLimit = () => {
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
 .budget-table-wrapper {
-  overflow-x: auto;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background-color: rgba(0, 0, 0, 0.2);

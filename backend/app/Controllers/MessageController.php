@@ -134,7 +134,7 @@ class MessageController extends ResourceController
         $db = \Config\Database::connect();
         
         $builder = $db->table('users')
-            ->select('users.id')
+            ->select('users.id, users.email')
             ->where('users.deleted_at', null)
             ->where('users.id !=', $senderId);
 
@@ -185,8 +185,18 @@ class MessageController extends ResourceController
             $masterParentId = $this->messageModel->getInsertID();
         }
 
+        // Get sender name once outside the loop
+        $senderNameRow = $db->table('users')->select('full_name, username')->where('id', $senderId)->get()->getRowArray();
+        $sName = $senderNameRow ? ($senderNameRow['full_name'] ?: $senderNameRow['username']) : 'Admin';
+
+        $bccList = [];
+
         // Insert individual copies for the actual recipients
         foreach ($recipients as $row) {
+            if (!empty($row['email'])) {
+                $bccList[] = $row['email'];
+            }
+
             // Find existing announcement thread between this sender and this recipient
             $existingRecip = $db->table('messages')
                 ->where('sender_id', $senderId)
@@ -210,14 +220,19 @@ class MessageController extends ResourceController
             if ($this->messageModel->insert($data)) {
                 $insertedCount++;
                 
-                $senderName = $db->table('users')->select('full_name, username')->where('id', $senderId)->get()->getRowArray();
-                $sName = $senderName ? ($senderName['full_name'] ?: $senderName['username']) : 'Admin';
-                
-                NotificationService::send($row['id'], 'New Announcement', 'There is a new announcement from ' . $sName . '.', '/staff/messages', 'info');
+                // Pass skipEmail = true
+                NotificationService::send($row['id'], 'New Announcement', 'There is a new announcement from ' . $sName . '.', '/staff/messages', 'info', true);
             }
         }
 
         if ($insertedCount > 0) {
+            // Send mass BCC emails in chunks of 50
+            if (!empty($bccList)) {
+                $chunks = array_chunk($bccList, 50);
+                foreach ($chunks as $chunk) {
+                    NotificationService::sendMassEmailBcc($chunk, 'New Announcement', 'There is a new announcement from ' . $sName . '.', '/staff/messages');
+                }
+            }
             $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $senderId;
             \App\Models\ActivityLogModel::log($actionUserId, 'Make Announcement', 'sent an announcement');
 
