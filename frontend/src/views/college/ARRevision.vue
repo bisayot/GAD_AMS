@@ -1315,9 +1315,49 @@ const removeExistingAttachment = (file) => {
   removedAttachments.value.push(file);
 };
 
-const handleFileUpload = (event) => {
+const handleFileUpload = async (event) => {
   if (event.target.files.length > 0) {
-    uploadedFiles.value = [...uploadedFiles.value, ...Array.from(event.target.files)];
+    const newFiles = Array.from(event.target.files);
+    const duplicateFiles = [];
+    const uniqueFiles = [];
+    
+    newFiles.forEach(file => {
+      const existsInUploaded = uploadedFiles.value.some(uploadedFile => {
+        return uploadedFile.name === file.name;
+      });
+      
+      if (existsInUploaded) {
+        duplicateFiles.push(file);
+      } else {
+        uniqueFiles.push(file);
+      }
+    });
+
+    if (duplicateFiles.length > 0) {
+      document.activeElement?.blur();
+      const result = await Swal.fire({
+        icon: 'warning',
+        title: 'Duplicate File Detected',
+        text: 'One or more files have the same name as an already uploaded file. Do you want to add them anyway?',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, add them',
+        cancelButtonText: 'No, ignore duplicates',
+        confirmButtonColor: '#b979cc',
+        cancelButtonColor: '#6c757d'
+      });
+      
+      if (result.isConfirmed) {
+        uploadedFiles.value = [...uploadedFiles.value, ...newFiles];
+      } else {
+        uploadedFiles.value = [...uploadedFiles.value, ...uniqueFiles];
+      }
+    } else {
+      uploadedFiles.value = [...uploadedFiles.value, ...uniqueFiles];
+    }
+    
+    if (fileInput.value) {
+      fileInput.value.value = '';
+    }
   }
 };
 
@@ -1327,9 +1367,45 @@ const triggerFileInput = () => {
   if (fileInput.value) fileInput.value.click();
 };
 
-const handleFileDrop = (event) => {
+const handleFileDrop = async (event) => {
   if (event.dataTransfer.files.length > 0) {
-    uploadedFiles.value = [...uploadedFiles.value, ...Array.from(event.dataTransfer.files)];
+    const newFiles = Array.from(event.dataTransfer.files);
+    const duplicateFiles = [];
+    const uniqueFiles = [];
+    
+    newFiles.forEach(file => {
+      const existsInUploaded = uploadedFiles.value.some(uploadedFile => {
+        return uploadedFile.name === file.name;
+      });
+      
+      if (existsInUploaded) {
+        duplicateFiles.push(file);
+      } else {
+        uniqueFiles.push(file);
+      }
+    });
+
+    if (duplicateFiles.length > 0) {
+      document.activeElement?.blur();
+      const result = await Swal.fire({
+        icon: 'warning',
+        title: 'Duplicate File Detected',
+        text: 'One or more files have the same name as an already uploaded file. Do you want to add them anyway?',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, add them',
+        cancelButtonText: 'No, ignore duplicates',
+        confirmButtonColor: '#b979cc',
+        cancelButtonColor: '#6c757d'
+      });
+      
+      if (result.isConfirmed) {
+        uploadedFiles.value = [...uploadedFiles.value, ...newFiles];
+      } else {
+        uploadedFiles.value = [...uploadedFiles.value, ...uniqueFiles];
+      }
+    } else {
+      uploadedFiles.value = [...uploadedFiles.value, ...uniqueFiles];
+    }
   }
 };
 
