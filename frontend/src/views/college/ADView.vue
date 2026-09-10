@@ -96,7 +96,7 @@
               </div>
               <div class="grid-2">
                                 <div class="full-width-info" style="grid-column: span 2;">
-                  <div class="flex gap-4 mb-4">
+                  <div class="flex flex-col 2xl:flex-row gap-4 mb-4">
                     <div class="flex-1 bg-[#1a1a2e] p-4 rounded-xl border border-pink-500/20 relative overflow-hidden group shadow-lg">
                       <div class="absolute inset-0 bg-gradient-to-br from-pink-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                       <label class="text-[10px] font-bold text-pink-400 uppercase tracking-wider block mb-2">Calculated Start Date</label>
@@ -191,16 +191,21 @@
                     </transition>
                   </div>
                 </div>
-                <div class="full-width-info">
-                  <label class="info-label">Venue</label>
-                  <p class="info-value-white">{{ design.venue }}</p>
-                  <span :class="design.is_inside_bsu == 1 || design.is_inside_bsu === true ? 'venue-badge inside-bsu' : 'venue-badge outside-bsu'">
-                    {{ design.is_inside_bsu == 1 || design.is_inside_bsu === true ? '🏫 Inside BSU' : '🌐 Outside BSU' }}
-                  </span>
-                </div>
-                <div class="full-width-info participants-info">
-                  <label class="info-label">Target Participants</label>
-                  <p class="info-value-white">{{ design.target_participants }} individuals</p>
+                <div class="w-full flex flex-col 2xl:flex-row gap-4 mt-6 border-t border-purple-500/20 pt-6">
+                  <div class="flex-1 bg-[#1a1a2e] p-4 rounded-xl border border-purple-500/20">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Venue</label>
+                    <p class="text-white text-lg font-bold mb-2">{{ design.venue }}</p>
+                    <span :class="design.is_inside_bsu == 1 || design.is_inside_bsu === true ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' : 'bg-orange-500/20 text-orange-300 border border-orange-500/30'" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                      {{ design.is_inside_bsu == 1 || design.is_inside_bsu === true ? '🏫 Inside BSU' : '🌐 Outside BSU' }}
+                    </span>
+                  </div>
+                  <div class="flex-1 bg-[#1a1a2e] p-4 rounded-xl border border-purple-500/20">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Target Participants</label>
+                    <div class="flex items-end gap-2">
+                      <span class="text-white text-3xl font-black leading-none">{{ design.target_participants }}</span>
+                      <span class="text-slate-400 font-medium mb-1">individuals</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

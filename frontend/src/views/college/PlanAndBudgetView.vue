@@ -1,6 +1,6 @@
 <template>
-  <div class="app-wrapper app" style="background: #ffffff; min-width: 0;">
-    <div style="margin: clamp(16px, 3vw, 32px) clamp(16px, 3vw, 32px) 0 clamp(16px, 3vw, 32px); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); background: var(--surface); display: flex; flex-direction: column; overflow-x: auto;">
+  <div class="app-wrapper app" style="background: #ffffff; width: 100%;">
+    <div style="margin: 32px 32px 0 32px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); background: var(--surface); display: flex; flex-direction: column;">
       <!-- TOP BAR -->
       <header class="topbar">
         <div class="topbar-brand">
@@ -30,9 +30,9 @@
     </div>
 
     <!-- ALWAYS VISIBLE PANELS -->
-    <div class="panel-wrapper" style="display: flex; gap: 20px; flex-wrap: wrap;">
+    <div class="panel-wrapper" style="display: flex; gap: 40px; flex-wrap: wrap;">
       <!-- Org Profile Panel -->
-      <div class="drop-panel" style="flex: 1; min-width: 260px;">
+      <div class="drop-panel" style="flex: 1; min-width: 300px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
           <h3 style="margin: 0; font-size: 14px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Organization Profile</h3>
           <button class="topbar-btn primary" style="padding: 4px 12px; font-size: 12px;" @click="savePlan">Save Changes</button>
