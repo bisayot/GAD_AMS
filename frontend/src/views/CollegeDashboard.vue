@@ -11,7 +11,7 @@
       @logout="handleLogout"
     />
 
-    <div class="flex-grow flex flex-col min-h-screen transition-all duration-300 w-full relative" :style="$route.path.includes('/plan-and-budget') ? 'overflow-x: auto;' : ''">
+    <div class="flex-grow flex flex-col min-h-screen transition-all duration-300 w-full relative min-w-0" :style="$route.path.includes('/plan-and-budget') ? 'overflow-x: auto;' : ''">
       <header 
         :class="[
           'h-20 bg-transparent flex items-center justify-between px-6 sticky top-0 z-30 pointer-events-none transition-transform duration-300',
@@ -33,7 +33,7 @@
         </div>
       </header>
 
-      <main :class="['flex-grow w-full', $route.path.includes('/plan-and-budget') ? 'p-0' : 'p-4 md:p-10']" :style="$route.path.includes('/plan-and-budget') ? 'overflow-x: auto; min-width: 0;' : ''">
+      <main :class="['flex-grow w-full min-w-0', $route.path.includes('/plan-and-budget') ? 'p-0' : 'p-4 md:p-10']" :style="$route.path.includes('/plan-and-budget') ? 'overflow-x: auto;' : ''">
         <router-view />
       </main>
     </div>

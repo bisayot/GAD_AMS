@@ -1,4 +1,6 @@
 <template>
+  <div style="width: 100%; overflow-x: auto;">
+    <div style="min-width: 1200px; min-height: 100vh;">
   <main class="main-viewport">
     <div v-if="loading" class="loading-wrapper">
       <div class="loading-spinner"></div>
@@ -453,6 +455,8 @@
     <!-- PDF Preview Modal -->
     <PdfPreviewModal :isOpen="isPdfModalOpen" :fileUrl="pdfFileUrl" @close="closePdfModal" />
   </main>
+    </div>
+  </div>
 </template>
 
 <script setup>

@@ -1,4 +1,6 @@
 <template>
+  <div style="width: 100%; overflow-x: auto;">
+    <div style="min-width: 1200px; min-height: 100vh;">
       <main class="twg-view-wrapper">
         <div class="main-content-container-ar">
           <div class="form-header-ar">
@@ -759,7 +761,9 @@
             </form>
           </div>
         </div>
-      </main>
+        </main>
+    </div>
+  </div>
 </template>
 
 <script setup>

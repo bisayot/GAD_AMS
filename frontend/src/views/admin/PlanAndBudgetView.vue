@@ -1,6 +1,6 @@
 <template>
-  <div class="app-wrapper app" style="background: #ffffff;">
-    <div style="margin: 32px 32px 0 32px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); background: var(--surface); display: flex; flex-direction: column;">
+  <div class="app-wrapper app" style="background: #ffffff; width: 100%; overflow-x: auto;">
+    <div style="min-width: 1200px; margin: 32px 32px 0 32px; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); background: var(--surface); display: flex; flex-direction: column;">
       <!-- TOP BAR -->
       <header class="topbar">
         <div class="topbar-brand">
@@ -2184,17 +2184,6 @@ footer.note {
 /* ============================================================
    RESPONSIVE
    ============================================================ */
-@media (max-width: 900px) {
-  .topbar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; background: linear-gradient(135deg, #0f172a, #020617); border-bottom: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
-  .topbar-brand { border-right: none; padding-right: 0; margin-right: 0; }
-  .topbar-title { max-width: 200px; }
-  .main { padding: 18px 14px 60px; }
-  .field-grid { grid-template-columns: 1fr; }
-  .budget-editor-head { display: none; }
-  .budget-line { grid-template-columns: 1fr; }
-  .modal-budget-inputs { grid-template-columns: 1fr; }
-  .category-pills .pill { min-width: 0; }
-}
 
 @media print {
   .topbar, .panel-wrapper, .toolbar, .export-bar { display: none !important; }

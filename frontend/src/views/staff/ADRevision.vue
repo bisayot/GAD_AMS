@@ -1,4 +1,6 @@
 <template>
+  <div style="width: 100%; overflow-x: auto;">
+    <div style="min-width: 1200px; min-height: 100vh;">
   <main class="main-viewport">
     <div v-if="loading" class="loading-wrapper">
       <div class="loading-spinner"></div>
@@ -699,6 +701,8 @@
       </div>
     </div>
   </main>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -1953,7 +1957,7 @@ const checkTransportationLimit = () => {
 </script>
 
 <style scoped>
-.main-viewport { flex: 1; height: 100vh; background: transparent; }
+.main-viewport { flex: 1; min-height: 100vh; background: transparent; }
 .loading-wrapper { display: flex; justify-content: center; align-items: center; min-height: 400px; }
 
 .error-view-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; min-height: 400px; }
@@ -1977,7 +1981,7 @@ const checkTransportationLimit = () => {
 .glass-card { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); backdrop-filter: blur(24px); border-radius: 1.5rem; border: 1px solid rgba(185, 121, 204, 0.2); }
 .report-header { padding: 2rem; border-bottom: 1px solid rgba(185, 121, 204, 0.15); background: rgba(0, 0, 0, 0.2); }
 .meta-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; }
-.report-body { flex: 1; overflow-y: auto; padding: 2rem; }
+.report-body { flex: 1; overflow-y: visible; padding: 2rem; }
 .report-body > * + * { margin-top: 1.5rem; }
 
 .status-badge-revision { display: inline-flex; align-items: center; gap: 8px; background-color: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 4px 12px; border-radius: 9999px; border: 1px solid rgba(239, 68, 68, 0.3); }

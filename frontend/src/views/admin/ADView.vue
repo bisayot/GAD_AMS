@@ -1,4 +1,6 @@
 <template>
+  <div style="width: 100%; overflow-x: auto;">
+    <div style="min-width: 1200px; min-height: 100vh;">
   <main class="main-viewport">
     <div v-if="loading" class="loading-wrapper">
       <div class="loading-spinner"></div>
@@ -291,7 +293,7 @@
               <div class="info-item mb-4">
                 <span class="info-label" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                   Accomplishment Deadline
-                  <button @click="editDeadline" class="edit-btn" title="Edit Deadline" style="background: none; border: none; cursor: pointer; color: #b979cc; padding: 0;">
+                  <button v-if="!(design.is_archived == 1 && design.accomplishment_report_count > 0)" @click="editDeadline" class="edit-btn" title="Edit Deadline" style="background: none; border: none; cursor: pointer; color: #b979cc; padding: 0;">
                     <span class="material-symbols-outlined" style="font-size: 14px;">edit</span>
                   </button>
                 </span>
@@ -344,6 +346,8 @@
       </div>
     </div>
   </main>
+    </div>
+  </div>
 </template>
 
 <script setup>

@@ -1,4 +1,6 @@
 <template>
+  <div style="width: 100%; overflow-x: auto;">
+    <div style="min-width: 1200px; min-height: 100vh;">
   <main class="main-viewport">
     <div v-if="loading" class="loading-wrapper">
       <div class="loading-spinner"></div>
@@ -846,6 +848,8 @@
     <!-- PDF Preview Modal -->
     <PdfPreviewModal :isOpen="isPdfModalOpen" :fileUrl="pdfFileUrl" @close="closePdfModal" />
   </main>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -2319,7 +2323,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.main-viewport { flex: 1; overflow-y: auto; background: transparent; }
+.main-viewport { flex: 1; min-height: 100vh; background: transparent; }
 .loading-wrapper { display: flex; justify-content: center; align-items: center; min-height: 400px; }
 .loading-spinner { border: 4px solid rgba(255,255,255,0.1); border-left-color: #b979cc; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }

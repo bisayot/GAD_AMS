@@ -1,5 +1,7 @@
 <template>
-  <main class="p-8">
+  <div style="width: 100%; overflow-x: auto;">
+    <div style="min-width: 1200px; min-height: 100vh;">
+      <main class="p-8">
     <div id="collegeSelectionModal" class="college-view-wrapper">
       <div class="modal-container">
         <div class="modal-header">
@@ -28,6 +30,8 @@
       </div>
     </div>
   </main>
+  </div>
+</div>
 </template>
 
 <script setup>

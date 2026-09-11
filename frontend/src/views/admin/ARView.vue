@@ -1,4 +1,6 @@
 <template>
+  <div style="width: 100%; overflow-x: auto;">
+    <div style="min-width: 1200px; min-height: 100vh;">
   <main class="main-viewport">
     <div v-if="loading" class="loading-wrapper">
       <div class="loading-spinner"></div>
@@ -461,6 +463,8 @@
     <!-- PDF Preview Modal -->
     <PdfPreviewModal :isOpen="isPdfModalOpen" :fileUrl="pdfFileUrl" @close="closePdfModal" />
   </main>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -705,7 +709,7 @@ onMounted(() => {
 .bbudget-others-breakdown { padding: 4px 14px 8px 30px; display: flex; flex-direction: column; gap: 3px; }
 .bbudget-others-row { display: flex; justify-content: space-between; font-size: 12px; color: #94a3b8; }
 .bbudget-total-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(185,121,204,0.18); font-size: 13px; font-weight: 700; color: #f1f5f9; }
-.main-viewport { flex: 1; overflow-y: auto; background: transparent; }
+.main-viewport { flex: 1; min-height: 100vh; background: transparent; }
 .loading-wrapper { display: flex; justify-content: center; align-items: center; min-height: 400px; }
 .error-container { max-width: 48rem; margin: 0 auto; padding: 2.5rem; }
 .error-box { background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 1rem; border-radius: 0.75rem; }

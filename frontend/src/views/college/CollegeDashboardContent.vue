@@ -678,17 +678,14 @@ onMounted(() => {
   gap: 1rem;
 }
 
-@media (max-width: 1024px) {
-  .stats-section {
-    display: flex;
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
+  @media (max-width: 1024px) {
+    .stats-section {
+      grid-template-columns: 1fr;
+    }
+    .stat-card {
+      min-width: auto;
+    }
   }
-  .stat-card {
-    min-width: 240px;
-    flex-shrink: 0;
-  }
-}
 
 .stat-card {
   padding: 1rem;
@@ -764,15 +761,15 @@ onMounted(() => {
   margin-bottom: 0.25rem;
 }
 
-.table-responsive {
-  /* overflow removed for full panning */
-}
+  .table-responsive {
+    overflow-x: auto;
+    width: 100%;
+  }
 
 .data-table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  min-width: 800px;
 }
 
 .table-header-row {

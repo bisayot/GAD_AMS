@@ -274,6 +274,7 @@ class ActivityDesignController extends BaseController
             ->select('(SELECT GROUP_CONCAT(CASE WHEN gi.cause = \'\' OR gi.cause IS NULL THEN CONCAT(\'N/A (Attributed Program) - \', IFNULL(gi.activity, \'\')) ELSE gi.cause END SEPARATOR \';;; \') FROM activity_design_issues adi JOIN gpb_items gi ON gi.id = adi.issue_id WHERE adi.act_design_id = activity_design.act_design_id) as gender_issue')
             ->select('(SELECT GROUP_CONCAT(adm.mandate_id SEPARATOR \',\') FROM activity_design_mandates adm WHERE adm.act_design_id = activity_design.act_design_id) as gad_mandate_ids')
             ->select('(SELECT GROUP_CONCAT(adi.issue_id SEPARATOR \',\') FROM activity_design_issues adi WHERE adi.act_design_id = activity_design.act_design_id) as gender_issue_ids')
+            ->select('(SELECT COUNT(*) FROM accomplishment_report WHERE accomplishment_report.act_design_id = activity_design.act_design_id AND accomplishment_report.deleted_at IS NULL) as accomplishment_report_count')
             ->join('users', 'users.id = activity_design.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->join('venues', 'venues.venue_id = activity_design.venue_id', 'left')
