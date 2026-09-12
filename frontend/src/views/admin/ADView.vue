@@ -333,6 +333,35 @@
     <!-- PDF Preview Modal -->
     <PdfPreviewModal :isOpen="isPdfModalOpen" :fileUrl="pdfFileUrl" @close="closePdfModal" />
 
+    <!-- Edit Deadline Modal -->
+    <div v-if="isEditDeadlineModalOpen" class="modal-overlay" style="z-index: 1000; position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
+      <div class="modal-content glass-card" style="padding: 24px; width: 100%; max-width: 400px; background: #1a1a2e; border: 1px solid rgba(185, 121, 204, 0.3); border-radius: 16px;">
+        <h3 class="modal-title" style="color: white; font-size: 1.25rem; font-weight: bold; margin-bottom: 16px;">Edit Accomplishment Deadline</h3>
+        <div style="margin-bottom: 24px;">
+          <VueDatePicker 
+            dark 
+            v-model="editDeadlineValue" 
+            :min-date="minDeadlineDate"
+            :max-date="maxDeadlineDate"
+            :disabled-dates="isDisabledDate"
+            model-type="yyyy-MM-dd" 
+            :enable-time-picker="false" 
+            format="MM/dd/yyyy" 
+            auto-apply 
+            input-class-name="custom-input-field dp-custom-transparent"
+          >
+            <template #dp-input="{ value }">
+              <input type="text" :value="value ? String(value).replace(',', '').trim().split(' ')[0] : ''" class="custom-input-field dp-custom-transparent" style="width: 100%; padding: 12px; font-size: 14px; background: rgba(0,0,0,0.3); border: 1px solid rgba(185, 121, 204, 0.3); border-radius: 8px; color: white; cursor: pointer;" readonly placeholder="Select Date" />
+            </template>
+          </VueDatePicker>
+        </div>
+        <div class="modal-actions" style="display: flex; gap: 12px; justify-content: flex-end;">
+          <button @click="closeEditDeadlineModal" style="padding: 8px 16px; border-radius: 8px; background: #334155; color: white; border: none; cursor: pointer;">Cancel</button>
+          <button @click="submitEditDeadline" style="padding: 8px 16px; border-radius: 8px; background: #9333ea; color: white; border: none; cursor: pointer;">Save</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Reject Mod Request Modal -->
     <div v-if="isRejectModModalOpen" class="modal-overlay">
       <div class="modal-content">
@@ -549,6 +578,15 @@ import Swal from 'sweetalert2';
 const isRejectModModalOpen = ref(false);
 const rejectModRemarks = ref('');
 
+const isEditDeadlineModalOpen = ref(false);
+const editDeadlineValue = ref(null);
+const minDeadlineDate = ref(null);
+const maxDeadlineDate = ref(null);
+
+const closeEditDeadlineModal = () => {
+  isEditDeadlineModalOpen.value = false;
+};
+
 const openRejectModModal = () => {
   isRejectModModalOpen.value = true;
   rejectModRemarks.value = '';
@@ -622,7 +660,7 @@ const rejectModRequest = async () => {
   }
 };
 
-const editDeadline = async () => {
+const editDeadline = () => {
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth();
   // Get first day of current month
@@ -635,95 +673,98 @@ const editDeadline = async () => {
   // Use the later date between end_date and first day of current month as min
   const finalMin = endD > minCurrentMonth ? endD : minCurrentMonth;
 
-  const { value: formValues } = await Swal.fire({
-    title: 'Edit Accomplishment Deadline',
-    html: `<input type="date" id="swal-input-deadline" class="swal2-input" value="${design.value.accomplishment_deadline || ''}" min="${finalMin}" max="${maxYear}">`,
-    focusConfirm: false,
-    showCancelButton: true,
-    confirmButtonColor: '#9333ea',
-    preConfirm: () => {
-      const val = document.getElementById('swal-input-deadline').value;
-      if (!val) {
-        Swal.showValidationMessage('Please select a date');
-        return false;
-      }
-      const selected = new Date(val);
-      const { isDisabledDate } = useHolidays();
-      if (isDisabledDate(selected)) {
-        Swal.showValidationMessage('Weekends and holidays are not allowed.');
-        return false;
-      }
-      const current = new Date();
-      if (selected.getFullYear() !== current.getFullYear()) {
-        Swal.showValidationMessage('Deadline must be within the current year');
-        return false;
-      }
-      if (selected.getMonth() < current.getMonth() && selected.getFullYear() === current.getFullYear()) {
-        Swal.showValidationMessage('Deadline cannot be in a previous month');
-        return false;
-      }
-      
-      const minDate = design.value.end_date ? new Date(design.value.end_date.split(' ')[0]) : null;
-      if (minDate) {
-        // Zero out times just to be strictly comparing dates
-        selected.setHours(0,0,0,0);
-        minDate.setHours(0,0,0,0);
-        
-        if (selected.getTime() === minDate.getTime()) {
-          Swal.showValidationMessage('Deadline cannot be the exact same date as the activity end date');
-          return false;
-        } else if (selected.getTime() < minDate.getTime()) {
-          Swal.showValidationMessage('Deadline cannot be before the activity end date');
-          return false;
-        }
-      }
+  minDeadlineDate.value = new Date(finalMin);
+  maxDeadlineDate.value = new Date(maxYear);
+  editDeadlineValue.value = design.value.accomplishment_deadline ? design.value.accomplishment_deadline : null;
+  
+  isEditDeadlineModalOpen.value = true;
+};
 
-      return val;
+const submitEditDeadline = async () => {
+  if (!editDeadlineValue.value) {
+    Swal.fire({ icon: 'warning', title: 'Required', text: 'Please select a date' });
+    return;
+  }
+  
+  const selected = new Date(editDeadlineValue.value);
+  if (isDisabledDate(selected)) {
+    Swal.fire({ icon: 'warning', title: 'Invalid Date', text: 'Weekends and holidays are not allowed.' });
+    return;
+  }
+  
+  const current = new Date();
+  if (selected.getFullYear() !== current.getFullYear()) {
+    Swal.fire({ icon: 'warning', title: 'Invalid Date', text: 'Deadline must be within the current year' });
+    return;
+  }
+  if (selected.getMonth() < current.getMonth() && selected.getFullYear() === current.getFullYear()) {
+    Swal.fire({ icon: 'warning', title: 'Invalid Date', text: 'Deadline cannot be in a previous month' });
+    return;
+  }
+  
+  const minDate = design.value.end_date ? new Date(design.value.end_date.split(' ')[0]) : null;
+  if (minDate) {
+    // Zero out times just to be strictly comparing dates
+    selected.setHours(0,0,0,0);
+    minDate.setHours(0,0,0,0);
+    
+    if (selected.getTime() === minDate.getTime()) {
+      Swal.fire({ icon: 'warning', title: 'Invalid Date', text: 'Deadline cannot be the exact same date as the activity end date' });
+      return;
+    } else if (selected.getTime() < minDate.getTime()) {
+      Swal.fire({ icon: 'warning', title: 'Invalid Date', text: 'Deadline cannot be before the activity end date' });
+      return;
     }
-  });
+  }
 
-  if (formValues) {
-    const endD = design.value.end_date ? new Date(design.value.end_date.split(' ')[0]) : null;
-    if (endD) {
-      const selectedD = new Date(formValues);
-      const diffDays = getWorkingDaysDiff(endD, selectedD);
-      
-      if (diffDays !== 15) {
-        const isMore = diffDays > 15;
-        const confirmExtra = await Swal.fire({
-          title: 'Deadline Validation',
-          text: `The selected accomplishment deadline is ${isMore ? 'more' : 'less'} than 15 working days from the activity end date. Do you want to proceed?`,
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#9333ea',
-          confirmButtonText: 'Yes, proceed'
-        });
-        if (!confirmExtra.isConfirmed) return;
-      }
-    }
-
-    try {
-      const response = await api.post(`update-deadline/${design.value.act_design_id || route.params.id}`, {
-        deadline: formValues,
-        is_archived: design.value.is_archived
+  const formValues = editDeadlineValue.value;
+  
+  const endD = design.value.end_date ? new Date(design.value.end_date.split(' ')[0]) : null;
+  if (endD) {
+    const diffDays = getWorkingDaysDiff(endD, selected);
+    
+    if (diffDays !== 15) {
+      const isMore = diffDays > 15;
+      const confirmExtra = await Swal.fire({
+        title: 'Deadline Validation',
+        text: `The selected accomplishment deadline is ${isMore ? 'more' : 'less'} than 15 working days from the activity end date. Do you want to proceed?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#9333ea',
+        confirmButtonText: 'Yes, proceed'
       });
-      if (response.data.success) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Success!',
-          text: 'Accomplishment deadline updated.',
-          confirmButtonColor: '#9333ea',
-          timer: 1500,
-          showConfirmButton: false
-        });
-        design.value.accomplishment_deadline = formValues;
-      } else {
-        Swal.fire({ icon: 'error', title: 'Error', text: response.data.message || 'Update failed' });
-      }
-    } catch (err) {
-      console.error(err);
-      Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to update deadline.' });
+      if (!confirmExtra.isConfirmed) return;
     }
+  }
+
+  try {
+    Swal.fire({
+      title: 'Updating...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+    
+    const response = await api.post(`update-deadline/${design.value.act_design_id || route.params.id}`, {
+      deadline: formValues,
+      is_archived: design.value.is_archived
+    });
+    if (response.data.success) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: 'Accomplishment deadline updated.',
+        confirmButtonColor: '#9333ea',
+        timer: 1500,
+        showConfirmButton: false
+      });
+      design.value.accomplishment_deadline = formValues;
+      closeEditDeadlineModal();
+    } else {
+      Swal.fire({ icon: 'error', title: 'Error', text: response.data.message || 'Update failed' });
+    }
+  } catch (err) {
+    console.error(err);
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to update deadline.' });
   }
 };
 

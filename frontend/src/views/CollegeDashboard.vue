@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-slate-50 flex" :style="$route.path.includes('/plan-and-budget') ? 'overflow-x: auto;' : ''">
+  <div class="min-h-screen bg-slate-50 flex" :style="$route.path.includes('/plan-and-budget') ? 'overflow-x: auto;' : 'overflow-x: hidden; max-width: 100%;'">
     <!-- Mobile Sidebar Overlay -->
     <div v-if="isSidebarOpen" @click="isSidebarOpen = false" class="fixed inset-0 bg-black/50 z-40"></div>
 
@@ -11,7 +11,7 @@
       @logout="handleLogout"
     />
 
-    <div class="flex-grow flex flex-col min-h-screen transition-all duration-300 w-full relative min-w-0" :style="$route.path.includes('/plan-and-budget') ? 'overflow-x: auto;' : ''">
+    <div class="flex-grow flex flex-col min-h-screen transition-all duration-300 w-full relative min-w-0" :style="$route.path.includes('/plan-and-budget') ? 'overflow-x: auto;' : 'overflow-x: hidden;'">
       <header 
         :class="[
           'h-20 bg-transparent flex items-center justify-between px-6 sticky top-0 z-30 pointer-events-none transition-transform duration-300',

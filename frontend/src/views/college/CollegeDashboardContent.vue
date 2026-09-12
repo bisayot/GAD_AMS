@@ -1,7 +1,7 @@
 <template>
     <div 
       ref="welcomeBanner"
-      class="relative overflow-hidden bg-[#0f172a] p-8 rounded-[2rem] shadow-xl border border-purple-500/20 mb-8 mt-2 group"
+      class="relative overflow-hidden bg-[#0f172a] p-5 md:p-8 rounded-[1.5rem] md:rounded-[2rem] shadow-xl border border-purple-500/20 mb-6 md:mb-8 mt-2 group"
       @mousemove="handleMouseMove"
       @mouseleave="handleMouseLeave"
     >
@@ -11,11 +11,11 @@
           background: `radial-gradient(600px circle at ${mouseX}px ${mouseY}px, rgba(168, 85, 247, 0.4), transparent 40%)`
         }"
       ></div>
-      <div class="absolute top-0 right-0 -mt-16 -mr-16 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl pointer-events-none"></div>
-      <div class="absolute bottom-0 left-0 -mb-16 -ml-16 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute top-0 right-0 -mt-16 -mr-16 w-48 md:w-64 h-48 md:h-64 bg-purple-500/5 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute bottom-0 left-0 -mb-16 -ml-16 w-32 md:w-48 h-32 md:h-48 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
       <div class="relative z-10">
-        <h1 class="text-3xl font-headline font-bold text-white mb-2">Welcome, <span class="text-purple-300">{{ displayName }}</span>!</h1>
-        <p class="text-white font-medium font-body text-lg max-w-2xl">Manage your college's GAD programs, submit activity designs, and upload accomplishment reports.</p>
+        <h1 class="text-2xl md:text-3xl font-headline font-bold text-white mb-2">Welcome, <span class="text-purple-300">{{ displayName }}</span>!</h1>
+        <p class="text-white font-medium font-body text-sm md:text-lg max-w-2xl">Manage your college's GAD programs, submit activity designs, and upload accomplishment reports.</p>
       </div>
     </div>
     
@@ -36,11 +36,11 @@
         </div>
       </section>
 
-      <div class="table-card">
+      <div class="table-card min-w-0">
         <div class="table-header-section">
           <h3 class="table-title">Recent Pending Activities</h3>
           <router-link to="/college/submit">
-            <button class="new-submission-btn">
+            <button class="new-submission-btn mt-2 sm:mt-0">
               <span class="material-symbols-outlined">add</span>
               New Submission
             </button>
@@ -80,13 +80,13 @@
         </div>
       </div>
 
-      <div class="table-card" style="margin-top: 1rem;">
+      <div class="table-card min-w-0" style="margin-top: 1rem;">
         <div class="table-header-section" style="margin-bottom: 1.5rem;">
           <h3 class="table-title">Data Visualization & Analytics</h3>
         </div>
 
         <div class="analytics-chart-container" style="background: rgba(0, 0, 0, 0.25); padding: 1.5rem; border-radius: 1rem; border: 1px solid rgba(147, 51, 234, 0.15); box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.1);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
             <h5 style="color: #f8fafc; font-weight: 600; font-size: 1.1rem; margin: 0;">Your Gender-Disaggregated Data</h5>
             <select v-model="analyticsYear" @change="fetchAnalyticsData" style="background: rgba(15, 23, 42, 0.8); color: #f8fafc; border: 1px solid rgba(147, 51, 234, 0.3); border-radius: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.9rem; outline: none; cursor: pointer;">
               <option v-for="year in availableYears" :key="year" :value="year" style="background: #1e293b; color: white;">{{ year }}</option>
@@ -145,9 +145,9 @@
       </div>
     </div>
 
-    <div class="sidebar-area">
+    <div class="sidebar-area min-w-0">
       
-      <div class="calendar-card">
+      <div class="calendar-card min-w-0 overflow-x-auto">
         <h3 class="widget-title">Calendar</h3>
         <div class="calendar-container">
           <div class="calendar-header">
@@ -177,7 +177,7 @@
         </div>
       </div>
 
-      <div class="deadlines-card">
+      <div class="deadlines-card min-w-0">
         <h3 class="widget-title">Upcoming Deadlines</h3>
         <div class="deadlines-list">
           <div v-if="deadlines.length === 0" class="empty-deadlines">
@@ -633,12 +633,20 @@ onMounted(() => {
 .dashboard-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 2rem;
+  gap: 1rem;
+  min-width: 0;
+}
+
+@media (min-width: 768px) {
+  .dashboard-grid {
+    gap: 1.5rem;
+  }
 }
 
 @media (min-width: 1200px) {
   .dashboard-grid {
     grid-template-columns: 2.2fr 1fr;
+    gap: 2rem;
   }
 }
 
@@ -659,9 +667,17 @@ onMounted(() => {
 .table-card, .calendar-card, .deadlines-card {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   border: 1px solid rgba(185, 121, 204, 0.15);
-  padding: 1.75rem;
-  border-radius: 1.25rem;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.601);
+  padding: 1.25rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.4);
+}
+
+@media (min-width: 768px) {
+  .table-card, .calendar-card, .deadlines-card {
+    padding: 1.75rem;
+    border-radius: 1.25rem;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.601);
+  }
 }
 
 .table-title, .widget-title {
@@ -756,9 +772,11 @@ onMounted(() => {
 
 .table-header-section {
   display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.75rem;
 }
 
   .table-responsive {
@@ -1026,6 +1044,12 @@ onMounted(() => {
   color: #ffffff;
   margin: 0 0 0.375rem 0;
   line-height: 1.4;
+}
+
+.deadline-control-text {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin: 0;
 }
 
 /* Table Specific CSS */
