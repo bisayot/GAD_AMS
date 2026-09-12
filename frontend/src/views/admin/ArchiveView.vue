@@ -63,14 +63,6 @@
 
           <div class="filter-card">
             <div class="filter-inline">
-              <div class="filter-item">
-                <label class="filter-label">STATUS</label>
-                <select v-model="filters.status" class="filter-select-custom" @change="applyFilters">
-                  <option value="all">All Status</option>
-                  <option value="completed">Completed</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
-              </div>
 
               <div class="filter-item">
                 <label class="filter-label">FISCAL YEAR</label>
@@ -104,10 +96,6 @@
                 </div>
               </div>
 
-              <div class="filter-actions">
-                <button class="btn-primary-custom" @click="applyFilters">Apply Filters</button>
-                <button class="btn-secondary-custom" @click="resetFilters">Clear</button>
-              </div>
             </div>
 
             <div class="filter-footer">
