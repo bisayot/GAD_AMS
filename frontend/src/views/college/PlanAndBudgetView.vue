@@ -1144,7 +1144,7 @@ export default {
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-.app-wrapper { margin: 0; padding: 0; background: var(--bg); }
+.app-wrapper { margin: 0; padding: 0; background: var(--bg); min-width: 1060px; }
 .app-wrapper {
   color: var(--text);
   
