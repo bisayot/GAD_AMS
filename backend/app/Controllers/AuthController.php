@@ -153,6 +153,12 @@ class AuthController extends ResourceController
             }
         }
 
+        $officeNameDisplay = 'Unknown Office';
+        if ($officeId) {
+            $officeRow = $db->table('office_units')->where('office_id', $officeId)->get()->getRowArray();
+            $officeNameDisplay = $officeRow ? $officeRow['office_name'] : 'Unknown Office';
+        }
+
         $userData = [
             'username' => $username,
             'email' => $email,
@@ -172,6 +178,56 @@ class AuthController extends ResourceController
 
             $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $newUserId;
             \App\Models\ActivityLogModel::log($actionUserId, 'Register User', 'registered a new user: ' . $data['fullname']);
+
+            // Notify admins and staff
+            try {
+                $notificationModel = new \App\Models\NotificationModel();
+                $adminsAndStaff = $userModel->whereIn('role', ['admin', 'gad_staff'])->findAll();
+                $frontendUrl = rtrim(getenv('FRONTEND_URL') ?: env('FRONTEND_URL') ?: getenv('app.baseURL') ?: env('app.baseURL') ?: 'http://localhost:5173', '/');
+
+                foreach ($adminsAndStaff as $notifUser) {
+                    $manageLink = $notifUser['role'] === 'admin' ? '/admin/user-management' : '/staff/user-management';
+                    
+                    // 1. In-site Notification
+                    $notificationModel->insert([
+                        'user_id' => $notifUser['id'],
+                        'title' => 'New User Registration',
+                        'message' => "A new user {$data['fullname']} ({$email}) has registered. Role: {$data['user_role']}, Office: {$officeNameDisplay}.",
+                        'type' => 'info',
+                        'link' => $manageLink,
+                        'is_read' => 0
+                    ]);
+
+                    // 2. Email Notification
+                    if (!empty($notifUser['email'])) {
+                        $emailService = \Config\Services::email(false); // get new instance for each email
+                        $emailService->setTo($notifUser['email']);
+                        $emailService->setSubject('New User Registration');
+                        
+                        $emailMessage = "
+                        <html>
+                        <head><title>New User Registration</title></head>
+                        <body>
+                            <h2>New User Registration</h2>
+                            <p>A new user has registered in the GAD AMS system.</p>
+                            <ul>
+                                <li><strong>Name:</strong> {$data['fullname']}</li>
+                                <li><strong>Email:</strong> {$email}</li>
+                                <li><strong>Role:</strong> {$data['user_role']}</li>
+                                <li><strong>Department/Office:</strong> {$officeNameDisplay}</li>
+                            </ul>
+                            <p>You can manage this user in the <a href='{$frontendUrl}{$manageLink}'>User Management</a> page.</p>
+                        </body>
+                        </html>
+                        ";
+                        
+                        $emailService->setMessage($emailMessage);
+                        @$emailService->send(); 
+                    }
+                }
+            } catch (\Exception $e) {
+                log_message('error', 'Error sending registration notifications: ' . $e->getMessage());
+            }
 
             return $this->respondCreated(['message' => 'Account created successfully. Please log in.']);
         }

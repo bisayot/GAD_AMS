@@ -88,7 +88,7 @@
                     class="px-4 py-3 font-bold text-purple-400 hover:bg-purple-500/20 cursor-pointer border-t border-white/10 transition-colors flex items-center gap-2"
                   >
                     <span class="material-symbols-outlined text-sm">add_circle</span>
-                    Add "{{ officeSearchQuery || 'New Office' }}"
+                    Not in the list? Add office
                   </div>
                 </div>
                 
@@ -214,8 +214,19 @@ const officeSearchQuery = ref('');
 
 const filteredOffices = computed(() => {
   if (!officeSearchQuery.value) return officeUnits.value;
+  
+  const selectedOffice = officeUnits.value.find(u => u.unit_id === form.office_unit_id);
+  if (selectedOffice && officeSearchQuery.value === selectedOffice.unit_name) {
+    return officeUnits.value;
+  }
+
   const q = officeSearchQuery.value.toLowerCase();
   return officeUnits.value.filter(u => u.unit_name.toLowerCase().includes(q));
+});
+
+const exactMatchExists = computed(() => {
+  if (!officeSearchQuery.value) return false;
+  return officeUnits.value.some(u => u.unit_name.toLowerCase() === officeSearchQuery.value.trim().toLowerCase());
 });
 
 const handleSearchInput = () => {
@@ -233,7 +244,12 @@ const selectOffice = (unit) => {
 const selectAddNew = () => {
   form.office_unit_id = 'add_new';
   isAddingNew.value = true;
-  newOfficeName.value = officeSearchQuery.value;
+  if (exactMatchExists.value) {
+    newOfficeName.value = '';
+  } else {
+    newOfficeName.value = officeSearchQuery.value;
+  }
+  officeSearchQuery.value = 'Custom Office';
   isDropdownOpen.value = false;
 };
 
@@ -271,7 +287,7 @@ onUnmounted(() => {
 });
 
 const handleRegister = async () => {
-  if (form.user_role !== 'Non-TWG' && !form.email.toLowerCase().endsWith('@bsu.edu.ph')) {
+  if (form.user_role !== 'Non-TWG' && form.user_role !== 'TWG' && !form.email.toLowerCase().endsWith('@bsu.edu.ph')) {
     return error.value = 'This role requires a valid institutional email (@bsu.edu.ph).';
   }
   if (form.password.length < 8) {
