@@ -1,6 +1,6 @@
 <template>
-  <div style="width: 100%; overflow-x: auto;">
-    <div style="min-width: 1200px; min-height: 100vh;">
+  <div style="width: 100%;">
+    <div style="width: 100%; min-height: 100vh;">
   <main class="main-viewport">
     <div v-if="loading" class="loading-wrapper">
       <div class="loading-spinner"></div>
@@ -234,26 +234,26 @@
                     <label class="info-label">Form Type</label>
                     <select v-model="form.form_type" class="custom-input-field select-arrow-fix mt-1">
                       <option value="" disabled class="dark-option">Select Form Type</option>
-                      <option v-for="ft in formTypes" :key="ft.id" :value="ft.id" class="dark-option">
+                      <option v-for="ft in formTypes" :key="ft.id" :value="String(ft.id)" class="dark-option">
                         {{ ft.name }}
                       </option>
                     </select>
                   </div>
                   <div class="full-width-info">
                     <label class="info-label">Gender Issue / GAD Mandate</label>
-                    <div class="checkbox-group-container custom-input-field mt-1" style="max-height: 200px; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 8px;">
+                    <div class="checkbox-group-container custom-input-field mt-1" style="max-height: 200px; overflow-y: auto; overflow-x: hidden; padding: 8px; display: flex; flex-direction: column; gap: 8px;">
                       <label v-for="mandate in GADMandates" :key="mandate.id" class="mandate-checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
                         <input type="radio" @change="handleMandateChange" v-model="form.gad_mandate_id" :value="mandate.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
-                        <span style="font-size: 13px; color: #fff; line-height: 1.4;">{{ mandate.code }} - {{ mandate.title }}</span>
+                        <span style="font-size: 13px; color: #fff; line-height: 1.4; word-break: break-word; min-width: 0; flex: 1;">{{ mandate.code }} - {{ mandate.title }}</span>
                       </label>
                       </div>
                   </div>
                   <div class="full-width-info">
                     <label class="info-label">Cause of Gender Issue</label>
-                    <div class="checkbox-group-container custom-input-field mt-1" style="max-height: 200px; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 8px;">
+                    <div class="checkbox-group-container custom-input-field mt-1" style="max-height: 200px; overflow-y: auto; overflow-x: hidden; padding: 8px; display: flex; flex-direction: column; gap: 8px;">
                       <label v-for="issue in genderIssues" :key="issue.id" class="mandate-checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
                         <input type="radio" v-model="form.gender_issue_id" :value="issue.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
-                        <span style="font-size: 13px; color: #fff; line-height: 1.4;">{{ issue.title }}</span>
+                        <span style="font-size: 13px; color: #fff; line-height: 1.4; word-break: break-word; min-width: 0; flex: 1;">{{ issue.title }}</span>
                       </label>
                       <p v-if="!form.gad_mandate_id || form.gad_mandate_id.length === 0" style="color: #94a3b8; font-size: 13px; font-style: italic; margin: 0;">Select a mandate first to see gender issues.</p>
                     </div>
@@ -263,8 +263,8 @@
                     <p class="text-sm-light mt-1">{{ existingReport?.activity_design?.target_participants || '---' }}</p>
                   </div>
                   <!-- Computed Global Dates -->
-                  <div class="form-sub-grid-ar mb-4 mt-4" style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <div class="input-group-ar">
+                  <div class="form-sub-grid-ar mb-4 mt-4" style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                    <div class="input-group-ar" style="min-width: 0;">
                       <div class="label-container">
                         <label class="info-label">Calculated Start Date</label>
                       </div>
@@ -273,7 +273,7 @@
                         {{ computedStartDate || 'Awaiting schedule...' }}
                       </div>
                     </div>
-                    <div class="input-group-ar">
+                    <div class="input-group-ar" style="min-width: 0;">
                       <label class="info-label">Calculated End Date</label>
                       <div class="custom-input-field" style="display: flex; align-items: center; gap: 8px; opacity: 0.8; cursor: not-allowed; margin-top: 4px;">
                         <span class="material-symbols-outlined" style="font-size: 16px; color: #b979cc;">event</span>
@@ -281,17 +281,17 @@
                       </div>
                     </div>
                   </div>
-                  <div style="grid-column: 1 / -1; width: 100%;">
-<div class="form.schedules-container" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
+                  <div style="grid-column: 1 / -1; width: 100%; box-sizing: border-box;">
+<div class="form.schedules-container" style="box-sizing: border-box; width: 100%; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
                     <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
                       <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-                          <label class="form-label !mb-0 flex items-center gap-2">
+                          <label class="form-label-ar !mb-0 flex items-center gap-2" style="white-space: nowrap;">
                             <span class="material-symbols-outlined" style="font-size: 18px;">schedule</span>
                             Activity Schedules *
                           </label>
-                          <div style="display: flex; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                            <button type="button" @click.prevent="handleScheduleTypeChange('staggered')" :style="{ background: scheduleType === 'staggered' ? 'rgba(185, 121, 204, 0.2)' : 'transparent', color: scheduleType === 'staggered' ? '#e9d5ff' : '#94a3b8', padding: '4px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', border: 'none' }">Non Consecutive</button>
-                            <button type="button" @click.prevent="handleScheduleTypeChange('continuous')" :style="{ background: scheduleType === 'continuous' ? 'rgba(185, 121, 204, 0.2)' : 'transparent', color: scheduleType === 'continuous' ? '#e9d5ff' : '#94a3b8', padding: '4px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', border: 'none' }">Consecutive</button>
+                          <div class="schedule-type-toggle-container">
+                            <button type="button" @click.prevent="handleScheduleTypeChange('staggered')" class="schedule-type-toggle-btn" :style="{ background: scheduleType === 'staggered' ? 'rgba(185, 121, 204, 0.2)' : 'transparent', color: scheduleType === 'staggered' ? '#e9d5ff' : '#94a3b8' }">Non Consecutive</button>
+                            <button type="button" @click.prevent="handleScheduleTypeChange('continuous')" class="schedule-type-toggle-btn" :style="{ background: scheduleType === 'continuous' ? 'rgba(185, 121, 204, 0.2)' : 'transparent', color: scheduleType === 'continuous' ? '#e9d5ff' : '#94a3b8' }">Consecutive</button>
                           </div>
                       </div>
                       <button type="button" v-if="scheduleType === 'staggered'" @click.prevent="addSchedule" style="background: rgba(185, 121, 204, 0.2); color: #e9d5ff; border: 1px solid rgba(185, 121, 204, 0.3); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s;">
@@ -306,7 +306,7 @@
                     
                     <!-- Continuous Config UI -->
                     <div v-if="scheduleType === 'continuous'" class="schedule-row mb-3 p-4 bg-white border border-slate-200 rounded-lg relative" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
-                      <div style="display: flex; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+                      <div class="schedule-inputs-wrapper" style="margin-bottom: 16px;">
                         <div class="flex-1">
                           <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Start Date</label>
                           <VueDatePicker dark v-model="continuousConfig.start_date" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
@@ -370,7 +370,7 @@
                       You can customize the Time and Meals for specific days (e.g., half-day on the last day) below:
                     </div>
                     <div v-for="(sch, index) in form.schedules" :key="index" style="display: flex; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); position: relative;">
-                      <div style="flex: 1;">
+                      <div style="flex: 1; min-width: 130px;">
                         <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 6px; display: block;">Date</label>
                         <VueDatePicker dark v-model="sch.date" :disabled="scheduleType === 'continuous'" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
 <template #dp-input="{ value }">
@@ -378,7 +378,7 @@
 </template>
 </VueDatePicker>
                       </div>
-                      <div style="flex: 1;">
+                      <div style="flex: 1; min-width: 130px;">
                         <div class="label-container" style="margin-bottom: 6px;">
                           <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 0;">Start Time</label>
                           <div class="info-btn-wrapper">
@@ -388,7 +388,7 @@
                         </div>
                         <input type="time" v-model="sch.start_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="validateScheduleTime(index)">
                       </div>
-                      <div style="flex: 1;">
+                      <div style="flex: 1; min-width: 130px;">
                         <div class="label-container" style="margin-bottom: 6px;">
                           <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 0;">End Time</label>
                           <div class="info-btn-wrapper">
@@ -2137,7 +2137,7 @@ const fetchReportDetails = async () => {
           const found = formTypes.value.find(ft => ft.name === ftype);
           if (found) ftype = found.id;
         }
-        form.value.form_type = ftype;
+        form.value.form_type = ftype ? String(ftype) : '';
         
         const savedMandates = r.activity_design.gad_mandate_id ? String(r.activity_design.gad_mandate_id).split(',').map(s=>s.trim()) : [];
         form.value.gad_mandate_id = GADMandates.value.filter(m => {
@@ -2364,16 +2364,17 @@ onUnmounted(() => {
 .ar-horizontal-layout { display: flex; flex-direction: column; gap: 24px; }
 @media (min-width: 1280px) {
   .ar-horizontal-layout { flex-direction: row; align-items: flex-start; }
-  .ar-horizontal-layout > .section-card { flex: 1; width: 50%; }
+  .ar-horizontal-layout > .section-card { flex: 1; min-width: 0; }
 }
 
-.section-card { background: rgba(0,0,0,0.2); border-radius: 16px; padding: 24px; border: 1px solid rgba(185,121,204,0.15); margin-bottom: 24px; }
+.section-card { box-sizing: border-box; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 24px; border: 1px solid rgba(185,121,204,0.15); min-width: 0; max-width: 100%; margin-bottom: 24px; }
 .section-header-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem; }
 .section-title { font-weight: 800; font-size: 13px; text-transform: uppercase; color: #b979cc; }
 .icon-pink { color: #b979cc; }
 
-.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-@media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.grid-2 > * { min-width: 0; }
+@media (max-width: 768px) { .grid-2 { grid-template-columns: minmax(0, 1fr); } }
 .full-width-info { grid-column: 1 / -1; }
 .text-sm-light { font-size: 14px; color: #cbd5e1; font-weight: 500; }
 
@@ -2387,7 +2388,7 @@ onUnmounted(() => {
 .mandate-checkbox { accent-color: #b979cc; }
 
 /* Input fields */
-.custom-input-field { width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px 16px; font-size: 14px; color: #ffffff; transition: all 0.2s ease; }
+.custom-input-field { box-sizing: border-box; width: 100%; max-width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px 16px; font-size: 14px; color: #ffffff; transition: all 0.2s ease; }
 .custom-input-field:focus { background: rgba(255,255,255,0.05); border-color: #b979cc; outline: none; box-shadow: 0 0 0 3px rgba(185,121,204,0.15); }
 .custom-input-field::placeholder { color: #64748b; }
 .textarea-no-resize { resize: none; }
@@ -2712,5 +2713,103 @@ onUnmounted(() => {
   border-radius: 12px; 
   border: 1px solid rgba(185, 121, 204, 0.2); 
 }
+
+.schedule-inputs-wrapper {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.schedule-inputs-wrapper > * {
+  min-width: 0;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .schedule-inputs-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+.schedule-type-toggle-container {
+  display: flex; 
+  background: rgba(0,0,0,0.3); 
+  border-radius: 8px; 
+  padding: 4px; 
+  border: 1px solid rgba(255,255,255,0.05);
+  gap: 4px;
+}
+
+.schedule-type-toggle-btn {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  flex: 1;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .schedule-type-toggle-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+@media (max-width: 768px) {
+  .grand-total-banner-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .grand-total-value-banner {
+    word-break: break-word;
+    font-size: 18px;
+  }
+}
+@media (max-width: 768px) {
+  .budget-row-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .budget-item-value {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .budget-sub-controls {
+    flex-wrap: wrap;
+  }
+  .others-breakdown-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .others-input-name {
+    width: 100%;
+    flex: none;
+  }
+  .others-input-amount {
+    flex: 1;
+  }
+  .grand-total-banner-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .grand-total-value-banner {
+    word-break: break-word;
+    font-size: 18px;
+  }
+}
 </style>
+
+
+
+
+
+
+
 

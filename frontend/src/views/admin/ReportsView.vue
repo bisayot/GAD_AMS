@@ -1403,7 +1403,7 @@ function exportCSV(){
     border-radius:10px;
     padding:24px clamp(14px,3vw,28px);
     display:grid;
-    grid-template-columns:1fr 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
     gap:24px;
   }
   @media (max-width:720px){.sign-panel{grid-template-columns:1fr;}}
@@ -1499,3 +1499,4 @@ function exportCSV(){
     color: #ffffff !important;
 }
 </style>
+

@@ -152,10 +152,11 @@ onUnmounted(() => {
 }
 
 .notification-dropdown {
-  position: absolute;
-  top: calc(100% + 0.5rem);
-  right: -3rem;
-  width: 20rem;
+  position: fixed;
+  top: 4.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 92vw;
   background: rgba(15, 23, 42, 0.95);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(185, 121, 204, 0.2);
@@ -167,8 +168,12 @@ onUnmounted(() => {
 
 @media (min-width: 640px) {
   .notification-dropdown {
-    width: 24rem;
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: auto;
     right: -1rem;
+    transform: none;
+    width: 24rem;
   }
 }
 

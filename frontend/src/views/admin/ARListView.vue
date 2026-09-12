@@ -622,7 +622,8 @@ onMounted(() => {
 }
 
 .table-wrapper {
-  /* overflow removed for full panning */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .data-table {

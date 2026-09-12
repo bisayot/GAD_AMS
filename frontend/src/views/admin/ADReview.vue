@@ -1,6 +1,6 @@
 <template>
-  <div style="width: 100%; overflow-x: auto;">
-    <div style="min-width: 1200px; min-height: 100vh;">
+  <div style="width: 100%; overflow-x: hidden;">
+    <div style="min-height: 100vh; width: 100%;">
   <main class="main-viewport">
     <div v-if="loading" class="loading-wrapper">
       <div class="loading-spinner"></div>
@@ -100,7 +100,7 @@
               </div>
               <div class="grid-2">
                                 <div class="full-width-info" style="grid-column: span 2;">
-                  <div class="flex gap-4 mb-4">
+                  <div class="flex flex-col md:flex-row gap-4 mb-4">
                     <div class="flex-1 bg-[#1a1a2e] p-4 rounded-xl border border-pink-500/20 relative overflow-hidden group shadow-lg">
                       <div class="absolute inset-0 bg-gradient-to-br from-pink-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                       <label class="text-[10px] font-bold text-pink-400 uppercase tracking-wider block mb-2">Calculated Start Date</label>
@@ -221,7 +221,7 @@
                     <span class="budget-group-title">{{ group.name }}</span>
                   </div>
                   <div class="budget-group-content">
-                    <div v-for="(child, cIdx) in group.children" :key="cIdx" class="budget-row-item" :class="{'has-sub-options': child.subOptions}">
+                    <div v-for="(child, cIdx) in group.children" :key="cIdx" class="budget-row-item" :class="{'has-sub-options': child.subOptions || (child.othersBreakdown && child.othersBreakdown.length > 0)}">
                       <div class="budget-row-header">
                         <div class="budget-item-info">
                           <div class="budget-item-title" v-html="formatBudgetName(child.name)"></div>
@@ -238,7 +238,7 @@
                         </label>
                       </div>
                       <div v-if="child.othersBreakdown && child.othersBreakdown.length" class="budget-others-breakdown-container mt-2">
-                        <div v-for="(o, oIdx) in child.othersBreakdown" :key="oIdx" class="budget-others-breakdown-row" style="display: flex; justify-content: space-between; padding: 4px 12px; background: rgba(0,0,0,0.1); border-radius: 4px; margin-bottom: 4px; font-size: 13px;">
+                        <div v-for="(o, oIdx) in child.othersBreakdown" :key="oIdx" class="budget-others-breakdown-row" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; padding: 4px 12px; background: rgba(0,0,0,0.1); border-radius: 4px; margin-bottom: 4px; font-size: 13px;">
                           <span style="color: #cbd5e1;">{{ o.name || 'Unnamed Item' }}</span>
                           <span style="color: #f1f5f9; font-weight: 500;">₱{{ formatCurrency(o.amount) }}</span>
                         </div>
@@ -268,8 +268,8 @@
                 <div class="doc-info">
                   <span class="material-symbols-outlined doc-pdf-icon">picture_as_pdf</span>
                   <div>
-                    <p class="doc-title">Activity_Design_Framework.pdf</p>
-                    <p class="doc-meta">Reference: {{ design.attachment }}</p>
+                    <p class="doc-title">{{ design.attachment }}</p>
+                    <p class="doc-meta">Document Reference</p>
                   </div>
                 </div>
                 <button @click="previewFile(design.attachment)" class="preview-btn">Preview</button>
@@ -1662,5 +1662,39 @@ button { transition: all 0.2s ease-in-out; cursor: pointer; }
   background: rgba(251, 146, 60, 0.15);
   color: #fb923c;
   border: 1px solid rgba(251, 146, 60, 0.3);
+}
+
+@media (max-width: 768px) {
+  .budget-row-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .budget-item-value {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .grand-total-banner-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .doc-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .doc-title {
+    word-break: break-all;
+    white-space: normal;
+  }
+  .doc-meta {
+    word-break: break-all;
+    white-space: normal;
+  }
+  .doc-info {
+    min-width: 0;
+    width: 100%;
+  }
 }
 </style>

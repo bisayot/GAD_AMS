@@ -1,6 +1,6 @@
 <template>
-  <div style="width: 100%; overflow-x: auto;">
-    <div style="min-width: 1200px; min-height: 100vh;">
+  <div style="width: 100%; overflow-x: hidden;">
+    <div style="min-height: 100vh; width: 100%;">
   <main class="main-viewport">
     <div v-if="loading" class="loading-wrapper">
       <div class="loading-spinner"></div>
@@ -68,16 +68,16 @@
               </div>
               <div class="info-item">
                 <span class="info-label">Form Type</span>
-                <select v-model="formData.form_type" class="modal-input select-input">
+                <select v-model="formData.form_type" class="modal-input select-input select-arrow-fix">
                   <option value="" disabled>Select form type...</option>
-                  <option v-for="ft in formTypes" :key="ft.id" :value="ft.id" class="dark-option">{{ ft.name }}</option>
+                  <option v-for="ft in formTypes" :key="ft.id" :value="String(ft.id)" class="dark-option">{{ ft.name }}</option>
                 </select>
               </div>
               <div class="info-item">
                 <span class="info-label">Activity Classification</span>
-                <select v-model="formData.activity_classification" class="modal-input select-input">
+                <select v-model="formData.activity_classification" class="modal-input select-input select-arrow-fix">
                   <option value="" disabled>Select classification...</option>
-                  <option v-for="c in activityClassifications" :key="c.id" :value="c.id" class="dark-option">{{ c.classification_name }}</option>
+                  <option v-for="c in activityClassifications" :key="c.id" :value="String(c.id)" class="dark-option">{{ c.classification_name }}</option>
                 </select>
               </div>
               <div class="info-item" style="grid-column: span 2;">
@@ -147,13 +147,13 @@
                   <div class="schedules-container" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
                     <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
                       <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-                          <label class="form-label !mb-0 flex items-center gap-2">
+                          <label class="form-label !mb-0 flex items-center gap-2" style="white-space: nowrap;">
                             <span class="material-symbols-outlined" style="font-size: 18px;">schedule</span>
                             Activity Schedules *
                           </label>
-                          <div style="display: flex; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                            <button type="button" @click.prevent="handleScheduleTypeChange('staggered')" :style="{ background: scheduleType === 'staggered' ? 'rgba(185, 121, 204, 0.2)' : 'transparent', color: scheduleType === 'staggered' ? '#e9d5ff' : '#94a3b8', padding: '4px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', border: 'none' }">Non Consecutive</button>
-                            <button type="button" @click.prevent="handleScheduleTypeChange('continuous')" :style="{ background: scheduleType === 'continuous' ? 'rgba(185, 121, 204, 0.2)' : 'transparent', color: scheduleType === 'continuous' ? '#e9d5ff' : '#94a3b8', padding: '4px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', border: 'none' }">Consecutive</button>
+                          <div class="schedule-type-toggle-container">
+                            <button type="button" @click.prevent="handleScheduleTypeChange('staggered')" class="schedule-type-toggle-btn" :style="{ background: scheduleType === 'staggered' ? 'rgba(185, 121, 204, 0.2)' : 'transparent', color: scheduleType === 'staggered' ? '#e9d5ff' : '#94a3b8' }">Non Consecutive</button>
+                            <button type="button" @click.prevent="handleScheduleTypeChange('continuous')" class="schedule-type-toggle-btn" :style="{ background: scheduleType === 'continuous' ? 'rgba(185, 121, 204, 0.2)' : 'transparent', color: scheduleType === 'continuous' ? '#e9d5ff' : '#94a3b8' }">Consecutive</button>
                           </div>
                       </div>
                       <button type="button" v-if="scheduleType === 'staggered'" @click.prevent="addSchedule" style="background: rgba(185, 121, 204, 0.2); color: #e9d5ff; border: 1px solid rgba(185, 121, 204, 0.3); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s;">
@@ -168,7 +168,7 @@
                     
                     <!-- Continuous Config UI -->
                     <div v-if="scheduleType === 'continuous'" class="schedule-row mb-3 p-4 bg-white border border-slate-200 rounded-lg relative" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
-                      <div style="display: flex; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+                      <div class="schedule-inputs-wrapper" style="margin-bottom: 16px;">
                         <div class="flex-1">
                           <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Start Date</label>
                           <VueDatePicker dark v-model="continuousConfig.start_date" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
@@ -231,8 +231,8 @@
                       <span class="material-symbols-outlined" style="font-size: 14px;">info</span>
                       You can customize the Time and Meals for specific days (e.g., half-day on the last day) below:
                     </div>
-                    <div v-for="(sch, index) in schedules" :key="index" style="display: flex; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); position: relative;">
-                      <div style="flex: 1;">
+                    <div v-for="(sch, index) in schedules" :key="index" class="schedule-inputs-wrapper" style="margin-bottom: 16px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); position: relative;">
+                      <div style="flex: 1; min-width: 0;">
                         <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 6px; display: block;">Date</label>
                         <VueDatePicker dark v-model="sch.date" :disabled="scheduleType === 'continuous'" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
 <template #dp-input="{ value }">
@@ -240,7 +240,7 @@
 </template>
 </VueDatePicker>
                       </div>
-                      <div style="flex: 1;">
+                      <div style="flex: 1; min-width: 0;">
                         <div class="label-container" style="margin-bottom: 6px;">
                           <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 0;">Start Time</label>
                           <div class="info-btn-wrapper">
@@ -250,7 +250,7 @@
                         </div>
                         <input type="time" v-model="sch.start_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="validateScheduleTime(index)">
                       </div>
-                      <div style="flex: 1;">
+                      <div style="flex: 1; min-width: 0;">
                         <div class="label-container" style="margin-bottom: 6px;">
                           <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 0;">End Time</label>
                           <div class="info-btn-wrapper">
@@ -1314,12 +1314,17 @@ const fetchDesignDetails = async () => {
             meals_and_snacks: { breakfast: false, am_snack: false, lunch: false, pm_snack: false, dinner: false }
          }];
       }
+      let ftype = design.value.form_type || '';
+      if (ftype && isNaN(ftype)) {
+        const found = formTypes.value.find(ft => ft.name === ftype);
+        if (found) ftype = found.id;
+      }
       
       formData.value = {
         activity_title: design.value.activity_title,
         office: design.value.office,
-        form_type: design.value.form_type,
-        activity_classification: design.value.classification_id,
+        form_type: ftype ? String(ftype) : '',
+        activity_classification: design.value.classification_id ? String(design.value.classification_id) : '',
         gad_mandate: design.value.gad_mandate_ids ? String(design.value.gad_mandate_ids).split(',').map(s=>s.trim()) : [],
         gender_issue: design.value.gender_issue_ids ? String(design.value.gender_issue_ids).split(',').map(s=>s.trim()) : [],
         start_date: design.value.start_date,
@@ -1944,10 +1949,17 @@ const handleUpdate = async () => {
   }, { deep: true });
   
   onMounted(async () => {
-  fetchVenues();
-  fetchFormTypes();
-  fetchActivityClassifications();
-  await fetchDesignDetails();
+  if (!user.value.id || user.value.role !== 'college_unit') {
+    router.push('/login');
+  } else {
+    formData.value.office = user.value.office || '';
+    fetchHolidays();
+    fetchBaselineSettings();
+    await fetchFormTypes();
+    await fetchActivityClassifications();
+    await fetchVenues();
+    await fetchDesignDetails();
+  }
 });
 
 const checkTransportationLimit = () => {
@@ -2588,9 +2600,8 @@ const checkTransportationLimit = () => {
   }
 }
 
-.custom-input-field {
-  width: 100%;
-  background: rgba(255, 255, 255, 0.03);
+.custom-input-field { box-sizing: border-box; width: 100%;
+  max-width: 100%; background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 14px 20px;
@@ -2721,10 +2732,78 @@ const checkTransportationLimit = () => {
   }
 }
 
-.input-group {
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  @media (max-width: 1024px) {
+    .layout-grid { flex-direction: column; padding: 1rem; }
+    .flex-06, .flex-100, .flex-04-sidebar { flex: 1 !important; width: 100% !important; max-width: 100% !important; position: relative !important; top: 0 !important; }
+  }
+
+  @media (max-width: 768px) {
+    .info-grid { flex-direction: column !important; gap: 12px !important; }
+    .venue-participants-row { flex-direction: column; gap: 12px; }
+  }
+.schedule-inputs-wrapper {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
+.schedule-inputs-wrapper > * {
+  min-width: 0;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .schedule-inputs-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+.schedule-type-toggle-container {
+  display: flex; 
+  background: rgba(0,0,0,0.3); 
+  border-radius: 8px; 
+  padding: 4px; 
+  border: 1px solid rgba(255,255,255,0.05);
+  gap: 4px;
+}
+
+.schedule-type-toggle-btn {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  flex: 1;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .schedule-type-toggle-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+@media (max-width: 768px) {
+  .grand-total-banner-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .grand-total-value-banner {
+    word-break: break-word;
+    font-size: 18px;
+  }
+}
 </style>
+
+
+

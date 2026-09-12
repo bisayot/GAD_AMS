@@ -515,12 +515,17 @@ onMounted(() => {
 .main-content {
   padding-left: 0;
   flex-grow: 1;
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .content-wrapper {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  width: 100%;
+  min-width: 0;
 }
 
 .page-header {
@@ -755,7 +760,8 @@ onMounted(() => {
 }
 
 .table-wrapper {
-  /* overflow removed for full panning */
+  overflow-x: auto;
+  width: 100%;
 }
 
 .data-table {

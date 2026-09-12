@@ -1,6 +1,6 @@
 <template>
-  <div style="width: 100%; overflow-x: auto;">
-    <div style="min-width: 1200px; min-height: 100vh;">
+  <div style="width: 100%; overflow-x: hidden;">
+    <div style="min-height: 100vh; width: 100%;">
     <main class="p-8">
       <div id="twgSelectionModal" class="twg-view-wrapper">
         <div class="modal-container">
@@ -77,19 +77,32 @@ onMounted(() => {
 }
 
 .modal-container {
+  box-sizing: border-box;
   background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
   border: 1px solid rgba(185, 121, 204, 0.2); 
   border-radius: 24px;
   padding: 40px;
-  min-width: 520px;
+  width: 100%;
+  max-width: 520px;
   box-shadow: 0 20px 40px rgba(10, 10, 20, 0.5), 
               0 0 30px rgba(153, 13, 209, 0.05);
+}
+
+@media (max-width: 600px) {
+  .modal-container {
+    padding: 24px;
+  }
+  main.p-8 {
+    padding: 1rem;
+  }
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-bottom: 12px;
 }
 
@@ -127,6 +140,7 @@ onMounted(() => {
 }
 
 .modal-option {
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: 20px;

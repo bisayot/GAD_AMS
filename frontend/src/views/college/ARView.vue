@@ -1,6 +1,6 @@
 <template>
-  <div style="width: 100%; overflow-x: auto;">
-    <div style="min-width: 1200px; min-height: 100vh;">
+  <div style="width: 100%;">
+    <div style="width: 100%; min-height: 100vh;">
   <main class="main-viewport">
     <div v-if="loading" class="loading-wrapper">
       <div class="loading-spinner"></div>
@@ -385,7 +385,7 @@
                     <tbody>
                       <tr v-for="(item, index) in parsedAREval" :key="index">
                         <td>{{ item.area }}</td>
-                        <td class="text-center">{{ item.rating }}</td>
+                         <td class="text-center">{{ item.rating ? Number(item.rating).toFixed(2) : '—' }}</td>
                         <td>
                           <span :class="`interpretation-tag-ar ${getInterpretationClass(item.rating)}`">
                             {{ getInterpretation(item.rating) }}
@@ -396,7 +396,7 @@
                     <tfoot>
                       <tr>
                         <td class="font-bold text-white">Total Average Rating</td>
-                        <td class="font-bold text-white text-center">{{ report.rating }}</td>
+                         <td class="font-bold text-white text-center">{{ report.rating ? Number(report.rating).toFixed(2) : '—' }}</td>
                         <td class="font-bold text-white">
                           <span :class="`interpretation-tag-ar ${getInterpretationClass(report.rating)}`">
                             {{ getInterpretation(report.rating) }}
@@ -787,7 +787,7 @@ onMounted(() => {
 .info-value-purple { font-size: 14px; font-weight: 600; color: #b979cc; }
 .report-body { padding: 2rem; }
 .report-body > * + * { margin-top: 1.5rem; }
-.section-card { background: rgba(0, 0, 0, 0.2); border-radius: 16px; padding: 24px; border: 1px solid rgba(185, 121, 204, 0.15); }
+.section-card { background-color: rgba(0, 0, 0, 0.2); border-radius: 16px; padding: 24px; border: 1px solid rgba(185, 121, 204, 0.15); min-width: 0; max-width: 100%; }
 .section-header-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
 .section-title { font-weight: 800; font-size: 13px; text-transform: uppercase; color: #b979cc; }
 .icon-pink { color: #b979cc; }
@@ -882,12 +882,14 @@ onMounted(() => {
   border-radius: 12px;
   border: 1px solid rgba(185, 121, 204, 0.15);
   background: rgba(0, 0, 0, 0.2);
+  overflow-x: auto;
 }
 .custom-table {
   width: 100%;
   min-width: 500px;
   border-collapse: collapse;
   font-size: 13px;
+  table-layout: fixed;
 }
 .custom-table th {
   background: rgba(185, 121, 204, 0.1);
@@ -897,11 +899,20 @@ onMounted(() => {
   padding: 12px 16px;
   text-align: left;
   border-bottom: 1px solid rgba(185, 121, 204, 0.15);
+  white-space: nowrap;
+}
+.custom-table th:nth-child(2) {
+  width: 140px;
+  text-align: center;
+}
+.custom-table th:nth-child(3) {
+  width: 150px;
 }
 .custom-table td {
   padding: 12px 16px;
   color: #cbd5e1;
   border-bottom: 1px solid rgba(185, 121, 204, 0.05);
+  word-break: break-word;
 }
 .custom-table tbody tr:last-child td {
   border-bottom: none;

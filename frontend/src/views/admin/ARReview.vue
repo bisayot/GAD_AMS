@@ -1,6 +1,6 @@
 <template>
-  <div style="width: 100%; overflow-x: auto;">
-    <div style="min-width: 1200px; min-height: 100vh;">
+  <div style="width: 100%;">
+    <div style="width: 100%; min-height: 100vh;">
   <main class="main-viewport">
     <div v-if="loading" class="loading-wrapper">
       <div class="loading-spinner"></div>
@@ -1187,7 +1187,7 @@ button { transition: all 0.2s ease-in-out; cursor: pointer; }
 .info-value-white { font-size: 14px; font-weight: 600; color: white; }
 .info-value-purple { font-size: 14px; font-weight: 600; color: #b979cc; }
 
-.section-card { background-color: rgba(0, 0, 0, 0.2); border-radius: 16px; padding: 24px; border: 1px solid rgba(185, 121, 204, 0.15); }
+.section-card { background: rgba(0, 0, 0, 0.2); border-radius: 16px; padding: 24px; border: 1px solid rgba(185, 121, 204, 0.15); min-width: 0; max-width: 100%; margin-bottom: 24px; }
 .section-header-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
 .section-title { font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: #b979cc; }
 
@@ -1351,7 +1351,7 @@ button { transition: all 0.2s ease-in-out; cursor: pointer; }
 .text-white { color: white; }
 
 .table-responsive {
-  /* overflow removed for full panning */
+  overflow-x: auto;
   border-radius: 12px;
   border: 1px solid rgba(185, 121, 204, 0.15);
   background: rgba(0, 0, 0, 0.2);
