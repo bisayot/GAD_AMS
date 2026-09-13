@@ -930,6 +930,9 @@ const goals = [
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   padding: 32px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 .impact-card-title {
   font-size: 18px;
@@ -944,6 +947,7 @@ const goals = [
 .doughnut-wrap {
   position: relative;
   height: 300px;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1109,6 +1113,7 @@ const goals = [
   .hero-btns, .about-btns { flex-direction: column; align-items: center; }
   .section { padding: 48px 20px; }
   .hero { padding: 48px 20px 60px; }
+  .impact-chart-card, .impact-top-offices { padding: 20px; }
 }
 @media (max-width: 480px) {
   .hero-title { font-size: 28px; }

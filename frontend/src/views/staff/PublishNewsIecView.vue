@@ -93,12 +93,12 @@
             </div>
           </div>
 
-          <div class="pt-6 flex justify-end gap-4">
-            <button type="button" @click="openPreview" class="preview-btn">
+          <div class="pt-6 flex flex-col sm:flex-row justify-end gap-4">
+            <button type="button" @click="openPreview" class="preview-btn w-full sm:w-auto justify-center">
               <span class="material-symbols-outlined text-sm">visibility</span>
               Preview
             </button>
-            <button type="submit" :disabled="loading" class="publish-btn">
+            <button type="submit" :disabled="loading" class="publish-btn w-full sm:w-auto justify-center">
               <span class="material-symbols-outlined text-sm">publish</span>
               {{ loading ? 'Publishing...' : 'Publish' }}
             </button>
