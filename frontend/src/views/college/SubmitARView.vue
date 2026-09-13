@@ -12,7 +12,7 @@
             <form @submit.prevent="submitReport" class="form-main-layout-ar">
               <div class="form-grid-main-ar">
                 <div class="form-column-left-ar">
-                  <div class="input-group-ar" style="min-width: 0;">
+                  <div class="input-group-ar">
                     <label class="form-label-ar">Activity Design Control Number *</label>
                     <select 
                       v-model="form.control_number" 
@@ -28,7 +28,7 @@
                     </select>
                   </div>
 
-                  <div class="input-group-ar" style="min-width: 0;">
+                  <div class="input-group-ar">
                     <label class="form-label-ar">Activity Title *</label>
                     <textarea 
                       v-model="form.activity_title" 
@@ -39,7 +39,7 @@
                     ></textarea>
                   </div>
 
-                  <div class="input-group-ar" style="min-width: 0;">
+                  <div class="input-group-ar">
                     <label class="form-label-ar">Form Type *</label>
                     <select 
                       v-model="form.form_type" 
@@ -58,7 +58,7 @@
                     </select>
                   </div>
 
-                  <div class="input-group-ar" style="min-width: 0;">
+                  <div class="input-group-ar">
                     <label class="form-label-ar">Activity Classification *</label>
                     <select
                       v-model="form.activity_classification"
@@ -78,7 +78,7 @@
                     </select>
                   </div>
 
-                  <div class="input-group-ar" style="min-width: 0;">
+                  <div class="input-group-ar">
                     <label class="form-label-ar">Gender Issue / GAD Mandate *</label>
                     <div class="checkbox-group-container custom-input-field" style="min-height: 120px; max-height: 250px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
                       <label v-for="mandate in GADMandates" :key="mandate.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
@@ -90,7 +90,7 @@
                     
                   </div>
 
-                  <div class="input-group-ar" style="min-width: 0;">
+                  <div class="input-group-ar">
                     <label class="form-label-ar">Cause of Gender Issue *</label>
                     <div class="checkbox-group-container custom-input-field" style="min-height: 120px; max-height: 250px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
                       <label v-for="issue in genderIssues" :key="issue.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
@@ -108,7 +108,7 @@
                           style="margin-top: 10px;" />
                   </div>
 
-                  <div class="input-group-ar" style="min-width: 0;">
+                  <div class="input-group-ar">
                     <label class="form-label-ar">Target Participants *</label>
                     <input
                       type="number"
@@ -122,7 +122,7 @@
                   
                   <!-- Computed Global Dates -->
                   <div class="form-sub-grid-ar mb-4 mt-4">
-                    <div class="input-group-ar" style="min-width: 0;">
+                    <div class="input-group-ar">
                       <div class="label-container">
                         <label class="form-label-ar">Calculated Start Date</label>
                         <div class="info-btn-wrapper">
@@ -141,7 +141,7 @@
                         {{ computedStartDate || 'Awaiting schedule...' }}
                       </div>
                     </div>
-                    <div class="input-group-ar" style="min-width: 0;">
+                    <div class="input-group-ar">
                       <label class="form-label-ar">Calculated End Date</label>
                       <div class="custom-input-field" style="display: flex; align-items: center; gap: 8px; opacity: 0.8; cursor: not-allowed;">
                         <span class="material-symbols-outlined" style="font-size: 16px; color: #b979cc;">event</span>
@@ -293,7 +293,7 @@
                     
                   </div>
 
-<div class="input-group-ar" style="min-width: 0;">
+<div class="input-group-ar">
                     <label class="form-label-ar">Venue Location *</label>
                     <div class="toggle-container" style="display: flex; gap: 1rem; align-items: center; height: 42px;">
                       <label style="color: #cbd5e1; font-size: 14px; cursor: pointer;">
@@ -305,7 +305,7 @@
                     </div>
                   </div>
 
-                  <div class="input-group-ar" style="min-width: 0;">
+                  <div class="input-group-ar">
                     <label class="form-label-ar">Venue *</label>
                     <select 
                       v-model="form.venue" 
@@ -325,7 +325,7 @@
                     </select>
                   </div>
 
-                  <div v-if="form.venue === 'Other'" class="input-group-ar" style="min-width: 0;">
+                  <div v-if="form.venue === 'Other'" class="input-group-ar">
                     <label class="form-label-ar">Specify Other Venue *</label>
                     <input 
                       type="text" 
@@ -336,7 +336,7 @@
                     >
                   </div>
 
-                  <div class="input-group-ar" style="min-width: 0;">
+                  <div class="input-group-ar">
                     <div class="label-container">
                       <label class="form-label-ar">Number of Attendees *</label>
                     </div>
@@ -352,7 +352,7 @@
                   </div>
 
                   <div class="form-sub-grid-ar">
-                    <div class="input-group-ar" style="min-width: 0;">
+                    <div class="input-group-ar">
                       <label class="form-label-ar">Male Participants *</label>
                       <input 
                         type="number" 
@@ -363,7 +363,7 @@
                         placeholder="0"
                       >
                     </div>
-                    <div class="input-group-ar" style="min-width: 0;">
+                    <div class="input-group-ar">
                       <label class="form-label-ar">Female Participants *</label>
                       <input 
                         type="number" 
@@ -2024,8 +2024,8 @@ onUnmounted(() => {
   color: #b979cc;
 }
 
-.custom-input-field { box-sizing: border-box; width: 100%;
-  max-width: 100%; background: rgba(255, 255, 255, 0.03);
+.custom-input-field { width: 100%;
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 14px 20px;
@@ -2971,6 +2971,7 @@ onUnmounted(() => {
   }
 }
 </style>
+
 
 
 

@@ -704,8 +704,7 @@ onMounted(() => {
 .section-title { font-weight: 800; font-size: 13px; text-transform: uppercase; color: #b979cc; }
 .icon-pink { color: #b979cc; }
 .text-sm-light { font-size: 1.1rem; color: #cbd5e1; font-weight: 500; }
-.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.grid-2 > * { min-width: 0; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
 .metric-box { background: rgba(0, 0, 0, 0.3); border-radius: 12px; padding: 16px; text-align: center; border: 1px solid rgba(185, 121, 204, 0.1); }
 .metric-value { font-size: 24px; font-weight: 700; color: white; }
 .metric-label { font-size: 10px; color: #cbd5e1; text-transform: uppercase; margin-top: 4px; }
@@ -1184,4 +1183,5 @@ onMounted(() => {
   }
 }
 </style>
+
 

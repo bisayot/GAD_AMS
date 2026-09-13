@@ -2600,8 +2600,8 @@ const checkTransportationLimit = () => {
   }
 }
 
-.custom-input-field { box-sizing: border-box; width: 100%;
-  max-width: 100%; background: rgba(255, 255, 255, 0.03);
+.custom-input-field { width: 100%;
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 14px 20px;
@@ -2804,6 +2804,7 @@ const checkTransportationLimit = () => {
   }
 }
 </style>
+
 
 
 

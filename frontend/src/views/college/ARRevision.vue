@@ -264,7 +264,7 @@
                   </div>
                   <!-- Computed Global Dates -->
                   <div class="form-sub-grid-ar mb-4 mt-4" style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                    <div class="input-group-ar" style="min-width: 0;">
+                    <div class="input-group-ar">
                       <div class="label-container">
                         <label class="info-label">Calculated Start Date</label>
                       </div>
@@ -273,7 +273,7 @@
                         {{ computedStartDate || 'Awaiting schedule...' }}
                       </div>
                     </div>
-                    <div class="input-group-ar" style="min-width: 0;">
+                    <div class="input-group-ar">
                       <label class="info-label">Calculated End Date</label>
                       <div class="custom-input-field" style="display: flex; align-items: center; gap: 8px; opacity: 0.8; cursor: not-allowed; margin-top: 4px;">
                         <span class="material-symbols-outlined" style="font-size: 16px; color: #b979cc;">event</span>
@@ -282,7 +282,7 @@
                     </div>
                   </div>
                   <div style="grid-column: 1 / -1; width: 100%; box-sizing: border-box;">
-<div class="form.schedules-container" style="box-sizing: border-box; width: 100%; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
+<div class="form.schedules-container" style="width: 100%; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
                     <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
                       <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
                           <label class="form-label-ar !mb-0 flex items-center gap-2" style="white-space: nowrap;">
@@ -2290,9 +2290,8 @@ onUnmounted(() => {
 .section-title { font-weight: 800; font-size: 13px; text-transform: uppercase; color: #b979cc; }
 .icon-pink { color: #b979cc; }
 
-.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.grid-2 > * { min-width: 0; }
-@media (max-width: 768px) { .grid-2 { grid-template-columns: minmax(0, 1fr); } }
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+@media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
 .full-width-info { grid-column: 1 / -1; }
 .text-sm-light { font-size: 14px; color: #cbd5e1; font-weight: 500; }
 
@@ -2306,7 +2305,7 @@ onUnmounted(() => {
 .mandate-checkbox { accent-color: #b979cc; }
 
 /* Input fields */
-.custom-input-field { box-sizing: border-box; width: 100%; max-width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px 16px; font-size: 14px; color: #ffffff; transition: all 0.2s ease; }
+.custom-input-field { width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px 16px; font-size: 14px; color: #ffffff; transition: all 0.2s ease; }
 .custom-input-field:focus { background: rgba(255,255,255,0.05); border-color: #b979cc; outline: none; box-shadow: 0 0 0 3px rgba(185,121,204,0.15); }
 .custom-input-field::placeholder { color: #64748b; }
 .textarea-no-resize { resize: none; }
@@ -2723,6 +2722,7 @@ onUnmounted(() => {
   }
 }
 </style>
+
 
 
 

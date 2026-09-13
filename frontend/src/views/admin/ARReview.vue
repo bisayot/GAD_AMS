@@ -1195,7 +1195,7 @@ button { transition: all 0.2s ease-in-out; cursor: pointer; }
 .male-val { color: #60a5fa; }
 .female-val { color: #f472b6; }
 
-.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
 
 .grid-3 {
   display: grid;
