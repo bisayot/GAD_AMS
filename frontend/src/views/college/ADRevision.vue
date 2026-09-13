@@ -707,7 +707,7 @@
 
 <script setup>
 import { useHolidays } from '../../utils/useHolidays';
-const { isDisabledDate, getWorkingDaysDiff, addWorkingDays } = useHolidays();
+const { isDisabledDate, fetchHolidays, getWorkingDaysDiff, addWorkingDays } = useHolidays();
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '../../api';
@@ -1949,7 +1949,7 @@ const handleUpdate = async () => {
   }, { deep: true });
   
   onMounted(async () => {
-  if (!user.value.id || user.value.role !== 'college_unit') {
+  if (!user.value.id || !['twg', 'non-twg'].includes(user.value.role)) {
     router.push('/login');
   } else {
     formData.value.office = user.value.office || '';

@@ -2290,9 +2290,10 @@ onUnmounted(() => {
 .section-title { font-weight: 800; font-size: 13px; text-transform: uppercase; color: #b979cc; }
 .icon-pink { color: #b979cc; }
 
-.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.grid-2 > div { min-width: 0; }
 @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
-.full-width-info { grid-column: 1 / -1; }
+.full-width-info { grid-column: 1 / -1; min-width: 0; }
 .text-sm-light { font-size: 14px; color: #cbd5e1; font-weight: 500; }
 
 /* Mandate badge boxes */
@@ -2305,7 +2306,7 @@ onUnmounted(() => {
 .mandate-checkbox { accent-color: #b979cc; }
 
 /* Input fields */
-.custom-input-field { width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px 16px; font-size: 14px; color: #ffffff; transition: all 0.2s ease; }
+.custom-input-field { box-sizing: border-box; width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px 16px; font-size: 14px; color: #ffffff; transition: all 0.2s ease; }
 .custom-input-field:focus { background: rgba(255,255,255,0.05); border-color: #b979cc; outline: none; box-shadow: 0 0 0 3px rgba(185,121,204,0.15); }
 .custom-input-field::placeholder { color: #64748b; }
 .textarea-no-resize { resize: none; }
