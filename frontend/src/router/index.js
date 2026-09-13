@@ -12,6 +12,7 @@ const routes = [
   { path: '/resources', name: 'resources', component: () => import('../views/ResourcesView.vue') },
   { path: '/gad-corner', name: 'gad-corner', component: () => import('../views/GADCornerView.vue') },
   { path: '/gad-corner/:id', name: 'gad-corner-post', component: () => import('../views/GadCornerPostView.vue') },
+  { path: '/gad-corner/tags/:tag', name: 'gad-corner-tags', component: () => import('../views/TagResultsView.vue') },
   { path: '/contact', name: 'contact', component: () => import('../views/ContactView.vue') },
 
   // Legacy bookmarks → nested routes

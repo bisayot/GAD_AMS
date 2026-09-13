@@ -40,7 +40,7 @@
         <div v-if="loadingNewsIec" class="text-center py-8 text-slate-400">Loading updates...</div>
         <div v-else-if="filteredNewsIecItems.length === 0" class="text-center py-8 text-slate-400">No news or IEC materials found.</div>
         
-        <div v-else class="mb-20">
+        <div v-else class="mb-8">
           <!-- Massive Tag Header -->
           <div v-if="activeTag" class="mb-10">
             <h1 class="text-4xl md:text-5xl lg:text-6xl font-headline font-black text-white mb-6 tracking-tight flex items-center gap-2">
@@ -92,7 +92,7 @@
 
 
     <!-- Accomplishment Reports Section -->
-    <section class="py-16 px-12 border-t border-white/10">
+    <section class="pt-8 pb-16 px-12 border-t border-transparent">
       <div class="max-w-7xl mx-auto space-y-12">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div class="space-y-4">
@@ -118,8 +118,8 @@
               <div v-for="group in reportsByYear" :key="'ver_'+group.year" class="book-container group relative w-full h-[450px]" :class="{ 'is-open': openBooks['ver_' + group.year] }">
                 <div class="book relative w-full h-full pointer-events-none">
                   <!-- Cover -->
-                  <div class="book-cover absolute inset-0 bg-white rounded-r-xl border-2 border-black shadow-[4px_0_15px_rgba(0,0,0,0.05)] flex flex-col items-center justify-center p-8 z-20 pointer-events-auto cursor-pointer" @click="toggleBook('ver_' + group.year)">
-                    <div class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-200 to-transparent border-r border-slate-200/50 rounded-l-sm"></div>
+                  <div class="book-cover absolute inset-0 bg-white rounded-r-xl border-2 border-black shadow-[4px_0_15px_rgba(0,0,0,0.05)] flex flex-col items-center justify-center p-8 z-20 pointer-events-auto cursor-pointer" @click="toggleBook('ver_' + group.year)" style="border: 2px solid black !important;">
+                    <div class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-300 to-transparent rounded-l-xl" style="border-right: 2px solid black;"></div>
                     <img src="/images/logo.png" alt="Logo" class="w-28 mb-8 object-contain drop-shadow-md ml-4 group-hover:scale-105 transition-transform" />
                     <h4 class="font-headline font-black text-center text-slate-800 text-2xl mb-2 ml-4 leading-snug">{{ group.year }} Accomplishment Reports</h4>
                     <div class="mt-4 px-4 py-1.5 bg-emerald-50 rounded-full text-xs font-label uppercase tracking-widest font-bold text-emerald-700 border border-emerald-100 ml-4 mb-8">
@@ -130,22 +130,22 @@
                     </div>
                   </div>
                   <!-- Inside Page -->
-                  <div class="book-page absolute inset-0 bg-slate-50 rounded-r-xl border-2 border-black shadow-inner p-6 flex flex-col z-10 pointer-events-auto">
-                    <div class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-200/60 to-transparent rounded-l-sm shadow-[inset_-2px_0_4px_rgba(0,0,0,0.02)]"></div>
+                  <div class="book-page absolute inset-0 bg-slate-50 rounded-r-xl border-2 border-black shadow-inner p-6 flex flex-col z-10 pointer-events-auto" style="border: 2px solid black !important;">
+                    <div class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-300 to-transparent rounded-l-xl" style="border-right: 2px solid black;"></div>
                     <div class="pl-6 flex flex-col h-full">
                       <div class="flex items-center gap-3 mb-4 shrink-0">
                         <div class="relative flex-grow">
                           <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
-                          <input type="text" v-model="verifiedFilters[group.year]" placeholder="Search records..." class="w-full pl-9 pr-14 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 outline-none placeholder:text-slate-400 shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-shadow" />
-                          <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">{{ group.reports.length }}</span>
+                          <input type="text" v-model="verifiedFilters[group.year]" placeholder="Search records..." class="w-full pl-9 pr-14 py-2.5 bg-white border-2 border-black rounded-xl text-sm font-medium focus:ring-2 focus:ring-purple-500 outline-none placeholder:text-slate-500 shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-shadow" style="border: 2px solid black !important; color: black !important;" />
+                          <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-md" style="color: black !important;">{{ group.reports.length }}</span>
                         </div>
-                        <button @click="toggleBook('ver_' + group.year)" class="w-10 h-10 shrink-0 rounded-xl bg-black hover:bg-slate-800 border-2 border-black flex items-center justify-center text-white shadow-md transition-all" title="Close Book">
-                          <span class="material-symbols-outlined text-[20px] font-bold">close</span>
+                        <button @click="toggleBook('ver_' + group.year)" class="w-10 h-10 shrink-0 rounded-xl bg-black hover:bg-slate-800 border-2 border-black flex items-center justify-center text-white shadow-md transition-all" title="Close Book" style="background-color: black !important; color: white !important; border: 2px solid black !important;">
+                          <span class="material-symbols-outlined text-[20px] font-bold" style="color: white !important;">close</span>
                         </button>
                       </div>
                       <div class="overflow-y-auto flex-grow pr-3 space-y-3 custom-scrollbar pb-4">
                         <div v-if="filterGroup(group.reports, verifiedFilters[group.year]).length === 0" class="text-slate-400 text-sm py-8 text-center flex flex-col items-center gap-2"><span class="material-symbols-outlined text-3xl opacity-50">search_off</span> No matches found.</div>
-                        <div v-else v-for="report in filterGroup(group.reports, verifiedFilters[group.year])" :key="report.id" @click.stop="viewPdf(report)" class="bg-white p-3 rounded-xl border-2 border-black shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md transition-all cursor-pointer group/item flex items-center gap-3">
+                        <div v-else v-for="report in filterGroup(group.reports, verifiedFilters[group.year])" :key="report.id" @click.stop="viewPdf(report)" class="bg-white p-3 rounded-xl border-2 border-black shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md transition-all cursor-pointer group/item flex items-center gap-3" style="border: 2px solid black !important;">
                           <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center shrink-0 group-hover/item:bg-purple-100 transition-colors">
                             <span class="material-symbols-outlined text-purple-600 text-[20px]">description</span>
                           </div>
@@ -181,10 +181,10 @@
               <div v-for="group in archivesByYear" :key="'arch_'+group.year" class="book-container group relative w-full h-[450px]" :class="{ 'is-open': openBooks['arch_' + group.year] }">
                 <div class="book relative w-full h-full pointer-events-none">
                   <!-- Cover -->
-                  <div class="book-cover absolute inset-0 bg-white rounded-r-xl border-2 border-black shadow-[4px_0_15px_rgba(0,0,0,0.05)] flex flex-col items-center justify-center p-8 z-20 pointer-events-auto cursor-pointer" @click="toggleBook('arch_' + group.year)">
-                    <div class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-200 to-transparent border-r border-slate-200/50 rounded-l-sm"></div>
+                  <div class="book-cover absolute inset-0 bg-white rounded-r-xl border-2 border-black shadow-[4px_0_15px_rgba(0,0,0,0.05)] flex flex-col items-center justify-center p-8 z-20 pointer-events-auto cursor-pointer" @click="toggleBook('arch_' + group.year)" style="border: 2px solid black !important;">
+                    <div class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-300 to-transparent rounded-l-xl" style="border-right: 2px solid black;"></div>
                     <img src="/images/logo.png" alt="Logo" class="w-28 mb-8 object-contain drop-shadow-md ml-4 group-hover:scale-105 transition-transform" />
-                    <h4 class="font-headline font-black text-center text-slate-800 text-2xl mb-2 ml-4 leading-snug">FY {{ group.year }} Annual Reports</h4>
+                    <h4 class="font-headline font-black text-center text-slate-800 text-2xl mb-2 ml-4 leading-snug">Archived Annual Reports</h4>
                     <div class="mt-4 px-4 py-1.5 bg-blue-50 rounded-full text-xs font-label uppercase tracking-widest font-bold text-blue-700 border border-blue-100 ml-4 mb-8">
                       Archive Collection
                     </div>
@@ -193,22 +193,22 @@
                     </div>
                   </div>
                   <!-- Inside Page -->
-                  <div class="book-page absolute inset-0 bg-slate-50 rounded-r-xl border-2 border-black shadow-inner p-6 flex flex-col z-10 pointer-events-auto">
-                    <div class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-200/60 to-transparent rounded-l-sm shadow-[inset_-2px_0_4px_rgba(0,0,0,0.02)]"></div>
+                  <div class="book-page absolute inset-0 bg-slate-50 rounded-r-xl border-2 border-black shadow-inner p-6 flex flex-col z-10 pointer-events-auto" style="border: 2px solid black !important;">
+                    <div class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-300 to-transparent rounded-l-xl" style="border-right: 2px solid black;"></div>
                     <div class="pl-6 flex flex-col h-full">
                       <div class="flex items-center gap-3 mb-4 shrink-0">
                         <div class="relative flex-grow">
                           <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
-                          <input type="text" v-model="archiveFilters[group.year]" placeholder="Search records..." class="w-full pl-9 pr-14 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none placeholder:text-slate-400 shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-shadow" />
-                          <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">{{ group.reports.length }}</span>
+                          <input type="text" v-model="archiveFilters[group.year]" placeholder="Search records..." class="w-full pl-9 pr-14 py-2.5 bg-white border-2 border-black rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none placeholder:text-slate-500 shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-shadow" style="border: 2px solid black !important; color: black !important;" />
+                          <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-md" style="color: black !important;">{{ group.reports.length }}</span>
                         </div>
-                        <button @click="toggleBook('arch_' + group.year)" class="w-10 h-10 shrink-0 rounded-xl bg-black hover:bg-slate-800 border-2 border-black flex items-center justify-center text-white shadow-md transition-all" title="Close Book">
-                          <span class="material-symbols-outlined text-[20px] font-bold">close</span>
+                        <button @click="toggleBook('arch_' + group.year)" class="w-10 h-10 shrink-0 rounded-xl bg-black hover:bg-slate-800 border-2 border-black flex items-center justify-center text-white shadow-md transition-all" title="Close Book" style="background-color: black !important; color: white !important; border: 2px solid black !important;">
+                          <span class="material-symbols-outlined text-[20px] font-bold" style="color: white !important;">close</span>
                         </button>
                       </div>
                       <div class="overflow-y-auto flex-grow pr-3 space-y-3 custom-scrollbar pb-4">
                         <div v-if="filterGroup(group.reports, archiveFilters[group.year]).length === 0" class="text-slate-400 text-sm py-8 text-center flex flex-col items-center gap-2"><span class="material-symbols-outlined text-3xl opacity-50">search_off</span> No matches found.</div>
-                        <div v-else v-for="archive in filterGroup(group.reports, archiveFilters[group.year])" :key="archive.id" @click.stop="viewHtmlReport(archive)" class="bg-white p-3 rounded-xl border-2 border-black shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md transition-all cursor-pointer group/item flex items-center gap-3">
+                        <div v-else v-for="archive in filterGroup(group.reports, archiveFilters[group.year])" :key="archive.id" @click.stop="viewHtmlReport(archive)" class="bg-white p-3 rounded-xl border-2 border-black shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md transition-all cursor-pointer group/item flex items-center gap-3" style="border: 2px solid black !important;">
                           <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 group-hover/item:bg-blue-100 transition-colors">
                             <span class="material-symbols-outlined text-blue-600 text-[20px]">history_edu</span>
                           </div>
@@ -237,7 +237,7 @@
 
     <!-- Modals -->
     <!-- Modals -->
-    <PdfPreviewModal :isOpen="isPdfPreviewOpen" :fileUrl="currentPdfUrl" @close="isPdfPreviewOpen = false" />
+    <PdfPreviewModal :isOpen="isPdfPreviewOpen" :fileUrl="currentPdfUrl" @close="handlePdfClose" />
     <HtmlPreviewModal :isOpen="isHtmlPreviewOpen" :htmlContent="currentHtmlContent" :title="currentHtmlTitle" :loading="isHtmlLoading" @close="isHtmlPreviewOpen = false" />
   </div>
 </template>
@@ -261,6 +261,14 @@ const route = useRoute();
 const router = useRouter();
 const isPdfPreviewOpen = ref(false);
 const currentPdfUrl = ref('');
+const currentReportWithMultipleFiles = ref(null);
+
+const handlePdfClose = () => {
+  isPdfPreviewOpen.value = false;
+  if (currentReportWithMultipleFiles.value) {
+    viewPdf(currentReportWithMultipleFiles.value);
+  }
+};
 
 const isHtmlPreviewOpen = ref(false);
 const isHtmlLoading = ref(false);
@@ -353,19 +361,15 @@ const reportsByYear = computed(() => {
 const archivesByYear = computed(() => {
   let baseArchives = archivedReports.value;
 
-  const grouped = {};
-  baseArchives.forEach(archive => {
-    const year = String(archive.fiscal_year || 'Unknown');
-    if (!grouped[year]) {
-      grouped[year] = { year, reports: [] };
-      if (archiveFilters.value[year] === undefined) {
-        archiveFilters.value[year] = '';
-      }
-    }
-    grouped[year].reports.push(archive);
-  });
+  if (archiveFilters.value['all'] === undefined) {
+    archiveFilters.value['all'] = '';
+  }
 
-  return Object.values(grouped).sort((a, b) => b.year.localeCompare(a.year));
+  // Return a single group containing all archives so there is only one book
+  return [{
+    year: 'all',
+    reports: baseArchives.sort((a, b) => b.fiscal_year - a.fiscal_year)
+  }];
 });
 
 const filterGroup = (reports, query) => {
@@ -436,7 +440,7 @@ const fetchArchivedReports = async () => {
   try {
     const res = await api.get('annual-reports/archive');
     if (res.data && res.data.success) {
-      archivedReports.value = res.data.data.slice(0, 5);
+      archivedReports.value = res.data.data;
     }
   } catch (err) {
     console.error('Failed to fetch archives:', err);
@@ -493,8 +497,10 @@ const viewPdf = (report) => {
         if (attachments.length === 1) {
           currentPdfUrl.value = getUrl(attachments[0]);
           isPdfPreviewOpen.value = true;
+          currentReportWithMultipleFiles.value = null;
           return;
         } else {
+          currentReportWithMultipleFiles.value = report;
           let html = `
             <div class="flex flex-col items-center mb-6 mt-2">
               <div class="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mb-4 shadow-sm">
@@ -532,12 +538,18 @@ const viewPdf = (report) => {
                 const btn = document.getElementById(`btn-att-${idx}`);
                 if (btn) {
                   btn.addEventListener('click', () => {
-                    Swal.close();
                     currentPdfUrl.value = getUrl(att);
                     isPdfPreviewOpen.value = true;
+                    Swal.close();
                   });
                 }
               });
+            },
+            willClose: () => {
+              // If we are closing Swal but NOT opening the PDF preview, clear the reference
+              if (!isPdfPreviewOpen.value) {
+                currentReportWithMultipleFiles.value = null;
+              }
             }
           });
           return;
@@ -547,6 +559,7 @@ const viewPdf = (report) => {
         const folder = report.is_archived ? 'archived' : 'drafts';
         currentPdfUrl.value = `${import.meta.env.VITE_API_BASE_URL ? (import.meta.env.VITE_API_BASE_URL.endsWith('/') ? import.meta.env.VITE_API_BASE_URL : import.meta.env.VITE_API_BASE_URL + '/') : 'http://localhost:8080/api/'}files/${folder}/${attachments}`;
         isPdfPreviewOpen.value = true;
+        currentReportWithMultipleFiles.value = null;
         return;
       }
     }

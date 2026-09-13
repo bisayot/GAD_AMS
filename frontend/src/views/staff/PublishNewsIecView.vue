@@ -117,63 +117,67 @@
           </div>
           
           <!-- Full Post Preview -->
-          <div class="bg-[#16213e] rounded-2xl border border-white/10 shadow-2xl overflow-hidden mb-8">
-            <!-- Header: Title and Date -->
-            <div class="p-8 md:p-12 pb-8 relative">
-              <div class="absolute top-8 right-8 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest backdrop-blur-md z-20"
-                   :class="form.category === 'News' ? 'bg-blue-900/50 text-blue-200 border border-blue-500/30' : 'bg-emerald-900/50 text-emerald-200 border border-emerald-500/30'">
-                {{ form.category }}
-              </div>
-              <h1 class="text-3xl md:text-5xl font-headline font-extrabold text-white mb-6 leading-tight pr-24">{{ form.title || 'Untitled Material' }}</h1>
+          <!-- Full Post Preview -->
+          <div class="bg-slate-50 rounded-2xl shadow-2xl overflow-hidden mb-8 max-w-4xl mx-auto border border-slate-200">
+            <div class="p-8 md:p-12 pb-12 text-left">
               
-              <div class="flex items-center gap-4 text-sm text-slate-400">
-                <span class="flex items-center gap-1 font-label">
-                  <span class="material-symbols-outlined text-[16px]">calendar_today</span>
-                  {{ new Date().toLocaleDateString() }}
+              <!-- Tags (At the very top) -->
+              <div class="mb-6 flex flex-wrap gap-3" v-if="tagsList.length > 0">
+                <span v-for="tag in tagsList" :key="tag" class="text-sm font-body text-slate-600 bg-white px-4 py-1.5 rounded-full border border-slate-200 flex items-center gap-2">
+                  {{ tag.trim() }} <span class="material-symbols-outlined text-[14px] text-slate-400">arrow_outward</span>
                 </span>
               </div>
-            </div>
 
-            <!-- Image Carousel -->
-            <div class="relative h-64 sm:h-96 md:h-[500px] w-full bg-black/50 border-y border-white/10">
-              <img v-if="previewImageUrls.length > 0" :src="previewImageUrls[currentPreviewIndex]" class="object-contain w-full h-full transition-all duration-300" />
-              <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#1a1a2e] to-[#16213e]">
-                <span class="material-symbols-outlined text-6xl text-white/20">newspaper</span>
+              <!-- Title -->
+              <div class="mb-6">
+                <h1 class="text-4xl md:text-5xl lg:text-[56px] font-headline font-black text-slate-900 leading-[1.1] tracking-tight">{{ form.title || 'Untitled Material' }}</h1>
               </div>
-              
-              <button v-if="previewImageUrls.length > 0" @click.prevent="removeImage(currentPreviewIndex)" class="absolute top-4 left-4 bg-red-600/80 text-white p-2 rounded-full hover:bg-red-500 transition-colors backdrop-blur-sm shadow-md z-30 flex items-center justify-center">
-                <span class="material-symbols-outlined">delete</span>
-              </button>
-              
-              <!-- Carousel Arrows -->
-              <div v-if="previewImageUrls.length > 1" class="absolute inset-0 flex items-center justify-between px-4">
-                <button @click.prevent="prevImage" class="bg-black/50 text-white p-2 rounded-full hover:bg-black/80 transition-colors backdrop-blur-sm shadow-md">
-                  <span class="material-symbols-outlined">chevron_left</span>
-                </button>
-                <button @click.prevent="nextImage" class="bg-black/50 text-white p-2 rounded-full hover:bg-black/80 transition-colors backdrop-blur-sm shadow-md">
-                  <span class="material-symbols-outlined">chevron_right</span>
-                </button>
-              </div>
-              <!-- Dots indicator -->
-              <div v-if="previewImageUrls.length > 1" class="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
-                <div v-for="(_, idx) in previewImageUrls" :key="idx" 
-                     class="w-2 h-2 rounded-full transition-colors shadow-sm cursor-pointer"
-                     :class="idx === currentPreviewIndex ? 'bg-white' : 'bg-white/40'"
-                     @click="currentPreviewIndex = idx">
+
+              <!-- Meta Info -->
+              <div class="mb-12 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-sm text-slate-600 font-body">
+                <div class="flex items-center gap-3">
+                  <img src="/images/logo.png" class="w-10 h-10 rounded-full object-contain bg-white border border-slate-100 shadow-sm" alt="Author" />
+                  <div class="flex items-center flex-wrap gap-x-2">
+                    <span class="font-medium text-slate-900">BSU GAD Office</span>
+                    <span class="px-3 py-0.5 rounded-full border border-slate-200 text-xs font-medium">{{ form.category }}</span>
+                    <span>&middot;</span>
+                    <span>{{ new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) }}</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Body: Description and Tags -->
-            <div class="p-8 md:p-12 pt-8">
-              <div class="text-slate-200 leading-relaxed whitespace-pre-wrap text-lg md:text-xl font-light" v-html="linkify(form.description) || '<span class=\'text-slate-500\'>No description provided.</span>'"></div>
-
-              <!-- Tags -->
-              <div v-if="tagsList.length > 0" class="flex flex-wrap gap-2 mt-10 pt-6 border-t border-white/10">
-                <span v-for="tag in tagsList" :key="tag" class="text-xs font-label font-bold text-purple-400 bg-purple-900/20 px-3 py-1.5 rounded-full border border-purple-500/20">
-                  #{{ tag }}
-                </span>
+              <!-- Image Carousel -->
+              <div class="relative h-64 sm:h-96 md:h-[500px] w-full bg-slate-100 rounded-xl overflow-hidden mb-12">
+                <img v-if="previewImageUrls.length > 0" :src="previewImageUrls[currentPreviewIndex]" class="object-cover w-full h-full transition-all duration-300" />
+                <div v-else class="w-full h-full flex items-center justify-center bg-slate-200">
+                  <span class="material-symbols-outlined text-6xl text-slate-400">newspaper</span>
+                </div>
+                
+                <button v-if="previewImageUrls.length > 0" @click.prevent="removeImage(currentPreviewIndex)" class="absolute top-4 left-4 bg-red-600/90 text-white p-2 rounded-full hover:bg-red-500 transition-colors backdrop-blur-sm shadow-md z-30 flex items-center justify-center">
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+                
+                <!-- Carousel Arrows -->
+                <div v-if="previewImageUrls.length > 1" class="absolute inset-0 flex items-center justify-between px-4 pointer-events-none z-40">
+                  <button @click.prevent="prevImage" class="pointer-events-auto w-14 h-14 flex items-center justify-center rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:scale-110 active:scale-95 transition-all" style="background-color: white !important; color: black !important; border: 2px solid rgba(0,0,0,0.1) !important; opacity: 1 !important;">
+                    <span class="material-symbols-outlined font-black text-3xl" style="color: black !important; font-weight: 900 !important;">chevron_left</span>
+                  </button>
+                  <button @click.prevent="nextImage" class="pointer-events-auto w-14 h-14 flex items-center justify-center rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:scale-110 active:scale-95 transition-all" style="background-color: white !important; color: black !important; border: 2px solid rgba(0,0,0,0.1) !important; opacity: 1 !important;">
+                    <span class="material-symbols-outlined font-black text-3xl" style="color: black !important; font-weight: 900 !important;">chevron_right</span>
+                  </button>
+                </div>
+                <!-- Dots indicator -->
+                <div v-if="previewImageUrls.length > 1" class="absolute bottom-6 left-0 right-0 flex justify-center gap-3">
+                  <div v-for="(_, idx) in previewImageUrls" :key="idx" 
+                       class="w-2.5 h-2.5 rounded-full transition-all shadow-sm cursor-pointer"
+                       :class="idx === currentPreviewIndex ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/80'"
+                       @click="currentPreviewIndex = idx">
+                  </div>
+                </div>
               </div>
+
+              <!-- Description -->
+              <div class="text-slate-800 leading-relaxed whitespace-pre-wrap text-lg md:text-xl font-body" v-html="linkify(form.description) || '<span class=\'text-slate-400\'>No description provided.</span>'"></div>
             </div>
           </div>
 
