@@ -197,7 +197,7 @@
                   <div class="flex-1 bg-[#1a1a2e] p-4 rounded-xl border border-purple-500/20">
                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Venue</label>
                     <p class="text-white text-lg font-bold mb-2">{{ design.venue }}</p>
-                    <span :class="design.is_inside_bsu == 1 || design.is_inside_bsu === true ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' : 'bg-orange-500/20 text-orange-300 border border-orange-500/30'" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                    <span :class="design.is_inside_bsu == 1 || design.is_inside_bsu === true ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' : 'bg-orange-500/20 text-orange-300 border border-orange-500/30'" class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
                       {{ design.is_inside_bsu == 1 || design.is_inside_bsu === true ? '🏫 Inside BSU' : '🌐 Outside BSU' }}
                     </span>
                   </div>

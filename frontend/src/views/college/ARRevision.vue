@@ -282,7 +282,7 @@
                     </div>
                   </div>
                   <div style="grid-column: 1 / -1; width: 100%; box-sizing: border-box;">
-<div class="form.schedules-container" style="width: 100%; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
+<div class="form.schedules-container" style="box-sizing: border-box; width: 100%; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
                     <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
                       <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
                           <label class="form-label-ar !mb-0 flex items-center gap-2" style="white-space: nowrap;">
@@ -365,7 +365,7 @@
                     </div>
 
                     <!-- Expanded Schedules UI -->
-                    <div v-if="scheduleType === 'continuous' && form.schedules.length > 0" style="margin-top: 16px; margin-bottom: 8px; color: #b979cc; font-size: 11px; font-weight: bold; display: flex; align-items: center; gap: 4px;">
+                    <div v-if="scheduleType === 'continuous' && form.schedules?.length > 0" style="margin-top: 16px; margin-bottom: 8px; color: #b979cc; font-size: 11px; font-weight: bold; display: flex; align-items: center; gap: 4px;">
                       <span class="material-symbols-outlined" style="font-size: 14px;">info</span>
                       You can customize the Time and Meals for specific days (e.g., half-day on the last day) below:
                     </div>
@@ -398,7 +398,7 @@
                         </div>
                         <input type="time" v-model="sch.end_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="validateScheduleTime(index)">
                       </div>
-                      <button type="button" v-if="scheduleType === 'staggered' && form.schedules.length > 1" @click.prevent="removeSchedule(index)" style="background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" title="Remove Schedule">
+                      <button type="button" v-if="scheduleType === 'staggered' && form.schedules?.length > 1" @click.prevent="removeSchedule(index)" style="background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" title="Remove Schedule">
                         <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
                       </button>
                       <div style="flex-basis: 100%; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 8px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.1);">
@@ -2241,6 +2241,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+* { box-sizing: border-box; }
 .main-viewport { flex: 1; min-height: 100vh; background: transparent; }
 .loading-wrapper { display: flex; justify-content: center; align-items: center; min-height: 400px; }
 .loading-spinner { border: 4px solid rgba(255,255,255,0.1); border-left-color: #b979cc; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
@@ -2306,7 +2307,7 @@ onUnmounted(() => {
 .mandate-checkbox { accent-color: #b979cc; }
 
 /* Input fields */
-.custom-input-field { box-sizing: border-box; width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px 16px; font-size: 14px; color: #ffffff; transition: all 0.2s ease; }
+.custom-input-field { box-sizing: border-box; max-width: 100%; width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px 16px; font-size: 14px; color: #ffffff; transition: all 0.2s ease; }
 .custom-input-field:focus { background: rgba(255,255,255,0.05); border-color: #b979cc; outline: none; box-shadow: 0 0 0 3px rgba(185,121,204,0.15); }
 .custom-input-field::placeholder { color: #64748b; }
 .textarea-no-resize { resize: none; }
