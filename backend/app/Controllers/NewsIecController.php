@@ -34,7 +34,7 @@ class NewsIecController extends ResourceController
     {
         $rules = [
             'title'    => 'required|min_length[3]',
-            'category' => 'required|in_list[News,IEC]',
+            'category' => 'required|in_list[News,IEC,Announcement]',
         ];
 
         if (!$this->validate($rules)) {

@@ -23,7 +23,7 @@ class NewsIecModel extends Model
     // Validation
     protected $validationRules      = [
         'title'        => 'required|min_length[3]|max_length[255]',
-        'category'     => 'required|in_list[News,IEC]',
+        'category'     => 'required|in_list[News,IEC,Announcement]',
         'published_by' => 'required|is_natural_no_zero',
     ];
     protected $validationMessages   = [];

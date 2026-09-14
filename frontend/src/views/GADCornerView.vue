@@ -10,13 +10,13 @@
       </div>
     </section>
 
-    <!-- News & IEC Materials Section -->
+    <!-- Bulletin Section -->
     <section class="py-16 px-12 ">
       <div class="max-w-7xl mx-auto space-y-12">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div class="space-y-4">
             <span class="inline-block px-4 py-1.5 rounded-full bg-white/10 text-white font-label text-xs font-bold uppercase tracking-widest">Public Information</span>
-            <h2 class="text-4xl font-headline font-extrabold text-white tracking-tight">News & IEC Materials</h2>
+            <h2 class="text-4xl font-headline font-extrabold text-white tracking-tight">Bulletin</h2>
             <p class="text-slate-300 text-lg max-w-lg leading-relaxed">
               Stay updated with the latest news, announcements, and Information, Education, and Communication (IEC) materials from the GAD Office.
             </p>
@@ -27,18 +27,19 @@
                 <option value="All" class="bg-[#1a1a2e]">All Categories</option>
                 <option value="News" class="bg-[#1a1a2e]">News</option>
                 <option value="IEC" class="bg-[#1a1a2e]">IEC Materials</option>
+                <option value="Announcement" class="bg-[#1a1a2e]">Announcements</option>
               </select>
               <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-white/70 pointer-events-none text-xl">keyboard_arrow_down</span>
             </div>
             <div class="relative w-full sm:w-64">
               <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-              <input v-model="searchNewsQuery" class="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 text-white placeholder:text-slate-500 shadow-sm" placeholder="Search news and IEC materials..." type="text"/>
+              <input v-model="searchNewsQuery" class="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 text-white placeholder:text-slate-500 shadow-sm" placeholder="Search bulletin..." type="text"/>
             </div>
           </div>
         </div>
 
         <div v-if="loadingNewsIec" class="text-center py-8 text-slate-400">Loading updates...</div>
-        <div v-else-if="filteredNewsIecItems.length === 0" class="text-center py-8 text-slate-400">No news or IEC materials found.</div>
+        <div v-else-if="filteredNewsIecItems.length === 0" class="text-center py-8 text-slate-400">No bulletin items found.</div>
         
         <div v-else class="mb-8">
           <!-- Massive Tag Header -->
@@ -62,7 +63,7 @@
                   <span class="material-symbols-outlined text-5xl text-slate-300">image</span>
                 </div>
                 <div class="absolute top-4 right-4 px-3 py-1 rounded bg-white/90 backdrop-blur-sm text-[10px] font-bold uppercase tracking-widest shadow-sm z-20"
-                     :class="item.category === 'News' ? 'text-blue-600' : 'text-emerald-600'">
+                     :class="item.category === 'News' ? 'text-blue-600' : item.category === 'IEC' ? 'text-emerald-600' : 'text-orange-500'">
                   {{ item.category }}
                 </div>
               </div>

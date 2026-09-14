@@ -3,8 +3,8 @@
     <div class="content-wrapper">
       
       <div class="page-header">
-        <h1 class="page-title">Publish News & IEC</h1>
-        <p class="page-subtitle">Publish new News updates or IEC materials for the public GAD Corner.</p>
+        <h1 class="page-title">Publish Bulletin</h1>
+        <p class="page-subtitle">Publish new News updates, IEC materials, or Announcements for the public GAD Corner.</p>
       </div>
 
       <div class="form-container">
@@ -21,6 +21,7 @@
                 <select v-model="form.category" class="custom-select" required>
                   <option value="News">News</option>
                   <option value="IEC">IEC Material</option>
+                  <option value="Announcement">Announcement</option>
                 </select>
                 <span class="select-arrow">▼</span>
               </div>
@@ -147,8 +148,8 @@
               </div>
 
               <!-- Image Carousel -->
-              <div class="relative h-64 sm:h-96 md:h-[500px] w-full bg-slate-100 rounded-xl overflow-hidden mb-12">
-                <img v-if="previewImageUrls.length > 0" :src="previewImageUrls[currentPreviewIndex]" class="object-cover w-full h-full transition-all duration-300" />
+              <div class="relative min-h-[300px] w-full bg-slate-100 rounded-xl overflow-hidden mb-12 flex items-center justify-center">
+                <img v-if="previewImageUrls.length > 0" :src="previewImageUrls[currentPreviewIndex]" class="w-full max-h-[80vh] object-contain transition-all duration-300" />
                 <div v-else class="w-full h-full flex items-center justify-center bg-slate-200">
                   <span class="material-symbols-outlined text-6xl text-slate-400">newspaper</span>
                 </div>
@@ -193,7 +194,7 @@
 
       <div class="table-container mt-8">
         <div class="p-6 border-b border-white/10">
-          <h2 class="text-xl font-headline font-bold text-white">Published Items</h2>
+          <h2 class="text-xl font-headline font-bold text-white">Published Bulletin Items</h2>
         </div>
         
         <div v-if="loadingItems" class="empty-state">Loading...</div>
@@ -212,7 +213,11 @@
             <tbody class="table-body">
               <tr v-for="item in items" :key="item.id" class="table-row">
                 <td class="table-cell">
-                  <span class="category-badge">
+                  <span :class="[
+                    'category-badge',
+                    item.category === 'News' ? 'badge-news' :
+                    item.category === 'IEC' ? 'badge-iec' : 'badge-announcement'
+                  ]">
                     {{ item.category }}
                   </span>
                 </td>
@@ -400,6 +405,15 @@ onMounted(() => {
 });
 
 const confirmPublish = () => {
+  if (form.value.title.length > 255) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Title Limit Reached',
+      text: `The title is ${form.value.title.length} characters long. The maximum allowed limit is 255 characters. Please decrease it.`
+    });
+    return;
+  }
+
   Swal.fire({
     title: 'Are you sure?',
     text: `You are about to publish this ${form.value.category}. It will be visible to the public.`,
@@ -755,8 +769,23 @@ const deleteItem = (id) => {
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #cbd5e1;
+}
+
+.badge-news {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  color: #93c5fd;
+}
+
+.badge-iec {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #6ee7b7;
+}
+
+.badge-announcement {
+  background: rgba(249, 115, 22, 0.15);
+  border: 1px solid rgba(249, 115, 22, 0.4);
+  color: #fdba74;
 }
 </style>

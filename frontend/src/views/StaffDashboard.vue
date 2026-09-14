@@ -71,7 +71,7 @@ const staffMenu = ref([
     children: [
       { label: 'Messages', icon: 'mail', href: '/staff/messages', badge: 0 },
       { label: 'Inquiries', icon: 'contact_mail', href: '/staff/contact-inquiries', badge: 0 },
-      { label: 'Publish News & IEC', icon: 'post_add', href: '/staff/publish-news-iec' }
+      { label: 'Publish Bulletin', icon: 'post_add', href: '/staff/publish-news-iec' }
     ]
   },
   { label: 'Submitted List', icon: 'list', href: '/staff/submitted-list' },

@@ -1,5 +1,5 @@
 <template>
-  <nav class="navbar">
+  <nav class="navbar" :class="{ 'navbar-hidden': isHidden }">
     <div class="navbar-inner">
       <div class="navbar-brand">
         <router-link to="/">BSU GAD Corner</router-link>
@@ -49,9 +49,30 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 
 const isMenuOpen = ref(false);
+const isHidden = ref(false);
+
+let lastScrollY = 0;
+const handleScroll = () => {
+  const currentScrollY = window.scrollY;
+  // Always show navbar when near the top
+  if (currentScrollY < 60) {
+    isHidden.value = false;
+  } else if (currentScrollY > lastScrollY + 5) {
+    // Scrolling down — hide
+    isHidden.value = true;
+    isMenuOpen.value = false; // close mobile menu too
+  } else if (currentScrollY < lastScrollY - 5) {
+    // Scrolling up — show
+    isHidden.value = false;
+  }
+  lastScrollY = currentScrollY;
+};
+
+onMounted(() => window.addEventListener('scroll', handleScroll, { passive: true }));
+onUnmounted(() => window.removeEventListener('scroll', handleScroll));
 
 const navItems = [
   { href: '/', label: 'Home' },
@@ -62,7 +83,8 @@ const navItems = [
 </script>
 
 <style scoped>
-.navbar { position: fixed; top: 0; width: 100%; z-index: 50; background: #1a1a2e; backdrop-filter: blur(12px); box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-bottom: 1px solid rgba(139, 92, 246, 0.08); }
+.navbar { position: fixed; top: 0; width: 100%; z-index: 50; background: #1a1a2e; backdrop-filter: blur(12px); box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-bottom: 1px solid rgba(139, 92, 246, 0.08); transition: transform 0.3s ease; }
+.navbar-hidden { transform: translateY(-100%); }
 .navbar-inner { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 16px 32px; max-width: 1400px; margin: 0 auto; gap: 32px; }
 .navbar-brand { font-size: 24px; font-weight: 900; letter-spacing: -0.03em; color: #990dd1; text-transform: uppercase; white-space: nowrap; z-index: 52; }
 .navbar-brand a { color: inherit; text-decoration: none; }

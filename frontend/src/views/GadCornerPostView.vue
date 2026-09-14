@@ -16,7 +16,8 @@
       </div>
     </div>
 
-    <div v-else class="max-w-4xl mx-auto relative z-10">
+    <div v-else>
+      <div class="max-w-4xl mx-auto relative z-10">
       <!-- Tags (At the very top) -->
       <div class="px-6 mb-6 flex flex-wrap gap-3" v-if="post.tags">
         <router-link 
@@ -56,27 +57,36 @@
 
       <!-- Carousel (The Card) -->
       <div v-if="parsedImages.length > 0" class="px-6 mb-12">
-        <div class="bg-slate-100 rounded-xl overflow-hidden relative h-64 sm:h-96 md:h-[500px] w-full group">
+        <!-- Image -->
+        <div class="bg-slate-100 rounded-xl overflow-hidden w-full flex items-center justify-center min-h-[300px]">
           <img :src="`${apiBaseUrl}files/news-iec/${parsedImages[currentImageIndex]}`" 
-               class="object-cover w-full h-full transition-all duration-300" />
-          
-          <!-- Carousel Arrows -->
-          <div v-if="parsedImages.length > 1" class="absolute inset-0 flex items-center justify-between px-4 pointer-events-none z-40">
-            <button @click.prevent="prevImage" class="pointer-events-auto w-14 h-14 flex items-center justify-center rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:scale-110 active:scale-95 transition-all" style="background-color: white !important; color: black !important; border: 2px solid rgba(0,0,0,0.1) !important; opacity: 1 !important;">
-              <span class="material-symbols-outlined font-black text-3xl" style="color: black !important; font-weight: 900 !important;">chevron_left</span>
-            </button>
-            <button @click.prevent="nextImage" class="pointer-events-auto w-14 h-14 flex items-center justify-center rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:scale-110 active:scale-95 transition-all" style="background-color: white !important; color: black !important; border: 2px solid rgba(0,0,0,0.1) !important; opacity: 1 !important;">
-              <span class="material-symbols-outlined font-black text-3xl" style="color: black !important; font-weight: 900 !important;">chevron_right</span>
-            </button>
-          </div>
-          
-          <div v-if="parsedImages.length > 1" class="absolute bottom-6 left-0 right-0 flex justify-center gap-3">
-            <div v-for="(_, idx) in parsedImages" :key="idx" 
-                 class="w-2.5 h-2.5 rounded-full transition-all shadow-sm cursor-pointer"
-                 :class="idx === currentImageIndex ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/80'"
+               class="w-full max-h-[80vh] object-contain transition-all duration-300" />
+        </div>
+
+        <!-- Controls: Arrows + Dots (outside the image) -->
+        <div v-if="parsedImages.length > 1" class="flex items-center justify-center gap-4 mt-4">
+          <!-- Prev Arrow -->
+          <button @click.prevent="prevImage"
+            class="w-9 h-12 sm:w-12 sm:h-12 flex items-center justify-center rounded-lg sm:rounded-full shadow-md hover:scale-110 active:scale-95 transition-all shrink-0"
+            style="background-color: white; border: 2px solid rgba(0,0,0,0.12);">
+            <span class="material-symbols-outlined font-black text-xl" style="color: black; font-weight: 900;">chevron_left</span>
+          </button>
+
+          <!-- Dots -->
+          <div class="flex justify-center gap-2.5 flex-wrap">
+            <div v-for="(_, idx) in parsedImages" :key="idx"
+                 class="w-2.5 h-2.5 rounded-full transition-all cursor-pointer shadow-sm"
+                 :class="idx === currentImageIndex ? 'bg-slate-700 scale-125' : 'bg-slate-300 hover:bg-slate-500'"
                  @click="currentImageIndex = idx">
             </div>
           </div>
+
+          <!-- Next Arrow -->
+          <button @click.prevent="nextImage"
+            class="w-9 h-12 sm:w-12 sm:h-12 flex items-center justify-center rounded-lg sm:rounded-full shadow-md hover:scale-110 active:scale-95 transition-all shrink-0"
+            style="background-color: white; border: 2px solid rgba(0,0,0,0.12);">
+            <span class="material-symbols-outlined font-black text-xl" style="color: black; font-weight: 900;">chevron_right</span>
+          </button>
         </div>
       </div>
 
@@ -85,32 +95,130 @@
         <div class="text-slate-800 leading-relaxed whitespace-pre-wrap text-lg md:text-xl font-body mb-12" v-html="linkify(post.description)"></div>
       </div>
 
-      <!-- Related Items (Now All News/IEC) -->
-      <div v-if="relatedItems.length > 0" class="px-6">
-        <h3 class="text-3xl font-headline font-black text-slate-900 mb-10">
-          More News & IEC
-        </h3>
-        
-        <div class="grid md:grid-cols-2 gap-8">
-          <router-link :to="`/gad-corner/${item.id}`" v-for="item in relatedItems" :key="item.id" class="group bg-white rounded-3xl border border-slate-100 shadow-lg hover:shadow-xl hover:-translate-y-1 overflow-hidden transition-all duration-300 flex flex-col">
-            <div v-if="parseImages(item.image_path).length > 0" class="h-48 overflow-hidden bg-slate-100">
-              <img :src="`${apiBaseUrl}files/news-iec/${parseImages(item.image_path)[0]}`" class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
+      </div><!-- end max-w-4xl article wrapper -->
+
+      <!-- Related Items — split by category with horizontal sliders (full width) -->
+      <div v-if="relatedItems.length > 0" class="mt-12 pt-10 border-t border-slate-200">
+        <h3 class="px-6 text-3xl font-headline font-black text-slate-900 mb-10">More from the Bulletin</h3>
+
+        <!-- NEWS ROW -->
+        <div v-if="newsPosts.length > 0" class="mb-14">
+          <div class="px-6 flex items-center justify-between mb-5">
+            <div class="flex items-center gap-3">
+              <span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span>
+              <h4 class="text-xl font-headline font-bold text-slate-800">News</h4>
+              <span class="text-xs text-slate-400 font-label">{{ newsPosts.length }} post{{ newsPosts.length !== 1 ? 's' : '' }}</span>
             </div>
-            <div class="p-6 md:p-8 flex flex-col flex-grow">
-              <div class="flex gap-2 mb-4">
-                <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest" :class="item.category === 'News' ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'">{{ item.category }}</span>
-              </div>
-              <h4 class="font-headline font-bold text-2xl mb-3 text-slate-800 group-hover:text-purple-600 transition-colors leading-snug">{{ item.title }}</h4>
-              <p class="text-base text-slate-600 line-clamp-3 mb-8">{{ item.description }}</p>
-              <div class="mt-auto pt-4 border-t border-slate-100 text-xs text-slate-500 font-bold font-label flex items-center justify-between">
-                <span>{{ new Date(item.created_at).toLocaleDateString() }}</span>
-                <span class="text-purple-600 font-bold group-hover:translate-x-2 transition-transform flex items-center gap-1 text-sm">Read <span class="material-symbols-outlined font-bold text-[18px]">arrow_forward</span></span>
-              </div>
+            <div class="flex gap-2">
+              <button @click="scrollRow('news', -1)" class="w-9 h-9 flex items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm hover:bg-slate-50 active:scale-95 transition-all">
+                <span class="material-symbols-outlined text-base text-slate-600">chevron_left</span>
+              </button>
+              <button @click="scrollRow('news', 1)" class="w-9 h-9 flex items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm hover:bg-slate-50 active:scale-95 transition-all">
+                <span class="material-symbols-outlined text-base text-slate-600">chevron_right</span>
+              </button>
             </div>
-          </router-link>
+          </div>
+          <div ref="newsRow" class="flex gap-5 overflow-x-hidden scroll-smooth px-6">
+            <router-link :to="`/gad-corner/${item.id}`" v-for="item in newsPosts" :key="item.id"
+              class="group bg-white rounded-3xl border border-slate-100 shadow-lg hover:shadow-xl hover:-translate-y-1 overflow-hidden transition-all duration-300 flex flex-col shrink-0 w-72">
+              <div v-if="parseImages(item.image_path).length > 0" class="h-44 overflow-hidden bg-slate-100">
+                <img :src="`${apiBaseUrl}files/news-iec/${parseImages(item.image_path)[0]}`" class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
+              </div>
+              <div v-else class="h-24 bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
+                <span class="material-symbols-outlined text-4xl text-blue-300">newspaper</span>
+              </div>
+              <div class="p-5 flex flex-col flex-grow">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest bg-blue-50 text-blue-700 mb-3 self-start">News</span>
+                <h5 class="font-headline font-bold text-lg mb-2 text-slate-800 group-hover:text-purple-600 transition-colors leading-snug line-clamp-2">{{ item.title }}</h5>
+                <p class="text-sm text-slate-500 line-clamp-2 mb-4">{{ item.description }}</p>
+                <div class="mt-auto pt-3 border-t border-slate-100 text-xs text-slate-400 font-label flex items-center justify-between">
+                  <span>{{ new Date(item.created_at).toLocaleDateString() }}</span>
+                  <span class="text-purple-600 font-bold group-hover:translate-x-1.5 transition-transform flex items-center gap-1">Read <span class="material-symbols-outlined text-[16px]">arrow_forward</span></span>
+                </div>
+              </div>
+            </router-link>
+          </div>
         </div>
-      </div>
-    </div>
+
+        <!-- IEC ROW -->
+        <div v-if="iecPosts.length > 0" class="mb-14">
+          <div class="px-6 flex items-center justify-between mb-5">
+            <div class="flex items-center gap-3">
+              <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+              <h4 class="text-xl font-headline font-bold text-slate-800">IEC Materials</h4>
+              <span class="text-xs text-slate-400 font-label">{{ iecPosts.length }} post{{ iecPosts.length !== 1 ? 's' : '' }}</span>
+            </div>
+            <div class="flex gap-2">
+              <button @click="scrollRow('iec', -1)" class="w-9 h-9 flex items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm hover:bg-slate-50 active:scale-95 transition-all">
+                <span class="material-symbols-outlined text-base text-slate-600">chevron_left</span>
+              </button>
+              <button @click="scrollRow('iec', 1)" class="w-9 h-9 flex items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm hover:bg-slate-50 active:scale-95 transition-all">
+                <span class="material-symbols-outlined text-base text-slate-600">chevron_right</span>
+              </button>
+            </div>
+          </div>
+          <div ref="iecRow" class="flex gap-5 overflow-x-hidden scroll-smooth px-6">
+            <router-link :to="`/gad-corner/${item.id}`" v-for="item in iecPosts" :key="item.id"
+              class="group bg-white rounded-3xl border border-slate-100 shadow-lg hover:shadow-xl hover:-translate-y-1 overflow-hidden transition-all duration-300 flex flex-col shrink-0 w-72">
+              <div v-if="parseImages(item.image_path).length > 0" class="h-44 overflow-hidden bg-slate-100">
+                <img :src="`${apiBaseUrl}files/news-iec/${parseImages(item.image_path)[0]}`" class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
+              </div>
+              <div v-else class="h-24 bg-gradient-to-br from-emerald-50 to-emerald-100 flex items-center justify-center">
+                <span class="material-symbols-outlined text-4xl text-emerald-300">campaign</span>
+              </div>
+              <div class="p-5 flex flex-col flex-grow">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest bg-emerald-50 text-emerald-700 mb-3 self-start">IEC</span>
+                <h5 class="font-headline font-bold text-lg mb-2 text-slate-800 group-hover:text-purple-600 transition-colors leading-snug line-clamp-2">{{ item.title }}</h5>
+                <p class="text-sm text-slate-500 line-clamp-2 mb-4">{{ item.description }}</p>
+                <div class="mt-auto pt-3 border-t border-slate-100 text-xs text-slate-400 font-label flex items-center justify-between">
+                  <span>{{ new Date(item.created_at).toLocaleDateString() }}</span>
+                  <span class="text-purple-600 font-bold group-hover:translate-x-1.5 transition-transform flex items-center gap-1">Read <span class="material-symbols-outlined text-[16px]">arrow_forward</span></span>
+                </div>
+              </div>
+            </router-link>
+          </div>
+        </div>
+
+        <!-- ANNOUNCEMENT ROW -->
+        <div v-if="announcementPosts.length > 0" class="mb-14">
+          <div class="px-6 flex items-center justify-between mb-5">
+            <div class="flex items-center gap-3">
+              <span class="w-3 h-3 rounded-full bg-orange-500 inline-block"></span>
+              <h4 class="text-xl font-headline font-bold text-slate-800">Announcements</h4>
+              <span class="text-xs text-slate-400 font-label">{{ announcementPosts.length }} post{{ announcementPosts.length !== 1 ? 's' : '' }}</span>
+            </div>
+            <div class="flex gap-2">
+              <button @click="scrollRow('announcement', -1)" class="w-9 h-9 flex items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm hover:bg-slate-50 active:scale-95 transition-all">
+                <span class="material-symbols-outlined text-base text-slate-600">chevron_left</span>
+              </button>
+              <button @click="scrollRow('announcement', 1)" class="w-9 h-9 flex items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm hover:bg-slate-50 active:scale-95 transition-all">
+                <span class="material-symbols-outlined text-base text-slate-600">chevron_right</span>
+              </button>
+            </div>
+          </div>
+          <div ref="announcementRow" class="flex gap-5 overflow-x-hidden scroll-smooth px-6">
+            <router-link :to="`/gad-corner/${item.id}`" v-for="item in announcementPosts" :key="item.id"
+              class="group bg-white rounded-3xl border border-slate-100 shadow-lg hover:shadow-xl hover:-translate-y-1 overflow-hidden transition-all duration-300 flex flex-col shrink-0 w-72">
+              <div v-if="parseImages(item.image_path).length > 0" class="h-44 overflow-hidden bg-slate-100">
+                <img :src="`${apiBaseUrl}files/news-iec/${parseImages(item.image_path)[0]}`" class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
+              </div>
+              <div v-else class="h-24 bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center">
+                <span class="material-symbols-outlined text-4xl text-orange-300">notifications</span>
+              </div>
+              <div class="p-5 flex flex-col flex-grow">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest bg-orange-50 text-orange-600 mb-3 self-start">Announcement</span>
+                <h5 class="font-headline font-bold text-lg mb-2 text-slate-800 group-hover:text-purple-600 transition-colors leading-snug line-clamp-2">{{ item.title }}</h5>
+                <p class="text-sm text-slate-500 line-clamp-2 mb-4">{{ item.description }}</p>
+                <div class="mt-auto pt-3 border-t border-slate-100 text-xs text-slate-400 font-label flex items-center justify-between">
+                  <span>{{ new Date(item.created_at).toLocaleDateString() }}</span>
+                  <span class="text-purple-600 font-bold group-hover:translate-x-1.5 transition-transform flex items-center gap-1">Read <span class="material-symbols-outlined text-[16px]">arrow_forward</span></span>
+                </div>
+              </div>
+            </router-link>
+          </div>
+        </div>
+      </div><!-- end bulletin section -->
+    </div><!-- end v-else -->
   </div>
 </template>
 
@@ -145,9 +253,25 @@ const parsedImages = computed(() => {
 
 const relatedItems = computed(() => {
   if (!post.value || allItems.value.length === 0) return [];
-  return allItems.value
-    .filter(item => item.id !== post.value.id);
+  return allItems.value.filter(item => item.id !== post.value.id);
 });
+
+const newsPosts = computed(() => relatedItems.value.filter(i => i.category === 'News'));
+const iecPosts = computed(() => relatedItems.value.filter(i => i.category === 'IEC'));
+const announcementPosts = computed(() => relatedItems.value.filter(i => i.category === 'Announcement'));
+
+// Row scroll refs
+const newsRow = ref(null);
+const iecRow = ref(null);
+const announcementRow = ref(null);
+
+const SCROLL_AMOUNT = 320; // px per click (approx. one card width + gap)
+
+const scrollRow = (category, direction) => {
+  const map = { news: newsRow, iec: iecRow, announcement: announcementRow };
+  const el = map[category]?.value;
+  if (el) el.scrollBy({ left: direction * SCROLL_AMOUNT, behavior: 'smooth' });
+};
 
 const parseImages = (val) => {
   if (!val) return [];
