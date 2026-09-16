@@ -91,7 +91,7 @@
           <div class="mt-8 pt-8 border-t border-white/10 text-center">
             <p class="text-sm text-slate-300 font-body">
               Are you a visitor?
-              <router-link class="text-purple-400 font-bold hover:underline underline-offset-4 decoration-2 ml-1" to="/gad-corner">Explore Public Records</router-link>
+              <router-link class="text-purple-400 font-bold hover:underline underline-offset-4 decoration-2 ml-1" to="/gad-corner">Explore GAD CORNER</router-link>
             </p>
           </div>
         </div>

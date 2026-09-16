@@ -1,31 +1,19 @@
 <template>
   <div class="register-page font-body pt-32 pb-16 px-4 flex flex-col items-center justify-center min-h-screen" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #ffffff;">
-    <div class="max-w-6xl w-full grid grid-cols-1 md:grid-cols-12 gap-8 items-start relative z-10">
+    <div class="w-full max-w-4xl relative z-10">
       
-      <div class="md:col-span-5 flex flex-col gap-10 pr-0 md:pr-12">
-        <div class="space-y-4">
-          <div class="inline-flex items-center gap-2 bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full border border-blue-500/30">
-            <span class="material-symbols-outlined text-[18px]">verified_user</span>
-            <span class="text-[10px] font-bold uppercase tracking-[0.2em] font-label">Official Registration</span>
-          </div>
-          <h1 class="text-5xl font-extrabold font-headline tracking-tighter text-purple-400 leading-tight">
-            Empowering Equality through <span class="text-blue-400 italic">Scholarly Action.</span>
-          </h1>
-          <p class="text-slate-300 text-lg leading-relaxed max-w-md">
-            Join the Benguet State University Gender and Development portal. All fields are required.
-          </p>
+      <div class="text-center mb-10 flex flex-col items-center">
+        <div class="inline-flex items-center gap-2 bg-purple-500/20 text-purple-300 px-4 py-1.5 rounded-full border border-purple-500/30 mb-6">
+          <span class="material-symbols-outlined text-[18px]">account_circle</span>
+          <span class="text-xs font-bold uppercase tracking-[0.2em] font-label">Create Account</span>
         </div>
-        <div class="relative w-full aspect-square rounded-xl overflow-hidden shadow-2xl border border-white/10">
-          <img alt="Academic Building" class="object-cover w-full h-full grayscale hover:grayscale-0 transition-all duration-700 opacity-80" src="/images/img_16.jpg" />
-          <div class="absolute inset-0 bg-gradient-to-t from-[#1a1a2e] to-transparent"></div>
-          <div class="absolute bottom-6 left-6 right-6 text-white">
-            <p class="text-sm font-label uppercase tracking-widest opacity-80 mb-2">Heritage & Excellence</p>
-            <p class="font-headline font-bold text-xl">Serving the Highlands since 1916.</p>
-          </div>
-        </div>
+        <h1 class="text-4xl md:text-5xl font-extrabold font-headline tracking-tighter text-white leading-tight">
+          Welcome to <span class="text-purple-400">GAD-AMS Portal.</span>
+        </h1>
       </div>
 
-      <div class="md:col-span-7 rounded-xl p-8 md:p-12 shadow-2xl border border-white/10" style="background-color: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px);">
+      <div class="rounded-xl p-8 md:p-12 shadow-2xl border border-white/10 relative overflow-hidden" style="background-color: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px);">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-blue-500"></div>
         <form @submit.prevent="handleRegister" class="space-y-8">
           <div v-if="error" class="rounded-md bg-red-900/50 border border-red-500/50 text-red-200 px-4 py-3 text-sm">{{ error }}</div>
           

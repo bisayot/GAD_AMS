@@ -18,10 +18,84 @@
     <!-- HERO -->
     <section class="hero">
       <div class="hero-overlay"></div>
-      <div class="hero-content">
-        <span class="hero-badge">Benguet State University</span>
-        <h1 class="hero-title">Gender and Development</h1>
+      <div class="hero-content flex flex-col items-center">
+        <span class="hero-badge mb-4">Benguet State University</span>
+        <a href="#platform-background" class="cursor-pointer hover:opacity-80 transition-opacity text-center block" style="text-decoration: none;">
+          <h1 class="hero-title mb-2">Gender and Development</h1>
+          <p class="text-2xl md:text-4xl text-purple-300 font-headline font-bold mb-6 tracking-wide">Activities Management System</p>
+        </a>
         <img src="/images/logo.png" alt="System Logo" class="hero-logo" />
+      </div>
+
+      <!-- Bulletins Box Container Carousel (INSIDE HERO, BOTTOM) -->
+      <div class="absolute -bottom-12 left-0 w-full z-20 pb-4">
+        <div class="max-w-[95vw] md:max-w-[90vw] mx-auto">
+          <div v-if="loadingNewsIec" class="text-center text-slate-400">Loading updates...</div>
+          <div v-else-if="latestBulletins.length === 0" class="text-center text-slate-400">No new bulletins.</div>
+          <div v-else class="card-carousel">
+          <div class="card-track">
+            <div v-for="item in latestBulletins" :key="item.id" @click="openBulletin(item)" class="carousel-card-wrapper">
+              <div class="group cursor-pointer bg-white rounded-2xl border border-slate-100 hover:shadow-2xl hover:border-purple-300 transition-all duration-300 overflow-hidden flex flex-col h-full text-left transform hover:-translate-y-2">
+                <div class="relative h-48 w-full bg-slate-50 overflow-hidden shrink-0">
+                  <template v-if="parseImages(item.image_path).length > 0">
+                    <img :src="`${apiBaseUrl}files/news-iec/${parseImages(item.image_path)[0]}`" 
+                         class="absolute inset-0 object-cover w-full h-full group-hover:scale-105 transition-transform duration-700 ease-out" />
+                  </template>
+                  <div v-else class="w-full h-full flex items-center justify-center bg-slate-100">
+                    <span class="material-symbols-outlined text-4xl text-slate-300">image</span>
+                  </div>
+                  <div class="absolute top-3 right-3 px-3 py-1 rounded bg-white/90 backdrop-blur-sm text-[10px] font-bold uppercase tracking-widest shadow-sm z-20"
+                       :class="item.category === 'News' ? 'text-blue-600' : item.category === 'IEC' ? 'text-emerald-600' : 'text-orange-500'">
+                    {{ item.category }}
+                  </div>
+                </div>
+                
+                <div class="p-5 flex flex-col flex-grow items-start bg-white">
+                  <h3 class="font-headline font-bold text-lg text-slate-800 group-hover:text-purple-700 transition-colors line-clamp-2 leading-snug mb-2">
+                    {{ item.title }}
+                  </h3>
+                  
+                  <span class="font-label text-xs text-slate-500 mb-3">
+                    {{ new Date(item.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) }}
+                  </span>
+                  
+                  <p class="text-sm text-slate-600 leading-relaxed line-clamp-2 mb-4" v-html="linkify(item.description)"></p>
+                </div>
+              </div>
+            </div>
+            <!-- Duplicate for continuous scroll -->
+            <div v-for="item in latestBulletins" :key="'dup-'+item.id" @click="openBulletin(item)" class="carousel-card-wrapper">
+              <div class="group cursor-pointer bg-white rounded-2xl border border-slate-100 hover:shadow-2xl hover:border-purple-300 transition-all duration-300 overflow-hidden flex flex-col h-full text-left transform hover:-translate-y-2">
+                <div class="relative h-48 w-full bg-slate-50 overflow-hidden shrink-0">
+                  <template v-if="parseImages(item.image_path).length > 0">
+                    <img :src="`${apiBaseUrl}files/news-iec/${parseImages(item.image_path)[0]}`" 
+                         class="absolute inset-0 object-cover w-full h-full group-hover:scale-105 transition-transform duration-700 ease-out" />
+                  </template>
+                  <div v-else class="w-full h-full flex items-center justify-center bg-slate-100">
+                    <span class="material-symbols-outlined text-4xl text-slate-300">image</span>
+                  </div>
+                  <div class="absolute top-3 right-3 px-3 py-1 rounded bg-white/90 backdrop-blur-sm text-[10px] font-bold uppercase tracking-widest shadow-sm z-20"
+                       :class="item.category === 'News' ? 'text-blue-600' : item.category === 'IEC' ? 'text-emerald-600' : 'text-orange-500'">
+                    {{ item.category }}
+                  </div>
+                </div>
+                
+                <div class="p-5 flex flex-col flex-grow items-start bg-white">
+                  <h3 class="font-headline font-bold text-lg text-slate-800 group-hover:text-purple-700 transition-colors line-clamp-2 leading-snug mb-2">
+                    {{ item.title }}
+                  </h3>
+                  
+                  <span class="font-label text-xs text-slate-500 mb-3">
+                    {{ new Date(item.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) }}
+                  </span>
+                  
+                  <p class="text-sm text-slate-600 leading-relaxed line-clamp-2 mb-4" v-html="linkify(item.description)"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       </div>
     </section>
 
@@ -47,7 +121,7 @@
 
         <!-- GOALS -->
         <div class="goals-label">
-          <span>Goals and Objectives</span>
+          <span>Goals</span>
           <div class="goals-divider"></div>
         </div>
         <div class="goals-grid">
@@ -164,7 +238,7 @@
     </section>
 
     <!-- ABOUT -->
-    <section class="section about-section relative overflow-hidden group"
+    <section id="platform-background" class="section about-section relative overflow-hidden group"
              @mousemove="handleMouseMove" 
              @mouseenter="isHovering = true" 
              @mouseleave="isHovering = false"
@@ -261,6 +335,57 @@ const $router = useRouter();
 const mouseX = ref(0);
 const mouseY = ref(0);
 const isHovering = ref(false);
+
+// Bulletin States
+const latestBulletins = ref([]);
+const loadingNewsIec = ref(true);
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL 
+  ? (import.meta.env.VITE_API_BASE_URL.endsWith('/') ? import.meta.env.VITE_API_BASE_URL : import.meta.env.VITE_API_BASE_URL + '/') 
+  : 'http://localhost:8080/api/';
+
+const parseImages = (val) => {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  if (typeof val === 'string') {
+    try {
+      let parsed = JSON.parse(val);
+      if (typeof parsed === 'string') {
+        parsed = JSON.parse(parsed);
+      }
+      if (Array.isArray(parsed)) return parsed;
+    } catch(e) {}
+  }
+  return [val];
+};
+
+const linkify = (text) => {
+  if (!text) return '';
+  const urlRegex = /(https?:\/\/[^\s]+|(?:www\.)?[a-zA-Z0-9-]+\.(?:com|org|net|edu|gov|ph|io|co|info|me)(?:\/[^\s]*)?)/ig;
+  return text.replace(urlRegex, function(url) {
+    let href = url;
+    if (!/^https?:\/\//i.test(href)) {
+      href = 'https://' + href;
+    }
+    return `<a href="${href}" target="_blank" class="text-blue-400 hover:underline break-all">${url}</a>`;
+  });
+};
+
+const fetchLatestBulletins = async () => {
+  try {
+    const res = await api.get('news-iec');
+    if (res.data && res.data.success) {
+      latestBulletins.value = res.data.data.slice(0, 10);
+    }
+  } catch (err) {
+    console.error("Failed to fetch latest bulletins:", err);
+  } finally {
+    loadingNewsIec.value = false;
+  }
+};
+
+const openBulletin = (item) => {
+  $router.push(`/gad-corner/${item.id}`);
+};
 
 const handleMouseMove = (e) => {
   const rect = e.currentTarget.getBoundingClientRect();
@@ -396,6 +521,7 @@ onMounted(() => {
   }, 2500);
 
   fetchAnalyticsData();
+  fetchLatestBulletins();
   
   // Intersection Observer to trigger animation when scrolled into view
   const observer = new IntersectionObserver((entries) => {
@@ -562,9 +688,10 @@ const goals = [
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 120px 48px 60px;
+  justify-content: flex-start;
+  padding: 120px 48px 380px; /* ensure enough space for carousel at bottom */
   text-align: center;
   overflow: hidden;
 }
@@ -583,8 +710,35 @@ const goals = [
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at 65% 35%, rgba(153, 13, 209, 0.25) 0%, transparent 60%);
+  background: radial-gradient(ellipse at 50% 10%, rgba(153, 13, 209, 0.25) 0%, transparent 60%);
   pointer-events: none;
+}
+
+/* CAROUSEL TICKER STYLES */
+.card-carousel {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  padding: 10px 0; /* give room for hover transform -translate-y-2 */
+  -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+}
+.card-track {
+  display: flex;
+  width: max-content;
+  gap: 24px;
+  animation: cardScroll 50s linear infinite;
+}
+.card-track:hover {
+  animation-play-state: paused;
+}
+.carousel-card-wrapper {
+  flex-shrink: 0;
+  width: 320px; /* fixed card width */
+}
+@keyframes cardScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(calc(-50% - 12px)); }
 }
 
 
@@ -1096,12 +1250,14 @@ const goals = [
 
 
 @media (max-width: 1024px) {
+  .hero {
+    padding: 100px 32px 380px;
+  }
   .vm-grid { grid-template-columns: 1fr; }
   .goals-grid { grid-template-columns: repeat(2, 1fr); }
   .about-grid { grid-template-columns: 1fr; gap: 40px; }
   .impact-grid { grid-template-columns: 1fr; }
   .section { padding: 64px 32px; }
-  .hero { padding: 60px 32px 72px; }
 }
 @media (max-width: 768px) {
   .hero-title { font-size: 36px; word-wrap: break-word; }
@@ -1112,8 +1268,9 @@ const goals = [
   .stats-bar .stat-item:nth-child(2) { border-right: none; }
   .hero-btns, .about-btns { flex-direction: column; align-items: center; }
   .section { padding: 48px 20px; }
-  .hero { padding: 48px 20px 60px; }
+  .hero { padding: 120px 20px 400px; }
   .impact-chart-card, .impact-top-offices { padding: 20px; }
+  .carousel-card-wrapper { width: 280px; }
 }
 @media (max-width: 480px) {
   .hero-title { font-size: 28px; }
@@ -1122,5 +1279,7 @@ const goals = [
   .hero-badge { font-size: 12px; padding: 4px 12px; }
   .section-tag { font-size: 12px; }
   .hero-logo { max-width: 250px; }
+  .carousel-card-wrapper { width: 260px; }
+  .card-carousel { padding-top: 20px; }
 }
 </style>

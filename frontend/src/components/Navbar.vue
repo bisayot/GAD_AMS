@@ -2,7 +2,7 @@
   <nav class="navbar" :class="{ 'navbar-hidden': isHidden }">
     <div class="navbar-inner">
       <div class="navbar-brand">
-        <router-link to="/">BSU GAD Corner</router-link>
+        <router-link to="/">BSU GAD-AMS</router-link>
       </div>
 
       <!-- Desktop & Mobile Links -->
@@ -29,11 +29,22 @@
 
 
         <template v-if="$route.path === '/login'">
-          <router-link to="/register" class="btn-signup">Sign Up</router-link>
+          <span class="already-text hidden md:inline">New to GAD-AMS?</span>
+          <router-link to="/register" class="btn-signup">SIGN UP</router-link>
+        </template>
+        <template v-else-if="$route.path === '/register'">
+          <span class="already-text hidden md:inline">Already have an account?</span>
+          <router-link to="/login" class="btn-login">LOGIN</router-link>
         </template>
         <template v-else>
-          <span class="already-text">Already have an account?</span>
-          <router-link to="/login" class="btn-login">Portal Login</router-link>
+          <div class="hidden md:flex items-center gap-3">
+            <router-link to="/login" class="btn-signup" style="background: transparent; border: 1px solid rgba(255,255,255,0.2);">LOGIN</router-link>
+            <router-link to="/register" class="btn-login">SIGN UP</router-link>
+          </div>
+          <!-- Show only one on very small screens to save space -->
+          <div class="md:hidden block">
+            <router-link to="/login" class="btn-login">LOGIN</router-link>
+          </div>
         </template>
         
         <!-- Mobile Toggle Button -->
@@ -100,7 +111,7 @@ const navItems = [
 .search-input::placeholder { color: #94a3b8; }
 .search-input:focus { border-color: #9333ea; box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.15); background: #fff; }
 .already-text { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: #94a3b8; white-space: nowrap; }
-.btn-signup { background: #422b68; color: white; padding: 8px 20px; border-radius: 9999px; font-size: 13px; font-weight: 600; letter-spacing: 0.05em; text-decoration: none; display: inline-block; text-align: center; transition: all 0.2s; }
+.btn-signup { background: #422b68; color: white; padding: 8px 20px; border-radius: 9999px; font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; display: inline-block; text-align: center; transition: all 0.2s; }
 .btn-signup:hover { opacity: 0.9; }
 .btn-signup:active { transform: scale(0.95); }
 .btn-login { background: linear-gradient(135deg, #7e22ce 0%, #a855f7 100%); color: white; padding: 8px 24px; border-radius: 9999px; font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; display: inline-block; text-align: center; transition: all 0.2s; }

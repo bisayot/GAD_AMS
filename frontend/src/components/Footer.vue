@@ -1,13 +1,22 @@
 <template>
   <footer class="w-full border-t border-white/10" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);">
     <div class="flex flex-col md:flex-row justify-between items-center w-full px-12 py-10 gap-6 max-w-screen-2xl mx-auto">
-      <div class="flex flex-col gap-2">
-        <span class="font-headline font-extrabold text-purple-400 text-lg uppercase tracking-wider">BSU GAD Office</span>
+      <div class="flex flex-col gap-1">
+        <span class="font-headline font-extrabold text-purple-400 text-lg uppercase tracking-wider">BSU GAD-AMS</span>
+        <span class="text-white/60 text-xs font-body tracking-wide">Copyright &copy; {{ new Date().getFullYear() }} BSU &ndash; Gender and Development Office</span>
       </div>
       <div class="flex flex-wrap justify-center gap-8 font-body text-sm leading-relaxed items-center">
         <button @click="showPrivacyModal = true" class="!text-white hover:!text-purple-400 transition-all opacity-80 hover:opacity-100 font-bold">Privacy Policy</button>
         <button @click="showTermsModal = true" class="!text-white hover:!text-purple-400 transition-all opacity-80 hover:opacity-100 font-bold">Terms of Service</button>
-        <router-link class="!text-white hover:!text-purple-400 transition-all opacity-80 hover:opacity-100 font-bold" to="/contact">Contact Directory</router-link>
+        <router-link class="!text-white hover:!text-purple-400 transition-all opacity-80 hover:opacity-100 font-bold" to="/contact">Contact</router-link>
+        
+        <div class="h-4 w-px bg-white/20 hidden md:block"></div>
+        <a href="https://www.facebook.com/gad.bsu.1/" target="_blank" rel="noopener noreferrer" class="!text-white hover:!text-[#1877F2] transition-all opacity-80 hover:opacity-100 flex items-center gap-2 font-bold" title="Official Facebook Page">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" />
+          </svg>
+          <span class="hidden sm:inline">Facebook</span>
+        </a>
       </div>
     </div>
     
