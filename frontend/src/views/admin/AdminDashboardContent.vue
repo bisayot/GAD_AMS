@@ -86,14 +86,12 @@
         </div>
 
         <div class="analytics-section">
-          <div class="section-header">
-            <span class="title-indicator"></span>
-            <h4 class="section-title">Data Visualization & Analytics</h4>
-          </div>
-          
-          <div class="analytics-chart-container" style="background: rgba(0, 0, 0, 0.25); padding: 1.5rem; border-radius: 1rem; border: 1px solid rgba(147, 51, 234, 0.15); margin-top: 1.5rem; box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.1);">
+          <div class="analytics-chart-container" style="background: rgba(0, 0, 0, 0.25); padding: 1.5rem; border-radius: 1rem; border: 1px solid rgba(147, 51, 234, 0.15); box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.1);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-              <h5 style="color: #f8fafc; font-weight: 600; font-size: 1.1rem; margin: 0;">Gender-Disaggregated Data</h5>
+              <h4 style="color: #f8fafc; font-weight: 600; font-size: 1.25rem; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                <span class="title-indicator" style="position: relative; height: 1.25rem; margin-right: 0;"></span>
+                Gender-Disaggregated Data
+              </h4>
               <select v-model="analyticsYear" @change="fetchAnalyticsData" style="background: rgba(15, 23, 42, 0.8); color: #f8fafc; border: 1px solid rgba(147, 51, 234, 0.3); border-radius: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.9rem; outline: none; cursor: pointer;">
                 <option v-for="year in availableYears" :key="year" :value="year" style="background: #1e293b; color: white;">{{ year }}</option>
               </select>

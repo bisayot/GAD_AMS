@@ -166,6 +166,30 @@ class UserManagementController extends ResourceController
         return $this->respond(['success' => true, 'message' => 'User restored']);
     }
 
+    public function delete($id = null)
+    {
+        if (!$id) return $this->fail('User ID required');
+        
+        $db = \Config\Database::connect();
+        
+        // Remove login credentials to prevent access but keep the ID and name for data integrity
+        $db->table('users')->where('id', $id)->update([
+            'email' => null,
+            'password' => null,
+            'remember_token' => null,
+            'role' => 'deleted',
+            'deleted_at' => date('Y-m-d H:i:s')
+        ]);
+        
+        $user = $db->table('users')->where('id', $id)->get()->getRowArray();
+        $actionUserId = $this->request->getHeaderLine('X-User-Id');
+        if ($actionUserId && $user) {
+            \App\Models\ActivityLogModel::log($actionUserId, 'Delete User Credentials', 'permanently deleted credentials for user: ' . $user['full_name']);
+        }
+        
+        return $this->respond(['success' => true, 'message' => 'User credentials deleted']);
+    }
+
 
     public function getProfile()
     {

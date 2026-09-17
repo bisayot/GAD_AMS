@@ -190,9 +190,12 @@
                       </div>
                   <div class="user-meta mt-2 text-xs italic text-red-400">Suspended on: {{ formatDate(user.deleted_at) }}</div>
                 </div>
-                <div class="user-actions mt-auto">
-                  <button @click="restoreUser(user.id)" class="btn-restore" title="Restore User">
+                <div class="user-actions mt-auto flex gap-2">
+                  <button @click="restoreUser(user.id)" class="btn-restore flex-1" title="Restore User">
                     <span class="material-symbols-outlined text-sm">restore</span> Restore
+                  </button>
+                  <button @click="deleteUser(user.id)" class="btn-delete flex-1 bg-red-900/50 text-red-300 hover:bg-red-800 border border-red-800 rounded-lg flex items-center justify-center gap-1 py-2 text-xs font-semibold transition-colors" title="Delete Credentials">
+                    <span class="material-symbols-outlined text-sm">delete_forever</span> Delete
                   </button>
                 </div>
               </div>
@@ -417,12 +420,12 @@ const filterUserList = (userList, search, office) => {
 };
 
 const twgUsers = computed(() => {
-  const baseList = users.value.filter(u => !u.deleted_at && u.user_role === 'TWG');
+  const baseList = users.value.filter(u => !u.deleted_at && u.user_role === 'TWG' && u.role !== 'deleted');
   return filterUserList(baseList, searchTwg.value, filterTwgOffice.value);
 });
 
 const nonTwgUsers = computed(() => {
-  const baseList = users.value.filter(u => !u.deleted_at && u.user_role === 'Non-TWG');
+  const baseList = users.value.filter(u => !u.deleted_at && u.user_role === 'Non-TWG' && u.role !== 'deleted');
   return filterUserList(baseList, searchNonTwg.value, filterNonTwgOffice.value);
 });
 
@@ -464,7 +467,7 @@ const formatLastLogin = (dateString) => {
 };
 
 const suspendedUsers = computed(() => {
-  const baseList = users.value.filter(u => !!u.deleted_at);
+  const baseList = users.value.filter(u => !!u.deleted_at && u.role !== 'deleted');
   return filterUserList(baseList, searchSuspended.value, filterSuspendedOffice.value);
 });
 
@@ -517,6 +520,38 @@ const restoreUser = async (id) => {
     }
   } catch (err) {
     Swal.fire({ icon: 'error', title: 'Error', text: err.message || 'Failed to restore user.' });
+  }
+};
+
+const deleteUser = async (id) => {
+  const result = await Swal.fire({
+    title: 'Delete Credentials?',
+    text: "This will permanently delete the user's login credentials. Their submitted reports will be kept for data privacy and integrity.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#dc2626',
+    cancelButtonColor: '#475569',
+    confirmButtonText: 'Yes, delete it!'
+  });
+
+  if (result.isConfirmed) {
+    try {
+      const res = await api.post(`users/delete/${id}`);
+      if (res.data.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Deleted!',
+          text: 'User credentials have been deleted.',
+          timer: 1500,
+          showConfirmButton: false
+        });
+        fetchUsers();
+      } else {
+        throw new Error(res.data.message || 'Failed to delete credentials');
+      }
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error', text: err.message || 'Failed to delete credentials.' });
+    }
   }
 };
 

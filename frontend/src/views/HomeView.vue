@@ -7,7 +7,6 @@
         <div class="splash-overlay"></div>
         <div class="splash-content">
            <h1 class="splash-title">Gender & Development</h1>
-           <p class="splash-subtitle">GAD Corner</p>
            <div class="loader-line"></div>
         </div>
       </div>
