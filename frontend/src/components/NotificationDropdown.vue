@@ -2,7 +2,7 @@
   <div class="notification-wrapper" ref="notificationWrapper">
     <button type="button" class="action-btn" @click="toggleNotifications">
       <span class="material-symbols-outlined">notifications</span>
-      <span v-if="unreadCount > 0" class="ml-1 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+      <span v-if="unreadCount > 0" class="absolute -top-1 -right-1.5 bg-[#ef4444] text-white text-[10px] font-bold px-1.5 py-[2px] rounded-full border-2 border-[#13111f] min-w-[18px] text-center leading-none shadow-sm">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
     </button>
     
     <div v-if="showNotifications" class="notification-dropdown">

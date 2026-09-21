@@ -1,12 +1,7 @@
 <template>
   <main class="messages-main-content">
     <div class="messages-content-wrapper">
-      <div class="header-section" style="margin-bottom: 1rem;">
-        <div>
-          <h1 class="page-title">Messages</h1>
-          <p class="page-subtitle">View and manage your conversations here.</p>
-        </div>
-      </div>
+      <CommunicationsHeader activeTab="messages" />
       
       <div class="info-note" v-if="isTWG" style="margin: 0 0 1.5rem 0; padding: 1rem 1.5rem; background-color: #1e293b; border: 1px solid rgba(147, 51, 234, 0.3); border-left: 4px solid #9333ea; border-radius: 0.75rem; display: flex; align-items: flex-start; gap: 1rem;">
         <div style="background: rgba(147, 51, 234, 0.2); padding: 0.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
@@ -346,10 +341,10 @@
 
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import Swal from 'sweetalert2';
 import api from '../../api';
+import CommunicationsHeader from '../../components/CommunicationsHeader.vue';
 
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));

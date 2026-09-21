@@ -1,11 +1,11 @@
 <template>
-  <main class="main-viewport flex-1 overflow-y-auto rounded-3xl shadow-xl" style="background: linear-gradient(135deg, #0f172a 0%, #1e1e2f 100%); min-height: calc(100vh - 120px); padding: 2rem;">
+  <main class="main-viewport flex-1 overflow-y-auto">
     <div class="page-container">
-      <div class="header-section mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 class="page-title">Contact Inquiries</h1>
-          <p class="page-subtitle">Review and manage inquiries submitted from the public contact form.</p>
-        </div>
+      <CommunicationsHeader activeTab="inquiries" />
+
+      <div class="rounded-3xl shadow-xl p-6 md:p-8" style="background: linear-gradient(135deg, #0f172a 0%, #1e1e2f 100%); min-height: calc(100vh - 220px);">
+        <!-- Toolbar -->
+        <div class="mb-8 flex flex-col sm:flex-row justify-end items-start sm:items-center gap-4">
         <div class="flex items-center gap-3 w-full sm:w-auto">
           <input 
             v-model="searchQuery" 
@@ -204,12 +204,15 @@
         </div>
       </div>
     </div>
+    </div>
   </main>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import api from '../../api';
+import CommunicationsHeader from '../../components/CommunicationsHeader.vue';
 import Swal from 'sweetalert2';
 
 const inquiries = ref([]);

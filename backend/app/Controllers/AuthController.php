@@ -78,6 +78,7 @@ class AuthController extends ResourceController
             'user' => [
                 'id' => $user['id'],
                 'username' => $user['username'],
+                'email' => $user['email'] ?? '',
                 'role' => $user['role'],
                 'user_role' => $userRole,
                 'full_name' => $user['full_name'],

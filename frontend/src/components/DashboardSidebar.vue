@@ -5,21 +5,33 @@
       isOpen ? 'translate-x-0' : '-translate-x-full'
     ]"
   >
-    <div class="sidebar-header relative w-full">
-      <div class="sidebar-logo">
-        <img src="/images/logo.png" alt="Custom Logo" />
-        <div class="logo-text">
-          <div class="logo-subtitle">Benguet State University</div>
-          <div class="logo-title">GAD-AMS</div>
-          <div class="logo-dept">Gender and Development Office</div>
+    <div class="flex items-center justify-between mb-6 flex-shrink-0 border-b border-white/10 pb-4">
+      <div class="flex items-center gap-3">
+        <div class="flex items-center">
+          <img src="/images/bsulogo.webp" alt="BSU Logo" class="h-9 w-auto object-contain" />
+          <img src="/images/gad_logo_enhanced.png" alt="GAD Logo" class="h-10 w-auto object-contain -ml-2 z-10" />
+        </div>
+        <div class="flex flex-col justify-center leading-none">
+          <span class="text-xl font-black text-white tracking-tight">GAD-AMS</span>
         </div>
       </div>
-      <button @click="$emit('close')" class="absolute -top-2 -right-2 w-8 h-8 flex items-center justify-center rounded-full text-white transition-all shadow-md hover:opacity-80" style="background-color: #ef4444;">
-        <span class="material-symbols-outlined text-sm font-bold">close</span>
+      <button @click="$emit('close')" class="text-white hover:text-slate-300 p-1 transition-colors">
+        <span class="material-symbols-outlined font-bold text-2xl">close</span>
       </button>
     </div>
 
-    <nav class="flex-grow space-y-1 overflow-y-auto custom-scrollbar mt-4">
+    <!-- User Profile Card (Mobile Only) -->
+    <div v-if="user && user.id" class="bg-[#24133d] rounded-2xl p-4 flex items-center gap-3 mb-2 border border-[#371f5c] flex-shrink-0">
+      <div :class="['w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg', avatarStyle]">
+        <span class="text-lg font-bold text-white">{{ userInitial }}</span>
+      </div>
+      <div class="flex flex-col overflow-hidden">
+        <div class="text-sm font-bold text-white truncate leading-tight">{{ user.full_name || user.name || user.username || 'User Name' }}</div>
+        <div class="text-[10px] font-black tracking-widest text-[#c084fc] uppercase mt-1">{{ user.user_role || user.role || 'Role' }}</div>
+      </div>
+    </div>
+
+    <nav class="flex-grow space-y-1 overflow-y-auto custom-scrollbar mt-2">
       <template v-for="item in menuItems" :key="item.label">
         <!-- Render normal link if no children -->
         <router-link 
@@ -91,10 +103,24 @@
 import { computed, reactive } from 'vue';
 import { useRoute } from 'vue-router';
 
-defineProps({
+const props = defineProps({
   roleLabel: { type: String, default: 'User' },
   menuItems: { type: Array, required: true },
-  isOpen: { type: Boolean, default: false }
+  isOpen: { type: Boolean, default: false },
+  user: { type: Object, default: () => ({}) }
+});
+
+const userInitial = computed(() => {
+  const name = props.user?.full_name || props.user?.name || props.user?.username || 'U';
+  return name.charAt(0).toUpperCase();
+});
+
+const avatarStyle = computed(() => {
+  const role = (props.user?.user_role || props.user?.role || '').toLowerCase();
+  if (role.includes('admin') || role.includes('director')) return 'bg-gradient-to-br from-purple-500 to-fuchsia-600 shadow-purple-500/20';
+  if (role.includes('staff')) return 'bg-gradient-to-br from-emerald-400 to-teal-600 shadow-emerald-500/20';
+  if (role.includes('twg')) return 'bg-gradient-to-br from-blue-400 to-indigo-600 shadow-blue-500/20';
+  return 'bg-gradient-to-br from-slate-400 to-slate-600 shadow-slate-500/20';
 });
 
 defineEmits(['logout', 'close']);
@@ -130,59 +156,6 @@ const getChildBadgeTotal = (item) => {
 </script>
 
 <style scoped>
-  /* Logo section */
-  .sidebar-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-    padding-bottom: 16px;
-    flex-shrink: 0;
-  }
-
-  .sidebar-logo {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .sidebar-logo img {
-    height: 72px;
-    width: auto;
-    object-fit: contain;
-  }
-
-  .logo-text {
-    text-align: center;
-  }
-
-  .logo-subtitle {
-    font-size: 10px;
-    font-weight: 700;
-    color: #b979cc;
-    letter-spacing: -0.025em;
-    line-height: 1;
-  }
-
-  .logo-title {
-    font-size: 20px;
-    font-weight: 800;
-    color: #ffffff;
-    letter-spacing: -0.05em;
-    line-height: 1;
-  }
-
-  .logo-dept {
-    font-size: 7px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: #94a3b8;
-    font-weight: 500;
-    margin-top: 2px;
-  }
-  
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }

@@ -1,42 +1,28 @@
 <template>
-  <div class="min-h-screen bg-slate-50 flex overflow-x-hidden w-full" :style="$route.path.includes('/plan-and-budget') ? 'overflow-x: auto;' : 'overflow-x: hidden; max-width: 100%;'">
-    <!-- Mobile Sidebar Overlay -->
-    <div v-if="isSidebarOpen" @click="isSidebarOpen = false" class="fixed inset-0 bg-black/50 z-40"></div>
-
-    <DashboardSidebar
-      :isOpen="isSidebarOpen"
-      @close="isSidebarOpen = false"
-      roleLabel="College/Unit"
+  <div class="min-h-screen bg-slate-50 flex flex-col overflow-x-hidden w-full" :style="$route.path.includes('/plan-and-budget') ? 'overflow-x: auto;' : 'overflow-x: hidden; max-width: 100%;'">
+    <!-- Top Navbar for Desktop/Tablet -->
+    <DashboardNavbar 
       :menuItems="collegeMenu"
-      @logout="handleLogout"
+      :user="user"
+      @toggle-mobile-menu="isSidebarOpen = true"
     />
 
-    <div class="flex-grow flex flex-col min-h-screen transition-all duration-300 w-full relative min-w-0 overflow-x-hidden" :style="$route.path.includes('/plan-and-budget') ? 'overflow-x: auto;' : 'overflow-x: hidden;'">
-      <header 
-        :class="[
-          'h-20 bg-transparent flex items-center justify-between px-6 sticky top-0 z-30 pointer-events-none transition-transform duration-300',
-          isHeaderHidden ? '-translate-y-full' : 'translate-y-0'
-        ]"
-      >
-        <div class="flex items-center pointer-events-auto">
-          <button @click="isSidebarOpen = true" class="hover:text-purple-300 transition-colors flex items-center backdrop-blur-md p-2 rounded-xl shadow-lg border border-purple-500/30" style="background-color: #1a1a2e !important; color: #ffffff !important;">
-            <span class="material-symbols-outlined text-3xl">menu</span>
-          </button>
-        </div>
-        
-        <div v-if="user.user_role" class="flex items-center gap-4 pointer-events-auto">
-          <NotificationDropdown />
-          <div class="px-4 py-1.5 bg-[#1a1a2e] border border-purple-500/30 rounded-full flex items-center gap-2 shadow-lg backdrop-blur-md">
-            <span class="material-symbols-outlined text-purple-400 text-[18px]">badge</span>
-            <span class="text-white text-xs font-bold uppercase tracking-wider">{{ user.user_role }}</span>
-          </div>
-        </div>
-      </header>
-
-      <main :class="['flex-grow w-full min-w-0 overflow-x-hidden', $route.path.includes('/plan-and-budget') ? 'p-0' : 'p-4 md:p-10']" :style="$route.path.includes('/plan-and-budget') ? 'overflow-x: auto;' : ''">
-        <router-view />
-      </main>
+    <!-- Mobile Sidebar Overlay & Component (Only visible on small screens) -->
+    <div class="lg:hidden">
+      <div v-if="isSidebarOpen" @click="isSidebarOpen = false" class="fixed inset-0 bg-black/50 z-40"></div>
+      <DashboardSidebar
+        :isOpen="isSidebarOpen"
+        @close="isSidebarOpen = false"
+        roleLabel="TWG/Non-TWG"
+        :menuItems="collegeMenu"
+        :user="user"
+        @logout="handleLogout"
+      />
     </div>
+
+    <main :class="['flex-grow w-full min-w-0 overflow-x-hidden', $route.path.includes('/plan-and-budget') ? 'p-0' : 'p-4 md:p-10']" :style="$route.path.includes('/plan-and-budget') ? 'overflow-x: auto;' : ''">
+      <router-view />
+    </main>
   </div>
 </template>
 
@@ -44,8 +30,8 @@
 import { onMounted, onUnmounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../api';
+import DashboardNavbar from '../components/DashboardNavbar.vue';
 import DashboardSidebar from '../components/DashboardSidebar.vue';
-import NotificationDropdown from '../components/NotificationDropdown.vue';
 
 const router = useRouter();
 const isSidebarOpen = ref(false);
@@ -64,43 +50,31 @@ const handleScroll = () => {
 };
 
 const collegeMenu = ref([
-  { label: 'New Submission', icon: 'add', href: '/college/submit' },
   { label: 'Dashboard', icon: 'dashboard', href: '/college/dashboard' },
-  { label: 'Messages', icon: 'mail', href: '/college/messages', badge: 0 },
-  { label: 'Submitted List', icon: 'list', href: '/college/submitted-list' },
-  { label: 'Archives', icon: 'archive', href: '/college/archive' },
-  { label: 'Plan and Budget', icon: 'gavel', href: '/college/plan-and-budget' },
   {
-    label: 'System Controls', icon: 'admin_panel_settings',
+    label: 'Documents', icon: 'folder',
     children: [
-      { label: 'Activity Logs', icon: 'history', href: '/college/activity-logs' },
+      { label: 'New Submission', icon: 'add', href: '/college/submit' },
+      { label: 'Submitted List', icon: 'list', href: '/college/submitted-list' },
+      { label: 'Archives', icon: 'archive', href: '/college/archive' },
       { label: 'Document Trash Bin', icon: 'delete', href: '/college/trashbin' }
     ]
   },
   {
-    label: 'Legal and Guides', icon: 'policy',
+    label: 'Plan & Budget', icon: 'gavel',
     children: [
-      { label: 'User Manual', icon: 'menu_book', href: '/college/user-manual' },
-      { label: 'Data Privacy Policy', icon: 'privacy_tip', href: '/college/data-privacy-policy' }
+      { label: 'Plan and Budget', icon: 'gavel', href: '/college/plan-and-budget' }
+    ]
+  },
+  {
+    label: 'System & Controls', icon: 'admin_panel_settings',
+    children: [
+      { label: 'Activity Logs', icon: 'history', href: '/college/activity-logs' }
     ]
   }
 ]);
 
-const fetchUnreadCount = async () => {
-  if (user.value?.id) {
-    try {
-      const res = await api.get(`/messages/unread-count/${user.value.id}`);
-      if (res.data.success) {
-        const msgItem = collegeMenu.value.find(m => m.label === 'Messages');
-        if (msgItem) msgItem.badge = res.data.count;
-      }
-    } catch (err) {
-      console.error('Failed to fetch unread count:', err);
-    }
-  }
-};
-
-let unreadInterval;
+// Notifications now handled directly in DashboardNavbar
 
 const handleLogout = async () => {
   try {
@@ -122,15 +96,11 @@ onMounted(() => {
   
   if (!user.value.id || !['twg', 'non-twg'].includes(role)) {
     router.push('/login');
-  } else {
-    fetchUnreadCount();
-    unreadInterval = setInterval(fetchUnreadCount, 30000); // Check every 30 seconds
   }
 });
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
-  if (unreadInterval) clearInterval(unreadInterval);
 });
 </script>
 
