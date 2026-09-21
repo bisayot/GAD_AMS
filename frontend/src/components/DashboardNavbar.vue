@@ -4,7 +4,7 @@
       <!-- Left: Brand -->
       <div class="navbar-brand flex items-center">
         <!-- Mobile Menu Toggle (Left side for mobile) -->
-        <button class="lg:hidden mr-3 p-1 flex items-center !text-white active:scale-95 transition-transform" @click.stop.prevent="$emit('toggle-mobile-menu')" style="touch-action: manipulation;">
+        <button class="xl:hidden mr-3 p-1 flex items-center !text-white active:scale-95 transition-transform" @click.stop.prevent="$emit('toggle-mobile-menu')" style="touch-action: manipulation;">
           <span class="material-symbols-outlined text-3xl font-bold !text-white pointer-events-none">menu</span>
         </button>
 
@@ -14,14 +14,14 @@
             <img src="/images/gad_logo_enhanced.png" alt="GAD Logo" class="brand-logo" />
           </div>
           <div class="brand-text flex flex-col justify-center leading-tight">
-            <span class="brand-subtitle hidden md:block">BENGUET STATE UNIVERSITY</span>
+            <span class="brand-subtitle hidden xl:block">BENGUET STATE UNIVERSITY</span>
             <span class="brand-title text-white">GAD-AMS</span>
           </div>
         </router-link>
       </div>
 
       <!-- Center: Navigation -->
-      <div class="navbar-center hidden lg:flex items-center gap-4">
+      <div class="navbar-center hidden xl:flex items-center gap-4">
         <div 
           v-for="(item, index) in menuItems" 
           :key="index"
@@ -292,6 +292,7 @@ onUnmounted(() => {
   padding: 0 24px;
   height: 72px;
   max-width: 100%;
+  gap: 24px;
 }
 
 /* Brand Styles */

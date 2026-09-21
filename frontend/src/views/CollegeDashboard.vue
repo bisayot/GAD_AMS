@@ -8,7 +8,7 @@
     />
 
     <!-- Mobile Sidebar Overlay & Component (Only visible on small screens) -->
-    <div class="lg:hidden">
+    <div class="xl:hidden">
       <div v-if="isSidebarOpen" @click="isSidebarOpen = false" class="fixed inset-0 bg-black/50 z-40"></div>
       <DashboardSidebar
         :isOpen="isSidebarOpen"
