@@ -46,7 +46,7 @@
                 </div>
                 <div>
                   <p class="text-sm font-label uppercase tracking-widest text-purple-400 font-bold mb-1">Campus Address</p>
-                  <p class="text-lg text-white font-medium leading-snug">Behind LANDBANK - La Trinidad<br/>Benguet State University Compound Km5, Magsaysay Avenue,<br/>Baguio - La Trinidad - Bontoc Rd, La Trinidad, 2601 Benguet</p>
+                  <p class="text-lg text-white font-medium leading-snug">Behind LANDBANK, BSU Compound, Km. 5, La Trinidad, 2601 Benguet, Philippines</p>
                 </div>
               </div>
               <div class="flex items-start gap-6">
