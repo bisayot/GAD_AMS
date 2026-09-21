@@ -23,7 +23,10 @@
           <h1 class="hero-title mb-2">Gender and Development</h1>
           <p class="text-2xl md:text-4xl text-purple-300 font-headline font-bold mb-6 tracking-wide">Activities Management System</p>
         </a>
-        <img src="/images/logo.png" alt="System Logo" class="hero-logo" />
+        <div class="hero-logos flex items-center justify-center gap-8 md:gap-12 mt-12 w-full max-w-4xl">
+          <img src="/images/bsulogo.webp" alt="BSU Logo" class="hero-logo-item" />
+          <img src="/images/gad_logo_enhanced.png" alt="GAD Logo" class="hero-logo-item" />
+        </div>
       </div>
 
       <!-- Bulletins Box Container Carousel (INSIDE HERO, BOTTOM) -->
@@ -694,15 +697,20 @@ const goals = [
   text-align: center;
   overflow: hidden;
 }
-.hero-logo {
-  max-width: 450px;
+.hero-logos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 40px auto 0;
   width: 100%;
+}
+.hero-logo-item {
+  max-width: 320px;
+  width: 45%;
   height: auto;
-  margin: 30px auto 0;
-  display: block;
   transition: transform 0.3s ease, filter 0.3s ease;
 }
-.hero-logo:hover {
+.hero-logo-item:hover {
   transform: scale(1.05);
   filter: drop-shadow(0 0 15px rgba(153, 13, 209, 0.6));
 }
