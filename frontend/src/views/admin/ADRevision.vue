@@ -27,18 +27,18 @@
     </div>
 
     <div v-else class="page-container">
-      <div class="layout-grid">
-
       <!-- Rejection/Revision Note Alert -->
-      <div v-if="(design?.modification_remarks || existingReport?.modification_remarks)" class="mb-6 p-4 rounded-xl" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);">
-        <div style="display: flex; align-items: flex-start; gap: 12px;">
-          <span class="material-symbols-outlined" style="color: #f87171; font-size: 24px; margin-top: 2px;">error</span>
-          <div>
-            <h4 style="color: #fca5a5; font-size: 14px; font-weight: bold; margin: 0 0 6px 0; font-family: 'Inter', sans-serif; letter-spacing: 0.5px;">Rejection / Revision Note</h4>
-            <p style="color: #fecaca; font-size: 13px; margin: 0; font-family: 'Inter', sans-serif; line-height: 1.5; white-space: pre-wrap;">{{ design?.modification_remarks || existingReport?.modification_remarks }}</p>
+      <div v-if="(design?.modification_remarks || existingReport?.modification_remarks)" class="mb-6 p-5 rounded-xl" style="background: rgba(45, 25, 60, 0.9); border: 1px solid rgba(239, 68, 68, 0.4); border-left: 5px solid #ef4444; box-shadow: 0 8px 24px rgba(0,0,0,0.3); width: 100%; max-width: 80rem; margin: 0 auto 20px auto; box-sizing: border-box;">
+        <div style="display: flex; align-items: flex-start; gap: 16px;">
+          <span class="material-symbols-outlined" style="color: #ef4444; font-size: 28px; margin-top: 2px;">error</span>
+          <div style="flex: 1;">
+            <h4 style="color: #ffffff; font-size: 15px; font-weight: 700; margin: 0 0 6px 0; font-family: 'Inter', sans-serif; letter-spacing: 0.5px; text-transform: uppercase;">Rejection / Revision Note</h4>
+            <p style="color: #e2e8f0; font-size: 14px; margin: 0; font-family: 'Inter', sans-serif; line-height: 1.6; white-space: pre-wrap;">{{ design?.modification_remarks || existingReport?.modification_remarks }}</p>
           </div>
         </div>
       </div>
+
+      <div class="layout-grid">
 
         <!-- LEFT SECTION - Edit Form -->
         <section :class="design.status === 'Approved' ? 'flex-100' : 'flex-06'" class="glass-card">
@@ -206,24 +206,6 @@
                           <input type="time" v-model="continuousConfig.end_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="handleTimeChange(continuousConfig)">
                         </div>
                       </div>
-                      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.1);">
-                        <span style="font-size: 10px; text-transform: uppercase; font-weight: bold; color: #b979cc; margin-right: 8px;">Meals Applied Daily:</span>
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;" :style="{ opacity: (continuousConfig.start_time && Number(continuousConfig.start_time.split(':')[0]) >= 13) ? '0.5' : '1' }">
-                          <input type="checkbox" v-model="continuousConfig.meals_and_snacks.breakfast" :disabled="continuousConfig.start_time && Number(continuousConfig.start_time.split(':')[0]) >= 13" style="accent-color: #b979cc;" /> Breakfast
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;" :style="{ opacity: (continuousConfig.start_time && Number(continuousConfig.start_time.split(':')[0]) >= 13) ? '0.5' : '1' }">
-                          <input type="checkbox" v-model="continuousConfig.meals_and_snacks.am_snack" :disabled="continuousConfig.start_time && Number(continuousConfig.start_time.split(':')[0]) >= 13" style="accent-color: #b979cc;" /> AM Snack
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
-                          <input type="checkbox" v-model="continuousConfig.meals_and_snacks.lunch" style="accent-color: #b979cc;" /> Lunch
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;" :style="{ opacity: (continuousConfig.end_time && (Number(continuousConfig.end_time.split(':')[0]) < 12 || continuousConfig.end_time === '12:00')) ? '0.5' : '1' }">
-                          <input type="checkbox" v-model="continuousConfig.meals_and_snacks.pm_snack" :disabled="continuousConfig.end_time && (Number(continuousConfig.end_time.split(':')[0]) < 12 || continuousConfig.end_time === '12:00')" style="accent-color: #b979cc;" /> PM Snack
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;" :style="{ opacity: (continuousConfig.end_time && (Number(continuousConfig.end_time.split(':')[0]) < 12 || continuousConfig.end_time === '12:00')) ? '0.5' : '1' }">
-                          <input type="checkbox" v-model="continuousConfig.meals_and_snacks.dinner" :disabled="continuousConfig.end_time && (Number(continuousConfig.end_time.split(':')[0]) < 12 || continuousConfig.end_time === '12:00')" style="accent-color: #b979cc;" /> Dinner
-                        </label>
-                      </div>
                     </div>
 
                     <!-- Expanded Schedules UI -->
@@ -263,24 +245,7 @@
                       <button type="button" v-if="scheduleType === 'staggered' && schedules.length > 1" @click.prevent="removeSchedule(index)" style="background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" title="Remove Schedule">
                         <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
                       </button>
-                      <div style="flex-basis: 100%; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 8px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.1);">
-                        <span style="font-size: 10px; text-transform: uppercase; font-weight: bold; color: #b979cc; margin-right: 8px;">Meals Needed:</span>
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
-                          <input type="checkbox" v-model="sch.meals_and_snacks.breakfast" :disabled="sch.start_time && Number(sch.start_time.split(':')[0]) >= 13" style="accent-color: #b979cc;" /> Breakfast
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
-                          <input type="checkbox" v-model="sch.meals_and_snacks.am_snack" :disabled="sch.start_time && Number(sch.start_time.split(':')[0]) >= 13" style="accent-color: #b979cc;" /> AM Snack
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
-                          <input type="checkbox" v-model="sch.meals_and_snacks.lunch" style="accent-color: #b979cc;" /> Lunch
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
-                          <input type="checkbox" v-model="sch.meals_and_snacks.pm_snack" :disabled="sch.end_time && (Number(sch.end_time.split(':')[0]) < 12 || sch.end_time === '12:00')" style="accent-color: #b979cc;" /> PM Snack
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
-                          <input type="checkbox" v-model="sch.meals_and_snacks.dinner" :disabled="sch.end_time && (Number(sch.end_time.split(':')[0]) < 12 || sch.end_time === '12:00')" style="accent-color: #b979cc;" /> Dinner
-                        </label>
-                      </div>
+                      
                     </div>
                     
                     
@@ -288,298 +253,373 @@
 
               <div class="venue-participants-row">
                 <div class="venue-col">
-                  <label class="form-label">Venue</label>
-                  <select v-model="formData.venue" class="modal-input select-input select-arrow-fix">
-                    <option value="" disabled>Select venue...</option>
-                    <option v-for="v in filteredVenues" :key="v.venue_id" :value="v.venue_id" class="dark-option">
-                      {{ v.venue_name }}
-                    </option>
-                    <option value="Other" class="dark-option">Other</option>
-                  </select>
-                </div>
-                <div class="participants-col">
-                  <label class="form-label">Participants</label>
-                  <input v-model="formData.target_participants" type="number" class="modal-input modal-input-center">
-                </div>
-              </div>
+                  <label class="form-label">Venue *</label>
+                  <div class="custom-multiselect-container">
+                    <div v-if="venueDropdownOpen" class="multiselect-backdrop" @click="venueDropdownOpen = false"></div>
+                    <div class="custom-input-field multiselect-trigger" @click="venueDropdownOpen = !venueDropdownOpen" :class="{ 'is-open': venueDropdownOpen }">
+                      <span v-if="!formData.venues || formData.venues.length === 0" class="placeholder-text">Select venues...</span>
+                      <span v-else class="selected-text">{{ formData.venues.length }} venue(s) selected</span>
+                      <span class="dropdown-arrow">&#9660;</span>
+                    </div>
+                    <div v-if="venueDropdownOpen" class="multiselect-menu">
+                      <label v-for="v in filteredVenues" :key="v.venue_id" class="multiselect-option">
+                        <input type="checkbox" :value="v.venue_id" v-model="formData.venues" class="multiselect-checkbox" />
+                        <span>{{ v.venue_name }}</span>
+                      </label>
+                      <div class="multiselect-divider"></div>
+                      <button type="button" class="btn-add-custom-venue" @click.prevent="addCustomVenue">+ Add Custom Venue</button>
+                    </div>
+                    <div class="chips-container" v-if="formData.venues && formData.venues.length > 0">
+                      <div v-for="vid in formData.venues" :key="vid" class="venue-chip">
+                        <span class="chip-text">{{ getVenueName(vid) }}</span>
+                        <button type="button" class="chip-remove" @click.stop="removeVenue(vid)">x</button>
+                      </div>
+                    </div>
+                  </div>
+                </div></div></div>
 
-              <div v-if="formData.venue === 'Other'" class="custom-venue-wrapper">
-                <label class="form-label">Specify Other Venue</label>
-                <input v-model="customVenue" type="text" class="modal-input" placeholder="Enter the complete venue name">
-              </div>
-            </div>
-
+            
             <div class="section-card">
+              <!-- Overall Target Participants Banner -->
+              <div class="grand-total-banner-card" style="background: rgba(30,41,59,0.7); margin-bottom: 12px; border-color: #334155; padding: 12px 20px;">
+                <div class="grand-total-label-banner" style="color: #94a3b8; font-size: 13px;">Overall Expected Attendance (Auto-calculated)</div>
+                <div class="grand-total-value-banner" style="color: #cbd5e1; font-size: 16px;">
+                  {{ formData.target_participants || 0 }} Pax
+                </div>
+              </div>
               <div class="section-header-row">
                 <span class="material-symbols-outlined icon-pink">payments</span>
                 <h3 class="section-title">Proposed Budgetary Requirements</h3>
               </div>
 
               <!-- Proposed Budgetary Requirements Table (Refactored Inline) -->
-              <div v-if="formData.budget_items.length" class="budget-content">
-                <!-- Grouped Budget Divisions -->
-                <div class="budget-groups-container">
-                  
-                  <!-- Group 1: Catering & Hospitality -->
-                  <div class="budget-group-card">
-                    <div class="budget-group-header">
-                      <span class="budget-group-icon">🍽️</span>
-                      <span class="budget-group-title">Catering & Hospitality</span>
-                    </div>
-                    <div class="budget-group-content">
-                      <!-- Meals Row -->
-                      <div class="budget-row-item">
-                        <div class="budget-item-info">
-                          <div class="budget-item-title">Meals</div>
-                          <div class="budget-sub-controls" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                <span style="font-size: 11px; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px;" v-if="totalBreakfastDays > 0">Breakfast ({{ totalBreakfastDays }} days)</span>
-                                <span style="font-size: 11px; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px;" v-if="totalLunchDays > 0">Lunch ({{ totalLunchDays }} days)</span>
-                                <span style="font-size: 11px; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px;" v-if="totalDinnerDays > 0">Dinner ({{ totalDinnerDays }} days)</span>
-                                <span style="font-size: 11px; color: #64748b; font-style: italic;" v-if="totalBreakfastDays === 0 && totalLunchDays === 0 && totalDinnerDays === 0">No meals selected in schedules</span>
+              <div v-if="formData.venues && formData.venues.length" class="budget-content">
+                    <!-- Grouped Budget Divisions -->
+                    <div v-for="vId in (formData.venues && formData.venues.length ? formData.venues : [])" :key="vId" class="venue-budget-wrapper" style="margin-bottom: 2rem; border-radius: 8px; padding: 1rem; border: 1px solid rgba(185, 121, 204, 0.3);">
+                      <h4 style="color: #e9d5ff; margin-bottom: 15px; border-left: 4px solid #b979cc; padding-left: 10px;">Budget for Venue: {{ getVenueName(vId) }}</h4>
+                    <div class="budget-groups-container" style="display: flex; flex-direction: column; gap: 16px;">
+                      
+                      <!-- Group 1: Catering & Hospitality -->
+                      <div class="budget-group-card">
+                        <div class="budget-group-header" style="justify-content: space-between;">
+                          <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="budget-group-icon">🍽️</span>
+                            <span class="budget-group-title">Catering & Hospitality</span>
+                          </div>
+                          <div class="budget-group-total">
+                            ₱{{ ((Number(formData.venue_budgets[vId][0].total) || 0) + (Number(formData.venue_budgets[vId][1].total) || 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                          </div>
+                        </div>
+                        <div class="budget-group-content">
+                          <!-- Meals Row -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Meals <span style="font-size: 12px; font-weight: normal; color: #94a3b8; font-style: italic; margin-left: 6px;">(Input number of pax)</span></div>
+                              <div class="pax-breakdown-list">
+                                <div class="pax-breakdown-item">
+                                  <div class="pax-input-group">
+                                    <input type="number" min="0" placeholder="0" class="creative-pax-input" v-model="formData.venue_budgets[vId][0].meals_needed.breakfast" />
+                                    <span class="pax-label">Breakfast</span>
+                                  </div>
+                                  <div class="pax-calc-text" v-if="formData.venue_budgets[vId][0].meals_needed.breakfast > 0">
+                                    <span class="pax-calc-formula">{{ formData.venue_budgets[vId][0].meals_needed.breakfast }} pax &times; ₱{{ (isOutsideBsu ? baselineSettings.meals_outside : baselineSettings.meals_inside) }} &times; {{ computedDays || 1 }} days</span>
+                                    <span class="pax-calc-equals">=</span>
+                                    <span class="pax-calc-total">₱{{ ((formData.venue_budgets[vId][0].meals_needed.breakfast || 0) * (isOutsideBsu ? baselineSettings.meals_outside : baselineSettings.meals_inside) * (computedDays || 1)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                                  </div>
+                                </div>
+                                <div class="pax-breakdown-item">
+                                  <div class="pax-input-group">
+                                    <input type="number" min="0" placeholder="0" class="creative-pax-input" v-model="formData.venue_budgets[vId][0].meals_needed.lunch" />
+                                    <span class="pax-label">Lunch</span>
+                                  </div>
+                                  <div class="pax-calc-text" v-if="formData.venue_budgets[vId][0].meals_needed.lunch > 0">
+                                    <span class="pax-calc-formula">{{ formData.venue_budgets[vId][0].meals_needed.lunch }} pax &times; ₱{{ (isOutsideBsu ? baselineSettings.meals_outside : baselineSettings.meals_inside) }} &times; {{ computedDays || 1 }} days</span>
+                                    <span class="pax-calc-equals">=</span>
+                                    <span class="pax-calc-total">₱{{ ((formData.venue_budgets[vId][0].meals_needed.lunch || 0) * (isOutsideBsu ? baselineSettings.meals_outside : baselineSettings.meals_inside) * (computedDays || 1)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                                  </div>
+                                </div>
+                                <div class="pax-breakdown-item">
+                                  <div class="pax-input-group">
+                                    <input type="number" min="0" placeholder="0" class="creative-pax-input" v-model="formData.venue_budgets[vId][0].meals_needed.dinner" />
+                                    <span class="pax-label">Dinner</span>
+                                  </div>
+                                  <div class="pax-calc-text" v-if="formData.venue_budgets[vId][0].meals_needed.dinner > 0">
+                                    <span class="pax-calc-formula">{{ formData.venue_budgets[vId][0].meals_needed.dinner }} pax &times; ₱{{ (isOutsideBsu ? baselineSettings.meals_outside : baselineSettings.meals_inside) }} &times; {{ computedDays || 1 }} days</span>
+                                    <span class="pax-calc-equals">=</span>
+                                    <span class="pax-calc-total">₱{{ ((formData.venue_budgets[vId][0].meals_needed.dinner || 0) * (isOutsideBsu ? baselineSettings.meals_outside : baselineSettings.meals_inside) * (computedDays || 1)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                                  </div>
+                                </div>
                               </div>
-                          
-                        </div>
-                        <div class="budget-item-value">
-                          <span class="budget-currency-symbol">₱</span>
-                          <input 
-                            type="number" 
-                            v-model="formData.budget_items[0].total" 
-                            class="budget-card-input"
-                            placeholder="0.00"
-                            min="0"
-                            step="0.01"
-                          />
-                        </div>
-                      </div>
+                              
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="formData.venue_budgets[vId][0].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
 
-                      <!-- Snacks Row -->
-                      <div class="budget-row-item">
-                        <div class="budget-item-info">
-                          <div class="budget-item-title">Snacks</div>
-                          <div class="budget-sub-controls" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                <span style="font-size: 11px; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px;" v-if="totalAMSnackDays > 0">AM Snack ({{ totalAMSnackDays }} days)</span>
-                                <span style="font-size: 11px; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px;" v-if="totalPMSnackDays > 0">PM Snack ({{ totalPMSnackDays }} days)</span>
-                                <span style="font-size: 11px; color: #64748b; font-style: italic;" v-if="totalAMSnackDays === 0 && totalPMSnackDays === 0">No snacks selected in schedules</span>
+                          <!-- Snacks Row -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Snacks <span style="font-size: 12px; font-weight: normal; color: #94a3b8; font-style: italic; margin-left: 6px;">(Input number of pax)</span></div>
+                              <div class="pax-breakdown-list">
+                                <div class="pax-breakdown-item">
+                                  <div class="pax-input-group">
+                                    <input type="number" min="0" placeholder="0" class="creative-pax-input" v-model="formData.venue_budgets[vId][1].meals_needed.am_snack" />
+                                    <span class="pax-label">AM Snack</span>
+                                  </div>
+                                  <div class="pax-calc-text" v-if="formData.venue_budgets[vId][1].meals_needed.am_snack > 0">
+                                    <span class="pax-calc-formula">{{ formData.venue_budgets[vId][1].meals_needed.am_snack }} pax &times; ₱{{ (isOutsideBsu ? baselineSettings.snacks_outside : baselineSettings.snacks_inside) }} &times; {{ computedDays || 1 }} days</span>
+                                    <span class="pax-calc-equals">=</span>
+                                    <span class="pax-calc-total">₱{{ ((formData.venue_budgets[vId][1].meals_needed.am_snack || 0) * (isOutsideBsu ? baselineSettings.snacks_outside : baselineSettings.snacks_inside) * (computedDays || 1)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                                  </div>
+                                </div>
+                                <div class="pax-breakdown-item">
+                                  <div class="pax-input-group">
+                                    <input type="number" min="0" placeholder="0" class="creative-pax-input" v-model="formData.venue_budgets[vId][1].meals_needed.pm_snack" />
+                                    <span class="pax-label">PM Snack</span>
+                                  </div>
+                                  <div class="pax-calc-text" v-if="formData.venue_budgets[vId][1].meals_needed.pm_snack > 0">
+                                    <span class="pax-calc-formula">{{ formData.venue_budgets[vId][1].meals_needed.pm_snack }} pax &times; ₱{{ (isOutsideBsu ? baselineSettings.snacks_outside : baselineSettings.snacks_inside) }} &times; {{ computedDays || 1 }} days</span>
+                                    <span class="pax-calc-equals">=</span>
+                                    <span class="pax-calc-total">₱{{ ((formData.venue_budgets[vId][1].meals_needed.pm_snack || 0) * (isOutsideBsu ? baselineSettings.snacks_outside : baselineSettings.snacks_inside) * (computedDays || 1)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                                  </div>
+                                </div>
                               </div>
-                          
-                        </div>
-                        <div class="budget-item-value">
-                          <span class="budget-currency-symbol">₱</span>
-                          <input 
-                            type="number" 
-                            v-model="formData.budget_items[1].total" 
-                            class="budget-card-input"
-                            placeholder="0.00"
-                            min="0"
-                            step="0.01"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Group 2: Venue & Logistics -->
-                  <div class="budget-group-card">
-                    <div class="budget-group-header">
-                      <span class="budget-group-icon">🏨</span>
-                      <span class="budget-group-title">Venue & Logistics</span>
-                    </div>
-                    <div class="budget-group-content">
-                      <!-- Function Room/Venue -->
-                      <div class="budget-row-item">
-                        <div class="budget-item-info">
-                          <div class="budget-item-title">Function Room/Venue</div>
-                          <span class="budget-item-subtext">(Leave blank/zero for Attribution)</span>
-                        </div>
-                        <div class="budget-item-value">
-                          <span class="budget-currency-symbol">₱</span>
-                          <input 
-                            type="number" 
-                            v-model="formData.budget_items[2].total" 
-                            class="budget-card-input"
-                            placeholder="0.00"
-                            min="0"
-                            step="0.01"
-                          />
-                        </div>
-                      </div>
-
-                      <!-- Accommodation -->
-                      <div class="budget-row-item">
-                        <div class="budget-item-info">
-                          <div class="budget-item-title">Accommodation</div>
-                          <span class="budget-item-subtext">(Leave blank/zero)</span>
-                        </div>
-                        <div class="budget-item-value">
-                          <span class="budget-currency-symbol">₱</span>
-                          <input 
-                            type="number" 
-                            v-model="formData.budget_items[3].total" 
-                            class="budget-card-input"
-                            placeholder="0.00"
-                            min="0"
-                            step="0.01"
-                          />
-                        </div>
-                      </div>
-
-                      <!-- Equipment Rental -->
-                      <div class="budget-row-item">
-                        <div class="budget-item-info">
-                          <div class="budget-item-title">Equipment Rental</div>
-                          <span class="budget-item-subtext">(Leave blank/zero)</span>
-                        </div>
-                        <div class="budget-item-value">
-                          <span class="budget-currency-symbol">₱</span>
-                          <input 
-                            type="number" 
-                            v-model="formData.budget_items[4].total" 
-                            class="budget-card-input"
-                            placeholder="0.00"
-                            min="0"
-                            step="0.01"
-                          />
-                        </div>
-                      </div>
-
-                      <!-- Transportation -->
-                      <div class="budget-row-item">
-                        <div class="budget-item-info">
-                          <div class="budget-item-title">Transportation</div>
-                          <div v-if="formData.budget_items[8].total > baselineSettings.transportation_limit" class="budget-error-inline">
-                            ⚠️ Cannot exceed ₱{{ Number(baselineSettings.transportation_limit).toLocaleString('en-US') }} limit.
+                              
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="formData.venue_budgets[vId][1].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
                           </div>
                         </div>
-                        <div class="budget-item-value">
-                          <span class="budget-currency-symbol">₱</span>
-                          <input 
-                            type="number" 
-                            v-model="formData.budget_items[8].total" @input="checkTransportationLimit" 
-                            class="budget-card-input"
-                            placeholder="0.00"
-                            min="0"
-                            step="0.01"
-                          />
-                        </div>
                       </div>
-                    </div>
-                  </div>
 
-                  <!-- Group 3: Program & Speakers -->
-                  <div class="budget-group-card">
-                    <div class="budget-group-header">
-                      <span class="budget-group-icon">🎓</span>
-                      <span class="budget-group-title">Program & Speakers</span>
-                    </div>
-                    <div class="budget-group-content">
-                      <!-- Professional Fee/Honoraria -->
-                      <div class="budget-row-item">
-                        <div class="budget-item-info">
-                          <div class="budget-item-title">Professional Fee/Honoraria</div>
-                          <div class="budget-sub-controls">
-                            <label class="budget-number-input-label">
-                              Number of Speakers:
-                              <input type="number" v-model.number="pfPax" min="0" class="budget-sub-number-input" placeholder="0" />
-                            </label>
+                      <!-- Group 2: Venue & Logistics -->
+                      <div class="budget-group-card">
+                        <div class="budget-group-header">
+                          <span class="budget-group-icon">🏨</span>
+                          <span class="budget-group-title">Venue & Logistics</span>
+                        </div>
+                        <div class="budget-group-content">
+                          <!-- Function Room/Venue -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Function Room/Venue</div>
+                              <span class="budget-item-subtext">(Leave blank/zero for Attribution)</span>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="formData.venue_budgets[vId][2].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
                           </div>
-                        </div>
-                        <div class="budget-item-value">
-                          <span class="budget-currency-symbol">₱</span>
-                          <input 
-                            type="number" 
-                            v-model="formData.budget_items[5].total" 
-                            class="budget-card-input"
-                            placeholder="0.00"
-                            min="0"
-                            step="0.01"
-                          />
-                        </div>
-                      </div>
 
-                      <!-- Token/s -->
-                      <div class="budget-row-item">
-                        <div class="budget-item-info">
-                          <div class="budget-item-title">Token/s</div>
-                          <div class="budget-sub-controls">
-                            <label class="budget-number-input-label">
-                              Number of Recipients:
-                              <input type="number" v-model.number="tokensPax" min="0" class="budget-sub-number-input" placeholder="0" />
-                            </label>
+                          <!-- Accommodation -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Accommodation</div>
+                              <span class="budget-item-subtext">(Leave blank/zero)</span>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="formData.venue_budgets[vId][3].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
                           </div>
-                        </div>
-                        <div class="budget-item-value">
-                          <span class="budget-currency-symbol">₱</span>
-                          <input 
-                            type="number" 
-                            v-model="formData.budget_items[6].total" 
-                            class="budget-card-input"
-                            placeholder="0.00"
-                            min="0"
-                            step="0.01"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
 
-                  <!-- Group 4: Materials & Miscellaneous -->
-                  <div class="budget-group-card">
-                    <div class="budget-group-header">
-                      <span class="budget-group-icon">📦</span>
-                      <span class="budget-group-title">Materials & Miscellaneous</span>
-                    </div>
-                    <div class="budget-group-content">
-                      <!-- Materials and Supplies -->
-                      <div class="budget-row-item">
-                        <div class="budget-item-info">
-                          <div class="budget-item-title">Materials and Supplies</div>
-                          <span class="budget-item-subtext">(Auto-computed: participants * ₱1,000)</span>
-                        </div>
-                        <div class="budget-item-value">
-                          <span class="budget-currency-symbol">₱</span>
-                          <input 
-                            type="number" 
-                            v-model="formData.budget_items[7].total" 
-                            class="budget-card-input"
-                            placeholder="0.00"
-                            min="0"
-                            step="0.01"
-                          />
+                          <!-- Equipment Rental -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Equipment Rental</div>
+                              <span class="budget-item-subtext">(Leave blank/zero)</span>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="formData.venue_budgets[vId][4].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+
+                          <!-- Transportation -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Transportation</div>
+                              <div v-if="formData.venue_budgets[vId][8]?.total > (baselineSettings?.transportation_limit ?? 20000)" class="budget-error-inline">
+                                ⚠️ Cannot exceed ₱{{ Number(baselineSettings?.transportation_limit ?? 20000).toLocaleString('en-US') }} limit.
+                              </div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="formData.venue_budgets[vId][8].total" @input="checkTransportationLimit" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
 
-                      <!-- Others -->
-                      <div class="others-section-wrapper">
-                        <div class="budget-row-item others-row-item-header" style="border-bottom: none; padding-bottom: 8px;">
-                          <div class="budget-item-info">
-                            <div class="budget-item-title">Others</div>
-                          </div>
-                          <div class="budget-item-value">
-                            <span class="others-total-badge">₱{{ Number(formData.budget_items[9].total || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
-                          </div>
+                      <!-- Group 3: Program & Speakers -->
+                      <div class="budget-group-card">
+                        <div class="budget-group-header">
+                          <span class="budget-group-icon">🎓</span>
+                          <span class="budget-group-title">Program & Speakers</span>
                         </div>
-                        <div class="others-breakdown-container">
-                          <div v-for="(o, oIdx) in othersList" :key="oIdx" class="others-breakdown-row">
-                            <input type="text" v-model="o.name" placeholder="Item name (e.g. Coffee)" class="others-input-name" />
-                            <input type="number" v-model.number="o.amount" min="0" placeholder="₱0.00" class="others-input-amount" />
-                            <button type="button" @click="removeOtherItem(oIdx)" class="btn-remove-other" title="Remove">×</button>
+                        <div class="budget-group-content">
+                          <!-- Professional Fee/Honoraria -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Professional Fee/Honoraria</div>
+                              <div class="budget-sub-controls">
+                                <label class="budget-number-input-label">
+                                  Number of Speakers:
+                                  <input type="number" v-model.number="formData.venue_budgets[vId][5].pax" min="0" class="budget-sub-number-input" placeholder="0" />
+                                </label>
+                              </div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="formData.venue_budgets[vId][5].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
                           </div>
-                          <button type="button" @click="addOtherItem" class="btn-add-other" style="width: 100%; justify-content: center;">
-                            <span>+</span> Add Item
-                          </button>
+
+                          <!-- Token/s -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Token/s</div>
+                              <div class="budget-sub-controls">
+                                <label class="budget-number-input-label">
+                                  Number of Recipients:
+                                  <input type="number" v-model.number="formData.venue_budgets[vId][6].pax" min="0" class="budget-sub-number-input" placeholder="0" />
+                                </label>
+                              </div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="formData.venue_budgets[vId][6].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
+
+                      <!-- Group 4: Materials & Miscellaneous -->
+                      <div class="budget-group-card">
+                        <div class="budget-group-header">
+                          <span class="budget-group-icon">📦</span>
+                          <span class="budget-group-title">Materials & Miscellaneous</span>
+                        </div>
+                        <div class="budget-group-content">
+                          <!-- Materials and Supplies -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Materials and Supplies</div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="formData.venue_budgets[vId][7].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+
+                          <!-- Others -->
+                          <div class="others-section-wrapper">
+                            <div class="budget-row-item others-row-item-header" style="border-bottom: none; padding-bottom: 8px;">
+                              <div class="budget-item-info">
+                                <div class="budget-item-title">Others</div>
+                              </div>
+                              <div class="budget-item-value">
+                                <span class="others-total-badge">₱{{ Number(formData.venue_budgets[vId][9].total || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                              </div>
+                            </div>
+                            <div class="others-breakdown-container">
+                              <div v-for="(o, oIdx) in (venueOthersList[vId] || [])" :key="oIdx" class="others-breakdown-row">
+                                <input type="text" v-model="o.name" placeholder="Item name (e.g. Coffee)" class="others-input-name" />
+                                <input type="number" v-model.number="o.amount" min="0" placeholder="₱0.00" class="others-input-amount" />
+                                <button type="button" @click="removeOtherItem(vId, oIdx)" class="btn-remove-other" title="Remove">×</button>
+                              </div>
+                              <button type="button" @click="addOtherItem(vId)" class="btn-add-other" style="width: 100%; justify-content: center;">
+                                <span>+</span> Add Item
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
                     </div>
-                  </div>
+                    </div>
 
-                </div>
+                    <!-- Overall Target Participants Banner -->
+                    <div class="grand-total-banner-card" style="background: rgba(30,41,59,0.7); margin-bottom: 12px; border-color: #334155; padding: 12px 20px;">
+                      <div class="grand-total-label-banner" style="color: #94a3b8; font-size: 13px;">Overall Expected Attendance (Auto-calculated)</div>
+                      <div class="grand-total-value-banner" style="color: #cbd5e1; font-size: 16px;">
+                        {{ formData.target_participants || 0 }} Pax
+                      </div>
+                    </div>
 
-                <!-- Grand Total Banner Card -->
-                <div class="grand-total-banner-card">
-                  <div class="grand-total-label-banner">Grand Total (PHP)</div>
-                  <div class="grand-total-value-banner">
-                    ₱{{ formatCurrency(formData.proposed_budget) }}
-                  </div>
+                    <!-- Grand Total Banner Card -->
+                    <div class="grand-total-banner-card">
+                      <div class="grand-total-label-banner">Grand Total (PHP)</div>
+                      <div class="grand-total-value-banner">
+                        ₱{{ Number(formData.proposed_budget || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                      </div>
                 </div>
               </div>
               <div v-else class="empty-budget-notice">
@@ -884,6 +924,55 @@ const activeSchedules = computed(() => {
 });
 
 const customVenue = ref('');
+const venueDropdownOpen = ref(false);
+const customVenuesList = ref([]);
+const venueOthersList = ref({});
+
+const getVenueName = (id) => {
+  if (String(id).startsWith('temp_')) {
+    const custom = customVenuesList.value.find(x => String(x.venue_id) === String(id));
+    return custom ? custom.venue_name : 'Custom Venue';
+  }
+  const v = filteredVenues.value.find(x => String(x.venue_id) === String(id));
+  return v ? v.venue_name : 'Unknown Venue';
+};
+
+const removeVenue = (vid) => {
+  formData.value.venues = formData.value.venues.filter(id => String(id) !== String(vid));
+};
+
+const addCustomVenue = async () => {
+  venueDropdownOpen.value = false;
+  const { value: venueName } = await Swal.fire({
+    title: 'Add Custom Venue',
+    input: 'text',
+    inputLabel: 'Enter the complete venue name',
+    inputPlaceholder: 'e.g. Hotel ABC',
+    showCancelButton: true,
+    confirmButtonColor: '#b979cc',
+    cancelButtonColor: '#64748b',
+    inputValidator: (value) => {
+      if (!value) return 'You need to write something!';
+    }
+  });
+  if (venueName) {
+    const tempId = 'temp_' + Date.now();
+    customVenuesList.value.push({ venue_id: tempId, venue_name: venueName });
+    if (!formData.value.venues) formData.value.venues = [];
+    formData.value.venues.push(tempId);
+  }
+};
+
+const addOtherItem = (vId) => {
+  if (!venueOthersList.value[vId]) venueOthersList.value[vId] = [];
+  venueOthersList.value[vId].push({ name: '', amount: '' });
+};
+
+const removeOtherItem = (vId, index) => {
+  if (venueOthersList.value[vId]) {
+    venueOthersList.value[vId].splice(index, 1);
+  }
+};
 const newFile = ref(null);
 const newFileURL = ref(null);
 
@@ -924,10 +1013,13 @@ const formData = ref({
   end_date: '',
   start_time: '',
   end_time: '',
+  venues: [],
+  venue_budgets: {},
   venue: '',
-  proposed_budget: 0,
+  is_inside_bsu: true,
   target_participants: 0,
-  budget_items: [ // Added budget_items
+  proposed_budget: 0,
+  budget_items: [
     { name: 'Meals', total: 0 },
     { name: 'Snacks', total: 0 },
     { name: 'Function Room/Venue', total: 0 },
@@ -941,11 +1033,79 @@ const formData = ref({
   ]
 });
 
-// Watch for changes in budget_items to update proposed_budget
-watch(() => formData.value.budget_items, (newItems) => {
-  const total = newItems.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
-  formData.value.proposed_budget = total;
+// Watch venues array to initialize per-venue budget structure
+watch(() => formData.value?.venues, (newVenues) => {
+  if (!newVenues) return;
+  newVenues.forEach(vid => {
+    if (!formData.value.venue_budgets[vid]) {
+      const pax = Number(formData.value.target_participants) || 0;
+      formData.value.venue_budgets[vid] = [
+        { name: 'Meals', total: '', meals_needed: { breakfast: pax, lunch: pax, dinner: pax } },
+        { name: 'Snacks', total: '', meals_needed: { am_snack: pax, pm_snack: pax } },
+        { name: 'Function Room/Venue', total: '' },
+        { name: 'Accommodation', total: '' },
+        { name: 'Equipment Rental', total: '' },
+        { name: 'Professional Fee/Honoraria', total: '', pax: '' },
+        { name: 'Token/s', total: '', pax: '' },
+        { name: 'Materials and Supplies', total: '' },
+        { name: 'Transportation', total: '' },
+        { name: 'Others', total: '' }
+      ];
+    }
+  });
 }, { deep: true });
+
+// Watch venue_budgets for grand total + auto-calculated participants
+watch(() => formData.value.venue_budgets, (newBudgets) => {
+  if (loadingData.value) return;
+  let grandTotal = 0;
+  let maxOverallPax = 0;
+  Object.values(newBudgets).forEach(budgetItems => {
+    grandTotal += budgetItems.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
+    const mealsItem = budgetItems.find(i => i.name === 'Meals');
+    const snacksItem = budgetItems.find(i => i.name === 'Snacks');
+    let maxMeals = 0;
+    if (mealsItem && mealsItem.meals_needed) {
+      maxMeals = Math.max(
+        Number(mealsItem.meals_needed.breakfast) || 0,
+        Number(mealsItem.meals_needed.lunch) || 0,
+        Number(mealsItem.meals_needed.dinner) || 0
+      );
+    }
+    let maxSnacks = 0;
+    if (snacksItem && snacksItem.meals_needed) {
+      maxSnacks = Math.max(
+        Number(snacksItem.meals_needed.am_snack) || 0,
+        Number(snacksItem.meals_needed.pm_snack) || 0
+      );
+    }
+    const venueMaxPax = Math.max(maxMeals, maxSnacks);
+    maxOverallPax += venueMaxPax;
+  });
+  formData.value.proposed_budget = grandTotal;
+  if (maxOverallPax > 0) {
+    formData.value.target_participants = maxOverallPax;
+  }
+}, { deep: true });
+
+// Watch venueOthersList to keep Others total in sync
+watch(
+  venueOthersList,
+  (newMap) => {
+    Object.entries(newMap).forEach(([vId, list]) => {
+      const budgetItems = formData.value.venue_budgets[vId];
+      if (!budgetItems) return;
+      const othersItem = budgetItems.find(i => i.name === 'Others');
+      if (othersItem) {
+        const sum = (list || []).reduce((s, i) => s + (Number(i.amount) || 0), 0);
+        othersItem.total = sum || '';
+      }
+    });
+  },
+  { deep: true }
+);
+
+// Computed Properties for Auto-calculation
 
 // Computed Properties for Auto-calculation
 
@@ -992,14 +1152,6 @@ const othersList = ref([]);
 const customMandate = ref('');
 const customGenderIssue = ref('');
 const loadingData = ref(false);
-
-const addOtherItem = () => {
-  othersList.value.push({ name: '', amount: '' });
-};
-
-const removeOtherItem = (index) => {
-  othersList.value.splice(index, 1);
-};
 
 // Reactive Auto-computation Watchers
 watch(
@@ -1081,7 +1233,18 @@ const fetchVenues = async () => {
 };
 
 const filteredVenues = computed(() => {
-  return venues.value.filter(v => (v.is_inside_bsu == 1 || v.is_inside_bsu === true) === formData.value.is_inside_bsu);
+  return venues.value.filter(v => 
+    (v.is_inside_bsu == 1 || v.is_inside_bsu === true) === formData.value.is_inside_bsu &&
+    v.venue_name && v.venue_name.trim() !== ''
+  );
+});
+
+watch(() => formData.value.is_inside_bsu, () => {
+  if (loadingData.value) return;
+  if (formData.value.venues && formData.value.venues.length > 0) {
+    const validIds = new Set(filteredVenues.value.map(v => String(v.venue_id)));
+    formData.value.venues = formData.value.venues.filter(id => String(id).startsWith('temp_') || validIds.has(String(id)));
+  }
 });
 
 watch(() => formData.value.is_inside_bsu, () => {
@@ -1220,7 +1383,7 @@ const fetchDesignDetails = async () => {
           try {
             if (typeof s.meals_and_snacks === 'string') {
               meals = JSON.parse(s.meals_and_snacks);
-            } else if (typeof s.meals_and_snacks === 'object') {
+            } else if (typeof s.meals_and_snacks === 'object' && s.meals_and_snacks !== null) {
               meals = s.meals_and_snacks;
             }
           } catch(e) {}
@@ -1264,6 +1427,73 @@ const fetchDesignDetails = async () => {
         if (found) ftype = found.id;
       }
       
+      // Build venues and venue_budgets from design data
+      let savedVenues = [];
+      let savedVenueBudgets = {};
+      let savedCustomVenues = [];
+
+      if (design.value.venues_list && Array.isArray(design.value.venues_list) && design.value.venues_list.length > 0) {
+        // New multi-venue format
+        savedVenues = design.value.venues_list.map(v => String(v.venue_id));
+        if (design.value.custom_venues) {
+          try { savedCustomVenues = JSON.parse(design.value.custom_venues); } catch(e) {}
+        }
+        savedVenues.forEach(vid => {
+          const items = design.value.budget_items?.filter(i => String(i.venue_id) === String(vid)) || [];
+          const mealsDB = items.find(i => i.item_name === 'Meals') || {};
+          const snacksDB = items.find(i => i.item_name === 'Snacks') || {};
+          const pax = Number(design.value.target_participants) || 0;
+          savedVenueBudgets[vid] = [
+            { name: 'Meals', total: Number(mealsDB.amount || 0) || '', meals_needed: { breakfast: pax, lunch: pax, dinner: pax } },
+            { name: 'Snacks', total: Number(snacksDB.amount || 0) || '', meals_needed: { am_snack: pax, pm_snack: pax } },
+            { name: 'Function Room/Venue', total: Number(items.find(i => i.item_name === 'Function Room/Venue')?.amount || 0) || '' },
+            { name: 'Accommodation', total: Number(items.find(i => i.item_name === 'Accommodation')?.amount || 0) || '' },
+            { name: 'Equipment Rental', total: Number(items.find(i => i.item_name === 'Equipment Rental')?.amount || 0) || '' },
+            { name: 'Professional Fee/Honoraria', total: Number(items.find(i => i.item_name === 'Professional Fee/Honoraria')?.amount || 0) || '', pax: items.find(i => i.item_name === 'Professional Fee/Honoraria')?.pax || '' },
+            { name: 'Token/s', total: Number(items.find(i => i.item_name === 'Token/s')?.amount || 0) || '', pax: items.find(i => i.item_name === 'Token/s')?.pax || '' },
+            { name: 'Materials and Supplies', total: Number(items.find(i => i.item_name === 'Materials and Supplies')?.amount || 0) || '' },
+            { name: 'Transportation', total: Number(items.find(i => i.item_name === 'Transportation')?.amount || 0) || '' },
+            { name: 'Others', total: '' }
+          ];
+          // Load Others breakdown
+          const othersItems = items.filter(i => i.item_name === 'Others');
+          if (othersItems.length > 0) {
+            if (!venueOthersList.value[vid]) venueOthersList.value[vid] = [];
+            othersItems.forEach(o => {
+              venueOthersList.value[vid].push({ name: o.sub_item || '', amount: Number(o.amount) || 0 });
+            });
+          }
+        });
+        customVenuesList.value = savedCustomVenues;
+      } else if (design.value.venue_id || design.value.venue) {
+        // Legacy single-venue format — migrate to multi-venue
+        const legacyVid = design.value.venue_id ? String(design.value.venue_id) : 'Other';
+        if (legacyVid === 'Other') {
+          const tempId = 'temp_' + Date.now();
+          customVenuesList.value = [{ venue_id: tempId, venue_name: design.value.venue || 'Custom Venue' }];
+          savedVenues = [tempId];
+        } else {
+          savedVenues = [legacyVid];
+        }
+        const theVid = savedVenues[0];
+        const legacyPax = Number(design.value.target_participants) || 0;
+        savedVenueBudgets[theVid] = [
+          { name: 'Meals', total: mealsTotal || '', meals_needed: { breakfast: legacyPax, lunch: legacyPax, dinner: legacyPax } },
+          { name: 'Snacks', total: snacksTotal || '', meals_needed: { am_snack: legacyPax, pm_snack: legacyPax } },
+          { name: 'Function Room/Venue', total: functionRoomVenue },
+          { name: 'Accommodation', total: accommodation },
+          { name: 'Equipment Rental', total: equipmentRental },
+          { name: 'Professional Fee/Honoraria', total: professionalFee, pax: pfPax.value },
+          { name: 'Token/s', total: tokensVal, pax: tokensPax.value },
+          { name: 'Materials and Supplies', total: materialsSupplies },
+          { name: 'Transportation', total: transportation },
+          { name: 'Others', total: '' }
+        ];
+        if (othersList.value.length > 0) {
+          venueOthersList.value[theVid] = othersList.value.map(o => ({ name: o.name, amount: o.amount }));
+        }
+      }
+
       formData.value = {
         activity_title: design.value.activity_title,
         office: design.value.office,
@@ -1275,27 +1505,14 @@ const fetchDesignDetails = async () => {
         end_date: design.value.end_date,
         start_time: design.value.start_time,
         end_time: design.value.end_time,
-        venue: design.value.venue_id || 'Other',
+        venues: savedVenues,
+        venue_budgets: savedVenueBudgets,
+        venue: design.value.venue_id || '',
         is_inside_bsu: design.value.is_inside_bsu == 1 || design.value.is_inside_bsu === true,
         proposed_budget: design.value.proposed_budget,
         target_participants: design.value.target_participants,
-        budget_items: [
-          { name: 'Meals', total: mealsTotal || '' },
-          { name: 'Snacks', total: snacksTotal || '' },
-          { name: 'Function Room/Venue', total: functionRoomVenue },
-          { name: 'Accommodation', total: accommodation },
-          { name: 'Equipment Rental', total: equipmentRental },
-          { name: 'Professional Fee/Honoraria', total: professionalFee },
-          { name: 'Token/s', total: tokensVal },
-          { name: 'Materials and Supplies', total: materialsSupplies },
-          { name: 'Transportation', total: transportation },
-          { name: 'Others', total: othersTotal || '' }
-        ]
+        budget_items: []
       };
-
-      if (!design.value.venue_id) {
-        customVenue.value = design.value.venue;
-      }
     
         await fetchGADMandates();
         const mapLoadedMandates = () => {
@@ -1743,69 +1960,63 @@ const handleUpdate = async () => {
     submitData.append('schedule_type', scheduleType.value);
     submitData.append('schedules', JSON.stringify(schedules.value));
 
-    // Venue Logic
-    if (formData.value.venue && formData.value.venue !== 'Other') {
-      submitData.append('venue_id', formData.value.venue);
-    } else if (formData.value.venue === 'Other') {
-      submitData.append('venue_id', 'Other');
-      submitData.append('venue', customVenue.value || '');
-    }
+    // Multi-Venue Logic
+    submitData.append('venues', JSON.stringify(formData.value.venues));
+    submitData.append('custom_venues', JSON.stringify(customVenuesList.value));
     submitData.append('is_inside_bsu', formData.value.is_inside_bsu ? 1 : 0);
 
-    const transItem = formData.value.budget_items.find(i => i.name === 'Transportation');
-    if (transItem && Number(transItem.total) > 20000) {
+    // Check transportation limit per venue
+    let exceedsTransportLimit = false;
+    formData.value.venues.forEach(vid => {
+      const budgetItems = formData.value.venue_budgets[vid];
+      if (!budgetItems) return;
+      const transItem = budgetItems.find(i => i.name === 'Transportation');
+      if (transItem && Number(transItem.total) > baselineSettings.value.transportation_limit) {
+        exceedsTransportLimit = true;
+      }
+    });
+    if (exceedsTransportLimit) {
       Swal.fire({
         icon: 'warning',
         title: 'Limit Exceeded',
-        text: 'Transportation budget cannot exceed the maximum limit of ₱20,000.',
+        text: `Transportation budget cannot exceed ₱${Number(baselineSettings.value.transportation_limit).toLocaleString()}.`,
         confirmButtonColor: '#b979cc'
       });
       return;
     }
 
-          const normalizedBudgetItems = [];
-      formData.value.budget_items.forEach(item => {
+    const normalizedBudgetItems = [];
+    formData.value.venues.forEach(vid => {
+      const budgetItems = formData.value.venue_budgets[vid];
+      if (!budgetItems) return;
+      budgetItems.forEach(item => {
         if (item.name !== 'Others') {
           normalizedBudgetItems.push({
+            venue_id: vid === 'Other' ? 'Other' : vid,
             category_id: null,
             item_name: item.name,
-            sub_item: null,
-            pax: (item.name === 'Professional Fee/Honoraria') ? (typeof pfPax !== 'undefined' ? pfPax?.value : null) : (item.name === 'Token/s') ? (typeof tokensPax !== 'undefined' ? tokensPax?.value : null) : null,
+            sub_item: item.sub_item || null,
+            pax: item.pax || null,
             amount: Number(item.total) || 0
           });
         }
       });
-      if (typeof othersList !== 'undefined') {
-        othersList.value.forEach(o => {
-          if (o.name && Number(o.amount) > 0) {
-            normalizedBudgetItems.push({
-              category_id: null,
-              item_name: 'Others',
-              sub_item: o.name,
-              pax: null,
-              amount: Number(o.amount) || 0
-            });
-          }
-        });
-      }
-      const mealsItem = normalizedBudgetItems.find(i => i.item_name === 'Meals');
-      if (mealsItem) {
-        let selected = [];
+      const list = venueOthersList.value[vid] || [];
+      list.forEach(o => {
+        if (o.name && Number(o.amount) > 0) {
+          normalizedBudgetItems.push({
+            venue_id: vid === 'Other' ? 'Other' : vid,
+            category_id: null,
+            item_name: 'Others',
+            sub_item: o.name,
+            pax: null,
+            amount: Number(o.amount) || 0
+          });
+        }
+      });
+    });
 
-
-
-        mealsItem.sub_item = selected.join(', ');
-      }
-
-      const snacksItem = normalizedBudgetItems.find(i => i.item_name === 'Snacks');
-      if (snacksItem) {
-        let selected = [];
-
-
-        snacksItem.sub_item = selected.join(', ');
-      }
-
-      submitData.append('budget_items', JSON.stringify(normalizedBudgetItems));
+    submitData.append('budget_items', JSON.stringify(normalizedBudgetItems));
 
     submitData.append('status', 'Pending'); // Reset status so admin can review again
     
@@ -1877,7 +2088,7 @@ const fetchBaselineSettings = async () => {
 
 onMounted(async () => {
     fetchBaselineSettings();
-  if (!user.value.id || user.value.role !== 'admin') {
+  if (!user.value.id) {
     router.push('/login');
   } else {
     await fetchVenues();
@@ -1888,7 +2099,13 @@ onMounted(async () => {
 });
 
 const checkTransportationLimit = () => {
-  const transItem = formData.value.budget_items?.[8];
+  // Check all venues for transportation limit
+  let transTotal = 0;
+  Object.values(formData.value.venue_budgets || {}).forEach(items => {
+    const transItem = items?.find(i => i.name === 'Transportation');
+    if (transItem) transTotal += Number(transItem.total) || 0;
+  });
+  const transItem = { total: transTotal };
   const limit = Number(baselineSettings.value?.transportation_limit || 20000);
   
   if (transItem && Number(transItem.total) > limit) {
@@ -2720,7 +2937,198 @@ letter-spacing: 0.05em;
     font-size: 18px;
   }
 }
-</style>
+
+/* Custom Multi-select Styles */
+.custom-multiselect-container {
+  position: relative;
+  width: 100%;
+}
+
+.multiselect-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 99;
+}
+
+.multiselect-trigger {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  background-color: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.multiselect-trigger:hover, .multiselect-trigger.is-open {
+  border-color: #b979cc;
+  box-shadow: 0 0 0 3px rgba(185, 121, 204, 0.1);
+}
+
+.placeholder-text {
+  color: #94a3b8;
+}
+
+.selected-text {
+  color: #f8fafc;
+  font-weight: 500;
+}
+
+.dropdown-arrow {
+  color: #94a3b8;
+  font-size: 0.8rem;
+  transition: transform 0.3s ease;
+  margin-left: auto;
+}
+.multiselect-trigger.is-open .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.multiselect-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 0.5rem;
+  background-color: #1e293b;
+  border: 1px solid rgba(185, 121, 204, 0.3);
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 100;
+  padding: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.multiselect-option {
+  display: flex;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  color: #e2e8f0;
+  transition: background-color 0.2s;
+  margin: 0;
+  width: 100%;
+}
+
+.multiselect-option:hover {
+  background-color: rgba(185, 121, 204, 0.15);
+}
+
+.multiselect-checkbox {
+  margin-right: 0.75rem;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #b979cc;
+}
+
+.multiselect-divider {
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.1);
+  margin: 0.5rem 0;
+}
+
+/* Chips Styles */
+.chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.venue-chip {
+  display: inline-flex;
+  align-items: center;
+  background: linear-gradient(135deg, rgba(185, 121, 204, 0.2), rgba(185, 121, 204, 0.05));
+  border: 1px solid rgba(185, 121, 204, 0.4);
+  color: #f8fafc;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  backdrop-filter: blur(4px);
+  animation: fadeInChip 0.3s ease-out forwards;
+}
+
+.chip-remove {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  margin-left: 0.5rem;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.chip-remove:hover {
+  color: #ef4444;
+}
+
+@keyframes fadeInChip {
+  from { opacity: 0; transform: translateY(5px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.btn-add-custom-venue {
+  width: 100%;
+  padding: 0.75rem;
+  background: transparent;
+  border: none;
+  color: #b979cc;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.2s;
+}
+.btn-add-custom-venue:hover {
+  background-color: rgba(185, 121, 204, 0.1);
+}
+
+.pax-input-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.creative-pax-input {
+  width: 65px;
+  padding: 8px;
+  background: #1e293b;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+.creative-pax-input:focus {
+  border-color: #b979cc;
+  background: #2a3b54;
+  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.2);
+  outline: none;
+}
+.pax-label { font-size: 14px; color: #e2e8f0; font-weight: 500; } .pax-calc-text { font-size: 12px; color: #94a3b8; margin-left: 77px; display: flex; align-items: center; gap: 6px; background: rgba(0, 0, 0, 0.2); padding: 4px 8px; border-radius: 4px; width: fit-content; } .pax-calc-formula { color: #cbd5e1; } .pax-calc-equals { color: #64748b; } .pax-calc-total { color: #10b981; font-weight: 600; font-size: 13px; } .budget-group-total { font-weight: 600; color: #10b981; background: rgba(16, 185, 129, 0.1); padding: 4px 10px; border-radius: 6px; font-size: 13px; margin-top: 4px; } .budget-row-item:has(.pax-breakdown-list) { flex-wrap: wrap !important; } .budget-group-header { flex-wrap: wrap !important; } .pax-calc-text { flex-wrap: wrap !important; max-width: 100% !important; margin-top: 8px !important; margin-left: 0 !important; } .pax-calc-formula, .pax-calc-equals, .pax-calc-total { white-space: nowrap !important; } </style>
+
+
+
+
+
+
+
+
+
+
 
 
 

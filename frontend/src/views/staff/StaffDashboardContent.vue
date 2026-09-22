@@ -798,6 +798,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  min-width: 0;
 }
 
 /* Section Header */
@@ -1038,7 +1039,7 @@ onMounted(async () => {
 .schedule-title {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #c084fc;
+  color: #ffffff;
   letter-spacing: 0.025em;
 }
 
@@ -1172,6 +1173,7 @@ onMounted(async () => {
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.05);
   transition: all 0.2s ease;
+  min-width: 0;
 }
 
 .deadline-item:hover {
@@ -1200,6 +1202,7 @@ onMounted(async () => {
   overflow: hidden;
   text-overflow: ellipsis;
   padding-right: 0.5rem;
+  min-width: 0;
 }
 
 .deadline-badge {

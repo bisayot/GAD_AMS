@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-slate-50 flex flex-col overflow-x-hidden w-full" :style="$route.path.includes('/plan-and-budget') ? 'overflow-x: auto;' : 'overflow-x: hidden; max-width: 100%;'">
+  <div class="min-h-screen bg-slate-50 flex flex-col overflow-x-clip w-full" :style="$route.path.includes('/plan-and-budget') ? 'overflow-x: auto;' : 'overflow-x: clip; max-width: 100%;'">
     <!-- Top Navbar for Desktop/Tablet -->
     <DashboardNavbar 
       :menuItems="collegeMenu"

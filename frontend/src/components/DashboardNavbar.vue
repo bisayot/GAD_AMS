@@ -114,7 +114,12 @@
                 
                 <router-link :to="manualLink" class="flex items-center gap-4 px-3 py-3 rounded-xl hover:bg-white/5 transition-colors text-white text-[15px] font-semibold no-underline" @click="isProfileOpen = false">
                   <span class="material-symbols-outlined text-[24px] text-[#e9d5ff]">help</span>
-                  <span>User Manual & Guide</span>
+                  <span>User Manual</span>
+                </router-link>
+                
+                <router-link :to="privacyLink" class="flex items-center gap-4 px-3 py-3 rounded-xl hover:bg-white/5 transition-colors text-white text-[15px] font-semibold no-underline" @click="isProfileOpen = false">
+                  <span class="material-symbols-outlined text-[24px] text-[#e9d5ff]">policy</span>
+                  <span>Privacy Policy</span>
                 </router-link>
                 
                 <div class="h-px bg-white/5 mx-2 my-1"></div>
@@ -160,6 +165,7 @@ const baseRoute = computed(() => '/' + (route.path.split('/')[1] || 'dashboard')
 const messagesLink = computed(() => `${baseRoute.value}/messages`);
 const settingsLink = computed(() => `${baseRoute.value}/settings`);
 const manualLink = computed(() => `${baseRoute.value}/user-manual`);
+const privacyLink = computed(() => `${baseRoute.value}/data-privacy-policy`);
 
 const userInitial = computed(() => {
   const name = props.user?.full_name || props.user?.name || props.user?.username || 'U';

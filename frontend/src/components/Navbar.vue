@@ -105,16 +105,10 @@ const isHidden = ref(false);
 let lastScrollY = 0;
 const handleScroll = () => {
   const currentScrollY = window.scrollY;
-  // Always show navbar when near the top
-  if (currentScrollY < 60) {
-    isHidden.value = false;
-  } else if (currentScrollY > lastScrollY + 5) {
-    // Scrolling down — hide
-    isHidden.value = true;
-    isMenuOpen.value = false; // close mobile menu too
-  } else if (currentScrollY < lastScrollY - 5) {
-    // Scrolling up — show
-    isHidden.value = false;
+  // Make header steady: never hide the navbar on scroll
+  isHidden.value = false;
+  if (currentScrollY > lastScrollY + 5) {
+    isMenuOpen.value = false; // still close mobile menu on scroll down
   }
   lastScrollY = currentScrollY;
 };

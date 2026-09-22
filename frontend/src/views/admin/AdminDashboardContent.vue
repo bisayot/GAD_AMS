@@ -439,8 +439,7 @@ const fetchStats = async () => {
       
       // Also update pending activities list
       const pDesigns = designsRes.data.data
-        .filter(d => d.status === 'Pending')
-        .slice(0, 3)
+        .filter(d => ['pending', 'revision required', 'for revision'].includes((d.status || '').toLowerCase()))
         .map(d => ({
           id: d.act_design_id,
           type: 'design',
@@ -457,8 +456,7 @@ const fetchStats = async () => {
       metricsStats.value[1].value = pendingReports.toString();
       
       const pReports = reportsRes.data.data
-        .filter(r => r.status === 'Pending')
-        .slice(0, 3)
+        .filter(r => ['pending', 'revision required', 'for revision'].includes((r.status || '').toLowerCase()))
         .map(r => ({
           id: r.id || r.acc_report_id,
           type: 'report',
@@ -468,7 +466,7 @@ const fetchStats = async () => {
           date: r.date || 'Pending Verification'
         }));
       
-      pendingActivities.value = [...pendingActivities.value, ...pReports].slice(0, 4);
+      pendingActivities.value = [...pendingActivities.value, ...pReports];
     }
 
     // Calculate Upcoming Deadlines

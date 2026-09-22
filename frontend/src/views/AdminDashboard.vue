@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-slate-50 flex flex-col overflow-x-hidden w-full">
+  <div class="min-h-screen bg-slate-50 flex flex-col overflow-x-clip w-full">
     <!-- Top Navbar for Desktop/Tablet -->
     <DashboardNavbar 
       :menuItems="adminMenu"

@@ -1066,7 +1066,8 @@ const parsedBudget = computed(() => {
       else if (item.item_name === 'Materials and Supplies') vData.totals.materials += amt;
       else {
         vData.totals.others += amt;
-        vData.othersBreakdown.push({ name: item.item_name, amount: amt });
+        const displayName = (item.item_name === 'Others' && item.sub_item) ? item.sub_item : item.item_name;
+        vData.othersBreakdown.push({ name: displayName, amount: amt });
       }
     });
 
