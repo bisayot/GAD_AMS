@@ -1,0 +1,257 @@
+                    <!-- Grouped Budget Divisions -->
+                    <div class="budget-groups-container">
+                      
+                      <!-- Group 1: Catering & Hospitality -->
+                      <div class="budget-group-card">
+                        <div class="budget-group-header">
+                          <span class="budget-group-icon">🍽️</span>
+                          <span class="budget-group-title">Catering & Hospitality</span>
+                        </div>
+                        <div class="budget-group-content">
+                          <!-- Meals Row -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Meals</div>
+                              <div class="budget-sub-controls" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <span style="font-size: 11px; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px;" v-if="totalBreakfastDays > 0">Breakfast ({{ totalBreakfastDays }} days)</span>
+                                <span style="font-size: 11px; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px;" v-if="totalLunchDays > 0">Lunch ({{ totalLunchDays }} days)</span>
+                                <span style="font-size: 11px; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px;" v-if="totalDinnerDays > 0">Dinner ({{ totalDinnerDays }} days)</span>
+                                <span style="font-size: 11px; color: #64748b; font-style: italic;" v-if="totalBreakfastDays === 0 && totalLunchDays === 0 && totalDinnerDays === 0">No meals selected in schedules</span>
+                              </div>
+                              
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[0].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+
+                          <!-- Snacks Row -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Snacks</div>
+                              <div class="budget-sub-controls" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <span style="font-size: 11px; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px;" v-if="totalAMSnackDays > 0">AM Snack ({{ totalAMSnackDays }} days)</span>
+                                <span style="font-size: 11px; color: #94a3b8; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px;" v-if="totalPMSnackDays > 0">PM Snack ({{ totalPMSnackDays }} days)</span>
+                                <span style="font-size: 11px; color: #64748b; font-style: italic;" v-if="totalAMSnackDays === 0 && totalPMSnackDays === 0">No snacks selected in schedules</span>
+                              </div>
+                              
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[1].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Group 2: Venue & Logistics -->
+                      <div class="budget-group-card">
+                        <div class="budget-group-header">
+                          <span class="budget-group-icon">🏨</span>
+                          <span class="budget-group-title">Venue & Logistics</span>
+                        </div>
+                        <div class="budget-group-content">
+                          <!-- Function Room/Venue -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Function Room/Venue</div>
+                              <span class="budget-item-subtext">(Leave blank/zero for Attribution)</span>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[2].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+
+                          <!-- Accommodation -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Accommodation</div>
+                              <span class="budget-item-subtext">(Leave blank/zero)</span>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[3].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+
+                          <!-- Equipment Rental -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Equipment Rental</div>
+                              <span class="budget-item-subtext">(Leave blank/zero)</span>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[4].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+
+                          <!-- Transportation -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Transportation</div>
+                              <div v-if="form.budget_items[8]?.total > (baselineSettings?.transportation_limit ?? 20000)" class="budget-error-inline">
+                                ⚠️ Cannot exceed ₱{{ Number(baselineSettings?.transportation_limit ?? 20000).toLocaleString('en-US') }} limit.
+                              </div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[8].total" @input="checkTransportationLimit" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Group 3: Program & Speakers -->
+                      <div class="budget-group-card">
+                        <div class="budget-group-header">
+                          <span class="budget-group-icon">🎓</span>
+                          <span class="budget-group-title">Program & Speakers</span>
+                        </div>
+                        <div class="budget-group-content">
+                          <!-- Professional Fee/Honoraria -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Professional Fee/Honoraria</div>
+                              <div class="budget-sub-controls">
+                                <label class="budget-number-input-label">
+                                  Number of Speakers:
+                                  <input type="number" v-model.number="pfPax" min="0" class="budget-sub-number-input" placeholder="0" />
+                                </label>
+                              </div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[5].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+
+                          <!-- Token/s -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Token/s</div>
+                              <div class="budget-sub-controls">
+                                <label class="budget-number-input-label">
+                                  Number of Recipients:
+                                  <input type="number" v-model.number="tokensPax" min="0" class="budget-sub-number-input" placeholder="0" />
+                                </label>
+                              </div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[6].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Group 4: Materials & Miscellaneous -->
+                      <div class="budget-group-card">
+                        <div class="budget-group-header">
+                          <span class="budget-group-icon">📦</span>
+                          <span class="budget-group-title">Materials & Miscellaneous</span>
+                        </div>
+                        <div class="budget-group-content">
+                          <!-- Materials and Supplies -->
+                          <div class="budget-row-item">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title">Materials and Supplies</div>
+                              <span class="budget-item-subtext">(Auto-computed: participants * ₱{{ Number(baselineSettings.materials).toLocaleString('en-US') }})</span>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <input 
+                                type="number" 
+                                v-model="form.budget_items[7].total" 
+                                class="budget-card-input"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                          </div>
+
+                          <!-- Others -->
+                          <div class="others-section-wrapper">
+                            <div class="budget-row-item others-row-item-header" style="border-bottom: none; padding-bottom: 8px;">
+                              <div class="budget-item-info">
+                                <div class="budget-item-title">Others</div>
+                              </div>
+                              <div class="budget-item-value">
+                                <span class="others-total-badge">₱{{ Number(form.budget_items[9].total || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                              </div>
+                            </div>
+                            <div class="others-breakdown-container">
+                              <div v-for="(o, oIdx) in othersList" :key="oIdx" class="others-breakdown-row">
+                                <input type="text" v-model="o.name" placeholder="Item name (e.g. Coffee)" class="others-input-name" />
+                                <input type="number" v-model.number="o.amount" min="0" placeholder="₱0.00" class="others-input-amount" />
+                                <button type="button" @click="removeOtherItem(oIdx)" class="btn-remove-other" title="Remove">×</button>
+                              </div>
+                              <button type="button" @click="addOtherItem" class="btn-add-other" style="width: 100%; justify-content: center;">
+                                <span>+</span> Add Item
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+

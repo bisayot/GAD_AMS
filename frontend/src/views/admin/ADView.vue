@@ -120,7 +120,7 @@
                           </label>
                           <div style="display: flex; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 4px; border: 1px solid rgba(185,121,204,0.3);">
                             <span :style="{ background: 'rgba(185, 121, 204, 0.2)', color: '#e9d5ff', padding: '4px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold' }">
-                              {{ isNonConsecutive(design.schedules) ? 'Non Consecutive / Custom' : 'Consecutive Daily' }}
+                              {{ design.schedule_type === 'staggered' ? 'Non Consecutive / Custom' : 'Consecutive Daily' }}
                             </span>
                           </div>
                       </div>
@@ -140,18 +140,7 @@
                         <span class="material-symbols-outlined text-purple-400 text-lg">schedule</span>
                         <span class="text-purple-100 font-mono text-sm tracking-wide">{{ formatTime(sch.start_time) }} - {{ formatTime(sch.end_time) }}</span>
                       </div>
-                      
-                      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; flex: 1; justify-content: flex-end;">
-                        <span v-if="sch.meals_and_snacks && Object.values(sch.meals_and_snacks).some(v => v === true || v === '1' || v === 1)" class="text-[10px] uppercase font-bold text-orange-300 mr-2 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">restaurant</span> Meals:</span>
-                        <template v-if="sch.meals_and_snacks && Object.values(sch.meals_and_snacks).some(v => v === true || v === '1' || v === 1)">
-                          <template v-for="(val, key) in sch.meals_and_snacks" :key="key">
-                            <span v-if="val === true || val === '1' || val === 1" class="text-[10px] bg-orange-500/20 text-orange-200 px-3 py-1 rounded-full uppercase tracking-wider border border-orange-500/30 font-semibold shadow-sm">
-                              {{ key.replace(/_/g, ' ') }}
-                            </span>
-                          </template>
-                        </template>
-                        <span v-else class="text-[11px] text-slate-400 italic flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">no_meals</span> No meals selected</span>
-                      </div>
+
                     </div>
                     </div>
                     </transition>
@@ -193,16 +182,30 @@
                     </transition>
                   </div>
                 </div>
-                <div class="full-width-info">
-                  <label class="info-label">Venue</label>
-                  <p class="info-value-white">{{ design.venue }}</p>
-                  <span :class="design.is_inside_bsu == 1 || design.is_inside_bsu === true ? 'venue-badge inside-bsu' : 'venue-badge outside-bsu'">
-                    {{ design.is_inside_bsu == 1 || design.is_inside_bsu === true ? '🏫 Inside BSU' : '🌐 Outside BSU' }}
-                  </span>
-                </div>
-                <div class="full-width-info participants-info">
-                  <label class="info-label">Target Participants</label>
-                  <p class="info-value-white">{{ design.target_participants }} individuals</p>
+                <div class="w-full flex flex-col md:flex-row gap-4 mt-6">
+                  <div class="flex-1">
+                    <label class="info-label">Venue</label>
+                    <div v-if="design.venues_list && design.venues_list.length > 0" class="flex flex-col gap-3 mt-2">
+                      <div v-for="v in design.venues_list" :key="v.venue_id" class="flex flex-col items-start pb-2 border-b border-white/5 last:border-0 last:pb-0">
+                        <p class="info-value-white !mb-1">{{ v.venue_name }}</p>
+                        <span :class="v.is_inside_bsu == 1 || v.is_inside_bsu === true ? 'venue-badge inside-bsu' : 'venue-badge outside-bsu'">
+                          {{ v.is_inside_bsu == 1 || v.is_inside_bsu === true ? '🏫 Inside BSU' : '🌐 Outside BSU' }}
+                        </span>
+                      </div>
+                    </div>
+                    <div v-else class="mt-2 pb-2">
+                      <p class="info-value-white !mb-1">{{ design.venue }}</p>
+                      <span :class="design.is_inside_bsu == 1 || design.is_inside_bsu === true ? 'venue-badge inside-bsu' : 'venue-badge outside-bsu'">
+                        {{ design.is_inside_bsu == 1 || design.is_inside_bsu === true ? '🏫 Inside BSU' : '🌐 Outside BSU' }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="flex-1">
+                    <label class="info-label">Overall Expected Attendance (Auto-calculated)</label>
+                    <div class="flex items-center gap-3 mt-2 pb-2">
+                      <p class="text-white font-medium flex items-center gap-3 text-lg">{{ design.target_participants }} <span class="text-slate-400 font-normal text-sm">individuals</span></p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -213,32 +216,47 @@
                 <h3 class="section-title">Proposed Budgetary Requirements</h3>
               </div>
               <div v-if="parsedBudget.length" class="budget-groups-container">
-                <div v-for="(group, gIdx) in parsedBudget" :key="gIdx" class="budget-group-card">
-                  <div class="budget-group-header">
-                    <span class="budget-group-icon">{{ group.icon }}</span>
-                    <span class="budget-group-title">{{ group.name }}</span>
+                <div v-for="(venue, vIdx) in parsedBudget" :key="vIdx" class="venue-budget-container mb-6 bg-slate-900/40 border border-slate-700/50 rounded-2xl overflow-hidden shadow-lg">
+                  <div @click="toggleVenueBudget(vIdx)" class="venue-budget-header cursor-pointer flex justify-between items-center p-4 bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 transition-colors">
+                    <div class="flex items-center gap-3">
+                      <span class="material-symbols-outlined text-purple-400">location_on</span>
+                      <h4 class="text-slate-200 font-bold text-lg m-0">{{ venue.venue_name }}</h4>
+                    </div>
+                    <div class="flex items-center gap-4">
+                      <span class="text-pink-400 font-bold bg-pink-500/10 px-3 py-1 rounded-lg">₱{{ formatCurrency(venue.total) }}</span>
+                      <span class="material-symbols-outlined text-slate-400 transition-transform duration-300" :class="{ 'rotate-180': venueExpandedState[vIdx] }">expand_more</span>
+                    </div>
                   </div>
-                  <div class="budget-group-content">
-                    <div v-for="(child, cIdx) in group.children" :key="cIdx" class="budget-row-item" :class="{'has-sub-options': child.subOptions || (child.othersBreakdown && child.othersBreakdown.length > 0)}">
-                      <div class="budget-row-header">
-                        <div class="budget-item-info">
-                          <div class="budget-item-title" v-html="formatBudgetName(child.name)"></div>
-                        </div>
-                        <div class="budget-item-value">
-                          <span class="budget-currency-symbol">₱</span>
-                          <div class="budget-card-input-readonly">{{ formatCurrency(child.value) }}</div>
-                        </div>
+                  
+                  <div v-show="venueExpandedState[vIdx] || parsedBudget.length === 1" class="venue-budget-content p-4 flex flex-col gap-4">
+                    <div v-for="(group, gIdx) in venue.groups" :key="gIdx" class="budget-group-card">
+                      <div class="budget-group-header">
+                        <span class="budget-group-icon">{{ group.icon }}</span>
+                        <span class="budget-group-title">{{ group.name }}</span>
                       </div>
-                      <div v-if="child.subOptions" class="budget-sub-options-container">
-                        <label v-for="(opt, oIdx) in child.subOptions" :key="oIdx" class="budget-read-only-checkbox">
-                          <input type="checkbox" :checked="opt.checked" disabled class="budget-checkbox-disabled" />
-                          <span class="budget-checkbox-label-text">{{ opt.label }}</span>
-                        </label>
-                      </div>
-                      <div v-if="child.othersBreakdown && child.othersBreakdown.length" class="budget-others-breakdown-container mt-2">
-                        <div v-for="(o, oIdx) in child.othersBreakdown" :key="oIdx" class="budget-others-breakdown-row" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; padding: 4px 12px; background: rgba(0,0,0,0.1); border-radius: 4px; margin-bottom: 4px; font-size: 13px;">
-                          <span style="color: #cbd5e1;">{{ o.name || 'Unnamed Item' }}</span>
-                          <span style="color: #f1f5f9; font-weight: 500;">₱{{ formatCurrency(o.amount) }}</span>
+                      <div class="budget-group-content">
+                        <div v-for="(child, cIdx) in group.children" :key="cIdx" class="budget-row-item" :class="{'has-sub-options': child.subOptions || (child.othersBreakdown && child.othersBreakdown.length > 0)}">
+                          <div class="budget-row-header">
+                            <div class="budget-item-info">
+                              <div class="budget-item-title" v-html="formatBudgetName(child.name)"></div>
+                            </div>
+                            <div class="budget-item-value">
+                              <span class="budget-currency-symbol">₱</span>
+                              <div class="budget-card-input-readonly">{{ formatCurrency(child.value) }}</div>
+                            </div>
+                          </div>
+                          <div v-if="child.subOptions" class="budget-sub-options-container">
+                            <label v-for="(opt, oIdx) in child.subOptions" :key="oIdx" class="budget-read-only-checkbox">
+                              <input type="checkbox" :checked="opt.checked" disabled class="budget-checkbox-disabled" />
+                              <span class="budget-checkbox-label-text">{{ opt.label }}</span>
+                            </label>
+                          </div>
+                          <div v-if="child.othersBreakdown && child.othersBreakdown.length" class="budget-others-breakdown-container mt-2">
+                            <div v-for="(o, oIdx) in child.othersBreakdown" :key="oIdx" class="budget-others-breakdown-row" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; padding: 4px 12px; background: rgba(0,0,0,0.1); border-radius: 4px; margin-bottom: 4px; font-size: 13px;">
+                              <span style="color: #cbd5e1;">{{ o.name || 'Unnamed Item' }}</span>
+                              <span style="color: #f1f5f9; font-weight: 500;">₱{{ formatCurrency(o.amount) }}</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -395,15 +413,130 @@ const parsedBudget = computed(() => {
   const d = design.value;
   if (!d || !d.act_design_id) return [];
 
+  // If there are detailed budget items from the new multiple-venue system
+  if (d.budget_items && Array.isArray(d.budget_items) && d.budget_items.length > 0) {
+    const venuesMap = {};
+    
+    // Group by venue_id
+    d.budget_items.forEach(item => {
+      const vid = item.venue_id || 'Legacy';
+      if (!venuesMap[vid]) {
+        let vName = vid === 'Other' ? 'Other Venue' : `Venue ${vid}`;
+        if (vid === 'Legacy') vName = 'General Budget';
+        
+        venuesMap[vid] = {
+          venue_id: vid,
+          venue_name: vName,
+          items: [],
+          totals: {
+            meals: 0, snacks: 0, 
+            venue: 0, accommodation: 0, equipment: 0, transportation: 0,
+            pf: 0, tokens: 0, pf_pax: 0, tokens_pax: 0,
+            materials: 0, others: 0
+          },
+          othersBreakdown: []
+        };
+      }
+      
+      const vData = venuesMap[vid];
+      const amt = Number(item.amount) || 0;
+      
+      if (item.item_name === 'Meals') vData.totals.meals += amt;
+      else if (item.item_name === 'Snacks') vData.totals.snacks += amt;
+      else if (item.item_name === 'Function Room/Venue') vData.totals.venue += amt;
+      else if (item.item_name === 'Accommodation') vData.totals.accommodation += amt;
+      else if (item.item_name === 'Equipment Rental') vData.totals.equipment += amt;
+      else if (item.item_name === 'Transportation') vData.totals.transportation += amt;
+      else if (item.item_name === 'Professional Fee/Honoraria') {
+        vData.totals.pf += amt;
+        vData.totals.pf_pax += Number(item.pax || 0);
+      }
+      else if (item.item_name === 'Token/s') {
+        vData.totals.tokens += amt;
+        vData.totals.tokens_pax += Number(item.pax || 0);
+      }
+      else if (item.item_name === 'Materials and Supplies') vData.totals.materials += amt;
+      else {
+        vData.totals.others += amt;
+        vData.othersBreakdown.push({ name: item.item_name, amount: amt });
+      }
+    });
+
+    const result = [];
+    for (const vid in venuesMap) {
+      const v = venuesMap[vid];
+      
+      const groups = [
+        {
+          name: 'Catering & Hospitality', icon: '🍽️',
+          total: v.totals.meals + v.totals.snacks,
+          children: [
+            { name: 'Meals', value: v.totals.meals },
+            { name: 'Snacks', value: v.totals.snacks }
+          ]
+        },
+        {
+          name: 'Venue & Logistics', icon: '🏛️',
+          total: v.totals.venue + v.totals.accommodation + v.totals.equipment + v.totals.transportation,
+          children: [
+            { name: 'Function Room/Venue', value: v.totals.venue },
+            { name: 'Accommodation', value: v.totals.accommodation },
+            { name: 'Equipment Rental', value: v.totals.equipment },
+            { name: 'Transportation', value: v.totals.transportation }
+          ]
+        },
+        {
+          name: 'Program & Speakers', icon: '🎤',
+          total: v.totals.pf + v.totals.tokens,
+          children: [
+            { name: `Professional Fee/Honoraria ${v.totals.pf > 0 ? `(Number of Speakers: ${v.totals.pf_pax})` : ''}`, value: v.totals.pf },
+            { name: `Token/s ${v.totals.tokens > 0 ? `(Number of Recipients: ${v.totals.tokens_pax})` : ''}`, value: v.totals.tokens }
+          ]
+        },
+        {
+          name: 'Materials & Miscellaneous', icon: '📦',
+          total: v.totals.materials + v.totals.others,
+          children: [
+            { name: 'Materials and Supplies', value: v.totals.materials },
+            { name: 'Others', value: v.totals.others, othersBreakdown: v.othersBreakdown }
+          ]
+        }
+      ];
+      
+      const venueTotal = groups.reduce((sum, g) => sum + g.total, 0);
+      
+      result.push({
+        venue_id: v.venue_id,
+        venue_name: v.venue_id === 'Legacy' ? 'General Budget (Legacy Format)' : `Venue: ${v.venue_id}`,
+        isExpanded: false,
+        groups: groups,
+        total: venueTotal
+      });
+    }
+    
+    if (d.venues) {
+      try {
+        let vList = JSON.parse(d.venues);
+        let cList = d.custom_venues ? JSON.parse(d.custom_venues) : [];
+        result.forEach(r => {
+          if (r.venue_id !== 'Legacy' && r.venue_id !== 'Other') {
+             r.venue_name = `Venue ID: ${r.venue_id}`;
+          }
+        });
+      } catch(e){}
+    }
+    
+    return result;
+  }
+
+  // LEGACY FORMAT FALLBACK
   const dbMeals = Number(d.meals_total || 0);
   const dbSnacks = Number(d.snacks_total || 0);
   const legacyMealsSnacks = Number(d.meals_and_snacks || 0);
 
   let mealsVal = 0;
   let snacksVal = 0;
-  
   if (dbMeals === 0 && dbSnacks === 0 && legacyMealsSnacks > 0) {
-      // Fallback for older records
       mealsVal = legacyMealsSnacks;
   } else {
       mealsVal = dbMeals;
@@ -420,9 +553,7 @@ const parsedBudget = computed(() => {
 
   let matVal = 0;
   let othersVal = 0;
-
   if (dbMat === 0 && dbOthers === 0 && legacyMatOthers > 0) {
-      // Fallback for older records
       matVal = legacyMatOthers;
   } else {
       matVal = dbMat;
@@ -431,23 +562,15 @@ const parsedBudget = computed(() => {
 
   const items = [
     {
-      name: 'Catering & Hospitality',
-      icon: '🍽️',
+      name: 'Catering & Hospitality', icon: '🍽️',
       total: mealsVal + snacksVal,
       children: [
-        { 
-          name: 'Meals', 
-          value: mealsVal
-        },
-        { 
-          name: 'Snacks', 
-          value: snacksVal
-        }
+        { name: 'Meals', value: mealsVal },
+        { name: 'Snacks', value: snacksVal }
       ]
     },
     {
-      name: 'Venue & Logistics',
-      icon: '🏛️',
+      name: 'Venue & Logistics', icon: '🏛️',
       total: Number(d.function_room_venue || 0) + Number(d.accommodation || 0) + Number(d.equipment_rental || 0) + Number(d.transportation || 0),
       children: [
         { name: 'Function Room/Venue', value: Number(d.function_room_venue || 0) },
@@ -457,8 +580,7 @@ const parsedBudget = computed(() => {
       ]
     },
     {
-      name: 'Program & Speakers',
-      icon: '🎤',
+      name: 'Program & Speakers', icon: '🎤',
       total: Number(d.professional_fee_honoria || 0) + Number(d.tokens || 0),
       children: [
         { name: `Professional Fee/Honoraria ${Number(d.professional_fee_honoria || 0) > 0 ? `(Number of Speakers: ${d.pf_pax || 0})` : ''}`, value: Number(d.professional_fee_honoria || 0) },
@@ -466,8 +588,7 @@ const parsedBudget = computed(() => {
       ]
     },
     {
-      name: 'Materials & Miscellaneous',
-      icon: '📦',
+      name: 'Materials & Miscellaneous', icon: '📦',
       total: matVal + othersVal,
       children: [
         { name: 'Materials and Supplies', value: matVal },
@@ -475,11 +596,25 @@ const parsedBudget = computed(() => {
       ]
     }
   ];
-  return items;
+  
+  return [
+    {
+      venue_id: 'Legacy',
+      venue_name: 'General Budget',
+      isExpanded: true,
+      groups: items,
+      total: items.reduce((s, g) => s + g.total, 0)
+    }
+  ];
 });
 
+const venueExpandedState = ref({});
+const toggleVenueBudget = (venueIndex) => {
+  venueExpandedState.value[venueIndex] = !venueExpandedState.value[venueIndex];
+};
+
 const grandTotal = computed(() => {
-  return parsedBudget.value.reduce((sum, cat) => sum + (Number(cat.total) || 0), 0);
+  return parsedBudget.value.reduce((sum, v) => sum + (Number(v.total) || 0), 0);
 });
 
 const route = useRoute();

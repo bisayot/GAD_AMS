@@ -10,6 +10,7 @@ class ActivityBudgetItemsModel extends Model
     protected $primaryKey = 'id';
     protected $allowedFields = [
         'act_design_id',
+        'venue_id',
         'category_id',
         'item_name',
         'sub_item',

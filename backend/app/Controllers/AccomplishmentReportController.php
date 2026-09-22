@@ -378,8 +378,8 @@ class AccomplishmentReportController extends BaseController
                       ->join('form_types', 'form_types.id = aad.form_type', 'left')
                       ->join('users', 'users.id = aad.user_id', 'left')
                       ->join('office_units', 'office_units.office_id = users.office_id', 'left')
-                      ->select('(SELECT GROUP_CONCAT(adm.mandate_id SEPARATOR \',\') FROM activity_design_mandates adm WHERE adm.act_design_id = aad.act_design_id) as gad_mandate_ids')
-                        ->select('(SELECT GROUP_CONCAT(adi.issue_id SEPARATOR \',\') FROM activity_design_issues adi WHERE adi.act_design_id = aad.act_design_id) as gender_issue_ids')
+                      ->select('(SELECT GROUP_CONCAT(DISTINCT adm.mandate_id SEPARATOR \',\') FROM activity_design_mandates adm WHERE adm.act_design_id = aad.act_design_id) as gad_mandate_ids')
+                        ->select('(SELECT GROUP_CONCAT(DISTINCT adi.issue_id SEPARATOR \',\') FROM activity_design_issues adi WHERE adi.act_design_id = aad.act_design_id) as gender_issue_ids')
                         ->where('aad.control_number', $controlNumber)
                         ->get()->getRowArray();
                       

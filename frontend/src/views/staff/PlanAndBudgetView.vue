@@ -477,10 +477,7 @@
             <label style="display: block; margin-bottom: 6px; font-size: 14px;">Tokens per Recipient</label>
             <input type="number" v-model.number="baselineForm.tokens" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: white;">
           </div>
-          <div>
-            <label style="display: block; margin-bottom: 6px; font-size: 14px;">Materials per Participant</label>
-            <input type="number" v-model.number="baselineForm.materials" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: white;">
-          </div>
+
           <div>
             <label style="display: block; margin-bottom: 6px; font-size: 14px;">Transportation Limit</label>
             <input type="number" v-model.number="baselineForm.transportation_limit" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: white;">

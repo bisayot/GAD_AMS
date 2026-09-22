@@ -20,7 +20,7 @@ class ActivityDesignController extends BaseController
             "end_date"            => "required",
             "start_time"          => "required",
             "end_time"            => "required",
-            "venue_id"            => "required",
+            "venues"              => "required",
             "target_participants" => "required|numeric",
             "proposed_budget"     => "required|numeric",
             "budget_items"        => "required",
@@ -35,7 +35,7 @@ class ActivityDesignController extends BaseController
             "end_date"            => ["required" => "End date is required"],
             "start_time"          => ["required" => "Start time is required"],
             "end_time"            => ["required" => "End time is required"],
-            "venue_id"            => ["required" => "Venue is required"],
+            "venues"              => ["required" => "Venue is required"],
             "target_participants" => [
                 "required" => "Target participants is required",
                 "numeric"  => "Target participants must be a number",
@@ -62,20 +62,40 @@ class ActivityDesignController extends BaseController
 
         try {
             $isInsideBsu = filter_var($this->request->getPost('is_inside_bsu'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0;
-            $venueId = $this->request->getPost("venue_id");
-            if ($venueId === 'Other') {
-                $customVenueName = $this->request->getPost("custom_venue");
-                if (empty($customVenueName)) {
-                    return $this->response->setJSON([
-                        "success" => false,
-                        "errors"  => ["custom_venue" => "Custom venue name is required"]
-                    ])->setStatusCode(422);
+            $venuesStr = $this->request->getPost("venues");
+            $venuesArr = $venuesStr ? json_decode($venuesStr, true) : [];
+            
+            $customVenuesStr = $this->request->getPost("custom_venues");
+            $customVenuesArr = $customVenuesStr ? json_decode($customVenuesStr, true) : [];
+            
+            $finalVenues = [];
+            $tempToRealVenueIdMap = [];
+            $venueModel = new \App\Models\VenueModel();
+
+            foreach ($venuesArr as $vid) {
+                if (is_string($vid) && strpos($vid, 'temp_') === 0) {
+                    $customName = 'Unknown Custom Venue';
+                    foreach ($customVenuesArr as $cv) {
+                        if ($cv['venue_id'] === $vid) {
+                            $customName = $cv['venue_name'];
+                            break;
+                        }
+                    }
+                    $venueModel->insert(['venue_name' => $customName, 'is_inside_bsu' => $isInsideBsu]);
+                    $realId = $venueModel->getInsertID();
+                    $tempToRealVenueIdMap[$vid] = $realId;
+                    $finalVenues[] = $realId;
+                } else if ($vid === 'Other') {
+                    $customVenueName = $this->request->getPost("custom_venue");
+                    if (!empty($customVenueName)) {
+                        $venueModel->insert(['venue_name' => $customVenueName, 'is_inside_bsu' => $isInsideBsu]);
+                        $realId = $venueModel->getInsertID();
+                        $tempToRealVenueIdMap['Other'] = $realId;
+                        $finalVenues[] = $realId;
+                    }
+                } else {
+                    $finalVenues[] = $vid;
                 }
-                
-                // Insert new venue
-                $venueModel = new \App\Models\VenueModel();
-                $venueModel->insert(['venue_name' => $customVenueName, 'is_inside_bsu' => $isInsideBsu]);
-                $venueId = $venueModel->getInsertID();
             }
 
             $gadMandateStr = $this->request->getPost('gad_mandate_id');
@@ -111,7 +131,7 @@ class ActivityDesignController extends BaseController
                 "end_date"                   => $this->request->getPost("end_date"),
                 "start_time"                 => $this->request->getPost("start_time"),
                 "end_time"                   => $this->request->getPost("end_time"),
-                "venue_id"                   => $venueId,
+                "venue_id"                   => !empty($finalVenues) ? $finalVenues[0] : null,
                 "is_inside_bsu"              => $isInsideBsu,
                 "target_participants"        => $this->request->getPost("target_participants"),
                 "proposed_budget"            => $this->request->getPost("proposed_budget"),
@@ -143,6 +163,13 @@ class ActivityDesignController extends BaseController
                     ]);
                 }
 
+                foreach ($finalVenues as $vId) {
+                    $db->table('activity_design_venues')->insert([
+                        'act_design_id' => $actDesignId,
+                        'venue_id' => $vId
+                    ]);
+                }
+
                 // Save budget items
                 // Save staggered schedules if any
                 $schedulesStr = $this->request->getPost("schedules");
@@ -155,9 +182,9 @@ class ActivityDesignController extends BaseController
                             if (isset($sch['date'])) {
                                 $sch['schedule_date'] = $sch['date'];
                             }
-                            if (isset($sch['meals_and_snacks']) && is_array($sch['meals_and_snacks'])) {
-                                $sch['meals_and_snacks'] = json_encode($sch['meals_and_snacks']);
-                            }
+                            // meals_and_snacks is an array — not stored; remove to avoid "Array to string conversion"
+                            unset($sch['meals_and_snacks']);
+                            unset($sch['date']); // remove frontend-only key
                         }
                         $scheduleModel->insertBatch($schedules);
                     }
@@ -171,10 +198,16 @@ class ActivityDesignController extends BaseController
                         if (isset($budgetItems[0])) {
                             foreach ($budgetItems as &$item) {
                                 $item['act_design_id'] = $actDesignId;
+                                if (isset($item['venue_id']) && isset($tempToRealVenueIdMap[$item['venue_id']])) {
+                                    $item['venue_id'] = $tempToRealVenueIdMap[$item['venue_id']];
+                                }
                             }
                             $budgetItemsModel->insertBatch($budgetItems);
                         } else {
                             $budgetItems['act_design_id'] = $actDesignId;
+                            if (isset($budgetItems['venue_id']) && isset($tempToRealVenueIdMap[$budgetItems['venue_id']])) {
+                                $budgetItems['venue_id'] = $tempToRealVenueIdMap[$budgetItems['venue_id']];
+                            }
                             $budgetItemsModel->insert($budgetItems);
                         }
                     }
@@ -270,10 +303,10 @@ class ActivityDesignController extends BaseController
 
         $design = $activityDesignModel
             ->select('activity_design.*, office_units.office_name as office, users.full_name as submitter_name, activity_design.start_date as date, venues.venue_name as venue, venues.is_inside_bsu, activity_classifications.classification_name as activity_classification, form_types.name as form_type_name')
-            ->select('(SELECT GROUP_CONCAT(CONCAT(\'GPB - \', CASE WHEN gm.mandate = \'\' OR gm.mandate IS NULL THEN CONCAT(\'N/A (Attributed Program) - \', IFNULL(gm.activity, \'\')) ELSE gm.mandate END) SEPARATOR \';;; \') FROM activity_design_mandates adm JOIN gpb_items gm ON gm.id = adm.mandate_id WHERE adm.act_design_id = activity_design.act_design_id) as gad_mandate')
-            ->select('(SELECT GROUP_CONCAT(CASE WHEN gi.cause = \'\' OR gi.cause IS NULL THEN CONCAT(\'N/A (Attributed Program) - \', IFNULL(gi.activity, \'\')) ELSE gi.cause END SEPARATOR \';;; \') FROM activity_design_issues adi JOIN gpb_items gi ON gi.id = adi.issue_id WHERE adi.act_design_id = activity_design.act_design_id) as gender_issue')
-            ->select('(SELECT GROUP_CONCAT(adm.mandate_id SEPARATOR \',\') FROM activity_design_mandates adm WHERE adm.act_design_id = activity_design.act_design_id) as gad_mandate_ids')
-            ->select('(SELECT GROUP_CONCAT(adi.issue_id SEPARATOR \',\') FROM activity_design_issues adi WHERE adi.act_design_id = activity_design.act_design_id) as gender_issue_ids')
+            ->select('(SELECT GROUP_CONCAT(DISTINCT CONCAT(\'GPB - \', CASE WHEN gm.mandate = \'\' OR gm.mandate IS NULL THEN CONCAT(\'N/A (Attributed Program) - \', IFNULL(gm.activity, \'\')) ELSE gm.mandate END) SEPARATOR \';;; \') FROM activity_design_mandates adm JOIN gpb_items gm ON gm.id = adm.mandate_id WHERE adm.act_design_id = activity_design.act_design_id) as gad_mandate')
+            ->select('(SELECT GROUP_CONCAT(DISTINCT CASE WHEN gi.cause = \'\' OR gi.cause IS NULL THEN CONCAT(\'N/A (Attributed Program) - \', IFNULL(gi.activity, \'\')) ELSE gi.cause END SEPARATOR \';;; \') FROM activity_design_issues adi JOIN gpb_items gi ON gi.id = adi.issue_id WHERE adi.act_design_id = activity_design.act_design_id) as gender_issue')
+            ->select('(SELECT GROUP_CONCAT(DISTINCT adm.mandate_id SEPARATOR \',\') FROM activity_design_mandates adm WHERE adm.act_design_id = activity_design.act_design_id) as gad_mandate_ids')
+            ->select('(SELECT GROUP_CONCAT(DISTINCT adi.issue_id SEPARATOR \',\') FROM activity_design_issues adi WHERE adi.act_design_id = activity_design.act_design_id) as gender_issue_ids')
             ->select('(SELECT COUNT(*) FROM accomplishment_report WHERE accomplishment_report.act_design_id = activity_design.act_design_id AND accomplishment_report.deleted_at IS NULL) as accomplishment_report_count')
             ->join('users', 'users.id = activity_design.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
@@ -293,6 +326,13 @@ class ActivityDesignController extends BaseController
         $db = \Config\Database::connect();
         $design['gad_mandate_id'] = array_column($db->table('activity_design_mandates')->where('act_design_id', $design['act_design_id'])->select('mandate_id')->get()->getResultArray(), 'mandate_id');
         $design['gender_issue_id'] = array_column($db->table('activity_design_issues')->where('act_design_id', $design['act_design_id'])->select('issue_id')->get()->getResultArray(), 'issue_id');
+
+        $venuesData = $db->table('activity_design_venues as adv')
+            ->select('adv.venue_id, v.venue_name, v.is_inside_bsu')
+            ->join('venues v', 'v.venue_id = adv.venue_id', 'left')
+            ->where('adv.act_design_id', $design['act_design_id'])
+            ->get()->getResultArray();
+        $design['venues_list'] = $venuesData;
 
         // Fetch budget items
         $budgetModel = new \App\Models\ActivityBudgetItemsModel();
@@ -352,13 +392,6 @@ class ActivityDesignController extends BaseController
             // Fetch staggered schedules
             $scheduleModel = new \App\Models\ActivityScheduleModel();
             $schedules = $scheduleModel->where('act_design_id', $design['act_design_id'])->orderBy('schedule_date', 'ASC')->findAll();
-            // Decode meals_and_snacks for the frontend
-            foreach ($schedules as &$sch) {
-                if (isset($sch['meals_and_snacks']) && is_string($sch['meals_and_snacks'])) {
-                    $decoded = json_decode($sch['meals_and_snacks'], true);
-                    $sch['meals_and_snacks'] = $decoded !== null ? $decoded : [];
-                }
-            }
             $design['schedules'] = $schedules;
         }
 
@@ -521,12 +554,40 @@ class ActivityDesignController extends BaseController
         }
 
         $isInsideBsu = filter_var($this->request->getPost('is_inside_bsu'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0;
-        $venueId = $this->request->getPost('venue_id');
-        if ($venueId === 'Other') {
-            $customVenueName = $this->request->getPost("venue");
-            $venueModel = new \App\Models\VenueModel();
-            $venueModel->insert(['venue_name' => $customVenueName, 'is_inside_bsu' => $isInsideBsu]);
-            $venueId = $venueModel->getInsertID();
+        $venuesStr = $this->request->getPost("venues");
+        $venuesArr = $venuesStr ? json_decode($venuesStr, true) : [];
+        
+        $customVenuesStr = $this->request->getPost("custom_venues");
+        $customVenuesArr = $customVenuesStr ? json_decode($customVenuesStr, true) : [];
+        
+        $finalVenues = [];
+        $tempToRealVenueIdMap = [];
+        $venueModel = new \App\Models\VenueModel();
+
+        foreach ($venuesArr as $vid) {
+            if (is_string($vid) && strpos($vid, 'temp_') === 0) {
+                $customName = 'Unknown Custom Venue';
+                foreach ($customVenuesArr as $cv) {
+                    if ($cv['venue_id'] === $vid) {
+                        $customName = $cv['venue_name'];
+                        break;
+                    }
+                }
+                $venueModel->insert(['venue_name' => $customName, 'is_inside_bsu' => $isInsideBsu]);
+                $realId = $venueModel->getInsertID();
+                $tempToRealVenueIdMap[$vid] = $realId;
+                $finalVenues[] = $realId;
+            } else if ($vid === 'Other') {
+                $customVenueName = $this->request->getPost("custom_venue");
+                if (!empty($customVenueName)) {
+                    $venueModel->insert(['venue_name' => $customVenueName, 'is_inside_bsu' => $isInsideBsu]);
+                    $realId = $venueModel->getInsertID();
+                    $tempToRealVenueIdMap['Other'] = $realId;
+                    $finalVenues[] = $realId;
+                }
+            } else {
+                $finalVenues[] = $vid;
+            }
         }
 
         $genderIssueStr = $this->request->getPost('gender_issue_id');
@@ -548,8 +609,7 @@ class ActivityDesignController extends BaseController
             'end_date'            => $this->request->getPost('end_date'),
             'start_time'          => $this->request->getPost('start_time'),
             'end_time'            => $this->request->getPost('end_time'),
-            'venue'               => $this->request->getPost('venue'),
-            'venue_id'            => $venueId,
+            'venue_id'            => !empty($finalVenues) ? $finalVenues[0] : null,
             'proposed_budget'     => $this->request->getPost('proposed_budget'),
             'target_participants' => $this->request->getPost('target_participants'),
             'schedule_type'       => $this->request->getPost('schedule_type'),
@@ -604,6 +664,16 @@ class ActivityDesignController extends BaseController
                     }
                 }
 
+                if (!empty($finalVenues)) {
+                    $db->table('activity_design_venues')->where('act_design_id', $id)->delete();
+                    foreach ($finalVenues as $vId) {
+                        $db->table('activity_design_venues')->insert([
+                            'act_design_id' => $id,
+                            'venue_id' => $vId
+                        ]);
+                    }
+                }
+
                 // Update or Insert budget items
                 // 2.5 Update staggered schedules
                 $schedulesStr = $this->request->getPost("schedules");
@@ -617,9 +687,8 @@ class ActivityDesignController extends BaseController
                             if (isset($sch['date'])) {
                                 $sch['schedule_date'] = $sch['date'];
                             }
-                            if (isset($sch['meals_and_snacks']) && is_array($sch['meals_and_snacks'])) {
-                                $sch['meals_and_snacks'] = json_encode($sch['meals_and_snacks']);
-                            }
+                            unset($sch['meals_and_snacks']);
+                            unset($sch['date']);
                         }
                         $scheduleModel->insertBatch($schedules);
                     }
@@ -634,10 +703,16 @@ class ActivityDesignController extends BaseController
                         if (isset($budgetItems[0])) {
                             foreach ($budgetItems as &$item) {
                                 $item['act_design_id'] = $id;
+                                if (isset($item['venue_id']) && isset($tempToRealVenueIdMap[$item['venue_id']])) {
+                                    $item['venue_id'] = $tempToRealVenueIdMap[$item['venue_id']];
+                                }
                             }
                             $budgetItemsModel->insertBatch($budgetItems);
                         } else {
                             $budgetItems['act_design_id'] = $id;
+                            if (isset($budgetItems['venue_id']) && isset($tempToRealVenueIdMap[$budgetItems['venue_id']])) {
+                                $budgetItems['venue_id'] = $tempToRealVenueIdMap[$budgetItems['venue_id']];
+                            }
                             $budgetItemsModel->insert($budgetItems);
                         }
                     }
