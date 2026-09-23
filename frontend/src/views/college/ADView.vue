@@ -251,6 +251,17 @@
                               <span class="budget-checkbox-label-text">{{ opt.label }}</span>
                             </label>
                           </div>
+                          <div v-if="child.pax" class="budget-others-breakdown-container mt-2">
+                             <div v-if="child.name === 'Meals'" class="flex gap-2 flex-wrap">
+                                <span v-if="child.pax.breakfast" class="text-[11px] bg-slate-800/50 text-slate-300 px-2 py-1 rounded">Breakfast: {{ child.pax.breakfast }} pax</span>
+                                <span v-if="child.pax.lunch" class="text-[11px] bg-slate-800/50 text-slate-300 px-2 py-1 rounded">Lunch: {{ child.pax.lunch }} pax</span>
+                                <span v-if="child.pax.dinner" class="text-[11px] bg-slate-800/50 text-slate-300 px-2 py-1 rounded">Dinner: {{ child.pax.dinner }} pax</span>
+                             </div>
+                             <div v-if="child.name === 'Snacks'" class="flex gap-2 flex-wrap">
+                                <span v-if="child.pax.am_snack" class="text-[11px] bg-slate-800/50 text-slate-300 px-2 py-1 rounded">AM Snack: {{ child.pax.am_snack }} pax</span>
+                                <span v-if="child.pax.pm_snack" class="text-[11px] bg-slate-800/50 text-slate-300 px-2 py-1 rounded">PM Snack: {{ child.pax.pm_snack }} pax</span>
+                             </div>
+                          </div>
                           <div v-if="child.othersBreakdown && child.othersBreakdown.length" class="budget-others-breakdown-container mt-2">
                             <div v-for="(o, oIdx) in child.othersBreakdown" :key="oIdx" class="budget-others-breakdown-row" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; padding: 4px 12px; background: rgba(0,0,0,0.1); border-radius: 4px; margin-bottom: 4px; font-size: 13px;">
                               <span style="color: #cbd5e1;">{{ o.name || 'Unnamed Item' }}</span>
@@ -411,8 +422,20 @@ const parsedBudget = computed(() => {
       const vData = venuesMap[vid];
       const amt = Number(item.amount) || 0;
       
-      if (item.item_name === 'Meals') vData.totals.meals += amt;
-      else if (item.item_name === 'Snacks') vData.totals.snacks += amt;
+      if (item.item_name === 'Meals') {
+        vData.totals.meals += amt;
+        try {
+          const parsed = JSON.parse(item.sub_item);
+          if (parsed && typeof parsed === 'object') vData.mealsPax = parsed;
+        } catch(e) {}
+      }
+      else if (item.item_name === 'Snacks') {
+        vData.totals.snacks += amt;
+        try {
+          const parsed = JSON.parse(item.sub_item);
+          if (parsed && typeof parsed === 'object') vData.snacksPax = parsed;
+        } catch(e) {}
+      }
       else if (item.item_name === 'Function Room/Venue') vData.totals.venue += amt;
       else if (item.item_name === 'Accommodation') vData.totals.accommodation += amt;
       else if (item.item_name === 'Equipment Rental') vData.totals.equipment += amt;
@@ -442,8 +465,8 @@ const parsedBudget = computed(() => {
           name: 'Catering & Hospitality', icon: '🍽️',
           total: v.totals.meals + v.totals.snacks,
           children: [
-            { name: 'Meals', value: v.totals.meals },
-            { name: 'Snacks', value: v.totals.snacks }
+            { name: 'Meals', value: v.totals.meals, pax: v.mealsPax },
+            { name: 'Snacks', value: v.totals.snacks, pax: v.snacksPax }
           ]
         },
         {

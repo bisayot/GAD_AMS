@@ -1752,7 +1752,7 @@ const submitActivityDesign = async () => {
             venue_id: vid === 'Other' ? 'Other' : vid,
             category_id: null,
             item_name: item.name,
-            sub_item: item.sub_item || null,
+            sub_item: (item.name === 'Meals' || item.name === 'Snacks') ? JSON.stringify(item.meals_needed) : (item.sub_item || null),
             pax: item.pax || null,
             amount: Number(item.total) || 0
           });

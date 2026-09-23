@@ -1154,37 +1154,6 @@ const customGenderIssue = ref('');
 const loadingData = ref(false);
 
 // Reactive Auto-computation Watchers
-watch(
-
-  () => {
-    if (loadingData.value) return;
-    const item = formData.value.budget_items.find(i => i.name === 'Meals');
-    if (item) {
-      const mealsCount = totalBreakfastDays.value + totalLunchDays.value + totalDinnerDays.value;
-      const mealsRate = isOutsideBsu.value ? 350 : 220;
-      const pax = Number(formData.value.target_participants) || 0;
-      const calculated = (mealsCount * mealsRate * pax * computedDays.value);
-      item.total = calculated || '';
-    }
-  },
-  { deep: true }
-);
-
-watch(
-
-  () => {
-    if (loadingData.value) return;
-    const item = formData.value.budget_items.find(i => i.name === 'Snacks');
-    if (item) {
-      const snacksCount = totalAMSnackDays.value + totalPMSnackDays.value;
-      const snacksRate = isOutsideBsu.value ? 150 : 80;
-      const pax = Number(formData.value.target_participants) || 0;
-      const calculated = (snacksCount * snacksRate * pax * computedDays.value);
-      item.total = calculated || '';
-    }
-  },
-  { deep: true }
-);
 
 watch(pfPax, (newPax) => {
   if (loadingData.value) return;
@@ -1443,9 +1412,17 @@ const fetchDesignDetails = async () => {
           const mealsDB = items.find(i => i.item_name === 'Meals') || {};
           const snacksDB = items.find(i => i.item_name === 'Snacks') || {};
           const pax = Number(design.value.target_participants) || 0;
+          let parsedMeals = { breakfast: pax, lunch: pax, dinner: pax };
+          if (mealsDB.sub_item) {
+             try { const obj = JSON.parse(mealsDB.sub_item); if(obj && typeof obj === 'object') parsedMeals = obj; } catch(e) {}
+          }
+          let parsedSnacks = { am_snack: pax, pm_snack: pax };
+          if (snacksDB.sub_item) {
+             try { const obj = JSON.parse(snacksDB.sub_item); if(obj && typeof obj === 'object') parsedSnacks = obj; } catch(e) {}
+          }
           savedVenueBudgets[vid] = [
-            { name: 'Meals', total: Number(mealsDB.amount || 0) || '', meals_needed: { breakfast: pax, lunch: pax, dinner: pax } },
-            { name: 'Snacks', total: Number(snacksDB.amount || 0) || '', meals_needed: { am_snack: pax, pm_snack: pax } },
+            { name: 'Meals', total: Number(mealsDB.amount || 0) || '', meals_needed: parsedMeals },
+            { name: 'Snacks', total: Number(snacksDB.amount || 0) || '', meals_needed: parsedSnacks },
             { name: 'Function Room/Venue', total: Number(items.find(i => i.item_name === 'Function Room/Venue')?.amount || 0) || '' },
             { name: 'Accommodation', total: Number(items.find(i => i.item_name === 'Accommodation')?.amount || 0) || '' },
             { name: 'Equipment Rental', total: Number(items.find(i => i.item_name === 'Equipment Rental')?.amount || 0) || '' },
@@ -1995,7 +1972,7 @@ const handleUpdate = async () => {
             venue_id: vid === 'Other' ? 'Other' : vid,
             category_id: null,
             item_name: item.name,
-            sub_item: item.sub_item || null,
+            sub_item: (item.name === 'Meals' || item.name === 'Snacks') ? JSON.stringify(item.meals_needed) : (item.sub_item || null),
             pax: item.pax || null,
             amount: Number(item.total) || 0
           });
@@ -2074,6 +2051,47 @@ const baselineSettings = ref({
   materials: 120,
   transportation_limit: 20000
 });
+
+watch(
+  [
+    () => formData.value.venue_budgets,
+    () => isOutsideBsu.value,
+    () => baselineSettings.value,
+    computedDays
+  ],
+  ([newBudgets, isOutside, settings, days]) => {
+    if (loadingData.value || !newBudgets) return;
+    
+    if (typeof newBudgets !== 'object') return;
+    
+    const mealsRate = isOutside ? settings.meals_outside : settings.meals_inside;
+    const snacksRate = isOutside ? settings.snacks_outside : settings.snacks_inside;
+    
+    Object.values(newBudgets).forEach(budgetItems => {
+      // Find Meals item
+      const mealsItem = budgetItems.find(i => i.name === 'Meals');
+      if (mealsItem && mealsItem.meals_needed) {
+        const { breakfast, lunch, dinner } = mealsItem.meals_needed;
+        const bPax = Number(breakfast) || 0;
+        const lPax = Number(lunch) || 0;
+        const dPax = Number(dinner) || 0;
+        const calculated = ((bPax + lPax + dPax) * mealsRate * (days || 1));
+        mealsItem.total = calculated || '';
+      }
+
+      // Find Snacks item
+      const snacksItem = budgetItems.find(i => i.name === 'Snacks');
+      if (snacksItem && snacksItem.meals_needed) {
+        const { am_snack, pm_snack } = snacksItem.meals_needed;
+        const amPax = Number(am_snack) || 0;
+        const pmPax = Number(pm_snack) || 0;
+        const calculated = ((amPax + pmPax) * snacksRate * (days || 1));
+        snacksItem.total = calculated || '';
+      }
+    });
+  },
+  { deep: true }
+);
 
 const fetchBaselineSettings = async () => {
   try {

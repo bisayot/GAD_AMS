@@ -63,7 +63,7 @@
                     <select v-model="form.activity_classification" @change="handleClassificationChange" required
                       class="custom-input-field select-arrow-fix"
                     >
-                      <option value="" disabled class="dark-option">Select Classification...</option>
+                      <option value="" disabled class="dark-option">Select Classification</option>
                       <option
                         v-for="classification in ActClassification"
                         :key="classification.id"
@@ -105,15 +105,7 @@
                           style="margin-top: 10px;" />
                   </div>
 
-                  <div class="input-group-ar">
-                    <label class="form-label-ar">Target Participants *</label>
-                    <input
-                      type="number"
-                      v-model="form.target_participants"
-                      class="custom-input-field"
-                      placeholder="0"
-                    >
-                  </div>
+
 
                   <!-- Computed Global Dates -->
                   <div class="form-sub-grid-ar mb-4 mt-4">
@@ -208,24 +200,7 @@
                           <input type="time" v-model="continuousConfig.end_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="handleTimeChange(continuousConfig)">
                         </div>
                       </div>
-                      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.1);">
-                        <span style="font-size: 10px; text-transform: uppercase; font-weight: bold; color: #b979cc; margin-right: 8px;">Meals Applied Daily:</span>
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;" :style="{ opacity: (continuousConfig.start_time && Number(continuousConfig.start_time.split(':')[0]) >= 13) ? '0.5' : '1' }">
-                          <input type="checkbox" v-model="continuousConfig.meals_and_snacks.breakfast" :disabled="continuousConfig.start_time && Number(continuousConfig.start_time.split(':')[0]) >= 13" style="accent-color: #b979cc;" /> Breakfast
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;" :style="{ opacity: (continuousConfig.start_time && Number(continuousConfig.start_time.split(':')[0]) >= 13) ? '0.5' : '1' }">
-                          <input type="checkbox" v-model="continuousConfig.meals_and_snacks.am_snack" :disabled="continuousConfig.start_time && Number(continuousConfig.start_time.split(':')[0]) >= 13" style="accent-color: #b979cc;" /> AM Snack
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
-                          <input type="checkbox" v-model="continuousConfig.meals_and_snacks.lunch" style="accent-color: #b979cc;" /> Lunch
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;" :style="{ opacity: (continuousConfig.end_time && (Number(continuousConfig.end_time.split(':')[0]) < 12 || continuousConfig.end_time === '12:00')) ? '0.5' : '1' }">
-                          <input type="checkbox" v-model="continuousConfig.meals_and_snacks.pm_snack" :disabled="continuousConfig.end_time && (Number(continuousConfig.end_time.split(':')[0]) < 12 || continuousConfig.end_time === '12:00')" style="accent-color: #b979cc;" /> PM Snack
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;" :style="{ opacity: (continuousConfig.end_time && (Number(continuousConfig.end_time.split(':')[0]) < 12 || continuousConfig.end_time === '12:00')) ? '0.5' : '1' }">
-                          <input type="checkbox" v-model="continuousConfig.meals_and_snacks.dinner" :disabled="continuousConfig.end_time && (Number(continuousConfig.end_time.split(':')[0]) < 12 || continuousConfig.end_time === '12:00')" style="accent-color: #b979cc;" /> Dinner
-                        </label>
-                      </div>
+
                     </div>
 
                     <!-- Expanded Schedules UI -->
@@ -265,24 +240,7 @@
                       <button type="button" v-if="scheduleType === 'staggered' && form.schedules.length > 1" @click.prevent="removeSchedule(index)" style="background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" title="Remove Schedule">
                         <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
                       </button>
-                      <div style="flex-basis: 100%; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 8px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.1);">
-                        <span style="font-size: 10px; text-transform: uppercase; font-weight: bold; color: #b979cc; margin-right: 8px;">Meals Needed:</span>
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
-                          <input type="checkbox" v-model="sch.meals_and_snacks.breakfast" :disabled="sch.start_time && Number(sch.start_time.split(':')[0]) >= 13" style="accent-color: #b979cc;" /> Breakfast
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
-                          <input type="checkbox" v-model="sch.meals_and_snacks.am_snack" :disabled="sch.start_time && Number(sch.start_time.split(':')[0]) >= 13" style="accent-color: #b979cc;" /> AM Snack
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
-                          <input type="checkbox" v-model="sch.meals_and_snacks.lunch" style="accent-color: #b979cc;" /> Lunch
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
-                          <input type="checkbox" v-model="sch.meals_and_snacks.pm_snack" :disabled="sch.end_time && (Number(sch.end_time.split(':')[0]) < 12 || sch.end_time === '12:00')" style="accent-color: #b979cc;" /> PM Snack
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
-                          <input type="checkbox" v-model="sch.meals_and_snacks.dinner" :disabled="sch.end_time && (Number(sch.end_time.split(':')[0]) < 12 || sch.end_time === '12:00')" style="accent-color: #b979cc;" /> Dinner
-                        </label>
-                      </div>
+
                     </div>
                     
                     
@@ -302,33 +260,41 @@
 
                   <div class="input-group-ar">
                     <label class="form-label-ar">Venue *</label>
-                    <select 
-                      v-model="form.venue" 
-                      required 
-                      class="custom-input-field select-arrow-fix"
-                    >
-                      <option value="" disabled class="dark-option">Select venue...</option>
-                      <option 
-                        v-for="v in filteredVenues" 
-                        :key="v.venue_id" 
-                        :value="v.venue_name" 
-                        class="dark-option"
+                    <div class="custom-multiselect-container">
+                      <div v-if="venueDropdownOpen" class="multiselect-backdrop" @click="venueDropdownOpen = false"></div>
+                      
+                      <div 
+                        class="custom-input-field multiselect-trigger" 
+                        @click="venueDropdownOpen = !venueDropdownOpen"
+                        :class="{ 'is-open': venueDropdownOpen }"
                       >
-                        {{ v.venue_name }}
-                      </option>
-                      <option value="Other" class="dark-option">Other</option>
-                    </select>
-                  </div>
+                        <span v-if="!form.venues || form.venues.length === 0" class="placeholder-text">Select venues...</span>
+                        <span v-else class="selected-text">{{ form.venues.length }} venue(s) selected</span>
+                        <span class="dropdown-arrow">▼</span>
+                      </div>
 
-                  <div v-if="form.venue === 'Other'" class="input-group-ar">
-                    <label class="form-label-ar">Specify Other Venue *</label>
-                    <input 
-                      type="text" 
-                      v-model="customVenue" 
-                      required 
-                      class="custom-input-field"
-                      placeholder="Enter the complete venue name"
-                    >
+                      <div v-if="venueDropdownOpen" class="multiselect-menu">
+                        <label 
+                          v-for="v in filteredVenues" 
+                          :key="v.venue_id" 
+                          class="multiselect-option"
+                        >
+                          <input type="checkbox" :value="v.venue_id" v-model="form.venues" class="multiselect-checkbox" />
+                          <span>{{ v.venue_name }}</span>
+                        </label>
+                        <div class="multiselect-divider"></div>
+                        <button type="button" class="btn-add-custom-venue" @click.prevent="addCustomVenue">
+                          + Add Custom Venue
+                        </button>
+                      </div>
+
+                      <div class="chips-container" v-if="form.venues && form.venues.length > 0">
+                        <div v-for="vid in form.venues" :key="vid" class="venue-chip">
+                          <span class="chip-text">{{ getVenueName(vid) }}</span>
+                          <button type="button" class="chip-remove" @click.stop="removeVenue(vid)">x</button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   <div class="input-group-ar">
@@ -376,26 +342,68 @@
                   <div class="budget-section">
                     <label class="form-label-ar">Actual Budgetary Expenditure *</label>
                     <!-- Grouped Budget Divisions -->
-                    <div class="budget-groups-container">
+                    <div v-for="vId in (form.venues && form.venues.length ? form.venues : [])" :key="vId" class="venue-budget-wrapper" style="margin-bottom: 2rem; border-radius: 8px; padding: 1rem; border: 1px solid rgba(185, 121, 204, 0.3);">
+                      <h4 style="color: #e9d5ff; margin-bottom: 15px; border-left: 4px solid #b979cc; padding-left: 10px;">Budget for Venue: {{ getVenueName(vId) }}</h4>
+                    <div class="budget-groups-container" style="display: flex; flex-direction: column; gap: 16px;">
                       
                       <!-- Group 1: Catering & Hospitality -->
                       <div class="budget-group-card">
-                        <div class="budget-group-header">
-                          <span class="budget-group-icon">🍽️</span>
-                          <span class="budget-group-title">Catering & Hospitality</span>
+                        <div class="budget-group-header" style="justify-content: space-between;">
+                          <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="budget-group-icon">🍽️</span>
+                            <span class="budget-group-title">Catering & Hospitality</span>
+                          </div>
+                          <div class="budget-group-total">
+                            ₱{{ ((Number(form.venue_budgets[vId][0].total) || 0) + (Number(form.venue_budgets[vId][1].total) || 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                          </div>
                         </div>
                         <div class="budget-group-content">
                           <!-- Meals Row -->
                           <div class="budget-row-item">
                             <div class="budget-item-info">
-                              <div class="budget-item-title">Meals</div>
-
+                              <div class="budget-item-title">Meals <span style="font-size: 12px; font-weight: normal; color: #94a3b8; font-style: italic; margin-left: 6px;">(Input number of pax)</span></div>
+                              <div class="pax-breakdown-list">
+                                <div class="pax-breakdown-item">
+                                  <div class="pax-input-group">
+                                    <input type="number" min="0" placeholder="0" class="creative-pax-input" v-model="form.venue_budgets[vId][0].meals_needed.breakfast" @input="recalculateMeals(vId)" />
+                                    <span class="pax-label">Breakfast</span>
+                                  </div>
+                                  <div class="pax-calc-text" v-if="form.venue_budgets[vId][0].meals_needed.breakfast > 0">
+                                    <span class="pax-calc-formula">{{ form.venue_budgets[vId][0].meals_needed.breakfast }} pax &times; ₱{{ (isOutsideBsu ? baselineSettings.meals_outside : baselineSettings.meals_inside) }} &times; {{ computedDays || 1 }} days</span>
+                                    <span class="pax-calc-equals">=</span>
+                                    <span class="pax-calc-total">₱{{ ((form.venue_budgets[vId][0].meals_needed.breakfast || 0) * (isOutsideBsu ? baselineSettings.meals_outside : baselineSettings.meals_inside) * (computedDays || 1)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                                  </div>
+                                </div>
+                                <div class="pax-breakdown-item">
+                                  <div class="pax-input-group">
+                                    <input type="number" min="0" placeholder="0" class="creative-pax-input" v-model="form.venue_budgets[vId][0].meals_needed.lunch" @input="recalculateMeals(vId)" />
+                                    <span class="pax-label">Lunch</span>
+                                  </div>
+                                  <div class="pax-calc-text" v-if="form.venue_budgets[vId][0].meals_needed.lunch > 0">
+                                    <span class="pax-calc-formula">{{ form.venue_budgets[vId][0].meals_needed.lunch }} pax &times; ₱{{ (isOutsideBsu ? baselineSettings.meals_outside : baselineSettings.meals_inside) }} &times; {{ computedDays || 1 }} days</span>
+                                    <span class="pax-calc-equals">=</span>
+                                    <span class="pax-calc-total">₱{{ ((form.venue_budgets[vId][0].meals_needed.lunch || 0) * (isOutsideBsu ? baselineSettings.meals_outside : baselineSettings.meals_inside) * (computedDays || 1)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                                  </div>
+                                </div>
+                                <div class="pax-breakdown-item">
+                                  <div class="pax-input-group">
+                                    <input type="number" min="0" placeholder="0" class="creative-pax-input" v-model="form.venue_budgets[vId][0].meals_needed.dinner" @input="recalculateMeals(vId)" />
+                                    <span class="pax-label">Dinner</span>
+                                  </div>
+                                  <div class="pax-calc-text" v-if="form.venue_budgets[vId][0].meals_needed.dinner > 0">
+                                    <span class="pax-calc-formula">{{ form.venue_budgets[vId][0].meals_needed.dinner }} pax &times; ₱{{ (isOutsideBsu ? baselineSettings.meals_outside : baselineSettings.meals_inside) }} &times; {{ computedDays || 1 }} days</span>
+                                    <span class="pax-calc-equals">=</span>
+                                    <span class="pax-calc-total">₱{{ ((form.venue_budgets[vId][0].meals_needed.dinner || 0) * (isOutsideBsu ? baselineSettings.meals_outside : baselineSettings.meals_inside) * (computedDays || 1)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              
                             </div>
                             <div class="budget-item-value">
                               <span class="budget-currency-symbol">₱</span>
                               <input 
                                 type="number" 
-                                v-model="form.budget_items[0].total" 
+                                v-model="form.venue_budgets[vId][0].total" 
                                 class="budget-card-input"
                                 placeholder="0.00"
                                 min="0"
@@ -407,14 +415,38 @@
                           <!-- Snacks Row -->
                           <div class="budget-row-item">
                             <div class="budget-item-info">
-                              <div class="budget-item-title">Snacks</div>
-
+                              <div class="budget-item-title">Snacks <span style="font-size: 12px; font-weight: normal; color: #94a3b8; font-style: italic; margin-left: 6px;">(Input number of pax)</span></div>
+                              <div class="pax-breakdown-list">
+                                <div class="pax-breakdown-item">
+                                  <div class="pax-input-group">
+                                    <input type="number" min="0" placeholder="0" class="creative-pax-input" v-model="form.venue_budgets[vId][1].meals_needed.am_snack" @input="recalculateSnacks(vId)" />
+                                    <span class="pax-label">AM Snack</span>
+                                  </div>
+                                  <div class="pax-calc-text" v-if="form.venue_budgets[vId][1].meals_needed.am_snack > 0">
+                                    <span class="pax-calc-formula">{{ form.venue_budgets[vId][1].meals_needed.am_snack }} pax &times; ₱{{ (isOutsideBsu ? baselineSettings.snacks_outside : baselineSettings.snacks_inside) }} &times; {{ computedDays || 1 }} days</span>
+                                    <span class="pax-calc-equals">=</span>
+                                    <span class="pax-calc-total">₱{{ ((form.venue_budgets[vId][1].meals_needed.am_snack || 0) * (isOutsideBsu ? baselineSettings.snacks_outside : baselineSettings.snacks_inside) * (computedDays || 1)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                                  </div>
+                                </div>
+                                <div class="pax-breakdown-item">
+                                  <div class="pax-input-group">
+                                    <input type="number" min="0" placeholder="0" class="creative-pax-input" v-model="form.venue_budgets[vId][1].meals_needed.pm_snack" @input="recalculateSnacks(vId)" />
+                                    <span class="pax-label">PM Snack</span>
+                                  </div>
+                                  <div class="pax-calc-text" v-if="form.venue_budgets[vId][1].meals_needed.pm_snack > 0">
+                                    <span class="pax-calc-formula">{{ form.venue_budgets[vId][1].meals_needed.pm_snack }} pax &times; ₱{{ (isOutsideBsu ? baselineSettings.snacks_outside : baselineSettings.snacks_inside) }} &times; {{ computedDays || 1 }} days</span>
+                                    <span class="pax-calc-equals">=</span>
+                                    <span class="pax-calc-total">₱{{ ((form.venue_budgets[vId][1].meals_needed.pm_snack || 0) * (isOutsideBsu ? baselineSettings.snacks_outside : baselineSettings.snacks_inside) * (computedDays || 1)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              
                             </div>
                             <div class="budget-item-value">
                               <span class="budget-currency-symbol">₱</span>
                               <input 
                                 type="number" 
-                                v-model="form.budget_items[1].total" 
+                                v-model="form.venue_budgets[vId][1].total" 
                                 class="budget-card-input"
                                 placeholder="0.00"
                                 min="0"
@@ -436,12 +468,13 @@
                           <div class="budget-row-item">
                             <div class="budget-item-info">
                               <div class="budget-item-title">Function Room/Venue</div>
+                              <span class="budget-item-subtext">(Leave blank/zero for Attribution)</span>
                             </div>
                             <div class="budget-item-value">
                               <span class="budget-currency-symbol">₱</span>
                               <input 
                                 type="number" 
-                                v-model="form.budget_items[2].total" 
+                                v-model="form.venue_budgets[vId][2].total" 
                                 class="budget-card-input"
                                 placeholder="0.00"
                                 min="0"
@@ -454,12 +487,13 @@
                           <div class="budget-row-item">
                             <div class="budget-item-info">
                               <div class="budget-item-title">Accommodation</div>
+                              <span class="budget-item-subtext">(Leave blank/zero)</span>
                             </div>
                             <div class="budget-item-value">
                               <span class="budget-currency-symbol">₱</span>
                               <input 
                                 type="number" 
-                                v-model="form.budget_items[3].total" 
+                                v-model="form.venue_budgets[vId][3].total" 
                                 class="budget-card-input"
                                 placeholder="0.00"
                                 min="0"
@@ -472,12 +506,13 @@
                           <div class="budget-row-item">
                             <div class="budget-item-info">
                               <div class="budget-item-title">Equipment Rental</div>
+                              <span class="budget-item-subtext">(Leave blank/zero)</span>
                             </div>
                             <div class="budget-item-value">
                               <span class="budget-currency-symbol">₱</span>
                               <input 
                                 type="number" 
-                                v-model="form.budget_items[4].total" 
+                                v-model="form.venue_budgets[vId][4].total" 
                                 class="budget-card-input"
                                 placeholder="0.00"
                                 min="0"
@@ -495,7 +530,7 @@
                               <span class="budget-currency-symbol">₱</span>
                               <input 
                                 type="number" 
-                                v-model="form.budget_items[8].total" @input="checkTransportationLimit" 
+                                v-model="form.venue_budgets[vId][8].total"
                                 class="budget-card-input"
                                 placeholder="0.00"
                                 min="0"
@@ -520,7 +555,7 @@
                               <div class="budget-sub-controls">
                                 <label class="budget-number-input-label">
                                   Number of Speakers:
-                                  <input type="number" v-model.number="pfPax" min="0" class="budget-sub-number-input" placeholder="0" />
+                                  <input type="number" v-model.number="form.venue_budgets[vId][5].pax" min="0" class="budget-sub-number-input" placeholder="0" />
                                 </label>
                               </div>
                             </div>
@@ -528,7 +563,7 @@
                               <span class="budget-currency-symbol">₱</span>
                               <input 
                                 type="number" 
-                                v-model="form.budget_items[5].total" 
+                                v-model="form.venue_budgets[vId][5].total" 
                                 class="budget-card-input"
                                 placeholder="0.00"
                                 min="0"
@@ -544,7 +579,7 @@
                               <div class="budget-sub-controls">
                                 <label class="budget-number-input-label">
                                   Number of Recipients:
-                                  <input type="number" v-model.number="tokensPax" min="0" class="budget-sub-number-input" placeholder="0" />
+                                  <input type="number" v-model.number="form.venue_budgets[vId][6].pax" min="0" class="budget-sub-number-input" placeholder="0" />
                                 </label>
                               </div>
                             </div>
@@ -552,7 +587,7 @@
                               <span class="budget-currency-symbol">₱</span>
                               <input 
                                 type="number" 
-                                v-model="form.budget_items[6].total" 
+                                v-model="form.venue_budgets[vId][6].total" 
                                 class="budget-card-input"
                                 placeholder="0.00"
                                 min="0"
@@ -579,7 +614,7 @@
                               <span class="budget-currency-symbol">₱</span>
                               <input 
                                 type="number" 
-                                v-model="form.budget_items[7].total" 
+                                v-model="form.venue_budgets[vId][7].total" 
                                 class="budget-card-input"
                                 placeholder="0.00"
                                 min="0"
@@ -595,16 +630,16 @@
                                 <div class="budget-item-title">Others</div>
                               </div>
                               <div class="budget-item-value">
-                                <span class="others-total-badge">₱{{ Number(form.budget_items[9].total || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                                <span class="others-total-badge">₱{{ Number(form.venue_budgets[vId][9].total || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
                               </div>
                             </div>
                             <div class="others-breakdown-container">
-                              <div v-for="(o, oIdx) in othersList" :key="oIdx" class="others-breakdown-row">
-                                <input type="text" v-model="o.name" placeholder="Item name" class="others-input-name" />
+                              <div v-for="(o, oIdx) in (form.custom_others && form.custom_others[vId] ? form.custom_others[vId] : [])" :key="oIdx" class="others-breakdown-row">
+                                <input type="text" v-model="o.name" placeholder="Item name (e.g. Coffee)" class="others-input-name" />
                                 <input type="number" v-model.number="o.amount" min="0" placeholder="₱0.00" class="others-input-amount" />
-                                <button type="button" @click="removeOtherItem(oIdx)" class="btn-remove-other" title="Remove">×</button>
+                                <button type="button" @click="removeOtherItem(vId, oIdx)" class="btn-remove-other" title="Remove">×</button>
                               </div>
-                              <button type="button" @click="addOtherItem" class="btn-add-other" style="width: 100%; justify-content: center;">
+                              <button type="button" @click="addOtherItem(vId)" class="btn-add-other" style="width: 100%; justify-content: center;">
                                 <span>+</span> Add Item
                               </button>
                             </div>
@@ -612,6 +647,15 @@
                         </div>
                       </div>
 
+                    </div>
+                    </div>
+
+                    <!-- Overall Target Participants Banner -->
+                    <div class="grand-total-banner-card" style="background: rgba(30,41,59,0.7); margin-bottom: 12px; border-color: #334155; padding: 12px 20px;">
+                      <div class="grand-total-label-banner" style="color: #94a3b8; font-size: 13px;">Overall Expected Attendance (Auto-calculated)</div>
+                      <div class="grand-total-value-banner" style="color: #cbd5e1; font-size: 16px;">
+                        {{ form.target_participants || 0 }} Pax
+                      </div>
                     </div>
 
                     <!-- Grand Total Banner Card -->
@@ -821,6 +865,8 @@ const form = ref({
   activity_title: '',
   control_number: '',
   form_type: '',
+  nature: '',
+  activity_classification_id: '',
   activity_classification: '',
   gad_mandate_id: '',
   gender_issue_id: '',
@@ -832,15 +878,17 @@ const form = ref({
   end_date: '',
   start_time: '',
   end_time: '',
+  venues: [],
+  venue_budgets: {},
   venue: '',
   is_inside_bsu: true,
-  attendees: '',
+  attendees: 0,
   male: '',
   female: '', 
   proposed_budget: 0,
   budget_items: [
-    { name: 'Meals', total: '' },
-    { name: 'Snacks', total: '' },
+    { name: 'Meals', total: '', meals_needed: { breakfast: 0, lunch: 0, dinner: 0 } },
+    { name: 'Snacks', total: '', meals_needed: { am_snack: 0, pm_snack: 0 } },
     { name: 'Function Room/Venue', total: '' },
     { name: 'Accommodation', total: '' },
     { name: 'Equipment Rental', total: '' },
@@ -880,6 +928,61 @@ const computedStartDate = computed(() => {
 const computedEndDate = computed(() => {
   if (scheduleType.value === 'continuous') return continuousConfig.value.end_date;
   return form.value.end_date;
+});
+
+const computedDays = computed(() => {
+  let totalDays = 0;
+  form.value.schedules.forEach(s => {
+    if (s.date && s.start_time && s.end_time) {
+      const [h1, m1] = s.start_time.split(':').map(Number);
+      const [h2, m2] = s.end_time.split(':').map(Number);
+      if (h2 > h1 || (h2 === h1 && m2 > m1)) {
+        totalDays++;
+      }
+    }
+  });
+  return totalDays > 0 ? totalDays : 1;
+});
+
+const isOutsideBsu = computed(() => form.value.is_inside_bsu === false || form.value.is_inside_bsu === 'false');
+
+const recalculateMeals = (vId) => {
+  const budgetItems = form.value.venue_budgets[vId];
+  if (!budgetItems) return;
+  const mealsItem = budgetItems.find(i => i.name === 'Meals');
+  if (mealsItem && mealsItem.meals_needed) {
+    const { breakfast, lunch, dinner } = mealsItem.meals_needed;
+    const bPax = Number(breakfast) || 0;
+    const lPax = Number(lunch) || 0;
+    const dPax = Number(dinner) || 0;
+    const mealsRate = isOutsideBsu.value ? baselineSettings.value.meals_outside : baselineSettings.value.meals_inside;
+    const days = computedDays.value || 1;
+    const totalCost = ((bPax * mealsRate) + (lPax * mealsRate) + (dPax * mealsRate)) * days;
+    mealsItem.total = totalCost > 0 ? totalCost.toFixed(2) : '';
+  }
+};
+
+const recalculateSnacks = (vId) => {
+  const budgetItems = form.value.venue_budgets[vId];
+  if (!budgetItems) return;
+  const snacksItem = budgetItems.find(i => i.name === 'Snacks');
+  if (snacksItem && snacksItem.meals_needed) {
+    const { am_snack, pm_snack } = snacksItem.meals_needed;
+    const amPax = Number(am_snack) || 0;
+    const pmPax = Number(pm_snack) || 0;
+    const snacksRate = isOutsideBsu.value ? baselineSettings.value.snacks_outside : baselineSettings.value.snacks_inside;
+    const days = computedDays.value || 1;
+    const totalCost = ((amPax * snacksRate) + (pmPax * snacksRate)) * days;
+    snacksItem.total = totalCost > 0 ? totalCost.toFixed(2) : '';
+  }
+};
+
+watch([isOutsideBsu, computedDays], () => {
+  if (!form.value.venues) return;
+  form.value.venues.forEach(vId => {
+    recalculateMeals(vId);
+    recalculateSnacks(vId);
+  });
 });
 
 const handleScheduleTypeChange = (newType) => {
@@ -935,6 +1038,82 @@ const customVenue = ref('');
 const formTypes = ref([]);
 const ActClassification = ref([]);
 
+const venueDropdownOpen = ref(false);
+
+const getVenueName = (vid) => {
+  const v = venues.value.find(v => String(v.venue_id) === String(vid));
+  return v ? v.venue_name : 'Unknown Venue';
+};
+
+const removeVenue = (vid) => {
+  if (form.value.venues) {
+    form.value.venues = form.value.venues.filter(id => String(id) !== String(vid));
+  }
+};
+
+const addCustomVenue = async () => {
+  venueDropdownOpen.value = false;
+  const { value: venueName } = await Swal.fire({
+    title: 'Add Custom Venue',
+    input: 'text',
+    inputLabel: 'Enter the complete venue name',
+    inputPlaceholder: 'e.g. Hotel ABC',
+    showCancelButton: true,
+    confirmButtonColor: '#b979cc',
+    cancelButtonColor: '#64748b',
+    inputValidator: (value) => {
+      if (!value) {
+        return 'You need to write something!';
+      }
+    }
+  });
+
+  if (venueName) {
+    const tempId = 'custom_' + Date.now();
+    const newVenue = {
+      venue_id: tempId,
+      venue_name: venueName,
+      is_inside_bsu: form.value.is_inside_bsu ? 1 : 0
+    };
+    
+    venues.value.push(newVenue);
+    
+    if (!form.value.venues) form.value.venues = [];
+    form.value.venues.push(tempId);
+    
+    if (!form.value.venue_budgets) {
+      form.value.venue_budgets = {};
+    }
+    form.value.venue_budgets[tempId] = [
+        { name: 'Meals', total: '', meals_needed: { breakfast: 0, lunch: 0, dinner: 0 } },
+        { name: 'Snacks', total: '', meals_needed: { am_snack: 0, pm_snack: 0 } },
+        { name: 'Function Room/Venue', total: '' },
+        { name: 'Accommodation', total: '' },
+        { name: 'Equipment Rental', total: '' },
+        { name: 'Professional Fee/Honoraria', total: '', pax: '' },
+        { name: 'Token/s', total: '', pax: '' },
+        { name: 'Materials and Supplies', total: '' },
+        { name: 'Transportation', total: '' },
+        { name: 'Others', total: '' }
+    ];
+    
+    if (!form.value.custom_others) {
+      form.value.custom_others = {};
+    }
+    form.value.custom_others[tempId] = [];
+    
+    Swal.fire({
+      title: 'Added!',
+      text: `${venueName} has been added.`,
+      icon: 'success',
+      confirmButtonColor: '#b979cc',
+      timer: 1500,
+      showConfirmButton: false
+    });
+  }
+};
+
+
 const fetchVenues = async () => {
   try {
     const response = await api.get('venues');
@@ -949,12 +1128,19 @@ const fetchVenues = async () => {
 };
 
 const filteredVenues = computed(() => {
-  return venues.value.filter(v => (v.is_inside_bsu == 1 || v.is_inside_bsu === true) === form.value.is_inside_bsu);
+  return venues.value.filter(v => 
+    (v.is_inside_bsu == 1 || v.is_inside_bsu === true) === form.value.is_inside_bsu &&
+    v.venue_name && v.venue_name.trim() !== ''
+  );
 });
 
 watch(() => form.value.is_inside_bsu, () => {
+  if (form.value.venues && form.value.venues.length > 0) {
+    form.value.venues = [];
+  }
+  
   if (form.value.venue && form.value.venue !== 'Other') {
-    const isValid = filteredVenues.value.some(v => v.venue_name === form.value.venue);
+    const isValid = filteredVenues.value.some(v => String(v.venue_id) === String(form.value.venue));
     if (!isValid) {
       form.value.venue = '';
     }
@@ -1133,6 +1319,11 @@ watch(() => form.value.control_number, async (newVal) => {
     }
     form.value.is_inside_bsu = selected.is_inside_bsu == 1 || selected.is_inside_bsu === true;
     form.value.venue = selected.venue_name || selected.venue; 
+    if (selected.venues_list) {
+      form.value.venues = selected.venues_list.map(String);
+    } else {
+      form.value.venues = [];
+    }
     form.value.activity_classification = selected.activity_classification || 'N/A';
     form.value.form_type = selected.form_type_name || selected.form_type || 'N/A';
     form.value.target_participants = selected.target_participants || '0';
@@ -1159,63 +1350,87 @@ watch(() => form.value.control_number, async (newVal) => {
     selectedProposedBudget.value = Number(selected.proposed_budget) || 0;
 
     if (selected) {
-      const dbBudget = selected;
+      // Clear out the venue budgets and custom others before population
+      form.value.venue_budgets = {};
+      form.value.custom_others = {};
       
-      const dbMeals = Number(dbBudget.meals_total || 0);
-      const dbSnacks = Number(dbBudget.snacks_total || 0);
-      const legacyMealsSnacks = Number(dbBudget.meals_and_snacks || 0);
-      let mealsTotal = (dbMeals === 0 && dbSnacks === 0 && legacyMealsSnacks > 0) ? legacyMealsSnacks : dbMeals;
-      let snacksTotal = dbSnacks || '';
-      
-      const dbMat = Number(dbBudget.materials_total || 0);
-      let ob = [];
-      if (dbBudget.materials_others_breakdown) {
-        try { ob = JSON.parse(dbBudget.materials_others_breakdown); } catch(e){}
-      }
-      const dbOthers = Number(dbBudget.others_total) || ob.reduce((s, o) => s + Number(o.amount || 0), 0);
-      const legacyMatOthers = Number(dbBudget.materials_and_supplies || 0);
-      let materialsSupplies = (dbMat === 0 && dbOthers === 0 && legacyMatOthers > 0) ? legacyMatOthers : dbMat;
-      let othersTotal = dbOthers || '';
-
-      if (dbBudget.materials_others_breakdown) {
-        try {
-          const parsedOthers = JSON.parse(dbBudget.materials_others_breakdown);
-          othersList.value = Array.isArray(parsedOthers) ? parsedOthers : [];
-        } catch (e) {
-          othersList.value = [];
-        }
-      } else {
-        othersList.value = [];
+      // Initialize default arrays for each venue
+      if (form.value.venues) {
+        form.value.venues.forEach(vid => {
+          form.value.venue_budgets[vid] = [
+            { name: 'Meals', total: '', meals_needed: { breakfast: 0, lunch: 0, dinner: 0 } },
+            { name: 'Snacks', total: '', meals_needed: { am_snack: 0, pm_snack: 0 } },
+            { name: 'Function Room/Venue', total: '' },
+            { name: 'Accommodation', total: '' },
+            { name: 'Equipment Rental', total: '' },
+            { name: 'Professional Fee/Honoraria', total: '', pax: '' },
+            { name: 'Token/s', total: '', pax: '' },
+            { name: 'Materials and Supplies', total: '' },
+            { name: 'Transportation', total: '' },
+            { name: 'Others', total: '' }
+          ];
+          form.value.custom_others[vid] = [];
+        });
       }
 
-      mealsSelected.value = {
-        breakfast: !!Number(dbBudget.breakfast_selected),
-        lunch: !!Number(dbBudget.lunch_selected),
-        dinner: !!Number(dbBudget.dinner_selected)
-      };
-      
-      pfPax.value = Number(dbBudget.pf_pax) || '';
-      tokensPax.value = Number(dbBudget.tokens_pax) || '';
-      
-      snacksSelected.value = {
-        am: !!Number(dbBudget.am_snack_selected),
-        pm: !!Number(dbBudget.pm_snack_selected)
-      };
-
-      form.value.budget_items.forEach(item => {
-        switch (item.name) {
-          case 'Meals': item.total = mealsTotal || ''; break;
-          case 'Snacks': item.total = snacksTotal || ''; break;
-          case 'Function Room/Venue': item.total = Number(dbBudget.function_room_venue) || ''; break;
-          case 'Accommodation': item.total = Number(dbBudget.accommodation) || ''; break;
-          case 'Equipment Rental': item.total = Number(dbBudget.equipment_rental) || ''; break;
-          case 'Professional Fee/Honoraria': item.total = Number(dbBudget.professional_fee_honoria) || ''; break;
-          case 'Token/s': item.total = Number(dbBudget.tokens) || ''; break;
-          case 'Materials and Supplies': item.total = materialsSupplies || ''; break;
-          case 'Others': item.total = othersTotal || ''; break;
-          case 'Transportation': item.total = Number(dbBudget.transportation) || ''; break;
-        }
-      });
+      // Populate from selected.budget_items if available
+      if (selected.budget_items && Array.isArray(selected.budget_items)) {
+        selected.budget_items.forEach(dbItem => {
+          const vid = dbItem.venue_id === null ? 'Other' : String(dbItem.venue_id);
+          
+          if (form.value.venue_budgets[vid]) {
+            const bItem = form.value.venue_budgets[vid].find(i => 
+               i.name === dbItem.item_name || (dbItem.item_name === 'Professional Fee/Honoria' && i.name === 'Professional Fee/Honoraria')
+            );
+            
+            if (bItem) {
+              if (bItem.name === 'Others') {
+                form.value.custom_others[vid].push({
+                  name: dbItem.sub_item || '',
+                  amount: Number(dbItem.amount) || ''
+                });
+                bItem.total = (Number(bItem.total) || 0) + (Number(dbItem.amount) || 0);
+              } else {
+                bItem.total = Number(dbItem.amount) || '';
+              }
+              
+              if (bItem.name === 'Professional Fee/Honoraria' || bItem.name === 'Token/s') {
+                bItem.pax = dbItem.pax || '';
+              }
+              
+              if (bItem.name === 'Meals' && dbItem.sub_item) {
+                try {
+                  const parsed = JSON.parse(dbItem.sub_item);
+                  if (parsed && typeof parsed === 'object') {
+                    bItem.meals_needed.breakfast = parsed.breakfast || 0;
+                    bItem.meals_needed.lunch = parsed.lunch || 0;
+                    bItem.meals_needed.dinner = parsed.dinner || 0;
+                  }
+                } catch (e) {
+                  const lowerSub = dbItem.sub_item.toLowerCase();
+                  if (lowerSub.includes('breakfast')) bItem.meals_needed.breakfast = 1;
+                  if (lowerSub.includes('lunch')) bItem.meals_needed.lunch = 1;
+                  if (lowerSub.includes('dinner')) bItem.meals_needed.dinner = 1;
+                }
+              }
+              
+              if (bItem.name === 'Snacks' && dbItem.sub_item) {
+                try {
+                  const parsed = JSON.parse(dbItem.sub_item);
+                  if (parsed && typeof parsed === 'object') {
+                    bItem.meals_needed.am_snack = parsed.am_snack || 0;
+                    bItem.meals_needed.pm_snack = parsed.pm_snack || 0;
+                  }
+                } catch (e) {
+                  const lowerSub = dbItem.sub_item.toLowerCase();
+                  if (lowerSub.includes('am')) bItem.meals_needed.am_snack = 1;
+                  if (lowerSub.includes('pm')) bItem.meals_needed.pm_snack = 1;
+                }
+              }
+            }
+          }
+        });
+      }
     }
   } else {
     selectedProposedBudget.value = 0;
@@ -1246,8 +1461,13 @@ watch(tokensPax, (newPax) => {
 
   
 
-watch(() => form.value.budget_items, (newItems) => {
-  const total = newItems.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
+watch(() => form.value.venue_budgets, (newBudgets) => {
+  let total = 0;
+  if (newBudgets) {
+    Object.values(newBudgets).forEach(items => {
+      total += items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
+    });
+  }
   form.value.proposed_budget = total;
 }, { deep: true });
 
@@ -1293,6 +1513,26 @@ watch(() => form.value.evaluation_items, (items) => {
 
 const uploadedFiles = ref([]);
 const fileInput = ref(null);
+
+watch(() => form.value?.venues, (newVenues) => {
+  if (!newVenues) return;
+  newVenues.forEach(vid => {
+    if (!form.value.venue_budgets[vid]) {
+      form.value.venue_budgets[vid] = [
+        { name: 'Meals', total: '', meals_needed: { breakfast: 0, lunch: 0, dinner: 0 } },
+        { name: 'Snacks', total: '', meals_needed: { am_snack: 0, pm_snack: 0 } },
+        { name: 'Function Room/Venue', total: '' },
+        { name: 'Accommodation', total: '' },
+        { name: 'Equipment Rental', total: '' },
+        { name: 'Professional Fee/Honoraria', total: '', pax: '' },
+        { name: 'Token/s', total: '', pax: '' },
+        { name: 'Materials and Supplies', total: '' },
+        { name: 'Transportation', total: '' },
+        { name: 'Others', total: '' }
+      ];
+    }
+  });
+}, { deep: true });
 const activePreviewIndex = ref(0);
 
 const userRole = user.value?.role || user.value?.user_role || '';
@@ -1532,55 +1772,71 @@ const submitReport = async () => {
       formData.append('attachments[]', file);
     });
     
-        const normalizedBudgetItems = [];
+    const normalizedBudgetItems = [];
 
-    form.value.budget_items.forEach(item => {
-      if (item.name !== 'Others') {
-        normalizedBudgetItems.push({
-          category_id: null,
-          item_name: item.name,
-          sub_item: null,
-          pax: (item.name === 'Professional Fee/Honoraria') ? (typeof pfPax !== 'undefined' ? pfPax?.value : null) : (item.name === 'Token/s') ? (typeof tokensPax !== 'undefined' ? tokensPax?.value : null) : null,
-          amount: Number(item.total) || 0
-        });
-      }
-    });
+    form.value.venues.forEach(vid => {
+      const budgetItems = form.value.venue_budgets[vid];
+      if (!budgetItems) return;
 
-    if (typeof othersList !== 'undefined') {
-      othersList.value.forEach(o => {
-        if (o.name && Number(o.amount) > 0) {
+      budgetItems.forEach(item => {
+        if (item.name !== 'Others') {
+          let paxVal = null;
+          if (item.name === 'Professional Fee/Honoraria' || item.name === 'Token/s') {
+            paxVal = Number(item.pax) || null;
+          }
           normalizedBudgetItems.push({
+            venue_id: vid === 'Other' ? 'Other' : vid,
             category_id: null,
-            item_name: 'Others',
-            sub_item: o.name,
-            pax: null,
-            amount: Number(o.amount) || 0
+            item_name: item.name,
+            sub_item: null,
+            pax: paxVal,
+            amount: Number(item.total) || 0
           });
         }
       });
-    }
-
-    if (typeof mealsSelected !== 'undefined') {
-        if (mealsSelected.value.breakfast || mealsSelected.value.lunch || mealsSelected.value.dinner) {
-          const selected = [];
-          if (mealsSelected.value.breakfast) selected.push('Breakfast');
-          if (mealsSelected.value.lunch) selected.push('Lunch');
-          if (mealsSelected.value.dinner) selected.push('Dinner');
-          const mealsItem = normalizedBudgetItems.find(i => i.item_name === 'Meals');
-          if (mealsItem) mealsItem.sub_item = selected.join(', ');
+      
+      const customOthers = form.value.custom_others && form.value.custom_others[vid] ? form.value.custom_others[vid] : [];
+      customOthers.forEach(otherItem => {
+        if (otherItem.name && Number(otherItem.amount) > 0) {
+          normalizedBudgetItems.push({
+            venue_id: vid === 'Other' ? 'Other' : vid,
+            category_id: null,
+            item_name: 'Others',
+            sub_item: otherItem.name,
+            pax: null,
+            amount: Number(otherItem.amount) || 0
+          });
         }
-    }
-
-    if (typeof snacksSelected !== 'undefined') {
-        if (snacksSelected.value.am || snacksSelected.value.pm) {
-          const selected = [];
-          if (snacksSelected.value.am) selected.push('AM');
-          if (snacksSelected.value.pm) selected.push('PM');
-          const snacksItem = normalizedBudgetItems.find(i => i.item_name === 'Snacks');
-          if (snacksItem) snacksItem.sub_item = selected.join(', ');
+      });
+      
+      const mealsItem = normalizedBudgetItems.find(i => i.venue_id === (vid === 'Other' ? 'Other' : vid) && i.item_name === 'Meals');
+      if (mealsItem) {
+        const mealsObj = budgetItems.find(i => i.name === 'Meals')?.meals_needed;
+        if (mealsObj) {
+          const mList = [];
+          if (mealsObj.breakfast > 0) mList.push(`Breakfast (${mealsObj.breakfast} pax)`);
+          if (mealsObj.lunch > 0) mList.push(`Lunch (${mealsObj.lunch} pax)`);
+          if (mealsObj.dinner > 0) mList.push(`Dinner (${mealsObj.dinner} pax)`);
+          mealsItem.sub_item = mList.join(', ');
         }
-    }
+      }
+      
+      const snacksItem = normalizedBudgetItems.find(i => i.venue_id === (vid === 'Other' ? 'Other' : vid) && i.item_name === 'Snacks');
+      if (snacksItem) {
+        const snacksObj = budgetItems.find(i => i.name === 'Snacks')?.meals_needed;
+        if (snacksObj) {
+          const sList = [];
+          if (snacksObj.am_snack > 0) sList.push(`AM Snack (${snacksObj.am_snack} pax)`);
+          if (snacksObj.pm_snack > 0) sList.push(`PM Snack (${snacksObj.pm_snack} pax)`);
+          snacksItem.sub_item = sList.join(', ');
+        }
+      }
+    });
 
+    formData.append('venues', JSON.stringify(form.value.venues));
+    if (form.value.venues.includes('Other')) {
+       formData.append('custom_venues', JSON.stringify(customVenuesList.value || []));
+    }
     formData.append('budget_items', JSON.stringify(normalizedBudgetItems));
 
     const evalMap = {
@@ -2596,6 +2852,14 @@ onUnmounted(() => {
   border-bottom: none;
 }
 
+.budget-group-total {
+  font-weight: 600;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
 .budget-item-info {
   display: flex;
   flex-direction: column;
@@ -2647,6 +2911,57 @@ onUnmounted(() => {
   background-color: rgba(15, 23, 42, 0.5);
   box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.2);
   outline: none;
+}
+
+.pax-input-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.creative-pax-input {
+  width: 65px;
+  padding: 8px;
+  background: #1e293b;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+.creative-pax-input:focus {
+  border-color: #b979cc;
+  background: #2a3b54;
+  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.2);
+  outline: none;
+}
+.pax-label {
+  font-size: 14px;
+  color: #e2e8f0;
+  font-weight: 500;
+}
+.pax-calc-text {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-left: 77px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.pax-breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+.pax-breakdown-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .grand-total-banner-card {
@@ -2923,6 +3238,162 @@ onUnmounted(() => {
     word-break: break-word;
     font-size: 18px;
   }
+}
+
+/* Custom Multiselect */
+.custom-multiselect-container {
+  position: relative;
+  width: 100%;
+}
+
+.multiselect-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99;
+}
+
+.multiselect-trigger {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  background-color: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.multiselect-trigger:hover, .multiselect-trigger.is-open {
+  border-color: #b979cc;
+  box-shadow: 0 0 0 3px rgba(185, 121, 204, 0.1);
+}
+
+.placeholder-text {
+  color: #94a3b8;
+}
+
+.selected-text {
+  color: #f8fafc;
+  font-weight: 500;
+}
+
+.dropdown-arrow {
+  color: #94a3b8;
+  font-size: 0.8rem;
+  transition: transform 0.3s ease;
+}
+.multiselect-trigger.is-open .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.multiselect-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 0.5rem;
+  background-color: #1e293b;
+  border: 1px solid rgba(185, 121, 204, 0.3);
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 100;
+  padding: 0.5rem 0;
+}
+
+.multiselect-option {
+  display: flex;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  color: #e2e8f0;
+  transition: background-color 0.2s;
+  margin: 0;
+}
+
+.multiselect-option:hover {
+  background-color: rgba(185, 121, 204, 0.15);
+}
+
+.multiselect-checkbox {
+  margin-right: 0.75rem;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #b979cc;
+}
+
+.multiselect-divider {
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.1);
+  margin: 0.5rem 0;
+}
+
+/* Chips Styles */
+.chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.venue-chip {
+  display: inline-flex;
+  align-items: center;
+  background: linear-gradient(135deg, rgba(185, 121, 204, 0.2), rgba(185, 121, 204, 0.05));
+  border: 1px solid rgba(185, 121, 204, 0.4);
+  color: #f8fafc;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  backdrop-filter: blur(4px);
+  animation: fadeInChip 0.3s ease-out forwards;
+}
+
+.chip-remove {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  margin-left: 0.5rem;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.chip-remove:hover {
+  color: #ef4444;
+}
+
+@keyframes fadeInChip {
+  from { opacity: 0; transform: translateY(5px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.btn-add-custom-venue {
+  width: 100%;
+  padding: 0.75rem;
+  background: transparent;
+  border: none;
+  color: #b979cc;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.2s;
+}
+.btn-add-custom-venue:hover {
+  background-color: rgba(185, 121, 204, 0.1);
 }
 </style>
 

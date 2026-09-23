@@ -55,12 +55,14 @@ class ApprovedControlsController extends Controller
             $id = $control['act_design_id'] ?? null;
             
             if ($id) {
-                // Fetch mandates and issues
+                // Fetch mandates, issues, and venues
                 $mandates = $db->table('activity_design_mandates')->where('act_design_id', $id)->get()->getResultArray();
                 $issues = $db->table('activity_design_issues')->where('act_design_id', $id)->get()->getResultArray();
+                $venues = $db->table('activity_design_venues')->where('act_design_id', $id)->get()->getResultArray();
                 
                 $control['gad_mandate_ids'] = implode(',', array_column($mandates, 'mandate_id'));
                 $control['gender_issue_ids'] = implode(',', array_column($issues, 'issue_id'));
+                $control['venues_list'] = array_column($venues, 'venue_id');
             }
 
             $id = $control['act_design_id'] ?? null;
