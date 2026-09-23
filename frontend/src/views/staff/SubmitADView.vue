@@ -518,7 +518,7 @@
                               <span class="budget-currency-symbol">₱</span>
                               <input 
                                 type="number" 
-                                v-model="form.venue_budgets[vId][8].total" @input="checkTransportationLimit" 
+                                v-model="form.venue_budgets[vId][8].total" @input="checkTransportationLimit(vId)" 
                                 class="budget-card-input"
                                 placeholder="0.00"
                                 min="0"
@@ -1852,17 +1852,31 @@ onUnmounted(() => {
   document.removeEventListener('click', closeAllHelp);
 });
 
-const checkTransportationLimit = () => {
-  const transItem = form.value.budget_items?.[8];
+const checkTransportationLimit = (vId) => {
   const limit = Number(baselineSettings.value?.transportation_limit ?? 20000);
   
-  if (transItem && Number(transItem.total) > limit) {
-    transItem.total = limit;
+  let totalTransport = 0;
+  if (form.value.venue_budgets) {
+    Object.values(form.value.venue_budgets).forEach(budgetItems => {
+      const transItem = budgetItems.find(i => i.name === 'Transportation');
+      if (transItem) {
+        totalTransport += Number(transItem.total) || 0;
+      }
+    });
+  }
+
+  if (totalTransport > limit) {
+    const excess = totalTransport - limit;
+    const transItem = form.value.venue_budgets[vId]?.find(i => i.name === 'Transportation');
+    if (transItem) {
+      transItem.total = Math.max(0, (Number(transItem.total) || 0) - excess);
+    }
+
     const role = user.value?.role || 'staff';
     Swal.fire({
       icon: 'warning',
       title: 'Limit Exceeded',
-      html: `Transportation budget cannot exceed the baseline limit of ₱${limit.toLocaleString('en-US')}.<br><br>
+      html: `Overall Transportation budget cannot exceed the baseline limit of ₱${limit.toLocaleString('en-US')}.<br><br>
              If you need to request an exemption, please <a href="/${role}/messages" style="color: #b979cc; text-decoration: underline; font-weight: bold;">message the GAD Director/Staff</a>.`,
       confirmButtonColor: '#b979cc'
     });

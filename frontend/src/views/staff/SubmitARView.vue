@@ -345,7 +345,6 @@
                     <div v-for="vId in (form.venues && form.venues.length ? form.venues : [])" :key="vId" class="venue-budget-wrapper" style="margin-bottom: 2rem; border-radius: 8px; padding: 1rem; border: 1px solid rgba(185, 121, 204, 0.3);">
                       <h4 style="color: #e9d5ff; margin-bottom: 15px; border-left: 4px solid #b979cc; padding-left: 10px;">Budget for Venue: {{ getVenueName(vId) }}</h4>
                     <div class="budget-groups-container" style="display: flex; flex-direction: column; gap: 16px;">
-                      
                       <!-- Group 1: Catering & Hospitality -->
                       <div class="budget-group-card">
                         <div class="budget-group-header" style="justify-content: space-between;">
@@ -531,6 +530,7 @@
                               <input 
                                 type="number" 
                                 v-model="form.venue_budgets[vId][8].total"
+                                @input="checkTransportationLimit(vId)"
                                 class="budget-card-input"
                                 placeholder="0.00"
                                 min="0"
@@ -680,8 +680,11 @@
                         </thead>
                         <tbody class="evaluation-table-body-ar">
                           <tr v-for="(item, index) in form.evaluation_items" :key="index">
-                            <td class="evaluation-item-name-ar">{{ item.area }}</td>
-                            <td class="evaluation-item-input-cell-ar">
+                            <td class="evaluation-item-name-ar" style="width: 50%;">
+                              <span v-if="!item.isCustom">{{ item.area }}</span>
+                              <textarea v-else v-model="item.area" class="evaluation-input-field-ar" style="width: 100%; text-align: left; padding-left: 12px; padding-top: 8px; box-sizing: border-box; resize: vertical; min-height: 42px; line-height: 1.4;" placeholder="Enter evaluation area" required></textarea>
+                            </td>
+                            <td class="evaluation-item-input-cell-ar" style="position: relative;">
                               <input 
                                 type="number" 
                                 v-model="item.rating" 
@@ -693,10 +696,18 @@
                                 placeholder="0.00"
                               />
                             </td>
-                            <td class="evaluation-interpretation-cell-ar">
+                            <td class="evaluation-interpretation-cell-ar" style="position: relative;">
                               <span :class="['interpretation-tag-ar', getInterpretationClass(item.rating)]">
                                 {{ getInterpretation(item.rating) }}
                               </span>
+                              <button type="button" @click="removeEvaluationItem(index)" class="btn-remove-other" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; font-size: 14px; padding: 0; display: flex; align-items: center; justify-content: center;" title="Remove">×</button>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td colspan="3" style="padding: 12px 16px; border-bottom: none; background: transparent;">
+                              <button type="button" @click="addEvaluationItem" class="btn-add-other" style="width: 100%; justify-content: center;">
+                                <span>+</span> Add Evaluation Item
+                              </button>
                             </td>
                           </tr>
                         </tbody>
@@ -806,7 +817,7 @@
 <script setup>
 import { useHolidays } from '../../utils/useHolidays';
 const { isDisabledDate, fetchHolidays } = useHolidays();
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import Swal from 'sweetalert2';
 import api from '../../api';
@@ -1117,11 +1128,14 @@ const addCustomVenue = async () => {
 const fetchVenues = async () => {
   try {
     const response = await api.get('venues');
-    if (Array.isArray(response.data)) {
-      venues.value = response.data;
-    } else if (response.data && response.data.success) {
-      venues.value = response.data.data || [];
-    }
+    const fetched = Array.isArray(response.data)
+      ? response.data
+      : (response.data && response.data.success ? response.data.data || [] : []);
+    // Merge: add fetched venues, then re-append any already-injected ones that aren't in the DB list
+    const existing = venues.value.filter(ev =>
+      !fetched.some(fv => String(fv.venue_id) === String(ev.venue_id))
+    );
+    venues.value = [...fetched, ...existing];
   } catch (error) {
     console.error('Error fetching venues:', error);
   }
@@ -1134,7 +1148,10 @@ const filteredVenues = computed(() => {
   );
 });
 
+const isAutoFillingFromAD = ref(false);
+
 watch(() => form.value.is_inside_bsu, () => {
+  if (isAutoFillingFromAD.value) return; // Don't clear when auto-filling from an approved AD
   if (form.value.venues && form.value.venues.length > 0) {
     form.value.venues = [];
   }
@@ -1250,22 +1267,27 @@ const fetchApprovedControls = async () => {
 };
 
 // Reactive Others State
-const othersList = ref([]);
-const addOtherItem = () => {
-  othersList.value.push({ name: '', amount: '' });
+const addOtherItem = (vId) => {
+  if (!form.value.custom_others) form.value.custom_others = {};
+  if (!form.value.custom_others[vId]) form.value.custom_others[vId] = [];
+  form.value.custom_others[vId].push({ name: '', amount: '' });
 };
-const removeOtherItem = (index) => {
-  othersList.value.splice(index, 1);
+const removeOtherItem = (vId, index) => {
+  if (form.value.custom_others && form.value.custom_others[vId]) {
+    form.value.custom_others[vId].splice(index, 1);
+  }
 };
 
 watch(
-  othersList,
-  (newList) => {
-    const item = form.value.budget_items.find(i => i.name === 'Others');
-    if (item) {
-      const sum = newList.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
-      item.total = sum || '';
-    }
+  () => form.value.custom_others,
+  (newOthers) => {
+    if (!newOthers) return;
+    Object.entries(newOthers).forEach(([vId, list]) => {
+      const sum = list.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
+      if (form.value.venue_budgets[vId] && form.value.venue_budgets[vId][9]) {
+        form.value.venue_budgets[vId][9].total = sum || '';
+      }
+    });
   },
   { deep: true }
 );
@@ -1318,12 +1340,22 @@ watch(() => form.value.control_number, async (newVal) => {
       form.value.schedules = [];
     }
     form.value.is_inside_bsu = selected.is_inside_bsu == 1 || selected.is_inside_bsu === true;
+    isAutoFillingFromAD.value = true;
     form.value.venue = selected.venue_name || selected.venue; 
-    if (selected.venues_list) {
-      form.value.venues = selected.venues_list.map(String);
+    if (selected.venues_list && selected.venues_list.length > 0) {
+      // venues_list now returns [{venue_id, venue_name, is_inside_bsu}] objects
+      // Inject them into local venues.value so getVenueName() can resolve them
+      selected.venues_list.forEach(v => {
+        const exists = venues.value.find(lv => String(lv.venue_id) === String(v.venue_id));
+        if (!exists) {
+          venues.value.push({ venue_id: String(v.venue_id), venue_name: v.venue_name, is_inside_bsu: v.is_inside_bsu });
+        }
+      });
+      form.value.venues = selected.venues_list.map(v => String(v.venue_id));
     } else {
       form.value.venues = [];
     }
+    nextTick(() => { isAutoFillingFromAD.value = false; });
     form.value.activity_classification = selected.activity_classification || 'N/A';
     form.value.form_type = selected.form_type_name || selected.form_type || 'N/A';
     form.value.target_participants = selected.target_participants || '0';
@@ -1590,6 +1622,14 @@ const processFiles = (fileList) => {
   }
 };
 
+const addEvaluationItem = () => {
+  form.value.evaluation_items.push({ area: '', rating: '', isCustom: true });
+};
+
+const removeEvaluationItem = (index) => {
+  form.value.evaluation_items.splice(index, 1);
+};
+
 const removeFile = (index) => {
   uploadedFiles.value.splice(index, 1);
   if (uploadedFiles.value.length === 0 && fileInput.value) {
@@ -1849,7 +1889,11 @@ const submitReport = async () => {
     };
     const evalObj = {};
     form.value.evaluation_items.forEach(item => {
-      evalObj[evalMap[item.area]] = item.rating || 0;
+      if (!item.area) return;
+      const dbKey = evalMap[item.area] || item.area.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/(^_|_$)/g, '');
+      if (dbKey) {
+        evalObj[dbKey] = item.rating || 0;
+      }
     });
         formData.append('evaluation_results', JSON.stringify(evalObj));
     formData.append('schedules', JSON.stringify(form.value.schedules || []));
@@ -2122,17 +2166,31 @@ const fetchBaselineSettings = async () => {
   }
 };
 
-const checkTransportationLimit = () => {
-  const transItem = form.value.budget_items?.[8];
+const checkTransportationLimit = (vId) => {
   const limit = Number(baselineSettings.value?.transportation_limit || 20000);
   
-  if (transItem && Number(transItem.total) > limit) {
-    transItem.total = limit;
+  let totalTransport = 0;
+  if (form.value.venue_budgets) {
+    Object.values(form.value.venue_budgets).forEach(budgetItems => {
+      const transItem = budgetItems.find(i => i.name === 'Transportation');
+      if (transItem) {
+        totalTransport += Number(transItem.total) || 0;
+      }
+    });
+  }
+
+  if (totalTransport > limit) {
+    const excess = totalTransport - limit;
+    const transItem = form.value.venue_budgets[vId]?.find(i => i.name === 'Transportation');
+    if (transItem) {
+      transItem.total = Math.max(0, (Number(transItem.total) || 0) - excess);
+    }
+
     const role = user.value?.role || 'staff';
     Swal.fire({
       icon: 'warning',
       title: 'Limit Exceeded',
-      html: `Transportation budget cannot exceed the baseline limit of ₱${limit.toLocaleString('en-US')}.<br><br>
+      html: `Overall Transportation budget cannot exceed the baseline limit of ₱${limit.toLocaleString('en-US')}.<br><br>
              If you need to request an exemption, please <a href="/${role}/messages" style="color: #b979cc; text-decoration: underline; font-weight: bold;">message the GAD Director/Staff</a>.`,
       confirmButtonColor: '#b979cc'
     });

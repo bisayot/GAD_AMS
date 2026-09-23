@@ -486,7 +486,7 @@
                               <span class="budget-currency-symbol">₱</span>
                               <input 
                                 type="number" 
-                                v-model="formData.venue_budgets[vId][8].total" @input="checkTransportationLimit" 
+                                v-model="formData.venue_budgets[vId][8].total" @input="checkTransportationLimit(vId)" 
                                 class="budget-card-input"
                                 placeholder="0.00"
                                 min="0"
@@ -2116,23 +2116,27 @@ onMounted(async () => {
   }
 });
 
-const checkTransportationLimit = () => {
-  // Check all venues for transportation limit
-  let transTotal = 0;
-  Object.values(formData.value.venue_budgets || {}).forEach(items => {
-    const transItem = items?.find(i => i.name === 'Transportation');
-    if (transItem) transTotal += Number(transItem.total) || 0;
-  });
-  const transItem = { total: transTotal };
+const checkTransportationLimit = (vId) => {
   const limit = Number(baselineSettings.value?.transportation_limit || 20000);
   
-  if (transItem && Number(transItem.total) > limit) {
-    transItem.total = limit;
+  let transTotal = 0;
+  Object.values(formData.value.venue_budgets || {}).forEach(items => {
+    const tItem = items?.find(i => i.name === 'Transportation');
+    if (tItem) transTotal += Number(tItem.total) || 0;
+  });
+  
+  if (transTotal > limit) {
+    const excess = transTotal - limit;
+    const transItem = formData.value.venue_budgets[vId]?.find(i => i.name === 'Transportation');
+    if (transItem) {
+      transItem.total = Math.max(0, (Number(transItem.total) || 0) - excess);
+    }
+
     const role = user.value?.role || 'admin';
     Swal.fire({
       icon: 'warning',
       title: 'Limit Exceeded',
-      html: `Transportation budget cannot exceed the baseline limit of ₱${limit.toLocaleString('en-US')}.<br><br>
+      html: `Overall Transportation budget cannot exceed the baseline limit of ₱${limit.toLocaleString('en-US')}.<br><br>
              If you need to request an exemption, please <a href="/${role}/messages" style="color: #b979cc; text-decoration: underline; font-weight: bold;">message the GAD Director/Staff</a>.`,
       confirmButtonColor: '#b979cc'
     });

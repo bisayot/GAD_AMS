@@ -58,11 +58,21 @@ class ApprovedControlsController extends Controller
                 // Fetch mandates, issues, and venues
                 $mandates = $db->table('activity_design_mandates')->where('act_design_id', $id)->get()->getResultArray();
                 $issues = $db->table('activity_design_issues')->where('act_design_id', $id)->get()->getResultArray();
-                $venues = $db->table('activity_design_venues')->where('act_design_id', $id)->get()->getResultArray();
+                $venues = $db->table('activity_design_venues adv')
+                    ->select('adv.venue_id, v.venue_name, v.is_inside_bsu')
+                    ->join('venues v', 'v.venue_id = adv.venue_id', 'left')
+                    ->where('adv.act_design_id', $id)
+                    ->get()->getResultArray();
                 
                 $control['gad_mandate_ids'] = implode(',', array_column($mandates, 'mandate_id'));
                 $control['gender_issue_ids'] = implode(',', array_column($issues, 'issue_id'));
-                $control['venues_list'] = array_column($venues, 'venue_id');
+                $control['venues_list'] = array_map(function($v) {
+                    return [
+                        'venue_id'     => $v['venue_id'],
+                        'venue_name'   => $v['venue_name'] ?? 'Unknown Venue',
+                        'is_inside_bsu'=> $v['is_inside_bsu'] ?? 1,
+                    ];
+                }, $venues);
             }
 
             $id = $control['act_design_id'] ?? null;
