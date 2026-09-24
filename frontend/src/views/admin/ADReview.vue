@@ -245,6 +245,7 @@
                           <div class="budget-row-header">
                             <div class="budget-item-info">
                               <div class="budget-item-title" v-html="formatBudgetName(child.name)"></div>
+                              <div v-if="child.computation" class="text-[12px] text-slate-400 mt-1 italic" style="font-size: 11px; margin-top: 4px; color: #94a3b8; font-style: italic;">{{ child.computation }}</div>
                             </div>
                             <div class="budget-item-value">
                               <span class="budget-currency-symbol">₱</span>
@@ -271,6 +272,7 @@
                           <div v-if="child.othersBreakdown && child.othersBreakdown.length" class="budget-others-breakdown-container mt-2">
                             <div v-for="(o, oIdx) in child.othersBreakdown" :key="oIdx" class="budget-others-breakdown-row" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; padding: 4px 12px; background: rgba(0,0,0,0.1); border-radius: 4px; margin-bottom: 4px; font-size: 13px;">
                               <span style="color: #cbd5e1;">{{ o.name || 'Unnamed Item' }}</span>
+                              <div v-if="o.computation" style="font-size: 11px; margin-top: 2px; color: #94a3b8; font-style: italic;">{{ o.computation }}</div>
                               <span style="color: #f1f5f9; font-weight: 500;">₱{{ formatCurrency(o.amount) }}</span>
                             </div>
                           </div>
@@ -1061,12 +1063,17 @@ const parsedBudget = computed(() => {
             pf: 0, tokens: 0, pf_pax: 0, tokens_pax: 0,
             materials: 0, others: 0
           },
-          othersBreakdown: []
+          othersBreakdown: [],
+          computations: {}
         };
       }
       
       const vData = venuesMap[vid];
       const amt = Number(item.amount) || 0;
+      
+      if (item.sub_item && !item.sub_item.startsWith('{')) {
+         vData.computations[item.item_name] = item.sub_item;
+      }
       
       if (item.item_name === 'Meals') {
         vData.totals.meals += amt;
@@ -1098,7 +1105,7 @@ const parsedBudget = computed(() => {
       else {
         vData.totals.others += amt;
         const displayName = (item.item_name === 'Others' && item.sub_item) ? item.sub_item : item.item_name;
-        vData.othersBreakdown.push({ name: displayName, amount: amt });
+        vData.othersBreakdown.push({ name: displayName, amount: amt, computation: vData.computations[item.item_name] });
       }
     });
 
@@ -1111,33 +1118,33 @@ const parsedBudget = computed(() => {
           name: 'Catering & Hospitality', icon: '🍽️',
           total: v.totals.meals + v.totals.snacks,
           children: [
-            { name: 'Meals', value: v.totals.meals, pax: v.mealsPax },
-            { name: 'Snacks', value: v.totals.snacks, pax: v.snacksPax }
+            { name: 'Meals', value: v.totals.meals, pax: v.mealsPax, computation: v.computations?.['Meals'] },
+            { name: 'Snacks', value: v.totals.snacks, pax: v.snacksPax, computation: v.computations?.['Snacks'] }
           ]
         },
         {
           name: 'Venue & Logistics', icon: '🏛️',
           total: v.totals.venue + v.totals.accommodation + v.totals.equipment + v.totals.transportation,
           children: [
-            { name: 'Function Room/Venue', value: v.totals.venue },
-            { name: 'Accommodation', value: v.totals.accommodation },
-            { name: 'Equipment Rental', value: v.totals.equipment },
-            { name: 'Transportation', value: v.totals.transportation }
+            { name: 'Function Room/Venue', value: v.totals.venue, computation: v.computations?.['Function Room/Venue'] },
+            { name: 'Accommodation', value: v.totals.accommodation, computation: v.computations?.['Accommodation'] },
+            { name: 'Equipment Rental', value: v.totals.equipment, computation: v.computations?.['Equipment Rental'] },
+            { name: 'Transportation', value: v.totals.transportation, computation: v.computations?.['Transportation'] }
           ]
         },
         {
           name: 'Program & Speakers', icon: '🎤',
           total: v.totals.pf + v.totals.tokens,
           children: [
-            { name: `Professional Fee/Honoraria ${v.totals.pf > 0 ? `(Number of Speakers: ${v.totals.pf_pax})` : ''}`, value: v.totals.pf },
-            { name: `Token/s ${v.totals.tokens > 0 ? `(Number of Recipients: ${v.totals.tokens_pax})` : ''}`, value: v.totals.tokens }
+            { name: `Professional Fee/Honoraria ${v.totals.pf > 0 ? `(Number of Speakers: ${v.totals.pf_pax})` : ''}`, value: v.totals.pf, computation: v.computations?.['Professional Fee/Honoraria'] },
+            { name: `Token/s ${v.totals.tokens > 0 ? `(Number of Recipients: ${v.totals.tokens_pax})` : ''}`, value: v.totals.tokens, computation: v.computations?.['Token/s'] }
           ]
         },
         {
           name: 'Materials & Miscellaneous', icon: '📦',
           total: v.totals.materials + v.totals.others,
           children: [
-            { name: 'Materials and Supplies', value: v.totals.materials },
+            { name: 'Materials and Supplies', value: v.totals.materials, computation: v.computations?.['Materials and Supplies'] },
             { name: 'Others', value: v.totals.others, othersBreakdown: v.othersBreakdown }
           ]
         }

@@ -15,6 +15,9 @@ class ActivityBudgetItemsModel extends Model
         'item_name',
         'sub_item',
         'pax',
+        'unit_cost',
+        'multipliers',
+        'formula',
         'amount'
     ];
 }

@@ -201,12 +201,18 @@ class ActivityDesignController extends BaseController
                                 if (isset($item['venue_id']) && isset($tempToRealVenueIdMap[$item['venue_id']])) {
                                     $item['venue_id'] = $tempToRealVenueIdMap[$item['venue_id']];
                                 }
+                                if (isset($item['multipliers']) && is_array($item['multipliers'])) {
+                                    $item['multipliers'] = json_encode($item['multipliers']);
+                                }
                             }
                             $budgetItemsModel->insertBatch($budgetItems);
                         } else {
                             $budgetItems['act_design_id'] = $actDesignId;
                             if (isset($budgetItems['venue_id']) && isset($tempToRealVenueIdMap[$budgetItems['venue_id']])) {
                                 $budgetItems['venue_id'] = $tempToRealVenueIdMap[$budgetItems['venue_id']];
+                            }
+                            if (isset($budgetItems['multipliers']) && is_array($budgetItems['multipliers'])) {
+                                $budgetItems['multipliers'] = json_encode($budgetItems['multipliers']);
                             }
                             $budgetItemsModel->insert($budgetItems);
                         }
@@ -386,6 +392,11 @@ class ActivityDesignController extends BaseController
             }
             if (isset($design['materials_others_breakdown']) && is_array($design['materials_others_breakdown'])) {
                 $design['materials_others_breakdown'] = json_encode($design['materials_others_breakdown']);
+            }
+            foreach ($budgetItems as &$bItem) {
+                if (isset($bItem['multipliers']) && is_string($bItem['multipliers'])) {
+                    $bItem['multipliers'] = json_decode($bItem['multipliers'], true);
+                }
             }
             $design['budget_items'] = $budgetItems;
 
@@ -706,12 +717,18 @@ class ActivityDesignController extends BaseController
                                 if (isset($item['venue_id']) && isset($tempToRealVenueIdMap[$item['venue_id']])) {
                                     $item['venue_id'] = $tempToRealVenueIdMap[$item['venue_id']];
                                 }
+                                if (isset($item['multipliers']) && is_array($item['multipliers'])) {
+                                    $item['multipliers'] = json_encode($item['multipliers']);
+                                }
                             }
                             $budgetItemsModel->insertBatch($budgetItems);
                         } else {
                             $budgetItems['act_design_id'] = $id;
                             if (isset($budgetItems['venue_id']) && isset($tempToRealVenueIdMap[$budgetItems['venue_id']])) {
                                 $budgetItems['venue_id'] = $tempToRealVenueIdMap[$budgetItems['venue_id']];
+                            }
+                            if (isset($budgetItems['multipliers']) && is_array($budgetItems['multipliers'])) {
+                                $budgetItems['multipliers'] = json_encode($budgetItems['multipliers']);
                             }
                             $budgetItemsModel->insert($budgetItems);
                         }

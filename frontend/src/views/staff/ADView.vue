@@ -244,36 +244,19 @@
                       </div>
                       <div class="budget-group-content">
                         <div v-for="(child, cIdx) in group.children" :key="cIdx" class="budget-row-item" :class="{'has-sub-options': child.subOptions || (child.othersBreakdown && child.othersBreakdown.length > 0)}">
-                          <div class="budget-row-header">
+                          <div class="budget-row-header" style="flex-wrap: wrap; align-items: flex-start; justify-content: space-between;">
                             <div class="budget-item-info">
                               <div class="budget-item-title" v-html="formatBudgetName(child.name)"></div>
+                              <div v-if="child.formula" style="font-size: 12px; color: #94a3b8; font-family: monospace; margin-top: 4px;">
+                                {{ child.formula }}
+                              </div>
+                              <div v-else-if="child.sub_item && child.name !== child.sub_item" style="font-size: 12px; color: #94a3b8; margin-top: 4px;">
+                                {{ child.sub_item }}
+                              </div>
                             </div>
                             <div class="budget-item-value">
                               <span class="budget-currency-symbol">₱</span>
                               <div class="budget-card-input-readonly">{{ formatCurrency(child.value) }}</div>
-                            </div>
-                          </div>
-                          <div v-if="child.subOptions" class="budget-sub-options-container">
-                            <label v-for="(opt, oIdx) in child.subOptions" :key="oIdx" class="budget-read-only-checkbox">
-                              <input type="checkbox" :checked="opt.checked" disabled class="budget-checkbox-disabled" />
-                              <span class="budget-checkbox-label-text">{{ opt.label }}</span>
-                            </label>
-                          </div>
-                          <div v-if="child.pax" class="budget-others-breakdown-container mt-2">
-                             <div v-if="child.name === 'Meals'" class="flex gap-2 flex-wrap">
-                                <span v-if="child.pax.breakfast" class="text-[11px] bg-slate-800/50 text-slate-300 px-2 py-1 rounded">Breakfast: {{ child.pax.breakfast }} pax</span>
-                                <span v-if="child.pax.lunch" class="text-[11px] bg-slate-800/50 text-slate-300 px-2 py-1 rounded">Lunch: {{ child.pax.lunch }} pax</span>
-                                <span v-if="child.pax.dinner" class="text-[11px] bg-slate-800/50 text-slate-300 px-2 py-1 rounded">Dinner: {{ child.pax.dinner }} pax</span>
-                             </div>
-                             <div v-if="child.name === 'Snacks'" class="flex gap-2 flex-wrap">
-                                <span v-if="child.pax.am_snack" class="text-[11px] bg-slate-800/50 text-slate-300 px-2 py-1 rounded">AM Snack: {{ child.pax.am_snack }} pax</span>
-                                <span v-if="child.pax.pm_snack" class="text-[11px] bg-slate-800/50 text-slate-300 px-2 py-1 rounded">PM Snack: {{ child.pax.pm_snack }} pax</span>
-                             </div>
-                          </div>
-                          <div v-if="child.othersBreakdown && child.othersBreakdown.length" class="budget-others-breakdown-container mt-2">
-                            <div v-for="(o, oIdx) in child.othersBreakdown" :key="oIdx" class="budget-others-breakdown-row" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; padding: 4px 12px; background: rgba(0,0,0,0.1); border-radius: 4px; margin-bottom: 4px; font-size: 13px;">
-                              <span style="color: #cbd5e1;">{{ o.name || 'Unnamed Item' }}</span>
-                              <span style="color: #f1f5f9; font-weight: 500;">₱{{ formatCurrency(o.amount) }}</span>
                             </div>
                           </div>
                         </div>
@@ -650,102 +633,52 @@ const parsedBudget = computed(() => {
         venuesMap[vid] = {
           venue_id: vid,
           venue_name: vName,
-          items: [],
-          totals: {
-            meals: 0, snacks: 0, 
-            venue: 0, accommodation: 0, equipment: 0, transportation: 0,
-            pf: 0, tokens: 0, pf_pax: 0, tokens_pax: 0,
-            materials: 0, others: 0
-          },
-          othersBreakdown: []
+          groups: {
+            catering: { name: 'Catering & Hospitality', icon: '🍽️', total: 0, children: [] },
+            logistics: { name: 'Venue & Logistics', icon: '🏛️', total: 0, children: [] },
+            program: { name: 'Program & Speakers', icon: '🎤', total: 0, children: [] },
+            materials: { name: 'Materials & Miscellaneous', icon: '📦', total: 0, children: [] }
+          }
         };
       }
       
       const vData = venuesMap[vid];
       const amt = Number(item.amount) || 0;
+      const name = item.item_name === 'Others' && item.sub_item ? item.sub_item : item.item_name;
       
-      if (item.item_name === 'Meals') {
-        vData.totals.meals += amt;
-        try {
-          const parsed = JSON.parse(item.sub_item);
-          if (parsed && typeof parsed === 'object') vData.mealsPax = parsed;
-        } catch(e) {}
-      }
-      else if (item.item_name === 'Snacks') {
-        vData.totals.snacks += amt;
-        try {
-          const parsed = JSON.parse(item.sub_item);
-          if (parsed && typeof parsed === 'object') vData.snacksPax = parsed;
-        } catch(e) {}
-      }
-      else if (item.item_name === 'Function Room/Venue') vData.totals.venue += amt;
-      else if (item.item_name === 'Accommodation') vData.totals.accommodation += amt;
-      else if (item.item_name === 'Equipment Rental') vData.totals.equipment += amt;
-      else if (item.item_name === 'Transportation') vData.totals.transportation += amt;
-      else if (item.item_name === 'Professional Fee/Honoraria') {
-        vData.totals.pf += amt;
-        vData.totals.pf_pax += Number(item.pax || 0);
-      }
-      else if (item.item_name === 'Token/s') {
-        vData.totals.tokens += amt;
-        vData.totals.tokens_pax += Number(item.pax || 0);
-      }
-      else if (item.item_name === 'Materials and Supplies') vData.totals.materials += amt;
-      else {
-        vData.totals.others += amt;
-        const displayName = (item.item_name === 'Others' && item.sub_item) ? item.sub_item : item.item_name;
-        vData.othersBreakdown.push({ name: displayName, amount: amt });
-      }
+      let targetGroup = 'materials';
+      if (['Breakfast', 'Lunch', 'Dinner', 'AM Snack', 'PM Snack'].includes(item.item_name)) targetGroup = 'catering';
+      else if (['Function Room/Venue', 'Accommodation', 'Equipment Rental', 'Transportation'].includes(item.item_name)) targetGroup = 'logistics';
+      else if (['Professional Fee/Honoraria', 'Token/s'].includes(item.item_name)) targetGroup = 'program';
+      else if (['Materials and Supplies'].includes(item.item_name)) targetGroup = 'materials';
+      
+      vData.groups[targetGroup].total += amt;
+      vData.groups[targetGroup].children.push({
+        name: name,
+        value: amt,
+        formula: item.formula || '',
+        sub_item: item.sub_item
+      });
     });
 
     const result = [];
     for (const vid in venuesMap) {
       const v = venuesMap[vid];
       
-      const groups = [
-        {
-          name: 'Catering & Hospitality', icon: '🍽️',
-          total: v.totals.meals + v.totals.snacks,
-          children: [
-            { name: 'Meals', value: v.totals.meals, pax: v.mealsPax },
-            { name: 'Snacks', value: v.totals.snacks, pax: v.snacksPax }
-          ]
-        },
-        {
-          name: 'Venue & Logistics', icon: '🏛️',
-          total: v.totals.venue + v.totals.accommodation + v.totals.equipment + v.totals.transportation,
-          children: [
-            { name: 'Function Room/Venue', value: v.totals.venue },
-            { name: 'Accommodation', value: v.totals.accommodation },
-            { name: 'Equipment Rental', value: v.totals.equipment },
-            { name: 'Transportation', value: v.totals.transportation }
-          ]
-        },
-        {
-          name: 'Program & Speakers', icon: '🎤',
-          total: v.totals.pf + v.totals.tokens,
-          children: [
-            { name: `Professional Fee/Honoraria ${v.totals.pf > 0 ? `(Number of Speakers: ${v.totals.pf_pax})` : ''}`, value: v.totals.pf },
-            { name: `Token/s ${v.totals.tokens > 0 ? `(Number of Recipients: ${v.totals.tokens_pax})` : ''}`, value: v.totals.tokens }
-          ]
-        },
-        {
-          name: 'Materials & Miscellaneous', icon: '📦',
-          total: v.totals.materials + v.totals.others,
-          children: [
-            { name: 'Materials and Supplies', value: v.totals.materials },
-            { name: 'Others', value: v.totals.others, othersBreakdown: v.othersBreakdown }
-          ]
-        }
+      const groupsArray = [
+        v.groups.catering,
+        v.groups.logistics,
+        v.groups.program,
+        v.groups.materials
       ];
       
-      const venueTotal = groups.reduce((sum, g) => sum + g.total, 0);
+      const venueTotal = groupsArray.reduce((sum, g) => sum + g.total, 0);
       
       result.push({
         venue_id: v.venue_id,
         venue_name: v.venue_id === 'Legacy' ? 'General Budget (Legacy Format)' : `Venue: ${v.venue_id}`,
         isExpanded: false,
-        groups: groups,
+        groups: groupsArray,
         total: venueTotal
       });
     }

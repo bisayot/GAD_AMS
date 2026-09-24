@@ -316,339 +316,31 @@
                 <span class="material-symbols-outlined icon-pink">payments</span>
                 <h3 class="section-title">Proposed Budgetary Requirements</h3>
               </div>
+              <BudgetBuilder 
+                ref="budgetBuilder"
+                v-model:venueBudgets="formData.venue_budgets" 
+                :venues="formData.venues" 
+                :baselineSettings="baselineSettings"
+                :isOutsideBsu="isOutsideBsu" 
+                :computedDays="computedDays"
+                :filteredVenues="filteredVenues"
+                :customVenuesList="customVenuesList"
+                label=""
+              />
 
-              <!-- Proposed Budgetary Requirements Table (Refactored Inline) -->
-              <div v-if="formData.venues && formData.venues.length" class="budget-content">
-                    <!-- Grouped Budget Divisions -->
-                    <div v-for="vId in (formData.venues && formData.venues.length ? formData.venues : [])" :key="vId" class="venue-budget-wrapper" style="margin-bottom: 2rem; border-radius: 8px; padding: 1rem; border: 1px solid rgba(185, 121, 204, 0.3);">
-                      <h4 style="color: #e9d5ff; margin-bottom: 15px; border-left: 4px solid #b979cc; padding-left: 10px;">Budget for Venue: {{ getVenueName(vId) }}</h4>
-                    <div class="budget-groups-container" style="display: flex; flex-direction: column; gap: 16px;">
-                      
-                      <!-- Group 1: Catering & Hospitality -->
-                      <div class="budget-group-card">
-                        <div class="budget-group-header" style="justify-content: space-between;">
-                          <div style="display: flex; align-items: center; gap: 10px;">
-                            <span class="budget-group-icon">🍽️</span>
-                            <span class="budget-group-title">Catering & Hospitality</span>
-                          </div>
-                          <div class="budget-group-total">
-                            ₱{{ ((Number(formData.venue_budgets[vId][0].total) || 0) + (Number(formData.venue_budgets[vId][1].total) || 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
-                          </div>
-                        </div>
-                        <div class="budget-group-content">
-                          <!-- Meals Row -->
-                          <div class="budget-row-item">
-                            <div class="budget-item-info">
-                              <div class="budget-item-title">Meals <span style="font-size: 12px; font-weight: normal; color: #94a3b8; font-style: italic; margin-left: 6px;">(Input number of pax)</span></div>
-                              <div class="pax-breakdown-list">
-                                <div class="pax-breakdown-item">
-                                  <div class="pax-input-group">
-                                    <input type="number" min="0" placeholder="0" class="creative-pax-input" v-model="formData.venue_budgets[vId][0].meals_needed.breakfast" />
-                                    <span class="pax-label">Breakfast</span>
-                                  </div>
-                                  <div class="pax-calc-text" v-if="formData.venue_budgets[vId][0].meals_needed.breakfast > 0">
-                                    <span class="pax-calc-formula">{{ formData.venue_budgets[vId][0].meals_needed.breakfast }} pax &times; ₱{{ (isOutsideBsu ? baselineSettings.meals_outside : baselineSettings.meals_inside) }} &times; {{ computedDays || 1 }} days</span>
-                                    <span class="pax-calc-equals">=</span>
-                                    <span class="pax-calc-total">₱{{ ((formData.venue_budgets[vId][0].meals_needed.breakfast || 0) * (isOutsideBsu ? baselineSettings.meals_outside : baselineSettings.meals_inside) * (computedDays || 1)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
-                                  </div>
-                                </div>
-                                <div class="pax-breakdown-item">
-                                  <div class="pax-input-group">
-                                    <input type="number" min="0" placeholder="0" class="creative-pax-input" v-model="formData.venue_budgets[vId][0].meals_needed.lunch" />
-                                    <span class="pax-label">Lunch</span>
-                                  </div>
-                                  <div class="pax-calc-text" v-if="formData.venue_budgets[vId][0].meals_needed.lunch > 0">
-                                    <span class="pax-calc-formula">{{ formData.venue_budgets[vId][0].meals_needed.lunch }} pax &times; ₱{{ (isOutsideBsu ? baselineSettings.meals_outside : baselineSettings.meals_inside) }} &times; {{ computedDays || 1 }} days</span>
-                                    <span class="pax-calc-equals">=</span>
-                                    <span class="pax-calc-total">₱{{ ((formData.venue_budgets[vId][0].meals_needed.lunch || 0) * (isOutsideBsu ? baselineSettings.meals_outside : baselineSettings.meals_inside) * (computedDays || 1)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
-                                  </div>
-                                </div>
-                                <div class="pax-breakdown-item">
-                                  <div class="pax-input-group">
-                                    <input type="number" min="0" placeholder="0" class="creative-pax-input" v-model="formData.venue_budgets[vId][0].meals_needed.dinner" />
-                                    <span class="pax-label">Dinner</span>
-                                  </div>
-                                  <div class="pax-calc-text" v-if="formData.venue_budgets[vId][0].meals_needed.dinner > 0">
-                                    <span class="pax-calc-formula">{{ formData.venue_budgets[vId][0].meals_needed.dinner }} pax &times; ₱{{ (isOutsideBsu ? baselineSettings.meals_outside : baselineSettings.meals_inside) }} &times; {{ computedDays || 1 }} days</span>
-                                    <span class="pax-calc-equals">=</span>
-                                    <span class="pax-calc-total">₱{{ ((formData.venue_budgets[vId][0].meals_needed.dinner || 0) * (isOutsideBsu ? baselineSettings.meals_outside : baselineSettings.meals_inside) * (computedDays || 1)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
-                                  </div>
-                                </div>
-                              </div>
-                              
-                            </div>
-                            <div class="budget-item-value">
-                              <span class="budget-currency-symbol">₱</span>
-                              <input 
-                                type="number" 
-                                v-model="formData.venue_budgets[vId][0].total" 
-                                class="budget-card-input"
-                                placeholder="0.00"
-                                min="0"
-                                step="0.01"
-                              />
-                            </div>
-                          </div>
-
-                          <!-- Snacks Row -->
-                          <div class="budget-row-item">
-                            <div class="budget-item-info">
-                              <div class="budget-item-title">Snacks <span style="font-size: 12px; font-weight: normal; color: #94a3b8; font-style: italic; margin-left: 6px;">(Input number of pax)</span></div>
-                              <div class="pax-breakdown-list">
-                                <div class="pax-breakdown-item">
-                                  <div class="pax-input-group">
-                                    <input type="number" min="0" placeholder="0" class="creative-pax-input" v-model="formData.venue_budgets[vId][1].meals_needed.am_snack" />
-                                    <span class="pax-label">AM Snack</span>
-                                  </div>
-                                  <div class="pax-calc-text" v-if="formData.venue_budgets[vId][1].meals_needed.am_snack > 0">
-                                    <span class="pax-calc-formula">{{ formData.venue_budgets[vId][1].meals_needed.am_snack }} pax &times; ₱{{ (isOutsideBsu ? baselineSettings.snacks_outside : baselineSettings.snacks_inside) }} &times; {{ computedDays || 1 }} days</span>
-                                    <span class="pax-calc-equals">=</span>
-                                    <span class="pax-calc-total">₱{{ ((formData.venue_budgets[vId][1].meals_needed.am_snack || 0) * (isOutsideBsu ? baselineSettings.snacks_outside : baselineSettings.snacks_inside) * (computedDays || 1)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
-                                  </div>
-                                </div>
-                                <div class="pax-breakdown-item">
-                                  <div class="pax-input-group">
-                                    <input type="number" min="0" placeholder="0" class="creative-pax-input" v-model="formData.venue_budgets[vId][1].meals_needed.pm_snack" />
-                                    <span class="pax-label">PM Snack</span>
-                                  </div>
-                                  <div class="pax-calc-text" v-if="formData.venue_budgets[vId][1].meals_needed.pm_snack > 0">
-                                    <span class="pax-calc-formula">{{ formData.venue_budgets[vId][1].meals_needed.pm_snack }} pax &times; ₱{{ (isOutsideBsu ? baselineSettings.snacks_outside : baselineSettings.snacks_inside) }} &times; {{ computedDays || 1 }} days</span>
-                                    <span class="pax-calc-equals">=</span>
-                                    <span class="pax-calc-total">₱{{ ((formData.venue_budgets[vId][1].meals_needed.pm_snack || 0) * (isOutsideBsu ? baselineSettings.snacks_outside : baselineSettings.snacks_inside) * (computedDays || 1)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
-                                  </div>
-                                </div>
-                              </div>
-                              
-                            </div>
-                            <div class="budget-item-value">
-                              <span class="budget-currency-symbol">₱</span>
-                              <input 
-                                type="number" 
-                                v-model="formData.venue_budgets[vId][1].total" 
-                                class="budget-card-input"
-                                placeholder="0.00"
-                                min="0"
-                                step="0.01"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- Group 2: Venue & Logistics -->
-                      <div class="budget-group-card">
-                        <div class="budget-group-header">
-                          <span class="budget-group-icon">🏨</span>
-                          <span class="budget-group-title">Venue & Logistics</span>
-                        </div>
-                        <div class="budget-group-content">
-                          <!-- Function Room/Venue -->
-                          <div class="budget-row-item">
-                            <div class="budget-item-info">
-                              <div class="budget-item-title">Function Room/Venue</div>
-                              <span class="budget-item-subtext">(Leave blank/zero for Attribution)</span>
-                            </div>
-                            <div class="budget-item-value">
-                              <span class="budget-currency-symbol">₱</span>
-                              <input 
-                                type="number" 
-                                v-model="formData.venue_budgets[vId][2].total" 
-                                class="budget-card-input"
-                                placeholder="0.00"
-                                min="0"
-                                step="0.01"
-                              />
-                            </div>
-                          </div>
-
-                          <!-- Accommodation -->
-                          <div class="budget-row-item">
-                            <div class="budget-item-info">
-                              <div class="budget-item-title">Accommodation</div>
-                              <span class="budget-item-subtext">(Leave blank/zero)</span>
-                            </div>
-                            <div class="budget-item-value">
-                              <span class="budget-currency-symbol">₱</span>
-                              <input 
-                                type="number" 
-                                v-model="formData.venue_budgets[vId][3].total" 
-                                class="budget-card-input"
-                                placeholder="0.00"
-                                min="0"
-                                step="0.01"
-                              />
-                            </div>
-                          </div>
-
-                          <!-- Equipment Rental -->
-                          <div class="budget-row-item">
-                            <div class="budget-item-info">
-                              <div class="budget-item-title">Equipment Rental</div>
-                              <span class="budget-item-subtext">(Leave blank/zero)</span>
-                            </div>
-                            <div class="budget-item-value">
-                              <span class="budget-currency-symbol">₱</span>
-                              <input 
-                                type="number" 
-                                v-model="formData.venue_budgets[vId][4].total" 
-                                class="budget-card-input"
-                                placeholder="0.00"
-                                min="0"
-                                step="0.01"
-                              />
-                            </div>
-                          </div>
-
-                          <!-- Transportation -->
-                          <div class="budget-row-item">
-                            <div class="budget-item-info">
-                              <div class="budget-item-title">Transportation</div>
-                              <div v-if="formData.venue_budgets[vId][8]?.total > (baselineSettings?.transportation_limit ?? 20000)" class="budget-error-inline">
-                                ⚠️ Cannot exceed ₱{{ Number(baselineSettings?.transportation_limit ?? 20000).toLocaleString('en-US') }} limit.
-                              </div>
-                            </div>
-                            <div class="budget-item-value">
-                              <span class="budget-currency-symbol">₱</span>
-                              <input 
-                                type="number" 
-                                v-model="formData.venue_budgets[vId][8].total" @input="checkTransportationLimit(vId)" 
-                                class="budget-card-input"
-                                placeholder="0.00"
-                                min="0"
-                                step="0.01"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- Group 3: Program & Speakers -->
-                      <div class="budget-group-card">
-                        <div class="budget-group-header">
-                          <span class="budget-group-icon">🎓</span>
-                          <span class="budget-group-title">Program & Speakers</span>
-                        </div>
-                        <div class="budget-group-content">
-                          <!-- Professional Fee/Honoraria -->
-                          <div class="budget-row-item">
-                            <div class="budget-item-info">
-                              <div class="budget-item-title">Professional Fee/Honoraria</div>
-                              <div class="budget-sub-controls">
-                                <label class="budget-number-input-label">
-                                  Number of Speakers:
-                                  <input type="number" v-model.number="formData.venue_budgets[vId][5].pax" min="0" class="budget-sub-number-input" placeholder="0" />
-                                </label>
-                              </div>
-                            </div>
-                            <div class="budget-item-value">
-                              <span class="budget-currency-symbol">₱</span>
-                              <input 
-                                type="number" 
-                                v-model="formData.venue_budgets[vId][5].total" 
-                                class="budget-card-input"
-                                placeholder="0.00"
-                                min="0"
-                                step="0.01"
-                              />
-                            </div>
-                          </div>
-
-                          <!-- Token/s -->
-                          <div class="budget-row-item">
-                            <div class="budget-item-info">
-                              <div class="budget-item-title">Token/s</div>
-                              <div class="budget-sub-controls">
-                                <label class="budget-number-input-label">
-                                  Number of Recipients:
-                                  <input type="number" v-model.number="formData.venue_budgets[vId][6].pax" min="0" class="budget-sub-number-input" placeholder="0" />
-                                </label>
-                              </div>
-                            </div>
-                            <div class="budget-item-value">
-                              <span class="budget-currency-symbol">₱</span>
-                              <input 
-                                type="number" 
-                                v-model="formData.venue_budgets[vId][6].total" 
-                                class="budget-card-input"
-                                placeholder="0.00"
-                                min="0"
-                                step="0.01"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- Group 4: Materials & Miscellaneous -->
-                      <div class="budget-group-card">
-                        <div class="budget-group-header">
-                          <span class="budget-group-icon">📦</span>
-                          <span class="budget-group-title">Materials & Miscellaneous</span>
-                        </div>
-                        <div class="budget-group-content">
-                          <!-- Materials and Supplies -->
-                          <div class="budget-row-item">
-                            <div class="budget-item-info">
-                              <div class="budget-item-title">Materials and Supplies</div>
-                            </div>
-                            <div class="budget-item-value">
-                              <span class="budget-currency-symbol">₱</span>
-                              <input 
-                                type="number" 
-                                v-model="formData.venue_budgets[vId][7].total" 
-                                class="budget-card-input"
-                                placeholder="0.00"
-                                min="0"
-                                step="0.01"
-                              />
-                            </div>
-                          </div>
-
-                          <!-- Others -->
-                          <div class="others-section-wrapper">
-                            <div class="budget-row-item others-row-item-header" style="border-bottom: none; padding-bottom: 8px;">
-                              <div class="budget-item-info">
-                                <div class="budget-item-title">Others</div>
-                              </div>
-                              <div class="budget-item-value">
-                                <span class="others-total-badge">₱{{ Number(formData.venue_budgets[vId][9].total || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
-                              </div>
-                            </div>
-                            <div class="others-breakdown-container">
-                              <div v-for="(o, oIdx) in (venueOthersList[vId] || [])" :key="oIdx" class="others-breakdown-row">
-                                <input type="text" v-model="o.name" placeholder="Item name (e.g. Coffee)" class="others-input-name" />
-                                <input type="number" v-model.number="o.amount" min="0" placeholder="₱0.00" class="others-input-amount" />
-                                <button type="button" @click="removeOtherItem(vId, oIdx)" class="btn-remove-other" title="Remove">×</button>
-                              </div>
-                              <button type="button" @click="addOtherItem(vId)" class="btn-add-other" style="width: 100%; justify-content: center;">
-                                <span>+</span> Add Item
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                    </div>
-                    </div>
-
-                    <!-- Overall Target Participants Banner -->
-                    <div class="grand-total-banner-card" style="background: rgba(30,41,59,0.7); margin-bottom: 12px; border-color: #334155; padding: 12px 20px;">
-                      <div class="grand-total-label-banner" style="color: #94a3b8; font-size: 13px;">Overall Expected Attendance (Auto-calculated)</div>
-                      <div class="grand-total-value-banner" style="color: #cbd5e1; font-size: 16px;">
-                        {{ formData.target_participants || 0 }} Pax
-                      </div>
-                    </div>
-
-                    <!-- Grand Total Banner Card -->
-                    <div class="grand-total-banner-card">
-                      <div class="grand-total-label-banner">Grand Total (PHP)</div>
-                      <div class="grand-total-value-banner">
-                        ₱{{ Number(formData.proposed_budget || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
-                      </div>
+              <!-- Overall Target Participants Banner -->
+              <div class="grand-total-banner-card" style="background: rgba(30,41,59,0.7); margin-bottom: 12px; border-color: #334155; padding: 12px 20px;">
+                <div class="grand-total-label-banner" style="color: #94a3b8; font-size: 13px;">Overall Expected Attendance (Auto-calculated)</div>
+                <div class="grand-total-value-banner" style="color: #cbd5e1; font-size: 16px;">
+                  {{ formData.target_participants || 0 }} Pax
                 </div>
               </div>
-              <div v-else class="empty-budget-notice">
-                No budgetary requirements were specified for this design.
+
+              <!-- Grand Total Banner Card -->
+              <div class="grand-total-banner-card">
+                <div class="grand-total-label-banner">Grand Total (PHP)</div>
+                <div class="grand-total-value-banner">
+                  ₱{{ Number(formData.proposed_budget || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
                 </div>
               </div>
             </div>
@@ -767,6 +459,7 @@ import { useRoute, useRouter } from 'vue-router';
 import api from '../../api';
 import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
 import Swal from 'sweetalert2';
+import BudgetBuilder from '../../components/BudgetBuilder.vue';
 
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 const userRole = user.value?.role || user.value?.user_role || '';
@@ -1212,14 +905,13 @@ const isOutsideBsu = computed(() => {
 // Reactive Sub-controls State
 
 
-const pfPax = ref('');
-const tokensPax = ref('');
-const othersList = ref([]);
 const customMandate = ref('');
 const customGenderIssue = ref('');
 const loadingData = ref(false);
+const budgetBuilder = ref(null);
 
 // Reactive Auto-computation Watchers
+/*
 watch(
   [
     () => formData.value.venue_budgets,
@@ -1297,6 +989,7 @@ watch(
   },
   { deep: true }
 );
+*/
 
 const fetchVenues = async () => {
   try {
@@ -1510,37 +1203,51 @@ const fetchDesignDetails = async () => {
         }
         savedVenues.forEach(vid => {
           const items = design.value.budget_items?.filter(i => String(i.venue_id) === String(vid)) || [];
-          const mealsDB = items.find(i => i.item_name === 'Meals') || {};
-          const snacksDB = items.find(i => i.item_name === 'Snacks') || {};
-          const pax = Number(design.value.target_participants) || 0;
-          let parsedMeals = { breakfast: pax, lunch: pax, dinner: pax };
-          if (mealsDB.sub_item) {
-             try { const obj = JSON.parse(mealsDB.sub_item); if(obj && typeof obj === 'object') parsedMeals = obj; } catch(e) {}
-          }
-          let parsedSnacks = { am_snack: pax, pm_snack: pax };
-          if (snacksDB.sub_item) {
-             try { const obj = JSON.parse(snacksDB.sub_item); if(obj && typeof obj === 'object') parsedSnacks = obj; } catch(e) {}
-          }
-          savedVenueBudgets[vid] = [
-            { name: 'Meals', total: Number(mealsDB.amount || 0) || '', meals_needed: parsedMeals },
-            { name: 'Snacks', total: Number(snacksDB.amount || 0) || '', meals_needed: parsedSnacks },
-            { name: 'Function Room/Venue', total: Number(items.find(i => i.item_name === 'Function Room/Venue')?.amount || 0) || '' },
-            { name: 'Accommodation', total: Number(items.find(i => i.item_name === 'Accommodation')?.amount || 0) || '' },
-            { name: 'Equipment Rental', total: Number(items.find(i => i.item_name === 'Equipment Rental')?.amount || 0) || '' },
-            { name: 'Professional Fee/Honoraria', total: Number(items.find(i => i.item_name === 'Professional Fee/Honoraria')?.amount || 0) || '', pax: items.find(i => i.item_name === 'Professional Fee/Honoraria')?.pax || '' },
-            { name: 'Token/s', total: Number(items.find(i => i.item_name === 'Token/s')?.amount || 0) || '', pax: items.find(i => i.item_name === 'Token/s')?.pax || '' },
-            { name: 'Materials and Supplies', total: Number(items.find(i => i.item_name === 'Materials and Supplies')?.amount || 0) || '' },
-            { name: 'Transportation', total: Number(items.find(i => i.item_name === 'Transportation')?.amount || 0) || '' },
-            { name: 'Others', total: '' }
-          ];
-          // Load Others breakdown
-          const othersItems = items.filter(i => i.item_name === 'Others');
-          if (othersItems.length > 0) {
-            if (!venueOthersList.value[vid]) venueOthersList.value[vid] = [];
-            othersItems.forEach(o => {
-              venueOthersList.value[vid].push({ name: o.sub_item || '', amount: Number(o.amount) || 0 });
+          let lineSeq = 1;
+          const mapped = [];
+          items.forEach(dbItem => {
+            const isCatering = ['Breakfast', 'Lunch', 'Dinner', 'AM Snack', 'PM Snack'].includes(dbItem.item_name);
+            const isLogistics = ['Function Room/Venue', 'Accommodation', 'Equipment Rental', 'Transportation'].includes(dbItem.item_name);
+            const isProgram = ['Professional Fee/Honoraria', 'Token/s'].includes(dbItem.item_name);
+            
+            let group = 'materials';
+            if (isCatering) group = 'catering';
+            else if (isLogistics) group = 'logistics';
+            else if (isProgram) group = 'program';
+            
+            let mult = [];
+            try {
+              if (dbItem.multipliers) {
+                const parsed = typeof dbItem.multipliers === 'string' ? JSON.parse(dbItem.multipliers) : dbItem.multipliers;
+                if (Array.isArray(parsed)) {
+                  mult = parsed.map(m => ({ q: Number(m.value) || 0, u: String(m.label || '').trim() }));
+                }
+              }
+            } catch(e) {}
+            
+            let baseKey = null;
+            if (isCatering) baseKey = dbItem.item_name.includes('Snack') ? 'snacks' : 'meals';
+            else if (dbItem.item_name === 'Professional Fee/Honoraria') baseKey = 'pf_honoraria';
+            else if (dbItem.item_name === 'Token/s') baseKey = 'tokens';
+            
+            let base = 0;
+            if (baseKey === 'meals') base = isOutsideBsu.value ? baselineSettings.value.meals_outside : baselineSettings.value.meals_inside;
+            else if (baseKey === 'snacks') base = isOutsideBsu.value ? baselineSettings.value.snacks_outside : baselineSettings.value.snacks_inside;
+            else if (baseKey) base = baselineSettings.value[baseKey];
+            
+            mapped.push({
+              id: lineSeq++,
+              group,
+              name: dbItem.item_name === 'Others' ? dbItem.sub_item : dbItem.item_name,
+              rate: Number(dbItem.unit_cost) || 0,
+              mult,
+              custom: dbItem.item_name === 'Others' || isCatering,
+              baseKey,
+              base,
+              capKey: dbItem.item_name === 'Transportation' ? 'transportation_limit' : null
             });
-          }
+          });
+          savedVenueBudgets[vid] = mapped;
         });
         customVenuesList.value = savedCustomVenues;
       } else if (design.value.venue_id || design.value.venue) {
@@ -2084,32 +1791,25 @@ const handleUpdate = async () => {
 
     const normalizedBudgetItems = [];
     formData.value.venues.forEach(vid => {
-      const budgetItems = formData.value.venue_budgets[vid];
-      if (!budgetItems) return;
-      budgetItems.forEach(item => {
-        if (item.name !== 'Others') {
-          normalizedBudgetItems.push({
-            venue_id: vid === 'Other' ? 'Other' : vid,
-            category_id: null,
-            item_name: item.name,
-            sub_item: (item.name === 'Meals' || item.name === 'Snacks') ? JSON.stringify(item.meals_needed) : (item.sub_item || null),
-            pax: item.pax || null,
-            amount: Number(item.total) || 0
-          });
-        }
-      });
-      const list = venueOthersList.value[vid] || [];
-      list.forEach(o => {
-        if (o.name && Number(o.amount) > 0) {
-          normalizedBudgetItems.push({
-            venue_id: vid === 'Other' ? 'Other' : vid,
-            category_id: null,
-            item_name: 'Others',
-            sub_item: o.name,
-            pax: null,
-            amount: Number(o.amount) || 0
-          });
-        }
+      (formData.value.venue_budgets[vid] || []).forEach(item => {
+        const lineTotal = (Number(item.rate) || 0) * item.mult.reduce((p, m) => p * (Number(m.q) || 0), 1);
+        if (item.custom && (!String(item.name).trim() || lineTotal <= 0)) return;
+        const isOther = item.custom && item.group === 'materials';
+        
+        const paxOf = Number((item.mult.find(m => /^(pax|person|persons|head|heads)$/i.test(String(m.u || '').trim())) || {}).q) || 0;
+        const lineFormula = [('₱' + (Number(item.rate) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })), ...item.mult.map(m => `${Number(m.q) || 0} ${String(m.u || '').trim()}`.trim())].join(' × ');
+        
+        normalizedBudgetItems.push({
+          venue_id: vid === 'Other' ? 'Other' : vid,
+          category_id: null,
+          item_name: isOther ? 'Others' : item.name,
+          sub_item: isOther ? item.name : lineFormula,
+          pax: paxOf || null,
+          unit_cost: Number(item.rate) || 0,
+          multipliers: item.mult.map(m => ({ label: String(m.u || '').trim(), value: Number(m.q) || 0 })),
+          formula: lineFormula,
+          amount: lineTotal
+        });
       });
     });
 
@@ -3203,6 +2903,7 @@ letter-spacing: 0.05em;
   outline: none;
 }
 .pax-label { font-size: 14px; color: #e2e8f0; font-weight: 500; } .pax-calc-text { font-size: 12px; color: #94a3b8; margin-left: 77px; display: flex; align-items: center; gap: 6px; background: rgba(0, 0, 0, 0.2); padding: 4px 8px; border-radius: 4px; width: fit-content; } .pax-calc-formula { color: #cbd5e1; } .pax-calc-equals { color: #64748b; } .pax-calc-total { color: #10b981; font-weight: 600; font-size: 13px; } .budget-group-total { font-weight: 600; color: #10b981; background: rgba(16, 185, 129, 0.1); padding: 4px 10px; border-radius: 6px; font-size: 13px; margin-top: 4px; } .budget-row-item:has(.pax-breakdown-list) { flex-wrap: wrap !important; } .budget-group-header { flex-wrap: wrap !important; } .pax-calc-text { flex-wrap: wrap !important; max-width: 100% !important; margin-top: 8px !important; margin-left: 0 !important; } .pax-calc-formula, .pax-calc-equals, .pax-calc-total { white-space: nowrap !important; } </style>
+
 
 
 
