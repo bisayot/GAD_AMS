@@ -333,10 +333,8 @@
                       </div>
                     </div>
               </div>
-              </div>
               <div v-else class="empty-budget-notice">
                 No budgetary requirements were specified for this design.
-                </div>
               </div>
             </div>
 
@@ -400,6 +398,7 @@
                 </div>
               </div>
             </div>
+          </div>
         </section>
 
         <section v-if="design.status !== 'Approved'" class="flex-04-sidebar">
@@ -763,27 +762,7 @@ const formData = ref({
   ]
 });
 
-// Watch venues array to initialize per-venue budget structure
-watch(() => formData.value?.venues, (newVenues) => {
-  if (!newVenues) return;
-  newVenues.forEach(vid => {
-    if (!formData.value.venue_budgets[vid]) {
-      const pax = Number(formData.value.target_participants) || 0;
-      formData.value.venue_budgets[vid] = [
-        { name: 'Meals', total: '', meals_needed: { breakfast: pax, lunch: pax, dinner: pax } },
-        { name: 'Snacks', total: '', meals_needed: { am_snack: pax, pm_snack: pax } },
-        { name: 'Function Room/Venue', total: '' },
-        { name: 'Accommodation', total: '' },
-        { name: 'Equipment Rental', total: '' },
-        { name: 'Professional Fee/Honoraria', total: '', pax: '' },
-        { name: 'Token/s', total: '', pax: '' },
-        { name: 'Materials and Supplies', total: '' },
-        { name: 'Transportation', total: '' },
-        { name: 'Others', total: '' }
-      ];
-    }
-  });
-}, { deep: true });
+
 
 // Watch venue_budgets for grand total + auto-calculated participants
 watch(() => formData.value.venue_budgets, (newBudgets) => {
@@ -1185,33 +1164,49 @@ const fetchDesignDetails = async () => {
         }
         savedVenues.forEach(vid => {
           const items = design.value.budget_items?.filter(i => String(i.venue_id) === String(vid)) || [];
+          let lineSeq = 1;
           let parsedVenueBudget = [];
           
-          items.forEach(item => {
-            const isMeals = item.item_name === 'Meals' || item.item_name === 'Snacks';
-            const isOthers = item.item_name === 'Others';
-            const groupName = isOthers ? 'materials' : 
-                              (isMeals ? 'catering' : 
-                              (['Function Room/Venue', 'Accommodation', 'Equipment Rental', 'Transportation'].includes(item.item_name) ? 'logistics' :
-                              (['Professional Fee/Honoraria', 'Token/s'].includes(item.item_name) ? 'program' : 'materials')));
-                              
+          items.forEach(dbItem => {
+            const isCatering = ['Breakfast', 'Lunch', 'Dinner', 'AM Snack', 'PM Snack'].includes(dbItem.item_name);
+            const isLogistics = ['Function Room/Venue', 'Accommodation', 'Equipment Rental', 'Transportation'].includes(dbItem.item_name);
+            const isProgram = ['Professional Fee/Honoraria', 'Token/s'].includes(dbItem.item_name);
+            
+            let group = 'materials';
+            if (isCatering) group = 'catering';
+            else if (isLogistics) group = 'logistics';
+            else if (isProgram) group = 'program';
+            
             let mult = [];
-            if (item.multipliers && Array.isArray(item.multipliers)) {
-               mult = item.multipliers.map(m => ({ q: m.value, u: m.label }));
-            } else if (item.multipliers && typeof item.multipliers === 'string') {
-               try { mult = JSON.parse(item.multipliers).map(m => ({ q: m.value, u: m.label })); } catch(e) {}
-            }
-            if (mult.length === 0 && item.pax) {
-               mult = [{ q: item.pax, u: 'Pax' }];
-            }
+            try {
+              if (dbItem.multipliers) {
+                const parsed = typeof dbItem.multipliers === 'string' ? JSON.parse(dbItem.multipliers) : dbItem.multipliers;
+                if (Array.isArray(parsed)) {
+                  mult = parsed.map(m => ({ q: Number(m.value) || 0, u: String(m.label || '').trim() }));
+                }
+              }
+            } catch(e) {}
+            
+            let baseKey = null;
+            if (isCatering) baseKey = dbItem.item_name.includes('Snack') ? 'snacks' : 'meals';
+            else if (dbItem.item_name === 'Professional Fee/Honoraria') baseKey = 'pf_honoraria';
+            else if (dbItem.item_name === 'Token/s') baseKey = 'tokens';
+            
+            let base = 0;
+            if (baseKey === 'meals') base = isOutsideBsu.value ? baselineSettings.value.meals_outside : baselineSettings.value.meals_inside;
+            else if (baseKey === 'snacks') base = isOutsideBsu.value ? baselineSettings.value.snacks_outside : baselineSettings.value.snacks_inside;
+            else if (baseKey) base = baselineSettings.value[baseKey];
             
             parsedVenueBudget.push({
-               id: Date.now() + Math.random(),
-               group: groupName,
-               name: isOthers ? (item.sub_item || 'Others') : item.item_name,
-               rate: item.unit_cost || item.amount || 0,
-               mult: mult,
-               custom: isOthers || !['Meals', 'Snacks', 'Function Room/Venue', 'Accommodation', 'Equipment Rental', 'Professional Fee/Honoraria', 'Token/s', 'Materials and Supplies', 'Transportation'].includes(item.item_name)
+              id: lineSeq++,
+              group,
+              name: dbItem.item_name === 'Others' ? dbItem.sub_item : dbItem.item_name,
+              rate: Number(dbItem.unit_cost) || 0,
+              mult,
+              custom: dbItem.item_name === 'Others' || isCatering,
+              baseKey,
+              base,
+              capKey: dbItem.item_name === 'Transportation' ? 'transportation_limit' : null
             });
           });
           
@@ -1752,7 +1747,7 @@ const handleUpdate = async () => {
         if (item.custom && (!String(item.name).trim() || lineTotalAmount <= 0)) return;
         const isOther = item.custom && item.group === 'materials';
         
-        const paxOfItem = Number((item.mult ? item.mult.find(m => /^(pax|person|persons|head|heads)$/i.test(String(m.u || '').trim())) : {}).q) || 0;
+        const paxOfItem = Number(((item.mult || []).find(m => /^(pax|person|persons|head|heads)$/i.test(String(m.u || '').trim())) || {}).q) || 0;
         const lineFormulaStr = [('₱' + (Number(item.rate) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })), ...(item.mult ? item.mult.map(m => `${Number(m.q) || 0} ${String(m.u || '').trim()}`.trim()) : [])].join(' × ');
         
         normalizedBudgetItems.push({

@@ -706,15 +706,6 @@ const form = ref({
   ]
 });
 
-watch(() => form.value?.venues, (newVenues) => {
-  if (!newVenues) return;
-  newVenues.forEach(vid => {
-    if (!form.value.venue_budgets[vid]) {
-      form.value.venue_budgets[vid] = defaultBudgetLines();
-    }
-  });
-}, { deep: true });
-
 const originalData = ref(null);
 const fileInput = ref(null);
 const venueDropdownOpen = ref(false);
@@ -1105,7 +1096,7 @@ const baselineSettings = ref({
 
 const fetchBaselineSettings = async () => {
   try {
-    const res = await api.get('/settings/baseline');
+    const res = await api.get('settings/baseline');
     if (res.data) {
       baselineSettings.value = res.data;
     }
@@ -1114,67 +1105,9 @@ const fetchBaselineSettings = async () => {
   }
 };
 
-// Reactive Auto-computation Watchers
-
-
-
-// ---------- Universal budget lines: rate × any number of multipliers ----------
-const unitSuggestions = ['pax', 'day', 'hr', 'night', 'pc', 'set', 'trip', 'speaker', 'snack', 'meal'];
-const budgetGroups = [
-  { key: 'catering', icon: '🍽️', title: 'Catering & Hospitality (Meals/Snacks)', addLabel: 'meal/snack' },
-  { key: 'logistics', icon: '🏨', title: 'Venue & Logistics' },
-  { key: 'program', icon: '🎓', title: 'Program & Speakers' },
-  { key: 'materials', icon: '📦', title: 'Materials & Miscellaneous', addLabel: 'item' }
-];
-let lineSeq = 1;
-const peso = n => '₱' + (Number(n) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const lineTotal = it => (Number(it.rate) || 0) * it.mult.reduce((p, m) => p * (Number(m.q) || 0), 1);
-const paxOf = it => Number((it.mult.find(m => /^(pax|person|persons|head|heads)$/i.test(String(m.u || '').trim())) || {}).q) || 0;
-const lineFormula = it => [peso(it.rate), ...it.mult.map(m => `${Number(m.q) || 0} ${String(m.u || '').trim()}`.trim())].join(' × ');
-const baseFor = l => {
-  const b = baselineSettings.value, out = isOutsideBsu.value;
-  if (l.baseKey === 'meals') return out ? b.meals_outside : b.meals_inside;
-  if (l.baseKey === 'snacks') return out ? b.snacks_outside : b.snacks_inside;
-  return b[l.baseKey];
-};
-const bl = (group, name, mult = [], extra = {}) => {
-  const l = { id: lineSeq++, group, name, rate: '', mult, ...extra };
-  if (l.baseKey) { l.base = baseFor(l); l.rate = l.base; }
-  return l;
-};
-const cateringMult = () => [{ q: 0, u: 'pax' }, { q: computedDays.value, u: 'days' }];
-const defaultBudgetLines = () => [
-  bl('catering', 'Breakfast', cateringMult(), { baseKey: 'meals', custom: true }),
-  bl('catering', 'Lunch', cateringMult(), { baseKey: 'meals', custom: true }),
-  bl('catering', 'Dinner', cateringMult(), { baseKey: 'meals', custom: true }),
-  bl('catering', 'AM Snack', cateringMult(), { baseKey: 'snacks', custom: true }),
-  bl('catering', 'PM Snack', cateringMult(), { baseKey: 'snacks', custom: true }),
-  bl('logistics', 'Function Room/Venue', [], { hint: 'Leave blank/zero for Attribution' }),
-  bl('logistics', 'Accommodation'),
-  bl('logistics', 'Equipment Rental'),
-  bl('logistics', 'Transportation', [], { capKey: 'transportation_limit' }),
-  bl('program', 'Professional Fee/Honoraria', [{ q: 0, u: 'speakers' }], { baseKey: 'pf_honoraria' }),
-  bl('program', 'Token/s', [{ q: 0, u: 'recipients' }], { baseKey: 'tokens' }),
-  bl('materials', 'Materials and Supplies')
-];
-const groupItems = (vId, g) => (form.value.venue_budgets[vId] || []).filter(i => i.group === g);
-const groupTotal = (vId, g) => groupItems(vId, g).reduce((s, i) => s + lineTotal(i), 0);
-const addLine = (vId, g) => form.value.venue_budgets[vId].push(bl(g, '', g === 'catering' ? cateringMult() : [], { custom: true }));
-const removeLine = (vId, item) => {
-  const arr = form.value.venue_budgets[vId];
-  arr.splice(arr.indexOf(item), 1);
-};
-const clearLine = item => { item.mult = []; item.rate = ''; };
-const allLines = () => Object.values(form.value.venue_budgets).flat();
-// Untouched rates follow the baseline (and the Inside/Outside BSU switch); edited rates are left alone
-watch([isOutsideBsu, baselineSettings], () => {
-  allLines().forEach(l => {
-    if (!l.baseKey) return;
-    const nb = baseFor(l);
-    if (Number(l.rate) === Number(l.base)) l.rate = nb;
-    l.base = nb;
-  });
-}, { deep: true });
+const validMultipliers = item => Array.isArray(item?.mult)
+  ? item.mult.filter(multiplier => multiplier && typeof multiplier === 'object')
+  : [];
 const adSubmissionLimitEnabled = ref(true);
 
 const fetchSystemSettings = async () => {
@@ -1397,13 +1330,14 @@ const submitActivityDesign = async () => {
 
     form.value.venues.forEach(vid => {
       (form.value.venue_budgets[vid] || []).forEach(item => {
-        const lineTotalAmount = (Number(item.rate) || 0) * item.mult.reduce((p, m) => p * (Number(m.q) || 0), 1);
+        const multipliers = validMultipliers(item);
+        const lineTotalAmount = (Number(item.rate) || 0) * multipliers.reduce((p, m) => p * (Number(m.q) || 0), 1);
         if (item.capKey && lineTotalAmount > Number(baselineSettings.value[item.capKey])) exceedsTransportLimit = true;
         if (item.custom && (!String(item.name).trim() || lineTotalAmount <= 0)) return;
         const isOther = item.custom && item.group === 'materials';
         
-        const paxOfItem = Number((item.mult.find(m => /^(pax|person|persons|head|heads)$/i.test(String(m.u || '').trim())) || {}).q) || 0;
-        const lineFormulaStr = [('₱' + (Number(item.rate) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })), ...item.mult.map(m => `${Number(m.q) || 0} ${String(m.u || '').trim()}`.trim())].join(' × ');
+        const paxOfItem = Number((multipliers.find(m => /^(pax|person|persons|head|heads)$/i.test(String(m.u || '').trim())) || {}).q) || 0;
+        const lineFormulaStr = [('₱' + (Number(item.rate) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })), ...multipliers.map(m => `${Number(m.q) || 0} ${String(m.u || '').trim()}`.trim())].join(' × ');
         
         normalizedBudgetItems.push({
           venue_id: vid === 'Other' ? 'Other' : vid,
@@ -1412,7 +1346,7 @@ const submitActivityDesign = async () => {
           sub_item: isOther ? item.name : lineFormulaStr,
           pax: paxOfItem || null,
           unit_cost: Number(item.rate) || 0,
-          multipliers: item.mult.map(m => ({ label: String(m.u || '').trim(), value: Number(m.q) || 0 })),
+          multipliers: multipliers.map(m => ({ label: String(m.u || '').trim(), value: Number(m.q) || 0 })),
           formula: lineFormulaStr,
           amount: lineTotalAmount
         });
@@ -1446,7 +1380,7 @@ const submitActivityDesign = async () => {
         text: 'Activity Design submitted successfully!',
         confirmButtonColor: '#b979cc'
       }).then(() => {
-        router.push('/staff/submitted-list');
+        router.push('/staff/ad-list');
       });
     }
   } catch (error) {
@@ -2706,6 +2640,4 @@ onUnmounted(() => {
 .bl-link { background: none; border: 0; color: #b979cc; cursor: pointer; font-size: 11px; padding: 0; text-decoration: underline; }
 @media (max-width: 640px) { .budget-row-item { flex-direction: column; align-items: stretch !important; } }
 </style>
-
-
 

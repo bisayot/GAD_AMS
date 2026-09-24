@@ -405,6 +405,7 @@
                 </div>
               </div>
             </div>
+          </div>
         </section>
 
         <section v-if="design.status !== 'Approved'" class="flex-04-sidebar">
@@ -483,6 +484,9 @@ const loading = ref(true);
 const submitting = ref(false);
 const error = ref(null);
 const venues = ref([]);
+const pfPax = ref('');
+const tokensPax = ref('');
+const othersList = ref([]);
 
 
 const scheduleType = ref('staggered');
@@ -768,27 +772,7 @@ const formData = ref({
   ]
 });
 
-// Watch venues array to initialize per-venue budget structure
-watch(() => formData.value?.venues, (newVenues) => {
-  if (!newVenues) return;
-  newVenues.forEach(vid => {
-    if (!formData.value.venue_budgets[vid]) {
-      const pax = Number(formData.value.target_participants) || 0;
-      formData.value.venue_budgets[vid] = [
-        { name: 'Meals', total: '', meals_needed: { breakfast: pax, lunch: pax, dinner: pax } },
-        { name: 'Snacks', total: '', meals_needed: { am_snack: pax, pm_snack: pax } },
-        { name: 'Function Room/Venue', total: '' },
-        { name: 'Accommodation', total: '' },
-        { name: 'Equipment Rental', total: '' },
-        { name: 'Professional Fee/Honoraria', total: '', pax: '' },
-        { name: 'Token/s', total: '', pax: '' },
-        { name: 'Materials and Supplies', total: '' },
-        { name: 'Transportation', total: '' },
-        { name: 'Others', total: '' }
-      ];
-    }
-  });
-}, { deep: true });
+
 
 // Watch venue_budgets for grand total + auto-calculated participants
 watch(() => formData.value.venue_budgets, (newBudgets) => {

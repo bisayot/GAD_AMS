@@ -23,6 +23,12 @@
               <div class="budget-row-header flex justify-between items-start w-full">
                 <div class="budget-item-info flex-1 pr-4">
                   <div class="budget-item-title text-slate-200 text-sm font-medium leading-snug" v-html="formatBudgetName(child.name)"></div>
+                  <div v-if="child.formula || child.computation" class="text-xs text-slate-400 font-mono mt-1">
+                    {{ child.formula || child.computation }}
+                  </div>
+                  <div v-else-if="child.sub_item && child.name !== child.sub_item" class="text-xs text-slate-400 mt-1">
+                    {{ child.sub_item }}
+                  </div>
                 </div>
                 <div class="budget-item-value flex items-center justify-end min-w-[120px] font-bold text-white text-sm">
                   <span class="budget-currency-symbol mr-1 text-slate-400">₱</span>
@@ -77,6 +83,14 @@ const props = defineProps({
   design: {
     type: Object,
     required: true
+  },
+  budgetItems: {
+    type: Array,
+    default: () => []
+  },
+  report: {
+    type: Object,
+    default: () => ({})
   }
 });
 
@@ -94,10 +108,16 @@ const parsedBudget = computed(() => {
   const d = props.design;
   if (!d || !d.act_design_id) return [];
 
-  if (d.budget_items_raw && Array.isArray(d.budget_items_raw) && d.budget_items_raw.length > 0) {
+  // AR expenditures are passed explicitly. Fall back to the approved design
+  // rows only when this is the approved budget view.
+  const sourceItems = props.budgetItems.length > 0
+    ? props.budgetItems
+    : (Array.isArray(d.budget_items_raw) ? d.budget_items_raw : []);
+
+  if (sourceItems.length > 0) {
     const venuesMap = {};
     
-    d.budget_items_raw.forEach(item => {
+    sourceItems.forEach(item => {
       const vid = item.venue_id || 'Legacy';
       if (!venuesMap[vid]) {
         let vName = vid === 'Other' ? 'Other Venue' : `Venue ${vid}`;
@@ -115,41 +135,76 @@ const parsedBudget = computed(() => {
           },
           othersBreakdown: []
         };
+        venuesMap[vid].computations = {};
+        venuesMap[vid].cateringItems = [];
       }
       
       const vData = venuesMap[vid];
       const amt = Number(item.amount) || 0;
       
-      if (item.item_name === 'Meals') {
+      const itemName = String(item.item_name || '');
+      const isMeal = itemName === 'Meals' || ['Breakfast', 'Lunch', 'Dinner'].includes(itemName);
+      const isSnack = itemName === 'Snacks' || ['AM Snack', 'PM Snack'].includes(itemName);
+      if (item.formula || (typeof item.sub_item === 'string' && !item.sub_item.startsWith('{'))) {
+        venuesMap[vid].computations[itemName] = item.formula || item.sub_item;
+      }
+
+      if (isMeal) {
         vData.totals.meals += amt;
+        if (['Breakfast', 'Lunch', 'Dinner'].includes(itemName)) {
+          vData.cateringItems.push({
+            name: itemName,
+            value: amt,
+            pax: Number(item.pax) || 0,
+            computation: vData.computations[itemName],
+            sub_item: item.sub_item
+          });
+        }
+        if (!vData.mealsPax) vData.mealsPax = {};
+        if (item.pax != null && ['Breakfast', 'Lunch', 'Dinner'].includes(itemName)) {
+          vData.mealsPax[itemName.toLowerCase()] = Number(item.pax) || 0;
+        }
         try {
           const parsed = JSON.parse(item.sub_item);
-          if (parsed && typeof parsed === 'object') vData.mealsPax = parsed;
+          if (parsed && typeof parsed === 'object') vData.mealsPax = { ...vData.mealsPax, ...parsed };
         } catch(e) {}
       }
-      else if (item.item_name === 'Snacks') {
+      else if (isSnack) {
         vData.totals.snacks += amt;
+        if (['AM Snack', 'PM Snack'].includes(itemName)) {
+          vData.cateringItems.push({
+            name: itemName,
+            value: amt,
+            pax: Number(item.pax) || 0,
+            computation: vData.computations[itemName],
+            sub_item: item.sub_item
+          });
+        }
+        if (!vData.snacksPax) vData.snacksPax = {};
+        if (item.pax != null && ['AM Snack', 'PM Snack'].includes(itemName)) {
+          vData.snacksPax[itemName === 'AM Snack' ? 'am_snack' : 'pm_snack'] = Number(item.pax) || 0;
+        }
         try {
           const parsed = JSON.parse(item.sub_item);
-          if (parsed && typeof parsed === 'object') vData.snacksPax = parsed;
+          if (parsed && typeof parsed === 'object') vData.snacksPax = { ...vData.snacksPax, ...parsed };
         } catch(e) {}
       }
-      else if (item.item_name === 'Function Room/Venue') vData.totals.venue += amt;
-      else if (item.item_name === 'Accommodation') vData.totals.accommodation += amt;
-      else if (item.item_name === 'Equipment Rental') vData.totals.equipment += amt;
-      else if (item.item_name === 'Transportation') vData.totals.transportation += amt;
-      else if (item.item_name === 'Professional Fee/Honoraria' || item.item_name === 'Professional Fee/Honoria') {
+      else if (itemName === 'Function Room/Venue') vData.totals.venue += amt;
+      else if (itemName === 'Accommodation') vData.totals.accommodation += amt;
+      else if (itemName === 'Equipment Rental') vData.totals.equipment += amt;
+      else if (itemName === 'Transportation') vData.totals.transportation += amt;
+      else if (itemName === 'Professional Fee/Honoraria' || itemName === 'Professional Fee/Honoria') {
         vData.totals.pf += amt;
         vData.totals.pf_pax += Number(item.pax || 0);
       }
-      else if (item.item_name === 'Token/s') {
+      else if (itemName === 'Token/s') {
         vData.totals.tokens += amt;
         vData.totals.tokens_pax += Number(item.pax || 0);
       }
-      else if (item.item_name === 'Materials and Supplies') vData.totals.materials += amt;
+      else if (itemName === 'Materials and Supplies') vData.totals.materials += amt;
       else {
         vData.totals.others += amt;
-        const displayName = (item.item_name === 'Others' && item.sub_item) ? item.sub_item : item.item_name;
+        const displayName = (itemName === 'Others' && item.sub_item) ? item.sub_item : itemName;
         vData.othersBreakdown.push({ name: displayName, amount: amt });
       }
     });
@@ -162,7 +217,7 @@ const parsedBudget = computed(() => {
         {
           name: 'Catering & Hospitality', icon: '🍽️',
           total: v.totals.meals + v.totals.snacks,
-          children: [
+          children: v.cateringItems.length ? v.cateringItems : [
             { name: 'Meals', value: v.totals.meals, pax: v.mealsPax },
             { name: 'Snacks', value: v.totals.snacks, pax: v.snacksPax }
           ]
@@ -171,25 +226,25 @@ const parsedBudget = computed(() => {
           name: 'Venue & Logistics', icon: '🏛️',
           total: v.totals.venue + v.totals.accommodation + v.totals.equipment + v.totals.transportation,
           children: [
-            { name: 'Function Room/Venue', value: v.totals.venue },
-            { name: 'Accommodation', value: v.totals.accommodation },
-            { name: 'Equipment Rental', value: v.totals.equipment },
-            { name: 'Transportation', value: v.totals.transportation }
+            { name: 'Function Room/Venue', value: v.totals.venue, computation: v.computations['Function Room/Venue'] },
+            { name: 'Accommodation', value: v.totals.accommodation, computation: v.computations.Accommodation },
+            { name: 'Equipment Rental', value: v.totals.equipment, computation: v.computations['Equipment Rental'] },
+            { name: 'Transportation', value: v.totals.transportation, computation: v.computations.Transportation }
           ]
         },
         {
           name: 'Program & Speakers', icon: '🎤',
           total: v.totals.pf + v.totals.tokens,
           children: [
-            { name: `Professional Fee/Honoraria ${v.totals.pf > 0 ? `(Number of Speakers: ${v.totals.pf_pax})` : ''}`, value: v.totals.pf },
-            { name: `Token/s ${v.totals.tokens > 0 ? `(Number of Recipients: ${v.totals.tokens_pax})` : ''}`, value: v.totals.tokens }
+            { name: `Professional Fee/Honoraria ${v.totals.pf > 0 ? `(Number of Speakers: ${v.totals.pf_pax})` : ''}`, value: v.totals.pf, computation: v.computations['Professional Fee/Honoraria'] || v.computations['Professional Fee/Honoria'] },
+            { name: `Token/s ${v.totals.tokens > 0 ? `(Number of Recipients: ${v.totals.tokens_pax})` : ''}`, value: v.totals.tokens, computation: v.computations['Token/s'] }
           ]
         },
         {
           name: 'Materials & Miscellaneous', icon: '📦',
           total: v.totals.materials + v.totals.others,
           children: [
-            { name: 'Materials and Supplies', value: v.totals.materials },
+            { name: 'Materials and Supplies', value: v.totals.materials, computation: v.computations['Materials and Supplies'] },
             { name: 'Others', value: v.totals.others, othersBreakdown: v.othersBreakdown }
           ]
         }
@@ -206,15 +261,14 @@ const parsedBudget = computed(() => {
       });
     }
     
-    if (d.venues) {
+    if (d.venues || d.venues_list || props.report.ar_venues_list) {
       try {
         result.forEach(r => {
             if (r.venue_id !== 'Legacy' && r.venue_id !== 'Other') {
                r.venue_name = `Venue ID: ${r.venue_id}`;
-               let venuesToSearch = d.venues_list;
-               if (props.isAR && props.report.ar_venues_list && Array.isArray(props.report.ar_venues_list) && props.report.ar_venues_list.length > 0) {
-                   venuesToSearch = props.report.ar_venues_list;
-               }
+               const venuesToSearch = props.report.ar_venues_list?.length
+                 ? props.report.ar_venues_list
+                 : d.venues_list;
                if (venuesToSearch && Array.isArray(venuesToSearch)) {
                  const vMatch = venuesToSearch.find(x => x.venue_id == r.venue_id);
                  if (vMatch) r.venue_name = vMatch.venue_name;

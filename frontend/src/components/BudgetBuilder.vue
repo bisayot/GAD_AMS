@@ -138,7 +138,7 @@ watch(() => props.venues, (newVenues) => {
   if (!newVenues) return;
   let changed = false;
   newVenues.forEach(vid => {
-    if (!props.venueBudgets[vid]) {
+    if (!Array.isArray(props.venueBudgets[vid]) || props.venueBudgets[vid].length === 0) {
       props.venueBudgets[vid] = defaultBudgetLines();
       changed = true;
     }
@@ -197,6 +197,15 @@ const getVenueName = (id) => {
 
 <style scoped>
 /* Reusing the CSS from the main form */
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #b979cc;
+}
+
 .budget-group-card {
   background: rgba(30, 41, 59, 0.4);
   border: 1px solid rgba(148, 163, 184, 0.2);
@@ -276,6 +285,8 @@ const getVenueName = (id) => {
   font-weight: 500;
 }
 .bl-rate, .bl-q {
+  appearance: auto;
+  -webkit-appearance: auto;
   background: rgba(15, 23, 42, 0.8);
   border: 1px solid rgba(148, 163, 184, 0.3);
   color: #ffffff;

@@ -921,6 +921,10 @@ watch(() => form.value.activity_classification_id, (newVal) => {
   fetchGenderIssues(newVal);
 });
 
+const validBudgetMultipliers = item => Array.isArray(item?.mult)
+  ? item.mult.filter(multiplier => multiplier && typeof multiplier === 'object')
+  : [];
+
 watch(() => form.value.venue_budgets, (newBudgets) => {
   let grandTotal = 0;
   let maxOverallPax = 0;
@@ -928,13 +932,13 @@ watch(() => form.value.venue_budgets, (newBudgets) => {
   if (newBudgets) {
     Object.values(newBudgets).forEach(items => {
       grandTotal += items.reduce((sum, item) => {
-        const mults = item.mult ? item.mult.reduce((p, m) => p * (Number(m.q) || 0), 1) : 0;
+        const mults = validBudgetMultipliers(item).reduce((p, m) => p * (Number(m.q) || 0), 1);
         return sum + ((Number(item.rate) || 0) * mults);
       }, 0);
       
       let venueMaxPax = 0;
       items.forEach(item => {
-        const paxMult = item.mult ? item.mult.find(m => /^(pax|person|persons|head|heads)$/i.test(String(m.u || '').trim())) : null;
+        const paxMult = validBudgetMultipliers(item).find(m => /^(pax|person|persons|head|heads)$/i.test(String(m.u || '').trim()));
         if (paxMult && Number(paxMult.q) > venueMaxPax) {
           venueMaxPax = Number(paxMult.q);
         }
@@ -1119,91 +1123,6 @@ const isOutsideBsu = computed(() => {
   return !form.value.is_inside_bsu;
 });
 
-// Reactive Sub-controls State
-// Auto-calculation for Meals and Snacks
-watch(
-  [
-    () => form.value.venue_budgets,
-    () => form.value.target_participants,
-    () => isOutsideBsu.value,
-    computedDays
-  ],
-  () => {
-    if (!form.value.venues || form.value.venues.length === 0) return;
-    
-    const pax = Number(form.value.target_participants) || 0;
-    const days = computedDays.value || 0;
-    const mealsRate = isOutsideBsu.value ? baselineSettings.value.meals_outside : baselineSettings.value.meals_inside;
-    const snacksRate = isOutsideBsu.value ? baselineSettings.value.snacks_outside : baselineSettings.value.snacks_inside;
-
-    form.value.venues.forEach(vId => {
-      const budgetItems = form.value.venue_budgets[vId];
-      if (!budgetItems) return;
-
-      const mealsItem = budgetItems.find(i => i.name === 'Meals');
-      if (mealsItem && mealsItem.meals_needed) {
-        const { breakfast, lunch, dinner } = mealsItem.meals_needed;
-        const bPax = Number(breakfast) || 0;
-        const lPax = Number(lunch) || 0;
-        const dPax = Number(dinner) || 0;
-
-        const selected = [];
-        if (bPax > 0) selected.push(`Breakfast (${bPax} pax)`);
-        if (lPax > 0) selected.push(`Lunch (${lPax} pax)`);
-        if (dPax > 0) selected.push(`Dinner (${dPax} pax)`);
-        mealsItem.sub_item = selected.join(', ');
-        
-        if (days > 0) {
-          const totalCost = ((bPax * mealsRate) + (lPax * mealsRate) + (dPax * mealsRate)) * days;
-          mealsItem.total = totalCost > 0 ? totalCost.toFixed(2) : '';
-        }
-      }
-
-      const snacksItem = budgetItems.find(i => i.name === 'Snacks');
-      if (snacksItem && snacksItem.meals_needed) {
-        const { am_snack, pm_snack } = snacksItem.meals_needed;
-        const amPax = Number(am_snack) || 0;
-        const pmPax = Number(pm_snack) || 0;
-
-        const selected = [];
-        if (amPax > 0) selected.push(`AM Snack (${amPax} pax)`);
-        if (pmPax > 0) selected.push(`PM Snack (${pmPax} pax)`);
-        snacksItem.sub_item = selected.join(', ');
-
-        if (days > 0) {
-          const totalCost = ((amPax * snacksRate) + (pmPax * snacksRate)) * days;
-          snacksItem.total = totalCost > 0 ? totalCost.toFixed(2) : '';
-        }
-      }
-
-      const pfItem = budgetItems.find(i => i.name === 'Professional Fee/Honoraria');
-      if (pfItem) {
-        pfItem.total = (Number(pfItem.pax) > 0) ? ((Number(pfItem.pax) * baselineSettings.value.pf_honoraria) || '') : '';
-      }
-
-      const tokensItem = budgetItems.find(i => i.name === 'Token/s');
-      if (tokensItem) {
-        tokensItem.total = (Number(tokensItem.pax) > 0) ? ((Number(tokensItem.pax) * baselineSettings.value.tokens) || '') : '';
-      }
-    });
-  },
-  { deep: true }
-);
-
-// Per-venue Others list (keyed by venue id)
-const venueOthersList = ref({});
-
-const addOtherItem = (vId) => {
-  if (!venueOthersList.value[vId]) venueOthersList.value[vId] = [];
-  venueOthersList.value[vId].push({ name: '', amount: '' });
-};
-
-const removeOtherItem = (vId, index) => {
-  if (venueOthersList.value[vId]) {
-    venueOthersList.value[vId].splice(index, 1);
-  }
-};
-
 // Baseline Settings
 const baselineSettings = ref({
   meals_inside: 220,
@@ -1218,7 +1137,7 @@ const baselineSettings = ref({
 
 const fetchBaselineSettings = async () => {
   try {
-    const res = await api.get('/settings/baseline');
+    const res = await api.get('settings/baseline');
     if (res.data) {
       baselineSettings.value = res.data;
     }
@@ -1226,26 +1145,6 @@ const fetchBaselineSettings = async () => {
     console.error('Failed to fetch baseline settings:', error);
   }
 };
-
-// Reactive Auto-computation Watchers
-
-
-
-watch(
-  venueOthersList,
-  (newMap) => {
-    Object.entries(newMap).forEach(([vId, list]) => {
-      const budgetItems = form.value.venue_budgets[vId];
-      if (!budgetItems) return;
-      const othersItem = budgetItems.find(i => i.name === 'Others');
-      if (othersItem) {
-        const sum = (list || []).reduce((s, i) => s + (Number(i.amount) || 0), 0);
-        othersItem.total = sum || '';
-      }
-    });
-  },
-  { deep: true }
-);
 
 const adSubmissionLimitEnabled = ref(true);
 
@@ -1378,9 +1277,8 @@ const submitActivityDesign = async () => {
   const emptyVenues = form.value.venues.filter(vid => {
     const items = form.value.venue_budgets[vid];
     if (!items) return true;
-    const budgetTotal = items.reduce((sum, item) => sum + ((Number(item.rate) || 0) * (item.mult ? item.mult.reduce((p, m) => p * (Number(m.q) || 0), 1) : 0)), 0);
-    const othersTotal = (venueOthersList.value[vid] || []).reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
-    return (budgetTotal + othersTotal) === 0;
+    const budgetTotal = items.reduce((sum, item) => sum + ((Number(item.rate) || 0) * validBudgetMultipliers(item).reduce((p, m) => p * (Number(m.q) || 0), 1)), 0);
+    return budgetTotal === 0;
   });
   if (emptyVenues.length > 0) {
     const names = emptyVenues.map(vid => `"${getVenueName(vid)}"`).join(', ');
@@ -1471,13 +1369,14 @@ const submitActivityDesign = async () => {
 
     form.value.venues.forEach(vid => {
       (form.value.venue_budgets[vid] || []).forEach(item => {
-        const lineTotalAmount = (Number(item.rate) || 0) * (item.mult ? item.mult.reduce((p, m) => p * (Number(m.q) || 0), 1) : 0);
+        const multipliers = validBudgetMultipliers(item);
+        const lineTotalAmount = (Number(item.rate) || 0) * multipliers.reduce((p, m) => p * (Number(m.q) || 0), 1);
         if (item.capKey && lineTotalAmount > Number(baselineSettings.value[item.capKey])) exceedsTransportLimit = true;
         if (item.custom && (!String(item.name).trim() || lineTotalAmount <= 0)) return;
         const isOther = item.custom && item.group === 'materials';
         
-        const paxOfItem = Number((item.mult ? item.mult.find(m => /^(pax|person|persons|head|heads)$/i.test(String(m.u || '').trim())) : {}).q) || 0;
-        const lineFormulaStr = [('₱' + (Number(item.rate) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })), ...(item.mult ? item.mult.map(m => `${Number(m.q) || 0} ${String(m.u || '').trim()}`.trim()) : [])].join(' × ');
+        const paxOfItem = Number((multipliers.find(m => /^(pax|person|persons|head|heads)$/i.test(String(m.u || '').trim())) || {}).q) || 0;
+        const lineFormulaStr = [('₱' + (Number(item.rate) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })), ...multipliers.map(m => `${Number(m.q) || 0} ${String(m.u || '').trim()}`.trim())].join(' × ');
         
         normalizedBudgetItems.push({
           venue_id: vid === 'Other' ? 'Other' : vid,
@@ -1486,7 +1385,7 @@ const submitActivityDesign = async () => {
           sub_item: isOther ? item.name : lineFormulaStr,
           pax: paxOfItem || null,
           unit_cost: Number(item.rate) || 0,
-          multipliers: item.mult ? item.mult.map(m => ({ label: String(m.u || '').trim(), value: Number(m.q) || 0 })) : [],
+          multipliers: multipliers.map(m => ({ label: String(m.u || '').trim(), value: Number(m.q) || 0 })),
           formula: lineFormulaStr,
           amount: lineTotalAmount
         });
@@ -1557,37 +1456,6 @@ onMounted(() => {
 onUnmounted(() => {
   document.removeEventListener('click', closeAllHelp);
 });
-
-const checkTransportationLimit = (vId) => {
-  const limit = Number(baselineSettings.value?.transportation_limit ?? 20000);
-  
-  let totalTransport = 0;
-  if (form.value.venue_budgets) {
-    Object.values(form.value.venue_budgets).forEach(budgetItems => {
-      const transItem = budgetItems.find(i => i.name === 'Transportation');
-      if (transItem) {
-        totalTransport += Number(transItem.total) || 0;
-      }
-    });
-  }
-
-  if (totalTransport > limit) {
-    const excess = totalTransport - limit;
-    const transItem = form.value.venue_budgets[vId]?.find(i => i.name === 'Transportation');
-    if (transItem) {
-      transItem.total = Math.max(0, (Number(transItem.total) || 0) - excess);
-    }
-
-    const role = user.value?.role || 'college';
-    Swal.fire({
-      icon: 'warning',
-      title: 'Limit Exceeded',
-      html: `Overall Transportation budget cannot exceed the baseline limit of ₱${limit.toLocaleString('en-US')}.<br><br>
-             If you need to request an exemption, please <a href="/${role}/messages" style="color: #b979cc; text-decoration: underline; font-weight: bold;">message the GAD Director/Staff</a>.`,
-      confirmButtonColor: '#b979cc'
-    });
-  }
-};
 
 </script>
 
@@ -2784,8 +2652,3 @@ const checkTransportationLimit = (vId) => {
   font-size: 13px;
 }
 </style>
-
-
-
-
-

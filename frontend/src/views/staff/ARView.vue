@@ -179,7 +179,7 @@
               <!-- Approved Budget Breakdown -->
               <div class="full-width-info mt-4" v-if="report.activity_design && (report.activity_design.budget_items_raw || report.activity_design.budget_items)">
                 <label class="info-label mb-2">Approved Budget Breakdown</label>
-                <ActivityDesignBudget :design="report.activity_design" />
+                <ActivityDesignBudget :design="report.activity_design" :report="report" />
               </div>
 
               <!-- AD Attachment -->
@@ -318,7 +318,7 @@
               <!-- Actual Budget Expenditure -->
               <div class="full-width-info mt-4" v-if="report.budget_expenditures_raw && report.budget_expenditures_raw.length > 0">
                 <label class="info-label mb-2">Actual Budget Expenditure</label>
-                <ActivityDesignBudget :budget-items="report.budget_expenditures_raw" :design="report.activity_design" />
+                <ActivityDesignBudget :budget-items="report.budget_expenditures_raw" :design="report.activity_design" :report="report" />
               </div>
 
               <!-- Evaluation Results -->
@@ -1018,4 +1018,3 @@ onMounted(() => {
   border: 1px solid rgba(185, 121, 204, 0.2); 
 }
 </style>
-

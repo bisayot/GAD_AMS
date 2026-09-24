@@ -1395,7 +1395,7 @@ export default {
 
     const fetchBaselines = async () => {
       try {
-        const res = await api.get('/settings/baseline');
+        const res = await api.get('settings/baseline');
         if (res.data) {
           Object.assign(baselineForm, res.data);
         }

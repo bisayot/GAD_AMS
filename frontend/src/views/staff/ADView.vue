@@ -232,11 +232,11 @@
                     </div>
                     <div class="flex items-center gap-4">
                       <span class="text-pink-400 font-bold bg-pink-500/10 px-3 py-1 rounded-lg">₱{{ formatCurrency(venue.total) }}</span>
-                      <span class="material-symbols-outlined text-slate-400 transition-transform duration-300" :class="{ 'rotate-180': venueExpandedState[vIdx] }">expand_more</span>
+                      <span class="material-symbols-outlined text-slate-400 transition-transform duration-300" :class="{ 'rotate-180': venueExpandedState[vIdx] !== false }">expand_more</span>
                     </div>
                   </div>
                   
-                  <div v-show="venueExpandedState[vIdx] || parsedBudget.length === 1" class="venue-budget-content p-4 flex flex-col gap-4">
+                  <div v-show="venueExpandedState[vIdx] !== false" class="venue-budget-content p-4 flex flex-col gap-4">
                     <div v-for="(group, gIdx) in venue.groups" :key="gIdx" class="budget-group-card">
                       <div class="budget-group-header">
                         <span class="budget-group-icon">{{ group.icon }}</span>
@@ -244,7 +244,7 @@
                       </div>
                       <div class="budget-group-content">
                         <div v-for="(child, cIdx) in group.children" :key="cIdx" class="budget-row-item" :class="{'has-sub-options': child.subOptions || (child.othersBreakdown && child.othersBreakdown.length > 0)}">
-                          <div class="budget-row-header" style="flex-wrap: wrap; align-items: flex-start; justify-content: space-between;">
+                          <div class="budget-row-header" style="display: grid; grid-template-columns: minmax(0, 1fr) 160px; align-items: flex-start; column-gap: 16px;">
                             <div class="budget-item-info">
                               <div class="budget-item-title" v-html="formatBudgetName(child.name)"></div>
                               <div v-if="child.formula" style="font-size: 12px; color: #94a3b8; font-family: monospace; margin-top: 4px;">
@@ -252,6 +252,11 @@
                               </div>
                               <div v-else-if="child.sub_item && child.name !== child.sub_item" style="font-size: 12px; color: #94a3b8; margin-top: 4px;">
                                 {{ child.sub_item }}
+                              </div>
+                              <div v-if="child.othersBreakdown && child.othersBreakdown.length" class="budget-others-breakdown-container" style="width: 100%; margin-top: 8px;">
+                                <div v-for="(other, otherIdx) in child.othersBreakdown" :key="otherIdx" class="budget-others-breakdown-row" style="padding: 6px 10px; background: rgba(0,0,0,0.2); border: 1px dashed rgba(255,255,255,0.1); border-radius: 6px; color: #cbd5e1; font-size: 12px;">
+                                  {{ other.name || 'Unnamed Item' }}
+                                </div>
                               </div>
                             </div>
                             <div class="budget-item-value">
@@ -644,7 +649,7 @@ const parsedBudget = computed(() => {
       
       const vData = venuesMap[vid];
       const amt = Number(item.amount) || 0;
-      const name = item.item_name === 'Others' && item.sub_item ? item.sub_item : item.item_name;
+      const name = item.item_name;
       
       let targetGroup = 'materials';
       if (['Breakfast', 'Lunch', 'Dinner', 'AM Snack', 'PM Snack'].includes(item.item_name)) targetGroup = 'catering';
@@ -653,12 +658,26 @@ const parsedBudget = computed(() => {
       else if (['Materials and Supplies'].includes(item.item_name)) targetGroup = 'materials';
       
       vData.groups[targetGroup].total += amt;
-      vData.groups[targetGroup].children.push({
-        name: name,
-        value: amt,
-        formula: item.formula || '',
-        sub_item: item.sub_item
-      });
+      const existingOther = item.item_name === 'Others'
+        ? vData.groups[targetGroup].children.find(child => child.name === 'Others')
+        : null;
+      if (existingOther) {
+        existingOther.value += amt;
+        existingOther.othersBreakdown.push({
+          name: item.sub_item || 'Unnamed Item',
+          amount: amt
+        });
+      } else {
+        vData.groups[targetGroup].children.push({
+          name,
+          value: amt,
+          formula: item.formula || '',
+          sub_item: item.item_name === 'Others' ? '' : item.sub_item,
+          ...(item.item_name === 'Others'
+            ? { othersBreakdown: [{ name: item.sub_item || 'Unnamed Item', amount: amt }] }
+            : {})
+        });
+      }
     });
 
     const result = [];
@@ -683,13 +702,12 @@ const parsedBudget = computed(() => {
       });
     }
     
-    if (d.venues) {
+    if (Array.isArray(d.venues_list)) {
       try {
-        let vList = JSON.parse(d.venues);
-        let cList = d.custom_venues ? JSON.parse(d.custom_venues) : [];
         result.forEach(r => {
           if (r.venue_id !== 'Legacy' && r.venue_id !== 'Other') {
-             r.venue_name = `Venue ID: ${r.venue_id}`;
+             const venue = d.venues_list.find(v => String(v.venue_id) === String(r.venue_id));
+             r.venue_name = venue ? venue.venue_name : `Venue: ${r.venue_id}`;
           }
         });
       } catch(e){}
@@ -1466,5 +1484,3 @@ onMounted(() => {
   }
 }
 </style>
-
-

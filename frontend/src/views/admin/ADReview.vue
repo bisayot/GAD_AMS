@@ -230,50 +230,36 @@
                     </div>
                     <div class="flex items-center gap-4">
                       <span class="text-pink-400 font-bold bg-pink-500/10 px-3 py-1 rounded-lg">₱{{ formatCurrency(venue.total) }}</span>
-                      <span class="material-symbols-outlined text-slate-400 transition-transform duration-300" :class="{ 'rotate-180': venueExpandedState[vIdx] }">expand_more</span>
+                      <span class="material-symbols-outlined text-slate-400 transition-transform duration-300" :class="{ 'rotate-180': venueExpandedState[vIdx] !== false }">expand_more</span>
                     </div>
                   </div>
                   
-                  <div v-show="venueExpandedState[vIdx] || parsedBudget.length === 1" class="venue-budget-content p-4 flex flex-col gap-4">
+                  <div v-show="venueExpandedState[vIdx] !== false" class="venue-budget-content p-4 flex flex-col gap-4">
                     <div v-for="(group, gIdx) in venue.groups" :key="gIdx" class="budget-group-card">
                       <div class="budget-group-header">
                         <span class="budget-group-icon">{{ group.icon }}</span>
                         <span class="budget-group-title">{{ group.name }}</span>
                       </div>
                       <div class="budget-group-content">
-                        <div v-for="(child, cIdx) in group.children" :key="cIdx" class="budget-row-item" :class="{'has-sub-options': child.subOptions || (child.othersBreakdown && child.othersBreakdown.length > 0)}">
-                          <div class="budget-row-header">
+                        <div v-for="(child, cIdx) in group.children" :key="cIdx" class="budget-row-item">
+                          <div class="budget-row-header" style="display: grid; grid-template-columns: minmax(0, 1fr) 160px; align-items: flex-start; column-gap: 16px;">
                             <div class="budget-item-info">
                               <div class="budget-item-title" v-html="formatBudgetName(child.name)"></div>
-                              <div v-if="child.computation" class="text-[12px] text-slate-400 mt-1 italic" style="font-size: 11px; margin-top: 4px; color: #94a3b8; font-style: italic;">{{ child.computation }}</div>
+                              <div v-if="child.formula || child.computation" style="font-size: 12px; color: #94a3b8; font-family: monospace; margin-top: 4px;">
+                                {{ child.formula || child.computation }}
+                              </div>
+                              <div v-else-if="child.sub_item && child.name !== child.sub_item" style="font-size: 12px; color: #94a3b8; margin-top: 4px;">
+                                {{ child.sub_item }}
+                              </div>
+                              <div v-if="child.othersBreakdown && child.othersBreakdown.length" class="budget-others-breakdown-container" style="width: 100%; margin-top: 8px;">
+                                <div v-for="(other, otherIdx) in child.othersBreakdown" :key="otherIdx" class="budget-others-breakdown-row" style="padding: 6px 10px; background: rgba(0,0,0,0.2); border: 1px dashed rgba(255,255,255,0.1); border-radius: 6px; color: #cbd5e1; font-size: 12px;">
+                                  {{ other.name || 'Unnamed Item' }}
+                                </div>
+                              </div>
                             </div>
                             <div class="budget-item-value">
                               <span class="budget-currency-symbol">₱</span>
                               <div class="budget-card-input-readonly">{{ formatCurrency(child.value) }}</div>
-                            </div>
-                          </div>
-                          <div v-if="child.subOptions" class="budget-sub-options-container">
-                            <label v-for="(opt, oIdx) in child.subOptions" :key="oIdx" class="budget-read-only-checkbox">
-                              <input type="checkbox" :checked="opt.checked" disabled class="budget-checkbox-disabled" />
-                              <span class="budget-checkbox-label-text">{{ opt.label }}</span>
-                            </label>
-                          </div>
-                          <div v-if="child.pax" class="budget-others-breakdown-container mt-2">
-                             <div v-if="child.name === 'Meals'" class="flex gap-2 flex-wrap">
-                                <span v-if="child.pax.breakfast" class="text-[11px] bg-slate-800/50 text-slate-300 px-2 py-1 rounded">Breakfast: {{ child.pax.breakfast }} pax</span>
-                                <span v-if="child.pax.lunch" class="text-[11px] bg-slate-800/50 text-slate-300 px-2 py-1 rounded">Lunch: {{ child.pax.lunch }} pax</span>
-                                <span v-if="child.pax.dinner" class="text-[11px] bg-slate-800/50 text-slate-300 px-2 py-1 rounded">Dinner: {{ child.pax.dinner }} pax</span>
-                             </div>
-                             <div v-if="child.name === 'Snacks'" class="flex gap-2 flex-wrap">
-                                <span v-if="child.pax.am_snack" class="text-[11px] bg-slate-800/50 text-slate-300 px-2 py-1 rounded">AM Snack: {{ child.pax.am_snack }} pax</span>
-                                <span v-if="child.pax.pm_snack" class="text-[11px] bg-slate-800/50 text-slate-300 px-2 py-1 rounded">PM Snack: {{ child.pax.pm_snack }} pax</span>
-                             </div>
-                          </div>
-                          <div v-if="child.othersBreakdown && child.othersBreakdown.length" class="budget-others-breakdown-container mt-2">
-                            <div v-for="(o, oIdx) in child.othersBreakdown" :key="oIdx" class="budget-others-breakdown-row" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; padding: 4px 12px; background: rgba(0,0,0,0.1); border-radius: 4px; margin-bottom: 4px; font-size: 13px;">
-                              <span style="color: #cbd5e1;">{{ o.name || 'Unnamed Item' }}</span>
-                              <div v-if="o.computation" style="font-size: 11px; margin-top: 2px; color: #94a3b8; font-style: italic;">{{ o.computation }}</div>
-                              <span style="color: #f1f5f9; font-weight: 500;">₱{{ formatCurrency(o.amount) }}</span>
                             </div>
                           </div>
                         </div>
@@ -1064,18 +1050,32 @@ const parsedBudget = computed(() => {
             materials: 0, others: 0
           },
           othersBreakdown: [],
-          computations: {}
+          computations: {},
+          cateringItems: []
         };
       }
       
       const vData = venuesMap[vid];
       const amt = Number(item.amount) || 0;
       
-      if (item.sub_item && !item.sub_item.startsWith('{')) {
-         vData.computations[item.item_name] = item.sub_item;
+      if (item.formula || (typeof item.sub_item === 'string' && !item.sub_item.startsWith('{'))) {
+         vData.computations[item.item_name] = item.formula || item.sub_item;
       }
       
-      if (item.item_name === 'Meals') {
+      if (['Breakfast', 'Lunch', 'Dinner', 'AM Snack', 'PM Snack'].includes(item.item_name)) {
+        vData.cateringItems.push({
+          name: item.item_name,
+          value: amt,
+          computation: vData.computations[item.item_name],
+          sub_item: item.sub_item
+        });
+        if (['Breakfast', 'Lunch', 'Dinner'].includes(item.item_name)) {
+          vData.totals.meals += amt;
+        } else {
+          vData.totals.snacks += amt;
+        }
+      }
+      else if (item.item_name === 'Meals') {
         vData.totals.meals += amt;
         try {
           const parsed = JSON.parse(item.sub_item);
@@ -1104,8 +1104,11 @@ const parsedBudget = computed(() => {
       else if (item.item_name === 'Materials and Supplies') vData.totals.materials += amt;
       else {
         vData.totals.others += amt;
-        const displayName = (item.item_name === 'Others' && item.sub_item) ? item.sub_item : item.item_name;
-        vData.othersBreakdown.push({ name: displayName, amount: amt, computation: vData.computations[item.item_name] });
+        vData.othersBreakdown.push({
+          name: item.item_name === 'Others' ? (item.sub_item || 'Unnamed Item') : item.item_name,
+          amount: amt,
+          computation: vData.computations[item.item_name]
+        });
       }
     });
 
@@ -1117,7 +1120,7 @@ const parsedBudget = computed(() => {
         {
           name: 'Catering & Hospitality', icon: '🍽️',
           total: v.totals.meals + v.totals.snacks,
-          children: [
+          children: v.cateringItems.length ? v.cateringItems : [
             { name: 'Meals', value: v.totals.meals, pax: v.mealsPax, computation: v.computations?.['Meals'] },
             { name: 'Snacks', value: v.totals.snacks, pax: v.snacksPax, computation: v.computations?.['Snacks'] }
           ]
@@ -1161,13 +1164,12 @@ const parsedBudget = computed(() => {
       });
     }
     
-    if (d.venues) {
+    if (Array.isArray(d.venues_list)) {
       try {
-        let vList = JSON.parse(d.venues);
-        let cList = d.custom_venues ? JSON.parse(d.custom_venues) : [];
         result.forEach(r => {
           if (r.venue_id !== 'Legacy' && r.venue_id !== 'Other') {
-             r.venue_name = `Venue ID: ${r.venue_id}`;
+             const venue = d.venues_list.find(v => String(v.venue_id) === String(r.venue_id));
+             r.venue_name = venue ? venue.venue_name : `Venue: ${r.venue_id}`;
           }
         });
       } catch(e){}
