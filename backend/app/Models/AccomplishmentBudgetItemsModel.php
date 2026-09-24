@@ -10,6 +10,7 @@ class AccomplishmentBudgetItemsModel extends Model
     protected $primaryKey = 'id';
     protected $allowedFields = [
         'accomplishment_report_id',
+        'venue_id',
         'category_id',
         'item_name',
         'sub_item',

@@ -833,10 +833,10 @@ class ActivityDesignController extends BaseController
             if ($deadline) {
                 $updateData['accomplishment_deadline'] = $deadline;
             }
-            $db->table('activity_design')->where('act_design_id', $id)->update($updateData);
+            $db->table('activity_design')->where('act_design_id', $id)->set('revision_count', 'revision_count+1', false)->set($updateData)->update();
         } catch (\Exception $e) {
             // Fallback: If columns don't exist in active table, just update status.
-            $db->table('activity_design')->where('act_design_id', $id)->update(['status' => 'Revision Required']);
+            $db->table('activity_design')->where('act_design_id', $id)->set('revision_count', 'revision_count+1', false)->set(['status' => 'Revision Required'])->update();
         }
 
         $item = $db->table('activity_design')->where('act_design_id', $id)->get()->getRowArray();
@@ -1253,10 +1253,12 @@ class ActivityDesignController extends BaseController
         $design = $db->table('activity_design')->where('act_design_id', $id)->get()->getRowArray();
         if (!$design) return $this->response->setJSON(['success' => false, 'message' => 'Not found'])->setStatusCode(404);
 
-        $db->table('activity_design')->where('act_design_id', $id)->update([
-            'modification_request_status' => 'pending',
-            'modification_remarks' => $body['remarks'] ?? ''
-        ]);
+        $db->table('activity_design')->where('act_design_id', $id)
+            ->set('modification_count', 'modification_count+1', false)
+            ->set([
+                'modification_request_status' => 'pending',
+                'modification_remarks' => $body['remarks'] ?? ''
+            ])->update();
 
         $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
         \App\Models\ActivityLogModel::log($actionUserId, 'Request Modification', 'requested modification for Activity Design: ' . $design['activity_title']);

@@ -99,6 +99,33 @@ class AccomplishmentReportController extends BaseController
                     }
                 }
 
+                // Save custom venues and map temp IDs to real IDs
+                $venuesStr = $this->request->getPost("venues");
+                $customVenuesStr = $this->request->getPost("custom_venues");
+                $venuesArr = $venuesStr ? json_decode($venuesStr, true) : [];
+                $customVenuesArr = $customVenuesStr ? json_decode($customVenuesStr, true) : [];
+                if (!is_array($venuesArr)) $venuesArr = [];
+                if (!is_array($customVenuesArr)) $customVenuesArr = [];
+                
+                $tempToRealVenueIdMap = [];
+                $venueModel = new \App\Models\VenueModel();
+                
+                foreach ($venuesArr as $vid) {
+                    if (is_string($vid) && strpos($vid, 'temp_') === 0) {
+                        $customName = 'Unknown Custom Venue';
+                        foreach ($customVenuesArr as $cv) {
+                            if ($cv['venue_id'] === $vid) {
+                                $customName = $cv['venue_name'];
+                                break;
+                            }
+                        }
+                        $isInsideBsu = $data['is_inside_bsu'] ?? 0;
+                        $venueModel->insert(['venue_name' => $customName, 'is_inside_bsu' => $isInsideBsu]);
+                        $realId = $venueModel->getInsertID();
+                        $tempToRealVenueIdMap[$vid] = $realId;
+                    }
+                }
+
                 // Save budget items
                 $budgetItemsJson = $this->request->getPost('budget_items');
                 if (!empty($budgetItemsJson)) {
@@ -108,10 +135,16 @@ class AccomplishmentReportController extends BaseController
                         if (isset($budgetData[0])) {
                             foreach ($budgetData as &$item) {
                                 $item['accomplishment_report_id'] = $reportId;
+                                if (isset($item['venue_id']) && is_string($item['venue_id']) && strpos($item['venue_id'], 'temp_') === 0) {
+                                    $item['venue_id'] = $tempToRealVenueIdMap[$item['venue_id']] ?? $item['venue_id'];
+                                }
                             }
                             $budgetModel->insertBatch($budgetData);
                         } else {
                             $budgetData['accomplishment_report_id'] = $reportId;
+                            if (isset($budgetData['venue_id']) && is_string($budgetData['venue_id']) && strpos($budgetData['venue_id'], 'temp_') === 0) {
+                                $budgetData['venue_id'] = $tempToRealVenueIdMap[$budgetData['venue_id']] ?? $budgetData['venue_id'];
+                            }
                             $budgetModel->insert($budgetData);
                         }
                     }
@@ -353,8 +386,21 @@ class AccomplishmentReportController extends BaseController
                     $flatBudget['materials_others_breakdown'] = json_encode($flatBudget['materials_others_breakdown']);
                 }
                 $report['budget_items'] = [$flatBudget];
+                $report['budget_expenditures_raw'] = $budgetItems;
+                
+                // Fetch actual venues used in AR
+                $arVenueIds = array_filter(array_unique(array_column($budgetItems, 'venue_id')));
+                if (!empty($arVenueIds)) {
+                    $report['ar_venues_list'] = $db->table('venues')
+                        ->whereIn('venue_id', $arVenueIds)
+                        ->get()->getResultArray();
+                } else {
+                    $report['ar_venues_list'] = [];
+                }
             } else {
                 $report['budget_items'] = [];
+                $report['budget_expenditures_raw'] = [];
+                $report['ar_venues_list'] = [];
             }
             
 
@@ -372,7 +418,7 @@ class AccomplishmentReportController extends BaseController
                 $db = \Config\Database::connect();
                 $ad = $db->table('activity_design as aad')
                       ->select('aad.*, venues.venue_name, activity_classifications.classification_name as activity_classification, form_types.name as form_type_name')
-                      ->select('aad.start_date as date, office_units.office_name as office')
+                      ->select('aad.start_date as date, office_units.office_name as office, users.full_name as submitter_name')
                       ->join('venues', 'venues.venue_id = aad.venue_id', 'left')
                       ->join('activity_classifications', 'activity_classifications.id = aad.classification_id', 'left')
                       ->join('form_types', 'form_types.id = aad.form_type', 'left')
@@ -396,7 +442,7 @@ class AccomplishmentReportController extends BaseController
                                   }
                               }
                       }
-                      $ad['gad_mandate'] = implode(';;; ', $mandates);
+                      $ad['gad_mandate'] = implode(';;; ', array_unique($mandates));
                       $ad['gad_mandate_id'] = $ad['gad_mandate_ids'];
                       
                       $issues = [];
@@ -411,8 +457,15 @@ class AccomplishmentReportController extends BaseController
                                   }
                               }
                       }
-                      $ad['gender_issue'] = implode(';;; ', $issues);
+                      $ad['gender_issue'] = implode(';;; ', array_unique($issues));
                       $ad['gender_issue_id'] = $ad['gender_issue_ids'];
+
+                      $venuesData = $db->table('activity_design_venues as adv')
+                          ->select('adv.venue_id, v.venue_name, v.is_inside_bsu')
+                          ->join('venues v', 'v.venue_id = adv.venue_id', 'left')
+                          ->where('adv.act_design_id', $ad['act_design_id'])
+                          ->get()->getResultArray();
+                      $ad['venues_list'] = $venuesData;
                   }
                 
                 if ($ad) {
@@ -457,8 +510,10 @@ class AccomplishmentReportController extends BaseController
                             $adFlatBudget['materials_others_breakdown'] = json_encode($adFlatBudget['materials_others_breakdown']);
                         }
                         $ad['budget_items'] = [$adFlatBudget];
+                        $ad['budget_items_raw'] = $adBudgetItems;
                     } else {
-                        $ad['budget_items'] = [];
+                        $ad['budget_items'] = [$ad];
+                        $ad['budget_items_raw'] = [];
                     }
                     $adSchedules = $db->table('activity_schedules')->where('act_design_id', $ad['act_design_id'])->get()->getResultArray();
                     $ad['schedules'] = $adSchedules;
@@ -602,6 +657,34 @@ class AccomplishmentReportController extends BaseController
                 
                 // Update or Insert budget items
                 $budgetItemsJson = $this->request->getPost('budget_items');
+                
+                // Process custom venues and map temp IDs to real IDs
+                $venuesStr = $this->request->getPost("venues");
+                $customVenuesStr = $this->request->getPost("custom_venues");
+                $venuesArr = $venuesStr ? json_decode($venuesStr, true) : [];
+                $customVenuesArr = $customVenuesStr ? json_decode($customVenuesStr, true) : [];
+                if (!is_array($venuesArr)) $venuesArr = [];
+                if (!is_array($customVenuesArr)) $customVenuesArr = [];
+                
+                $tempToRealVenueIdMap = [];
+                $venueModel = new \App\Models\VenueModel();
+                
+                foreach ($venuesArr as $vid) {
+                    if (is_string($vid) && strpos($vid, 'temp_') === 0) {
+                        $customName = 'Unknown Custom Venue';
+                        foreach ($customVenuesArr as $cv) {
+                            if ($cv['venue_id'] === $vid) {
+                                $customName = $cv['venue_name'];
+                                break;
+                            }
+                        }
+                        $isInsideBsu = $updateData['is_inside_bsu'] ?? 0;
+                        $venueModel->insert(['venue_name' => $customName, 'is_inside_bsu' => $isInsideBsu]);
+                        $realId = $venueModel->getInsertID();
+                        $tempToRealVenueIdMap[$vid] = $realId;
+                    }
+                }
+
                 if (!empty($budgetItemsJson)) {
                     $budgetData = json_decode($budgetItemsJson, true);
                     if (is_array($budgetData) && count($budgetData) > 0) {
@@ -610,10 +693,16 @@ class AccomplishmentReportController extends BaseController
                         if (isset($budgetData[0])) {
                             foreach ($budgetData as &$item) {
                                 $item['accomplishment_report_id'] = $id;
+                                if (isset($item['venue_id']) && is_string($item['venue_id']) && strpos($item['venue_id'], 'temp_') === 0) {
+                                    $item['venue_id'] = $tempToRealVenueIdMap[$item['venue_id']] ?? $item['venue_id'];
+                                }
                             }
                             $budgetModel->insertBatch($budgetData);
                         } else {
                             $budgetData['accomplishment_report_id'] = $id;
+                            if (isset($budgetData['venue_id']) && is_string($budgetData['venue_id']) && strpos($budgetData['venue_id'], 'temp_') === 0) {
+                                $budgetData['venue_id'] = $tempToRealVenueIdMap[$budgetData['venue_id']] ?? $budgetData['venue_id'];
+                            }
                             $budgetModel->insert($budgetData);
                         }
                     }
@@ -875,9 +964,9 @@ class AccomplishmentReportController extends BaseController
             if ($deadline) {
                 // If accomplishment_report had a deadline column, update it here
             }
-            $db->table('accomplishment_report')->where('id', $id)->update($updateData);
+            $db->table('accomplishment_report')->where('id', $id)->set('revision_count', 'revision_count+1', false)->set($updateData)->update();
         } catch (\Exception $e) {
-            $db->table('accomplishment_report')->where('id', $id)->update(['status' => 'Revision Required']);
+            $db->table('accomplishment_report')->where('id', $id)->set('revision_count', 'revision_count+1', false)->set(['status' => 'Revision Required'])->update();
         }
 
         $item = $db->table('accomplishment_report')->where('id', $id)->get()->getRowArray();

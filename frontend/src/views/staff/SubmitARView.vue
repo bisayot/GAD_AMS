@@ -688,7 +688,9 @@
                               <input 
                                 type="number" 
                                 v-model="item.rating" 
-                                min="1" 
+                                @input="if(item.rating > 5) item.rating = 5; if(item.rating < 0) item.rating = 0;"
+                                @blur="item.rating = Math.min(5, Math.max(0, Number(item.rating) || 0))"
+                                min="0" 
                                 max="5" 
                                 step="0.01" 
                                 required
@@ -1689,6 +1691,17 @@ const submitReport = async () => {
     form.value.schedules = generated;
   }
 
+  const hasBlankEval = form.value.evaluation_items && form.value.evaluation_items.some(i => !i.area || i.rating === '' || i.rating === null);
+  if (hasBlankEval) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Missing Evaluation Details',
+      text: 'Please ensure all evaluation areas and ratings are filled in before submitting.',
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+
   if (!form.value.control_number) {
     Swal.fire({
       icon: 'warning',
@@ -1874,8 +1887,9 @@ const submitReport = async () => {
     });
 
     formData.append('venues', JSON.stringify(form.value.venues));
-    if (form.value.venues.includes('Other')) {
-       formData.append('custom_venues', JSON.stringify(customVenuesList.value || []));
+    const customVenuesToSave = venues.value.filter(v => String(v.venue_id).startsWith('custom_'));
+    if (customVenuesToSave.length > 0) {
+       formData.append('custom_venues', JSON.stringify(customVenuesToSave));
     }
     formData.append('budget_items', JSON.stringify(normalizedBudgetItems));
 
@@ -1954,45 +1968,7 @@ const submitReport = async () => {
       }).then(() => {
         router.push('/staff/ar-list');
       });
-      form.value = {
-        activity_title: '',
-        control_number: '',
-        act_design_id: null,
-        start_date: '',
-        end_date: '',
-          schedule_type: 'continuous',
-          schedules: [],
-        start_time: '',
-        end_time: '',
-        venue: '',
-        attendees: '',
-        male: '',
-        female: '', 
-        proposed_budget: 0,
-        budget_items: [
-          { name: 'Meals', total: '' },
-          { name: 'Snacks', total: '' },
-          { name: 'Function Room/Venue', total: '' },
-          { name: 'Accommodation', total: '' },
-          { name: 'Equipment Rental', total: '' },
-          { name: 'Professional Fee/Honoraria', total: '' },
-          { name: 'Token/s', total: '' },
-          { name: 'Materials and Supplies', total: '' },
-          { name: 'Transportation', total: '' },
-          { name: 'Others', total: '' }
-        ],
-        evaluation_items: [
-          { area: 'Time Management', rating: '' },
-          { area: 'Orderliness and Program Flow', rating: '' },
-          { area: 'Appropriateness of the Venue', rating: '' },
-          { area: 'Sound System and Hall Preparation', rating: '' },
-          { area: 'Restroom/s', rating: '' },
-          { area: 'Food and Drinks', rating: '' }
-        ],
-        rating: 0
-      };
-      uploadedFiles.value = [];
-      if (fileInput.value) fileInput.value.value = '';
+
     }
   } catch (error) {
     console.error('Submission error:', error);
@@ -3153,7 +3129,7 @@ onUnmounted(() => {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23cbd5e1' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 18px center;
-  padding-right: 40px;
+  padding-right: 56px;
 }
 
 .budget-sub-controls {

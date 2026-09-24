@@ -32,8 +32,16 @@
         <section class="flex-06 glass-card">
           <div class="report-header">
             <div class="meta-header">
-              <div class="status-badge-view" :class="getStatusClass(design.status)">
-                <span class="status-text">{{ formatStatus(design.status) }}</span>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <div class="status-badge-view" :class="getStatusClass(design.status)">
+                  <span class="status-text">{{ formatStatus(design.status) }}</span>
+                </div>
+                <div v-if="design.revision_count > 0" class="status-badge-view" style="background: rgba(234,179,8,0.1); border-color: rgba(234,179,8,0.2); padding: 4px 10px;">
+                  <span class="status-text" style="color: #facc15; font-size: 11px; font-weight: bold;">Rev: {{ design.revision_count }}</span>
+                </div>
+                <div v-if="design.modification_count > 0" class="status-badge-view" style="background: rgba(168,85,247,0.1); border-color: rgba(168,85,247,0.2); padding: 4px 10px;">
+                  <span class="status-text" style="color: #c084fc; font-size: 11px; font-weight: bold;">Mod: {{ design.modification_count }}</span>
+                </div>
               </div>
               <span class="control-number">{{ design.control || 'PENDING ASSIGNMENT' }}</span>
             </div>

@@ -42,7 +42,9 @@ class ActivityDesignModel extends Model // No change needed here, class name is 
         "modification_remarks",
         "is_modified",
         "is_inside_bsu",
-        "schedule_type"
+        "schedule_type",
+        "revision_count",
+        "modification_count"
     ];
 
 	// Dates

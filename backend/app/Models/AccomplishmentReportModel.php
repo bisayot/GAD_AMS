@@ -38,7 +38,8 @@ class AccomplishmentReportModel extends Model // No change needed here, class na
         "deleted_by",
         "is_archived",
         "is_inside_bsu",
-        "schedule_type"
+        "schedule_type",
+        "revision_count"
     ];
 
 	// Dates

@@ -20,8 +20,13 @@
         <section class="flex-full glass-card">
           <div class="report-header">
             <div class="meta-header">
-              <div class="status-badge-view" :class="getStatusClass(report.status)">
-                <span class="status-text">{{ formatStatus(report.status) }}</span>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <div class="status-badge-view" :class="getStatusClass(report.status)">
+                  <span class="status-text">{{ formatStatus(report.status) }}</span>
+                </div>
+                <div v-if="report.revision_count > 0" class="status-badge-view" style="background: rgba(234,179,8,0.1); border-color: rgba(234,179,8,0.2); padding: 4px 10px;">
+                  <span class="status-text" style="color: #facc15; font-size: 11px; font-weight: bold;">Rev: {{ report.revision_count }}</span>
+                </div>
               </div>
               <span class="control-number">{{ report.control || 'NO CONTROL NUMBER' }}</span>
             </div>
@@ -58,6 +63,10 @@
                 <h3 class="section-title">Approved Activity Design Details</h3>
               </div>
               <div class="grid-2">
+                <div class="full-width-info" v-if="report.activity_design.submitter_name">
+                  <label class="info-label">Submitted By</label>
+                  <p class="text-sm-light mt-1">{{ report.activity_design.submitter_name }}</p>
+                </div>
                 <div class="full-width-info" v-if="report.activity_design.office">
                   <label class="info-label">Office / Unit</label>
                   <p class="text-sm-light mt-1">{{ report.activity_design.office }}</p>
@@ -66,9 +75,10 @@
                   <label class="info-label">Date Submitted</label>
                   <p class="text-sm-light mt-1">{{ report.activity_design.date ? formatDate(report.activity_design.date) : '---' }}</p>
                 </div>
-                <div>
-                  <label class="info-label">Category</label>
-                  <p class="text-sm-light mt-1">Activity Design</p>
+
+                <div class="full-width-info">
+                  <label class="info-label">Control Number</label>
+                  <p class="text-sm-light mt-1">{{ report.activity_design.control_number || 'N/A' }}</p>
                 </div>
                 <div class="full-width-info">
                   <label class="info-label">Title</label>
@@ -102,13 +112,23 @@
                 </div>
                 <div class="full-width-info">
                   <label class="info-label">Venue</label>
-                  <p class="text-sm-light mt-1">{{ report.activity_design.venue_name || report.activity_design.venue }}</p>
-                  <span :class="report.activity_design.is_inside_bsu == 1 || report.activity_design.is_inside_bsu === true ? 'venue-badge inside-bsu' : 'venue-badge outside-bsu'">
-                    {{ report.activity_design.is_inside_bsu == 1 || report.activity_design.is_inside_bsu === true ? '🏫 Inside BSU' : '🌐 Outside BSU' }}
-                  </span>
+                  <div v-if="report.activity_design.venues_list && report.activity_design.venues_list.length > 0" class="flex flex-col gap-3 mt-2">
+                    <div v-for="v in report.activity_design.venues_list" :key="v.venue_id" class="flex flex-col items-start pb-2 border-b border-white/5 last:border-0 last:pb-0">
+                      <p class="text-sm-light !mb-1">{{ v.venue_name }}</p>
+                      <span :class="v.is_inside_bsu == 1 || v.is_inside_bsu === true ? 'venue-badge inside-bsu' : 'venue-badge outside-bsu'">
+                        {{ v.is_inside_bsu == 1 || v.is_inside_bsu === true ? '🏫 Inside BSU' : '🌐 Outside BSU' }}
+                      </span>
+                    </div>
+                  </div>
+                  <div v-else class="mt-2 pb-2">
+                    <p class="text-sm-light !mb-1">{{ report.activity_design.venue_name || report.activity_design.venue }}</p>
+                    <span :class="report.activity_design.is_inside_bsu == 1 || report.activity_design.is_inside_bsu === true ? 'venue-badge inside-bsu' : 'venue-badge outside-bsu'">
+                      {{ report.activity_design.is_inside_bsu == 1 || report.activity_design.is_inside_bsu === true ? '🏫 Inside BSU' : '🌐 Outside BSU' }}
+                    </span>
+                  </div>
                 </div>
                 <div class="full-width-info" v-if="report.activity_design">
-                  <label class="info-label">Target Participants</label>
+                  <label class="info-label">Overall Expected Attendance (Auto-calculated)</label>
                   <p class="text-sm-light mt-1">{{ report.activity_design.target_participants }}</p>
                 </div>
                 <div>
@@ -157,57 +177,9 @@
               </div>
 
               <!-- Approved Budget Breakdown -->
-              <div class="full-width-info mt-4" v-if="aDBudget">
+              <div class="full-width-info mt-4" v-if="report.activity_design && (report.activity_design.budget_items_raw || report.activity_design.budget_items)">
                 <label class="info-label mb-2">Approved Budget Breakdown</label>
-                <div class="budget-breakdown-block">
-                  <div class="bbudget-group">
-                    <div class="bbudget-group-header">🍽️ Catering &amp; Hospitality</div>
-                    <div class="bbudget-subitem">
-                      <div class="bbudget-subitem-row"><span class="bbudget-subitem-label">Meals</span><span class="bbudget-subitem-value">₱{{ Number(aDBudget.meals_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span></div>
-                      <div class="bbudget-checks">
-                        <span v-if="Number(aDBudget.breakfast_selected)===1" class="bbudget-selected-item">Breakfast</span>
-                        <span v-if="Number(aDBudget.lunch_selected)===1" class="bbudget-selected-item">Lunch</span>
-                        <span v-if="Number(aDBudget.dinner_selected)===1" class="bbudget-selected-item">Dinner</span>
-                      </div>
-                    </div>
-                    <div class="bbudget-subitem">
-                      <div class="bbudget-subitem-row"><span class="bbudget-subitem-label">Snacks</span><span class="bbudget-subitem-value">₱{{ Number(aDBudget.snacks_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span></div>
-                      <div class="bbudget-checks">
-                        <span v-if="Number(aDBudget.am_snack_selected)===1" class="bbudget-selected-item">AM Snack</span>
-                        <span v-if="Number(aDBudget.pm_snack_selected)===1" class="bbudget-selected-item">PM Snack</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="bbudget-group">
-                    <div class="bbudget-group-header">🏢 Venue &amp; Logistics</div>
-                    <div class="bbudget-subitem-row"><span class="bbudget-subitem-label">Function Room/Venue</span><span class="bbudget-subitem-value">₱{{ Number(aDBudget.function_room_venue || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span></div>
-                    <div class="bbudget-subitem-row"><span class="bbudget-subitem-label">Accommodation</span><span class="bbudget-subitem-value">₱{{ Number(aDBudget.accommodation || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span></div>
-                    <div class="bbudget-subitem-row"><span class="bbudget-subitem-label">Equipment Rental</span><span class="bbudget-subitem-value">₱{{ Number(aDBudget.equipment_rental || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span></div>
-                    <div class="bbudget-subitem-row"><span class="bbudget-subitem-label">Transportation</span><span class="bbudget-subitem-value">₱{{ Number(aDBudget.transportation || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span></div>
-                  </div>
-                  <div class="bbudget-group">
-                    <div class="bbudget-group-header">🎤 Program &amp; Speakers</div>
-                    <div class="bbudget-subitem">
-                      <div class="bbudget-subitem-row"><span class="bbudget-subitem-label">Professional Fee/Honoraria</span><span class="bbudget-subitem-value">₱{{ Number(aDBudget.professional_fee_honoria || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span></div>
-                      <div class="bbudget-meta">Number of Speakers: <strong>{{ aDBudget.pf_pax || 0 }}</strong></div>
-                    </div>
-                    <div class="bbudget-subitem">
-                      <div class="bbudget-subitem-row"><span class="bbudget-subitem-label">Token/s</span><span class="bbudget-subitem-value">₱{{ Number(aDBudget.tokens || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span></div>
-                      <div class="bbudget-meta">Number of Recipients: <strong>{{ aDBudget.tokens_pax || 0 }}</strong></div>
-                    </div>
-                  </div>
-                  <div class="bbudget-group">
-                    <div class="bbudget-group-header">📦 Materials &amp; Miscellaneous</div>
-                    <div class="bbudget-subitem-row"><span class="bbudget-subitem-label">Materials and Supplies</span><span class="bbudget-subitem-value">₱{{ Number(aDBudget.materials_and_supplies || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span></div>
-                    <div class="bbudget-subitem">
-                      <div class="bbudget-subitem-row"><span class="bbudget-subitem-label">Others</span><span class="bbudget-subitem-value">₱{{ Number(aDBudget.others_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span></div>
-                      <div v-if="aDBudget.othersBreakdown && aDBudget.othersBreakdown.length" class="bbudget-others-breakdown">
-                        <div v-for="(o, oIdx) in aDBudget.othersBreakdown" :key="oIdx" class="bbudget-others-row"><span>{{ o.name || 'Unnamed Item' }}</span><span>₱{{ Number(o.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span></div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="bbudget-total-row"><span>Grand Total (PHP)</span><span>₱{{ Number(aDBudget.grand_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span></div>
-                </div>
+                <ActivityDesignBudget :design="report.activity_design" />
               </div>
 
               <!-- AD Attachment -->
@@ -239,6 +211,23 @@
               </div>
               <div class="grid-2">
                 <div class="full-width-info">
+                  <label class="info-label">Submitted By</label>
+                  <p class="text-sm-light mt-1">{{ report.submitter_name || report.user_name || 'N/A' }}</p>
+                </div>
+                <div class="full-width-info">
+                  <label class="info-label">Office / Unit</label>
+                  <p class="text-sm-light mt-1">{{ report.office || report.office_name || 'N/A' }}</p>
+                </div>
+                <div class="full-width-info">
+                  <label class="info-label">Date Submitted</label>
+                  <p class="text-sm-light mt-1">{{ report.created_at || report.date || 'N/A' }}</p>
+                </div>
+
+                <div class="full-width-info">
+                  <label class="info-label">Control Number</label>
+                  <p class="text-sm-light mt-1">{{ report.control_number || report.control || 'N/A' }}</p>
+                </div>
+                <div class="full-width-info">
                   <label class="info-label">Actual Activity Title</label>
                   <p class="text-sm-light mt-1">{{ report.activity_title }}</p>
                 </div>
@@ -269,7 +258,7 @@
                   <p v-else class="text-sm-light mt-1">---</p>
                 </div>
                 <div>
-                  <label class="info-label">Target Participants</label>
+                  <label class="info-label">Overall Expected Attendance (Auto-calculated)</label>
                   <p class="text-sm-light mt-1">{{ report.activity_design.target_participants }}</p>
                 </div>
                 <div>
@@ -301,10 +290,20 @@
                 </div>
                 <div class="full-width-info">
                   <label class="info-label">Venue</label>
-                  <p class="text-sm-light mt-1">{{ report.venue }}</p>
-                  <span :class="report.is_inside_bsu == 1 || report.is_inside_bsu === true ? 'venue-badge inside-bsu' : 'venue-badge outside-bsu'">
-                    {{ report.is_inside_bsu == 1 || report.is_inside_bsu === true ? '🏫 Inside BSU' : '🌐 Outside BSU' }}
-                  </span>
+                  <div v-if="report.activity_design && report.activity_design.venues_list && report.activity_design.venues_list.length > 0" class="flex flex-col gap-3 mt-2">
+                    <div v-for="v in report.activity_design.venues_list" :key="v.venue_id" class="flex flex-col items-start pb-2 border-b border-white/5 last:border-0 last:pb-0">
+                      <p class="text-sm-light !mb-1">{{ v.venue_name }}</p>
+                      <span :class="v.is_inside_bsu == 1 || v.is_inside_bsu === true ? 'venue-badge inside-bsu' : 'venue-badge outside-bsu'">
+                        {{ v.is_inside_bsu == 1 || v.is_inside_bsu === true ? '🏫 Inside BSU' : '🌐 Outside BSU' }}
+                      </span>
+                    </div>
+                  </div>
+                  <div v-else class="mt-2 pb-2">
+                    <p class="text-sm-light !mb-1">{{ report.venue }}</p>
+                    <span :class="report.is_inside_bsu == 1 || report.is_inside_bsu === true ? 'venue-badge inside-bsu' : 'venue-badge outside-bsu'">
+                      {{ report.is_inside_bsu == 1 || report.is_inside_bsu === true ? '🏫 Inside BSU' : '🌐 Outside BSU' }}
+                    </span>
+                  </div>
                 </div>
                 <div>
                   <label class="info-label">Number of Attendees</label>
@@ -317,57 +316,9 @@
               </div>
 
               <!-- Actual Budget Expenditure -->
-              <div class="full-width-info mt-4" v-if="aRBudget">
+              <div class="full-width-info mt-4" v-if="report.budget_expenditures_raw && report.budget_expenditures_raw.length > 0">
                 <label class="info-label mb-2">Actual Budget Expenditure</label>
-                <div class="budget-breakdown-block">
-                  <div class="bbudget-group">
-                    <div class="bbudget-group-header">🍽️ Catering &amp; Hospitality</div>
-                    <div class="bbudget-subitem">
-                      <div class="bbudget-subitem-row"><span class="bbudget-subitem-label">Meals</span><span class="bbudget-subitem-value">₱{{ Number(aRBudget.meals_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span></div>
-                      <div class="bbudget-checks">
-                        <span v-if="Number(aRBudget.breakfast_selected)===1" class="bbudget-selected-item">Breakfast</span>
-                        <span v-if="Number(aRBudget.lunch_selected)===1" class="bbudget-selected-item">Lunch</span>
-                        <span v-if="Number(aRBudget.dinner_selected)===1" class="bbudget-selected-item">Dinner</span>
-                      </div>
-                    </div>
-                    <div class="bbudget-subitem">
-                      <div class="bbudget-subitem-row"><span class="bbudget-subitem-label">Snacks</span><span class="bbudget-subitem-value">₱{{ Number(aRBudget.snacks_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span></div>
-                      <div class="bbudget-checks">
-                        <span v-if="Number(aRBudget.am_snack_selected)===1" class="bbudget-selected-item">AM Snack</span>
-                        <span v-if="Number(aRBudget.pm_snack_selected)===1" class="bbudget-selected-item">PM Snack</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="bbudget-group">
-                    <div class="bbudget-group-header">🏢 Venue &amp; Logistics</div>
-                    <div class="bbudget-subitem-row"><span class="bbudget-subitem-label">Function Room/Venue</span><span class="bbudget-subitem-value">₱{{ Number(aRBudget.function_room_venue || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span></div>
-                    <div class="bbudget-subitem-row"><span class="bbudget-subitem-label">Accommodation</span><span class="bbudget-subitem-value">₱{{ Number(aRBudget.accommodation || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span></div>
-                    <div class="bbudget-subitem-row"><span class="bbudget-subitem-label">Equipment Rental</span><span class="bbudget-subitem-value">₱{{ Number(aRBudget.equipment_rental || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span></div>
-                    <div class="bbudget-subitem-row"><span class="bbudget-subitem-label">Transportation</span><span class="bbudget-subitem-value">₱{{ Number(aRBudget.transportation || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span></div>
-                  </div>
-                  <div class="bbudget-group">
-                    <div class="bbudget-group-header">🎤 Program &amp; Speakers</div>
-                    <div class="bbudget-subitem">
-                      <div class="bbudget-subitem-row"><span class="bbudget-subitem-label">Professional Fee/Honoraria</span><span class="bbudget-subitem-value">₱{{ Number(aRBudget.professional_fee_honoria || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span></div>
-                      <div class="bbudget-meta">Number of Speakers: <strong>{{ aRBudget.pf_pax || 0 }}</strong></div>
-                    </div>
-                    <div class="bbudget-subitem">
-                      <div class="bbudget-subitem-row"><span class="bbudget-subitem-label">Token/s</span><span class="bbudget-subitem-value">₱{{ Number(aRBudget.tokens || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span></div>
-                      <div class="bbudget-meta">Number of Recipients: <strong>{{ aRBudget.tokens_pax || 0 }}</strong></div>
-                    </div>
-                  </div>
-                  <div class="bbudget-group">
-                    <div class="bbudget-group-header">📦 Materials &amp; Miscellaneous</div>
-                    <div class="bbudget-subitem-row"><span class="bbudget-subitem-label">Materials and Supplies</span><span class="bbudget-subitem-value">₱{{ Number(aRBudget.materials_and_supplies || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span></div>
-                    <div class="bbudget-subitem">
-                      <div class="bbudget-subitem-row"><span class="bbudget-subitem-label">Others</span><span class="bbudget-subitem-value">₱{{ Number(aRBudget.others_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span></div>
-                      <div v-if="aRBudget.othersBreakdown && aRBudget.othersBreakdown.length" class="bbudget-others-breakdown">
-                        <div v-for="(o, oIdx) in aRBudget.othersBreakdown" :key="oIdx" class="bbudget-others-row"><span>{{ o.name || 'Unnamed Item' }}</span><span>₱{{ Number(o.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span></div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="bbudget-total-row"><span>Grand Total (PHP)</span><span>₱{{ Number(aRBudget.grand_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span></div>
-                </div>
+                <ActivityDesignBudget :budget-items="report.budget_expenditures_raw" :design="report.activity_design" />
               </div>
 
               <!-- Evaluation Results -->
@@ -396,10 +347,10 @@
                     <tfoot>
                       <tr>
                         <td class="font-bold text-white">Total Average Rating</td>
-                         <td class="font-bold text-white text-center">{{ report.rating ? Number(report.rating).toFixed(2) : '—' }}</td>
+                         <td class="font-bold text-white text-center">{{ computedTotalRating ? Number(computedTotalRating).toFixed(2) : '—' }}</td>
                         <td class="font-bold text-white">
-                          <span :class="`interpretation-tag-ar ${getInterpretationClass(report.rating)}`">
-                            {{ getInterpretation(report.rating) }}
+                          <span :class="`interpretation-tag-ar ${getInterpretationClass(computedTotalRating)}`">
+                            {{ getInterpretation(computedTotalRating) }}
                           </span>
                         </td>
                       </tr>
@@ -497,6 +448,7 @@ const parseAttachments = (attachmentString) => {
 
 import Swal from 'sweetalert2';
 import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
+import ActivityDesignBudget from '../../components/ActivityDesignBudget.vue';
 
 
 const route = useRoute();
@@ -678,14 +630,49 @@ const aRBudget = computed(() => {
 const parsedAREval = computed(() => {
   if (!report.value.evaluation_results || report.value.evaluation_results.length === 0) return [];
   const e = report.value.evaluation_results[0];
-  return [
-    { area: 'Time Management', rating: e.time_management },
-    { area: 'Orderliness and Program Flow', rating: e.orderliness_and_program_flow },
-    { area: 'Appropriateness of the Venue', rating: e.appropriateness_of_venue },
-    { area: 'Sound System and Hall Preparation', rating: e.sound_system_and_hall_preparation },
-    { area: 'Restroom/s', rating: e.restrooms },
-    { area: 'Food and Drinks', rating: e.food_and_drinks }
-  ];
+  const reverseMap = {
+    "time_management": "Time Management",
+    "orderliness_and_program_flow": "Orderliness and Program Flow",
+    "appropriateness_of_venue": "Appropriateness of the Venue",
+    "sound_system_and_hall_preparation": "Sound System and Hall Preparation",
+    "restrooms": "Restroom/s",
+    "food_and_drinks": "Food and Drinks"
+  };
+  
+  const standardKeys = ["time_management", "orderliness_and_program_flow", "appropriateness_of_venue", "sound_system_and_hall_preparation", "restrooms", "food_and_drinks"];
+  const results = [];
+  
+  standardKeys.forEach(key => {
+    if (e[key] !== undefined && e[key] !== null) {
+      results.push({ area: reverseMap[key], rating: e[key] });
+    }
+  });
+  
+  for (const [key, rating] of Object.entries(e)) {
+    if (!standardKeys.includes(key) && rating != null) {
+      const area = key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+      results.push({ area, rating });
+    }
+  }
+  return results;
+});
+
+const computedTotalRating = computed(() => {
+  if (parsedAREval.value && parsedAREval.value.length > 0) {
+    let sum = 0;
+    let count = 0;
+    parsedAREval.value.forEach(item => {
+      const r = Number(item.rating);
+      if (r > 0) {
+        sum += r;
+        count++;
+      }
+    });
+    if (count > 0) {
+      return sum / count;
+    }
+  }
+  return report.value ? Number(report.value.rating || 0) : 0;
 });
 
 const getInterpretation = (rating) => {
@@ -1027,4 +1014,5 @@ onMounted(() => {
   border: 1px solid rgba(185, 121, 204, 0.2); 
 }
 </style>
+
 
