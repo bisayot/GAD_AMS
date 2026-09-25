@@ -43,7 +43,7 @@
                   <div>
                     <h3 class="subsection-title">2.2 Navigating the Dashboard</h3>
                     <p class="subsection-text">
-                      After logging in, you will be directed to the Director Dashboard. The left sidebar contains all main navigation menus including but not limited to Dashboard, Communications, Submitted List, Activity Design List, Accomplishment Report List, Plan and Budget and Report Monitoring.
+                      After logging in, you will be directed to the Director Dashboard. The left sidebar contains all main navigation menus including but not limited to Dashboard, Communications, Submitted List, Activity Design List, Accomplishment Report List, Plan and Budget Distribution and Report Monitoring.
                     </p>
                   </div>
                 </div>
@@ -59,7 +59,7 @@
                   <li><strong>Pending Accomplishment Reports</strong> - Shows number of accomplishment reports awaiting review</li>
                   <li><strong>Total GAD Budget</strong> - Displays current total budget</li>
                   <li><strong>Remaining Balance</strong> - Displays the remaining budget after an accomplishment report is verified</li>
-                  <li><strong>Gad Allocation</strong> - Displays the allocation based on the GAD plan and budget</li>
+                  <li><strong>Gad Allocation</strong> - Displays the allocation based on the GAD plan and budget distribution</li>
                   <li><strong>Calendar Widget</strong> - Shows upcoming deadlines and scheduled activities</li>
                   <li><strong>Recent Activity Logs</strong> - Tracks recent system activities</li>
                 </ul>
@@ -120,12 +120,12 @@
               </div>
 
               <div id="plan-budget" class="manual-section">
-                <h2 class="section-title">5. Plan and Budget (Editable)</h2>
-                <p class="subsection-text">This section displays the full GAD plan and budget</p>
+                <h2 class="section-title">5. Plan and Budget Distribution (Editable)</h2>
+                <p class="subsection-text">This section displays the full GAD plan and budget distribution</p>
                 <ul class="styled-list">
                   <li>An editable budget distribution for the tracking of expenses per GAD mandates, in budget distribution staff can also set the budget line classification for every field in budgetary requirements</li>
                   <li>Baseline Amounts modal for setting some budget limit or budget average for budgetary requirements</li>
-                  <li>Import EXCEL for easier importing of the approved GAD plan and budget items (conversion from PDF to EXCEL is also shown in the modal)</li>
+                  <li>Import EXCEL for easier importing of the approved GAD plan and budget distribution items (conversion from PDF to EXCEL is also shown in the modal)</li>
                 </ul>
               </div>
 
@@ -133,8 +133,8 @@
                 <h2 class="section-title">6. Report Monitoring</h2>
                 <p class="subsection-text">The report monitoring follows the GAD accomplishment report form:</p>
                 <ul class="styled-list">
-                  <li>Every GAD plan and budget item added in GAD plan and budget page will also automatically appear in the page</li>
-                  <li>The actual expenses will also be calculated and entered based on the GAD plan and budget section and budget distribution in the GAD plan and budget page</li>
+                  <li>Every GAD plan and budget distribution item added in GAD plan and budget distribution page will also automatically appear in the page</li>
+                  <li>The actual expenses will also be calculated and entered based on the GAD plan and budget distribution section and budget distribution in the GAD plan and budget distribution page</li>
                   <li>The gender of participants will also be automatically inputted base from the approved accomplishment reports</li>
                   <li>After the report has been verified the user can now archive the annual accomplishment report</li>
                 </ul>
@@ -218,7 +218,7 @@ const tocSections = [
   { id: 'getting-started', label: '2. Getting Started' },
   { id: 'dashboard', label: '3. Dashboard Overview' },
   { id: 'submissions', label: '4. Viewing And Approving' },
-  { id: 'plan-budget', label: '5. Plan and Budget' },
+  { id: 'plan-budget', label: '5. Plan and Budget Distribution' },
   { id: 'report-monitoring', label: '6. Report Monitoring' },
   { id: 'communications', label: '7. Communications' },
   { id: 'system-controls', label: '8. System Controls' },

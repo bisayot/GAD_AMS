@@ -63,9 +63,9 @@ const staffMenu = ref([
     ]
   },
   {
-    label: 'Plan & Budget', icon: 'gavel',
+    label: 'Plan & Budget Distribution', icon: 'gavel',
     children: [
-      { label: 'Plan and Budget', icon: 'gavel', href: '/staff/plan-and-budget' },
+      { label: 'Plan and Budget Distribution', icon: 'gavel', href: '/staff/plan-and-budget' },
       { label: 'Report Monitoring', icon: 'description', href: '/staff/reports' },
       { label: 'Budget Monitoring', icon: 'payments', href: '/staff/budget' }
     ]

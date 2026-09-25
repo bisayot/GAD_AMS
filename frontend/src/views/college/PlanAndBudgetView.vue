@@ -709,7 +709,7 @@ export default {
       const { isConfirmed } = await Swal.fire({
          title: 'Import Excel',
          html: `
-           <p style="font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 20px;">You are about to import a GAD Plan & Budget Excel file.</p>
+           <p style="font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 20px;">You are about to import a GAD Plan & Budget Distribution Excel file.</p>
            <div style="background: rgba(245, 158, 11, 0.1); border: 2px solid rgba(245, 158, 11, 0.4); border-left: 6px solid #f59e0b; padding: 20px; border-radius: 8px; font-size: 15.5px; text-align: left; line-height: 1.6; margin-top: 18px; color: var(--text);">
              <b style="color: #d97706; display: block; font-size: 18px; margin-bottom: 12px;">⚠️ Important Notice</b>
              <ul style="margin: 0; padding-left: 22px; margin-bottom: 0px;">

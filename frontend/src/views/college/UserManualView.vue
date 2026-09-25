@@ -43,7 +43,7 @@
                   <div>
                     <h3 class="subsection-title">2.2 Navigating the Dashboard</h3>
                     <p class="subsection-text">
-                      After logging in, you will be directed to your respective Dashboard. The left sidebar contains all main navigation menus including but not limited to Dashboard, Messages, Submission, Plan and Budget, System Controls and Legal/Guides.
+                      After logging in, you will be directed to your respective Dashboard. The left sidebar contains all main navigation menus including but not limited to Dashboard, Messages, Submission, Plan and Budget Distribution, System Controls and Legal/Guides.
                     </p>
                   </div>
                 </div>
@@ -128,8 +128,8 @@
               </div>
 
               <div id="plan-budget" class="manual-section">
-                <h2 class="section-title">6. Plan and Budget</h2>
-                <p class="subsection-text">This section displays the full GAD plan and budget where it can be exported to excel for reference and users can also view budget distribution per mandate</p>
+                <h2 class="section-title">6. Plan and Budget Distribution</h2>
+                <p class="subsection-text">This section displays the full GAD plan and budget distribution where it can be exported to excel for reference and users can also view budget distribution per mandate</p>
               </div>
 
               <div id="system-controls" class="manual-section">
@@ -196,7 +196,7 @@ const tocSections = [
   { id: 'dashboard', label: '3. Dashboard Overview' },
   { id: 'submissions', label: '4. Submitting Forms' },
   { id: 'viewing', label: '5. Viewing Submissions' },
-  { id: 'plan-budget', label: '6. Plan and Budget' },
+  { id: 'plan-budget', label: '6. Plan and Budget Distribution' },
   { id: 'system-controls', label: '7. System Controls' },
   { id: 'legal', label: '8. Legal and Guides' },
   { id: 'faq', label: '9. FAQs' },

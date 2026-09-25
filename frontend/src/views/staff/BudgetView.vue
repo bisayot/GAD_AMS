@@ -8,10 +8,6 @@
                 <h1 class="page-title">Budget Utilization Monitoring</h1>
                 <p class="page-subtitle">Track budget allocation, utilization, remaining balances, and percentage utilization across all GAD mandates and activities.</p>
               </div>
-              <button @click="router.push('/staff/budget-allocation')" class="allocation-btn">
-                <span class="material-symbols-outlined btn-icon">payments</span>
-                Manage Budget Allocation
-              </button>
             </div>
           </div>
 
@@ -404,31 +400,6 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.allocation-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
-  border-radius: 0.75rem;
-  background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%);
-  color: white;
-  font-size: 1rem;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15);
-  transition: all 0.2s ease;
-}
-
-.allocation-btn:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-.btn-icon {
-  font-size: 1.125rem !important;
 }
 
 .page-title {
@@ -980,9 +951,5 @@ onMounted(() => {
     gap: 1rem;
   }
   
-  .allocation-btn {
-    width: 100%;
-    justify-content: center;
-  }
 }
 </style>

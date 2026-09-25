@@ -34,7 +34,7 @@
           <p class="mb-2">Your personal information is collected and processed for the following purposes:</p>
           <ul class="list-disc pl-5 space-y-1">
             <li>Processing and evaluation of GAD activity designs and accomplishment reports</li>
-            <li>Generation of GAD Plan and Budget reports</li>
+            <li>Generation of GAD Plan and Budget Distribution reports</li>
             <li>Monitoring and evaluation of GAD program implementation</li>
             <li>Compliance with government reporting requirements to the Philippine Commission on Women (PCW), Commission on Higher Education (CHED), and Department of Budget and Management (DBM)</li>
             <li>Research and statistical analysis for GAD program improvement</li>

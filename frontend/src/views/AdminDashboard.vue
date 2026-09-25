@@ -62,9 +62,9 @@ const adminMenu = ref([
     ]
   },
   {
-    label: 'Plan & Budget', icon: 'account_balance',
+    label: 'Plan & Budget Distribution', icon: 'account_balance',
     children: [
-      { label: 'Plan and Budget', icon: 'account_balance', href: '/admin/plan-and-budget' },
+      { label: 'Plan and Budget Distribution', icon: 'account_balance', href: '/admin/plan-and-budget' },
       { label: 'Report Monitoring', icon: 'bar_chart', href: '/admin/reports' },
       { label: 'Budget Monitoring', icon: 'account_balance_wallet', href: '/admin/budget' }
     ]

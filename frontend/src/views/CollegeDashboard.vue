@@ -61,9 +61,9 @@ const collegeMenu = ref([
     ]
   },
   {
-    label: 'Plan & Budget', icon: 'gavel',
+    label: 'Plan & Budget Distribution', icon: 'gavel',
     children: [
-      { label: 'Plan and Budget', icon: 'gavel', href: '/college/plan-and-budget' }
+      { label: 'Plan and Budget Distribution', icon: 'gavel', href: '/college/plan-and-budget' }
     ]
   },
   { label: 'Activity Logs', icon: 'history', href: '/college/activity-logs' }
