@@ -11,7 +11,7 @@
         <div>
           <h3 class="font-headline font-bold text-purple-400 text-sm uppercase tracking-widest mb-1 break-words">Benguet State University</h3>
           <h2 class="font-headline font-bold text-white text-xl leading-tight break-words">Gender and Development Office</h2>
-          <p class="text-white/60 text-xs font-body tracking-wide mt-1">Activity Management System (GAD-AMS)</p>
+          <p class="text-white/60 text-xs font-body tracking-wide mt-1">GAD Activities Management System (GAD-AMS)</p>
         </div>
 
         <a href="https://www.facebook.com/gad.bsu.1/" target="_blank" rel="noopener noreferrer" class="mt-4 inline-flex w-fit max-w-full items-center px-5 py-2.5 bg-[#1877F2]/10 hover:bg-[#1877F2]/20 border border-[#1877F2]/30 rounded-lg text-white transition-all shadow-sm shadow-[#1877F2]/10">

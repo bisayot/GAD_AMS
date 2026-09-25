@@ -254,7 +254,7 @@
       <div class="section-inner relative z-10 py-12">
         <div class="about-text text-center max-w-5xl mx-auto px-4 lg:px-0">
           <p class="about-label inline-block">Platform Background</p>
-          <h2 class="about-title mb-8">GAD Activity Management System</h2>
+          <h2 class="about-title mb-8">GAD Activities Management System</h2>
           <p class="about-body-lg mx-auto text-lg max-w-4xl">This platform is where Benguet State University's Gender and Development Office keeps track of activity plans, budgets, and accomplishment reports online. Instead of printing revision documents and walking them over to the office, you upload your files and fill in the details here, and you can check the status any time to see if it's pending, needs changes, or has been approved.</p>
           <p class="about-body mx-auto text-base mt-4 mb-10 max-w-4xl">Budget numbers update on their own as funds are used. The GAD Director still reviews and approves everything, but this system just removes the paper-based revision and guesswork around getting things there and finding out where they stand. Visitors can also check completed activities and summary reports on the page without needing to log in.</p>
           <div class="about-btns justify-center flex gap-4 mt-8">
