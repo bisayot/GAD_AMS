@@ -91,6 +91,83 @@
       </div>
     </section>
 
+    <!-- Facilities Section -->
+    <section class="py-16 px-12 border-t border-white/10">
+      <div class="max-w-7xl mx-auto space-y-8">
+        <div class="text-center md:text-left">
+          <span class="inline-block px-4 py-1.5 rounded-full bg-white/10 text-white font-label text-xs font-bold uppercase tracking-widest">Campus Facilities</span>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-8">
+          <!-- Breastfeeding/Lactation Rooms -->
+          <div class="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-colors">
+            <div class="flex items-center gap-4 mb-6">
+              <div class="w-12 h-12 rounded-xl bg-pink-500/20 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-pink-400 text-2xl">child_care</span>
+              </div>
+              <h3 class="text-2xl font-headline font-bold text-white">Breastfeeding / Lactation Rooms</h3>
+            </div>
+            <p class="text-slate-300 mb-6 leading-relaxed">
+              The BSU Breastfeeding/Lactation Rooms provide a safe, private, clean, and comfortable space for breastfeeding and lactating individuals to breastfeed or express and store breast milk while on campus. The facility supports the well-being of employees, students, and BSU clients who require breastfeeding or lactation facilities.
+            </p>
+            <div class="space-y-3">
+              <h4 class="text-white font-bold uppercase tracking-wider text-sm mb-3 opacity-80">Locations:</h4>
+              <ul class="text-slate-300 space-y-2 font-label">
+                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-pink-400 text-sm">location_on</span> BSU Administration Building</li>
+                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-pink-400 text-sm">location_on</span> College of Human Ecology</li>
+                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-pink-400 text-sm">location_on</span> College of Teacher Education</li>
+                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-pink-400 text-sm">location_on</span> College of Human Kinetics</li>
+                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-pink-400 text-sm">location_on</span> BSU Bokod Campus</li>
+                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-pink-400 text-sm">location_on</span> BSU Buguias Campus</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Childminding Center -->
+          <div class="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-colors">
+            <div class="flex items-center gap-4 mb-6">
+              <div class="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-orange-400 text-2xl">family_restroom</span>
+              </div>
+              <h3 class="text-2xl font-headline font-bold text-white">Childminding Center</h3>
+            </div>
+            <p class="text-slate-300 mb-6 leading-relaxed">
+              The BSU Childminding Center provides a safe, child-friendly, and supervised space for the temporary care of children while their parents or guardians attend to their work, studies, or other activities within BSU. The facility is intended primarily for BSU employees, students, and BSU clients who need accessible childcare support.
+            </p>
+            <div class="space-y-3">
+              <h4 class="text-white font-bold uppercase tracking-wider text-sm mb-3 opacity-80">Locations:</h4>
+              <ul class="text-slate-300 space-y-2 font-label">
+                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-orange-400 text-sm">location_on</span> International Dorm</li>
+                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-orange-400 text-sm">location_on</span> College of Agriculture</li>
+                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-orange-400 text-sm">location_on</span> College of Public Administration & Governance</li>
+                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-orange-400 text-sm">location_on</span> College of Information Sciences</li>
+                <li class="flex items-center gap-2"><span class="material-symbols-outlined text-orange-400 text-sm">location_on</span> College of Teacher Education</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Campus Map Banner -->
+        <a href="https://map.bsu.edu.ph/" target="_blank" rel="noopener noreferrer" class="mt-8 block rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-gradient-to-br from-[#1a1a2e] to-purple-900/40 hover:border-purple-500/50 transition-all duration-300 group">
+          <div class="px-8 py-10 flex flex-col md:flex-row items-center justify-between gap-8">
+            <div class="flex items-center gap-6">
+              <div class="w-16 h-16 rounded-2xl bg-purple-500/20 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-purple-500/30 transition-all duration-300">
+                <span class="material-symbols-outlined text-purple-400 text-3xl">map</span>
+              </div>
+              <div>
+                <h3 class="font-headline font-black text-2xl text-white mb-2">Interactive Campus Map</h3>
+                <p class="text-slate-300 font-label">Explore Benguet State University campus locations and facilities.</p>
+              </div>
+            </div>
+            <div class="shrink-0">
+              <span class="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-full font-bold text-sm uppercase tracking-wider group-hover:bg-purple-500 transition-colors shadow-lg shadow-purple-900/50">
+                Open Map <span class="material-symbols-outlined text-lg">open_in_new</span>
+              </span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </section>
 
     <!-- Accomplishment Reports Section -->
     <section class="pt-8 pb-16 px-12 border-t border-transparent">
