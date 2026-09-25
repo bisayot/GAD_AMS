@@ -3,6 +3,7 @@
     <Navbar v-if="!isDashboard" />
     <router-view class="flex-grow" />
     <Footer v-if="!isDashboard" />
+    <BackToTop />
   </div>
 </template>
 
@@ -11,6 +12,7 @@ import { computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import Navbar from './components/Navbar.vue';
 import Footer from './components/Footer.vue';
+import BackToTop from './components/BackToTop.vue';
 import { useHolidays } from './utils/useHolidays';
 
 const route = useRoute();

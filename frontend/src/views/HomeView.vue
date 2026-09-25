@@ -21,9 +21,8 @@
         <span class="hero-badge mb-4">Benguet State University</span>
         <a href="#platform-background" class="cursor-pointer hover:opacity-80 transition-opacity text-center block" style="text-decoration: none;">
           <h1 class="hero-title mb-2">Gender and Development</h1>
-          <p class="text-2xl md:text-4xl text-purple-300 font-headline font-bold mb-6 tracking-wide">Activities Management System</p>
         </a>
-        <div class="hero-logos flex items-center justify-center gap-8 md:gap-12 mt-12 w-full max-w-4xl">
+        <div class="hero-logos flex items-center justify-center gap-8 md:gap-12 mt-6 w-full max-w-4xl">
           <img src="/images/bsulogo.webp" alt="BSU Logo" class="hero-logo-item" />
           <img src="/images/gad_logo_enhanced.png" alt="GAD Logo" class="hero-logo-item" />
         </div>
@@ -260,7 +259,6 @@
           <p class="about-body mx-auto text-base mt-4 mb-10 max-w-4xl">Budget numbers update on their own as funds are used. The GAD Director still reviews and approves everything, but this system just removes the paper-based revision and guesswork around getting things there and finding out where they stand. Visitors can also check completed activities and summary reports on the page without needing to log in.</p>
           <div class="about-btns justify-center flex gap-4 mt-8">
             <button class="btn-primary px-8 py-4 text-sm tracking-widest shadow-lg hover:shadow-purple-500/25" @click="$router.push('/register')">Access System</button>
-            <button class="btn-outline px-8 py-4 text-sm tracking-widest" @click="showPrivacyModal = true">Privacy Policy</button>
           </div>
         </div>
       </div>

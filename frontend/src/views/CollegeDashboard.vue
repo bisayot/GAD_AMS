@@ -66,12 +66,7 @@ const collegeMenu = ref([
       { label: 'Plan and Budget', icon: 'gavel', href: '/college/plan-and-budget' }
     ]
   },
-  {
-    label: 'System & Controls', icon: 'admin_panel_settings',
-    children: [
-      { label: 'Activity Logs', icon: 'history', href: '/college/activity-logs' }
-    ]
-  }
+  { label: 'Activity Logs', icon: 'history', href: '/college/activity-logs' }
 ]);
 
 // Notifications now handled directly in DashboardNavbar

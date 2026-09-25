@@ -11,7 +11,7 @@
     </section>
 
     <!-- Bulletin Section -->
-    <section class="py-16 px-12 ">
+    <section id="bulletin" class="py-16 px-12 ">
       <div class="max-w-7xl mx-auto space-y-12">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div class="space-y-4">
@@ -100,7 +100,7 @@
 
         <div class="grid lg:grid-cols-2 gap-8">
           <!-- Breastfeeding/Lactation Rooms -->
-          <div class="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-colors">
+          <div id="lactation-rooms" class="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-colors scroll-mt-24">
             <div class="flex items-center gap-4 mb-6">
               <div class="w-12 h-12 rounded-xl bg-pink-500/20 flex items-center justify-center shrink-0">
                 <span class="material-symbols-outlined text-pink-400 text-2xl">child_care</span>
@@ -124,7 +124,7 @@
           </div>
 
           <!-- Childminding Center -->
-          <div class="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-colors">
+          <div id="childminding-center" class="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-colors scroll-mt-24">
             <div class="flex items-center gap-4 mb-6">
               <div class="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center shrink-0">
                 <span class="material-symbols-outlined text-orange-400 text-2xl">family_restroom</span>
@@ -170,7 +170,7 @@
     </section>
 
     <!-- Accomplishment Reports Section -->
-    <section class="pt-8 pb-16 px-12 border-t border-transparent">
+    <section id="accomplishment-reports" class="pt-8 pb-16 px-12 border-t border-transparent scroll-mt-24">
       <div class="max-w-7xl mx-auto space-y-12">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div class="space-y-4">
@@ -312,6 +312,8 @@
     </section>
 
 
+
+    <div id="platform-background" class="scroll-mt-24" aria-label="Platform Background"></div>
 
     <!-- Modals -->
     <!-- Modals -->
