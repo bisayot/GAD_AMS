@@ -37,6 +37,10 @@ class AccomplishmentReportController extends BaseController
         }
 
         try {
+            $budgetError = $this->validateBudgetPayload($this->request->getPost('budget_items'));
+            if ($budgetError !== null) {
+                return $this->response->setJSON(['success' => false, 'message' => $budgetError])->setStatusCode(422);
+            }
             // Save uploaded PDFs to writable/uploads/drafts/
             $files = $this->request->getFileMultiple('attachments');
             $fileNames = [];
@@ -128,6 +132,10 @@ class AccomplishmentReportController extends BaseController
 
                 // Save budget items
                 $budgetItemsJson = $this->request->getPost('budget_items');
+                $budgetError = $this->validateBudgetPayload($budgetItemsJson);
+                if ($budgetError !== null) {
+                    return $this->response->setJSON(['success' => false, 'message' => $budgetError])->setStatusCode(422);
+                }
                 if (!empty($budgetItemsJson)) {
                     $budgetData = json_decode($budgetItemsJson, true);
                     if (is_array($budgetData) && count($budgetData) > 0) {
@@ -657,6 +665,10 @@ class AccomplishmentReportController extends BaseController
                 
                 // Update or Insert budget items
                 $budgetItemsJson = $this->request->getPost('budget_items');
+                $budgetError = $this->validateBudgetPayload($budgetItemsJson);
+                if ($budgetError !== null) {
+                    return $this->response->setJSON(['success' => false, 'message' => $budgetError])->setStatusCode(422);
+                }
                 
                 // Process custom venues and map temp IDs to real IDs
                 $venuesStr = $this->request->getPost("venues");
@@ -1013,6 +1025,45 @@ class AccomplishmentReportController extends BaseController
         } catch (\Exception $e) {
             return $this->response->setJSON(['success' => false, 'message' => 'Server Error: ' . $e->getMessage()])->setStatusCode(500);
         }
+    }
+
+    private function validateBudgetPayload($budgetItemsJson): ?string
+    {
+        $items = is_string($budgetItemsJson) ? json_decode($budgetItemsJson, true) : $budgetItemsJson;
+        if (!is_array($items) || $items === []) {
+            return 'At least one budget item is required.';
+        }
+        if (isset($items['item_name'])) {
+            $items = [$items];
+        }
+
+        $venueTotals = [];
+        $paxBased = '/(breakfast|lunch|dinner|snack|professional fee|honoraria|token)/i';
+        foreach ($items as $item) {
+            if (!is_array($item) || !isset($item['venue_id'])) {
+                return 'Every budget item must identify a venue.';
+            }
+            $amount = filter_var($item['amount'] ?? null, FILTER_VALIDATE_FLOAT);
+            $pax = ($item['pax'] ?? null) === null || $item['pax'] === '' ? null : filter_var($item['pax'], FILTER_VALIDATE_INT);
+            if ($amount === false || $amount < 0 || ($pax !== null && ($pax === false || $pax < 0))) {
+                return 'Budget amounts and pax counts must be non-negative numbers.';
+            }
+            if ($amount == 0.0 && $pax !== null && $pax > 0) {
+                return 'A zero-cost budget item cannot have a positive pax count.';
+            }
+            if ($amount > 0 && preg_match($paxBased, (string)($item['item_name'] ?? '')) && ($pax === null || $pax <= 0)) {
+                return 'Meals, snacks, professional fees, honoraria, and tokens require a pax count greater than zero.';
+            }
+            $venueKey = (string)$item['venue_id'];
+            $venueTotals[$venueKey] = ($venueTotals[$venueKey] ?? 0) + (float)$amount;
+        }
+
+        foreach ($venueTotals as $total) {
+            if ($total <= 0) {
+                return 'Each selected venue must have at least one positive budget amount.';
+            }
+        }
+        return null;
     }
 
     public function trash($id = null)

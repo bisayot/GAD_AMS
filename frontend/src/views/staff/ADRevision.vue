@@ -216,7 +216,7 @@
                     <div v-for="(sch, index) in schedules" :key="index" class="schedule-inputs-wrapper" style="margin-bottom: 16px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); position: relative;">
                       <div style="flex: 1; min-width: 0;">
                         <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 6px; display: block;">Date</label>
-                        <VueDatePicker dark v-model="sch.date" :disabled="scheduleType === 'continuous'" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
+                        <VueDatePicker dark v-model="sch.date" @update:model-value="handleScheduleDateChange($event, index)" :disabled="scheduleType === 'continuous'" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
 <template #dp-input="{ value }">
 <input type="text" :value="value ? String(value).replace(',', '').trim().split(' ')[0] : ''" class="custom-input-field dp-custom-transparent !text-xs !p-2" readonly placeholder="Select Date" />
 </template>
@@ -614,6 +614,15 @@ const handleScheduleTypeChange = (newType) => {
   }];
 };
 
+const handleScheduleDateChange = (date, index) => {
+  if (scheduleType.value !== 'staggered' || !date) return;
+  const duplicate = schedules.value.some((schedule, scheduleIndex) => scheduleIndex !== index && schedule.date === date);
+  if (duplicate) {
+    schedules.value[index].date = '';
+    Swal.fire({ icon: 'warning', title: 'Duplicate Schedule Date', text: 'Each non-consecutive schedule must use a different date.', confirmButtonColor: '#b979cc' });
+  }
+};
+
 watch(continuousConfig, () => {
   if (loadingData.value) return;
   generateConsecutiveSchedules();
@@ -866,17 +875,21 @@ const totalSnacksDays = computed(() => activeSchedules.value.filter(s => s.meals
 const computedDays = computed(() => {
   let totalDays = 0;
   activeSchedules.value.forEach(s => {
-    if (s.date && s.start_time && s.end_time) {
-      const [h1, m1] = s.start_time.split(':').map(Number);
-      const [h2, m2] = s.end_time.split(':').map(Number);
-      let hours = (h2 + m2/60) - (h1 + m1/60);
-      if (hours < 0) hours += 24;
-      
-      if (hours <= 4) {
-         totalDays += 0.5;
-      } else {
-         totalDays += 1;
-      }
+    if (!s.date) return;
+
+    if (!s.start_time || !s.end_time) {
+      totalDays += 1;
+      return;
+    }
+
+    const [h1, m1] = s.start_time.split(':').map(Number);
+    const [h2, m2] = s.end_time.split(':').map(Number);
+    const hours = (h2 + m2 / 60) - (h1 + m1 / 60);
+
+    if (hours > 0 && hours <= 4) {
+      totalDays += 0.5;
+    } else {
+      totalDays += 1;
     }
   });
   return totalDays > 0 ? totalDays : 1;
@@ -1581,6 +1594,19 @@ watch([() => formData.value.start_time, () => formData.value.end_time], ([newSta
 });
 
 const handleUpdate = async () => {
+  if (scheduleType.value === 'staggered') {
+    const selectedDates = schedules.value.map(schedule => schedule.date).filter(Boolean);
+    if (new Set(selectedDates).size !== selectedDates.length) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Duplicate Schedule Date',
+        text: 'Each non-consecutive schedule must use a different date.',
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
+  }
+
   const sortedSchedules = [...schedules.value].sort((a, b) => new Date(a.date) - new Date(b.date));
   formData.value.start_date = sortedSchedules[0]?.date || '';
   formData.value.end_date = sortedSchedules[sortedSchedules.length - 1]?.date || '';
@@ -1699,6 +1725,31 @@ const handleUpdate = async () => {
     }
   }
 
+  const paxBased = /(breakfast|lunch|dinner|snack|professional fee|honoraria|token)/i;
+  for (const venueId of formData.value.venues || []) {
+    const items = formData.value.venue_budgets?.[venueId] || [];
+    let venueTotal = 0;
+    for (const item of items) {
+      const multipliers = Array.isArray(item.mult) ? item.mult.filter(multiplier => multiplier && typeof multiplier === 'object') : [];
+      const amount = (Number(item.rate) || 0) * multipliers.reduce((total, multiplier) => total * (Number(multiplier.q) || 0), 1);
+      const paxMultiplier = multipliers.find(multiplier => /^(pax|person|persons|head|heads)$/i.test(String(multiplier.u || '').trim()));
+      const pax = paxMultiplier ? Number(paxMultiplier.q) : 0;
+      if (amount < 0 || pax < 0 || (amount === 0 && pax > 0)) {
+        Swal.fire({ icon: 'warning', title: 'Invalid Budget', text: 'Each budget line must have a non-negative amount, and a zero-cost line cannot have a positive pax count.', confirmButtonColor: '#b979cc' });
+        return;
+      }
+      if (amount > 0 && paxBased.test(String(item.name || '')) && pax <= 0) {
+        Swal.fire({ icon: 'warning', title: 'Invalid Budget', text: `${item.name} requires a pax count greater than zero when it has an amount.`, confirmButtonColor: '#b979cc' });
+        return;
+      }
+      venueTotal += amount;
+    }
+    if (venueTotal <= 0) {
+      Swal.fire({ icon: 'warning', title: 'Empty Venue Budget', text: `Please enter at least one positive budget amount for ${getVenueName(venueId)}.`, confirmButtonColor: '#b979cc' });
+      return;
+    }
+  }
+
   const submitConfirm = await Swal.fire({
     title: 'Confirm Submission',
     text: 'Are you sure you want to submit this revised Activity Design?',
@@ -1776,7 +1827,7 @@ const handleUpdate = async () => {
     const normalizedBudgetItems = [];
     formData.value.venues.forEach(vid => {
       (formData.value.venue_budgets[vid] || []).forEach(item => {
-        const lineTotal = (Number(item.rate) || 0) * item.mult.reduce((p, m) => p * (Number(m.q) || 0), 1);
+        const lineTotal = (Number(item.rate) || 0) * (Array.isArray(item.mult) ? item.mult : []).reduce((p, m) => p * (Number(m.q) || 0), 1);
         if (item.custom && (!String(item.name).trim() || lineTotal <= 0)) return;
         const isOther = item.custom && item.group === 'materials';
         
@@ -2887,10 +2938,6 @@ letter-spacing: 0.05em;
   outline: none;
 }
 .pax-label { font-size: 14px; color: #e2e8f0; font-weight: 500; } .pax-calc-text { font-size: 12px; color: #94a3b8; margin-left: 77px; display: flex; align-items: center; gap: 6px; background: rgba(0, 0, 0, 0.2); padding: 4px 8px; border-radius: 4px; width: fit-content; } .pax-calc-formula { color: #cbd5e1; } .pax-calc-equals { color: #64748b; } .pax-calc-total { color: #10b981; font-weight: 600; font-size: 13px; } .budget-group-total { font-weight: 600; color: #10b981; background: rgba(16, 185, 129, 0.1); padding: 4px 10px; border-radius: 6px; font-size: 13px; margin-top: 4px; } .budget-row-item:has(.pax-breakdown-list) { flex-wrap: wrap !important; } .budget-group-header { flex-wrap: wrap !important; } .pax-calc-text { flex-wrap: wrap !important; max-width: 100% !important; margin-top: 8px !important; margin-left: 0 !important; } .pax-calc-formula, .pax-calc-equals, .pax-calc-total { white-space: nowrap !important; } </style>
-
-
-
-
 
 
 

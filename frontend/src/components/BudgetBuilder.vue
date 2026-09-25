@@ -158,6 +158,20 @@ watch([() => props.isOutsideBsu, () => props.baselineSettings], () => {
   });
 }, { deep: true });
 
+// The schedule count can change after the venue budget is initialized.
+// Keep the automatically supplied catering day multiplier in sync so
+// non-consecutive schedules are included in the proposed total.
+watch(() => props.computedDays, (days) => {
+  allLines().forEach(line => {
+    if (line.group !== 'catering' || !Array.isArray(line.mult)) return;
+    line.mult.forEach(multiplier => {
+      if (String(multiplier.u || '').trim().toLowerCase() === 'days') {
+        multiplier.q = days;
+      }
+    });
+  });
+}, { immediate: true });
+
 // Expose these helpers if parents need to compute totals
 const getGrandTotal = () => {
   let grandTotal = 0;

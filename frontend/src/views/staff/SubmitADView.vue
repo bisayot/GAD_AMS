@@ -254,7 +254,7 @@
                     <div v-for="(sch, index) in schedules" :key="index" class="schedule-inputs-wrapper" style="margin-bottom: 16px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); position: relative;">
                       <div style="flex: 1; min-width: 0;">
                         <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 6px; display: block;">Date</label>
-                        <VueDatePicker dark v-model="sch.date" :disabled="scheduleType === 'continuous'" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
+                        <VueDatePicker dark v-model="sch.date" @update:model-value="handleScheduleDateChange($event, index)" :disabled="scheduleType === 'continuous'" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
 <template #dp-input="{ value }">
 <input type="text" :value="value ? String(value).replace(',', '').trim().split(' ')[0] : ''" class="custom-input-field dp-custom-transparent !text-xs !p-2" readonly placeholder="Select Date" />
 </template>
@@ -622,6 +622,15 @@ const handleScheduleTypeChange = (newType) => {
     end_time: '',
     meals_and_snacks: { breakfast: false, am_snack: false, pm_snack: false, dinner: false }
   }];
+};
+
+const handleScheduleDateChange = (date, index) => {
+  if (scheduleType.value !== 'staggered' || !date) return;
+  const duplicate = schedules.value.some((schedule, scheduleIndex) => scheduleIndex !== index && schedule.date === date);
+  if (duplicate) {
+    schedules.value[index].date = '';
+    Swal.fire({ icon: 'warning', title: 'Duplicate Schedule Date', text: 'Each non-consecutive schedule must use a different date.', confirmButtonColor: '#b979cc' });
+  }
 };
 
 watch(continuousConfig, () => {
@@ -1062,17 +1071,21 @@ watch([() => form.value.start_time, () => form.value.end_time], ([newStart, newE
 const computedDays = computed(() => {
   let totalDays = 0;
   schedules.value.forEach(s => {
-    if (s.date && s.start_time && s.end_time) {
-      const [h1, m1] = s.start_time.split(':').map(Number);
-      const [h2, m2] = s.end_time.split(':').map(Number);
-      let hours = (h2 + m2/60) - (h1 + m1/60);
-      if (hours < 0) hours += 24;
-      
-      if (hours <= 4) {
-         totalDays += 0.5;
-      } else {
-         totalDays += 1;
-      }
+    if (!s.date) return;
+
+    if (!s.start_time || !s.end_time) {
+      totalDays += 1;
+      return;
+    }
+
+    const [h1, m1] = s.start_time.split(':').map(Number);
+    const [h2, m2] = s.end_time.split(':').map(Number);
+    const hours = (h2 + m2 / 60) - (h1 + m1 / 60);
+
+    if (hours > 0 && hours <= 4) {
+      totalDays += 0.5;
+    } else {
+      totalDays += 1;
     }
   });
   return totalDays > 0 ? totalDays : 1;
@@ -1108,6 +1121,35 @@ const fetchBaselineSettings = async () => {
 const validMultipliers = item => Array.isArray(item?.mult)
   ? item.mult.filter(multiplier => multiplier && typeof multiplier === 'object')
   : [];
+const lineTotal = item => (Number(item?.rate) || 0) * validMultipliers(item)
+  .reduce((total, multiplier) => total * (Number(multiplier.q) || 0), 1);
+const paxOf = item => Number(
+  (validMultipliers(item).find(multiplier =>
+    /^(pax|person|persons|head|heads)$/i.test(String(multiplier.u || '').trim())
+  ) || {}).q
+) || 0;
+const budgetValidationError = () => {
+  const paxBased = /(breakfast|lunch|dinner|snack|professional fee|honoraria|token)/i;
+  for (const venueId of form.value.venues || []) {
+    const items = form.value.venue_budgets?.[venueId] || [];
+    let venueTotal = 0;
+    for (const item of items) {
+      const multipliers = validMultipliers(item);
+      const amount = (Number(item.rate) || 0) * multipliers.reduce((total, multiplier) => total * (Number(multiplier.q) || 0), 1);
+      const paxMultiplier = multipliers.find(multiplier => /^(pax|person|persons|head|heads)$/i.test(String(multiplier.u || '').trim()));
+      const pax = paxMultiplier ? Number(paxMultiplier.q) : 0;
+      if (amount < 0 || pax < 0 || (amount === 0 && pax > 0)) {
+        return 'Each budget line must have a non-negative amount, and a zero-cost line cannot have a positive pax count.';
+      }
+      if (amount > 0 && paxBased.test(String(item.name || '')) && pax <= 0) {
+        return `${item.name} requires a pax count greater than zero when it has an amount.`;
+      }
+      venueTotal += amount;
+    }
+    if (venueTotal <= 0) return `Please enter at least one positive budget amount for ${getVenueName(venueId)}.`;
+  }
+  return '';
+};
 const adSubmissionLimitEnabled = ref(true);
 
 const fetchSystemSettings = async () => {
@@ -1120,6 +1162,19 @@ const fetchSystemSettings = async () => {
 };
 
 const submitActivityDesign = async () => {
+  if (scheduleType.value === 'staggered') {
+    const selectedDates = schedules.value.map(schedule => schedule.date).filter(Boolean);
+    if (new Set(selectedDates).size !== selectedDates.length) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Duplicate Schedule Date',
+        text: 'Each non-consecutive schedule must use a different date.',
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
+  }
+
   const sortedSchedules = [...schedules.value].sort((a, b) => new Date(a.date) - new Date(b.date));
   form.value.start_date = sortedSchedules[0]?.date || '';
   form.value.end_date = sortedSchedules[sortedSchedules.length - 1]?.date || '';
@@ -1249,6 +1304,11 @@ const submitActivityDesign = async () => {
       html: `The following venue(s) have no budget entries:<br><br><strong>${names}</strong><br><br>Please fill in at least one budget item per venue before submitting.`,
       confirmButtonColor: '#b979cc'
     });
+    return;
+  }
+  const budgetError = budgetValidationError();
+  if (budgetError) {
+    Swal.fire({ icon: 'warning', title: 'Invalid Budget', text: budgetError, confirmButtonColor: '#b979cc' });
     return;
   }
 
@@ -2640,4 +2700,3 @@ onUnmounted(() => {
 .bl-link { background: none; border: 0; color: #b979cc; cursor: pointer; font-size: 11px; padding: 0; text-decoration: underline; }
 @media (max-width: 640px) { .budget-row-item { flex-direction: column; align-items: stretch !important; } }
 </style>
-

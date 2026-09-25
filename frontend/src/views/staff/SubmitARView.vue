@@ -211,7 +211,7 @@
                     <div v-for="(sch, index) in form.schedules" :key="index" style="display: flex; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); position: relative;">
                       <div style="flex: 1; min-width: 0;">
                         <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 6px; display: block;">Date</label>
-                        <VueDatePicker dark v-model="sch.date" :disabled="scheduleType === 'continuous'" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
+                        <VueDatePicker dark v-model="sch.date" @update:model-value="handleScheduleDateChange($event, index)" :disabled="scheduleType === 'continuous'" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
 <template #dp-input="{ value }">
 <input type="text" :value="value ? String(value).replace(',', '').trim().split(' ')[0] : ''" class="custom-input-field dp-custom-transparent !text-xs !p-2" readonly placeholder="Select Date" />
 </template>
@@ -348,6 +348,7 @@
                         :venues="form.venues" 
                         :baselineSettings="baselineSettings"
                         :isOutsideBsu="isOutsideBsu"
+                        :computedDays="computedDays"
                         :label="''"
                       />
                     </div>
@@ -649,12 +650,21 @@ const computedEndDate = computed(() => {
 const computedDays = computed(() => {
   let totalDays = 0;
   form.value.schedules.forEach(s => {
-    if (s.date && s.start_time && s.end_time) {
-      const [h1, m1] = s.start_time.split(':').map(Number);
-      const [h2, m2] = s.end_time.split(':').map(Number);
-      if (h2 > h1 || (h2 === h1 && m2 > m1)) {
-        totalDays++;
-      }
+    if (!s.date) return;
+
+    if (!s.start_time || !s.end_time) {
+      totalDays += 1;
+      return;
+    }
+
+    const [h1, m1] = s.start_time.split(':').map(Number);
+    const [h2, m2] = s.end_time.split(':').map(Number);
+    const hours = (h2 + m2 / 60) - (h1 + m1 / 60);
+
+    if (hours > 0 && hours <= 4) {
+      totalDays += 0.5;
+    } else {
+      totalDays += 1;
     }
   });
   return totalDays > 0 ? totalDays : 1;
@@ -708,6 +718,15 @@ const handleScheduleTypeChange = (newType) => {
   form.value.schedules = [];
   if (newType === 'staggered') {
     addSchedule();
+  }
+};
+
+const handleScheduleDateChange = (date, index) => {
+  if (scheduleType.value !== 'staggered' || !date) return;
+  const duplicate = form.value.schedules.some((schedule, scheduleIndex) => scheduleIndex !== index && schedule.date === date);
+  if (duplicate) {
+    form.value.schedules[index].date = '';
+    Swal.fire({ icon: 'warning', title: 'Duplicate Schedule Date', text: 'Each non-consecutive schedule must use a different date.', confirmButtonColor: '#b979cc' });
   }
 };
 
@@ -1465,6 +1484,44 @@ const submitReport = async () => {
     }
   }
 
+  const paxBased = /(breakfast|lunch|dinner|snack|professional fee|honoraria|token)/i;
+  for (const venueId of form.value.venues || []) {
+    const items = form.value.venue_budgets?.[venueId] || [];
+    let venueTotal = 0;
+    for (const item of items) {
+      const multipliers = Array.isArray(item.mult) ? item.mult.filter(multiplier => multiplier && typeof multiplier === 'object') : [];
+      const amount = (Number(item.rate) || 0) * multipliers.reduce((total, multiplier) => total * (Number(multiplier.q) || 0), 1);
+      const paxMultiplier = multipliers.find(multiplier => /^(pax|person|persons|head|heads)$/i.test(String(multiplier.u || '').trim()));
+      const pax = paxMultiplier ? Number(paxMultiplier.q) : 0;
+      if (amount < 0 || pax < 0 || (amount === 0 && pax > 0)) {
+        Swal.fire({ icon: 'warning', title: 'Invalid Budget', text: 'Each budget line must have a non-negative amount, and a zero-cost line cannot have a positive pax count.', confirmButtonColor: '#b979cc' });
+        return;
+      }
+      if (amount > 0 && paxBased.test(String(item.name || '')) && pax <= 0) {
+        Swal.fire({ icon: 'warning', title: 'Invalid Budget', text: `${item.name} requires a pax count greater than zero when it has an amount.`, confirmButtonColor: '#b979cc' });
+        return;
+      }
+      venueTotal += amount;
+    }
+    if (venueTotal <= 0) {
+      Swal.fire({ icon: 'warning', title: 'Empty Venue Budget', text: `Please enter at least one positive budget amount for ${getVenueName(venueId)}.`, confirmButtonColor: '#b979cc' });
+      return;
+    }
+  }
+
+  if (scheduleType.value === 'staggered') {
+    const selectedDates = form.value.schedules.map(schedule => schedule.date).filter(Boolean);
+    if (new Set(selectedDates).size !== selectedDates.length) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Duplicate Schedule Date',
+        text: 'Each non-consecutive schedule must use a different date.',
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
+  }
+
   if (uploadedFiles.value.length === 0) {
     Swal.fire({
       icon: 'warning',
@@ -1508,7 +1565,7 @@ const submitReport = async () => {
     const normalizedBudgetItems = [];
     form.value.venues.forEach(vid => {
       (form.value.venue_budgets[vid] || []).forEach(item => {
-        const lineTotalAmount = (Number(item.rate) || 0) * (item.mult ? item.mult.reduce((p, m) => p * (Number(m.q) || 0), 1) : 0);
+        const lineTotalAmount = (Number(item.rate) || 0) * (item.mult ? item.mult.reduce((p, m) => p * (Number(m.q) || 0), 1) : 1);
         if (item.custom && (!String(item.name).trim() || lineTotalAmount <= 0)) return;
         const isOther = item.custom && item.group === 'materials';
         
@@ -3070,9 +3127,4 @@ onUnmounted(() => {
   background-color: rgba(185, 121, 204, 0.1);
 }
 </style>
-
-
-
-
-
 
