@@ -6,7 +6,7 @@
             <div class="header-main-flex">
               <div>
                 <h1 class="page-title">Budget Utilization Monitoring</h1>
-                <p class="page-subtitle">Track budget allocation, utilization, remaining balances, and percentage utilization across all GAD mandates and activities.</p>
+                <p class="page-subtitle">Track GAD budget distribution by mandate, pending activity designs, and remaining balances.</p>
               </div>
             </div>
           </div>
@@ -17,8 +17,8 @@
                 <span class="material-symbols-outlined">account_balance</span>
               </div>
               <div class="stat-content">
-                <h3 class="stat-value">₱{{ formatNum(totalAvailableBudget) }}</h3>
-                <p class="stat-label">Total Available Budget</p>
+                <h3 class="stat-value">₱{{ formatNum(totalGadBudget) }}</h3>
+                <p class="stat-label">Total GAD Budget</p>
               </div>
             </div>
 
@@ -27,8 +27,8 @@
                 <span class="material-symbols-outlined">trending_up</span>
               </div>
               <div class="stat-content">
-                <h3 class="stat-value">₱{{ formatNum(totalUtilizedAmount) }}</h3>
-                <p class="stat-label">Total Utilized Amount</p>
+                <h3 class="stat-value">₱{{ formatNum(actualCost) }}</h3>
+                <p class="stat-label">Actual Cost</p>
               </div>
             </div>
 
@@ -37,8 +37,8 @@
                 <span class="material-symbols-outlined">hourglass_empty</span>
               </div>
               <div class="stat-content">
-                <h3 class="stat-value">₱{{ formatNum(totalPendingBudget) }}</h3>
-                <p class="stat-label">Total Pending Budget</p>
+                <h3 class="stat-value">₱{{ formatNum(proposedBudget) }}</h3>
+                <p class="stat-label">Proposed Budget</p>
               </div>
             </div>
 
@@ -48,7 +48,7 @@
               </div>
               <div class="stat-content">
                 <h3 class="stat-value">{{ overallUtilizationRate }}%</h3>
-                <p class="stat-label">Overall Utilization Rate</p>
+                <p class="stat-label">% Utilization of Budget</p>
               </div>
             </div>
           </div>
@@ -59,12 +59,12 @@
                 <thead>
                   <tr class="table-header-row">
                     <th class="table-header-cell col-number">#</th>
-                    <th class="table-header-cell col-unit text-left">Mandate / GAD Activity</th>
-                    <th class="table-header-cell col-allocated">Total Allocated Budget</th>
-                    <th class="table-header-cell col-pending">Pending Budget</th>
-                    <th class="table-header-cell col-utilized">Utilized Amount</th>
-                    <th class="table-header-cell col-remaining">Available Budget</th>
-                    <th class="table-header-cell col-percent">% Utilization</th>
+                    <th class="table-header-cell col-unit text-left">Gender Issue / Mandate</th>
+                    <th class="table-header-cell col-activity text-left">GAD Activity</th>
+                    <th class="table-header-cell col-allocated">Budget</th>
+                    <th class="table-header-cell col-pending">Pending (ADs)</th>
+                    <th class="table-header-cell col-remaining">Remaining</th>
+                    <th class="table-header-cell col-actual-cost">Actual Cost / Expenditure</th>
                   </tr>
                 </thead>
                 <tbody class="table-body">
@@ -80,28 +80,16 @@
                     </td>
                     
                     <td class="table-cell cell-unit">
-                      <div class="unit-name">{{ row.unit_name }}</div>
+                      <div class="unit-name">{{ row.mandate }}</div>
                       <div class="unit-code">{{ row.unit_code }}</div>
                     </td>
 
-                    <td class="table-cell cell-allocated editable-cell" @click="startEditingCell(row.id, 'allocated', row.allocated)">
-                      <div v-if="isEditing(row.id, 'allocated')" class="edit-input-wrapper">
-                        <input 
-                          :ref="el => setCellInputRef(el, row.id, 'allocated')" 
-                          v-model.number="activeEditValue" 
-                          type="number" 
-                          step="1000" 
-                          min="0"
-                          @blur="saveCellAdjustment(row.id, 'allocated')" 
-                          @keyup.enter="saveCellAdjustment(row.id, 'allocated')" 
-                          @keyup.esc="cancelCellAdjustment" 
-                          class="edit-input"
-                        />
-                      </div>
-                      <div v-else class="cell-value">
-                        ₱{{ formatNum(row.allocated) }}
-                        <span class="edit-icon">✏️</span>
-                      </div>
+                    <td class="table-cell cell-activity">
+                      {{ row.activity || 'N/A' }}
+                    </td>
+
+                    <td class="table-cell cell-allocated">
+                      <div class="cell-value">₱{{ formatNum(row.allocated) }}</div>
                     </td>
 
                     <td class="table-cell cell-pending">
@@ -110,29 +98,12 @@
                       </div>
                     </td>
 
-                    <td class="table-cell cell-utilized">
-                      <div class="cell-value">
-                        ₱{{ formatNum(row.utilized) }}
-                      </div>
-                    </td>
-
                     <td class="table-cell cell-remaining" :class="getRemainingClass(row.remaining)">
                       ₱{{ formatNum(row.remaining) }}
                     </td>
 
-                    <td class="table-cell cell-percent">
-                      <div class="progress-container">
-                        <div class="progress-bar-wrapper">
-                          <div 
-                            class="progress-bar-fill"
-                            :class="getUtilizationBarClass(row.utilizationRate)"
-                            :style="{ width: `${Math.min(row.utilizationRate, 100)}%` }"
-                          ></div>
-                        </div>
-                        <span class="percent-text" :class="getUtilizationTextClass(row.utilizationRate)">
-                          {{ row.utilizationRate.toFixed(1) }}%
-                        </span>
-                      </div>
+                    <td class="table-cell cell-actual-cost">
+                      ₱{{ formatNum(row.actual_cost) }}
                     </td>
                   </tr>
                 </tbody>
@@ -140,51 +111,13 @@
             </div>
           </div>
 
-          <div class="legend-container">
-            <div class="legend-left">
-              <span class="legend-icon">🎨</span>
-              <span class="legend-item">
-                <span class="legend-dot green"></span> Healthy (&lt;70%)
-              </span>
-              <span class="legend-item">
-                <span class="legend-dot yellow"></span> Moderate (70-85%)
-              </span>
-              <span class="legend-item">
-                <span class="legend-dot red"></span> Critical (&gt;85%)
-              </span>
-            </div>
-            <div class="legend-right">
-              <span class="edit-note">✏️ Click on allocated cells to edit</span>
-            </div>
-          </div>
         </div>
       </main>
-
-    <div v-if="showConfirmModal" class="modal-overlay">
-      <div class="modal-container">
-        <h3 class="modal-title">Confirm Budget Adjustment</h3>
-        <p class="modal-message">
-          You are about to update <span class="modal-highlight">{{ getFieldLabel(pendingUpdate.field) }}</span> for 
-          <span class="modal-unit">{{ getUnitName(pendingUpdate.rowId) }}</span> to 
-          <span class="modal-amount">₱{{ formatNum(pendingUpdate.value) }}</span>.
-          This will automatically recalculate remaining budget and utilization rate.
-        </p>
-        
-        <div class="modal-actions">
-          <button @click="cancelModalAction" class="modal-btn modal-btn-cancel">
-            Cancel
-          </button>
-          <button @click="confirmModalAction" class="modal-btn modal-btn-confirm">
-            Commit Update
-          </button>
-        </div>
-      </div>
-    </div>
 
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../../api';
 
@@ -192,17 +125,10 @@ const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 
 const budgetRows = ref([]);
-const editingRowId = ref(null);
-const editingFieldName = ref(null);
-const activeEditValue = ref(0);
-const showConfirmModal = ref(false);
-const pendingUpdate = ref({ rowId: null, field: null, value: 0 });
-const inputRefs = {};
 
-const totalAllocatedBudget = ref(0);
-const totalAvailableBudget = ref(0);
-const totalUtilizedAmount = ref(0);
-const totalPendingBudget = ref(0);
+const totalGadBudget = ref(0);
+const actualCost = ref(0);
+const proposedBudget = ref(0);
 const overallUtilizationRate = ref('0.0');
 
 const formatNum = (val) => {
@@ -210,107 +136,14 @@ const formatNum = (val) => {
   return Number(val).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
-const calculateRemaining = (allocated, utilized) => {
-  return Math.max(0, (allocated || 0) - (utilized || 0));
-};
-
-const calculateUtilizationRate = (allocated, utilized) => {
-  if (!allocated || allocated === 0) return 0;
-  return Math.min(100, (utilized / allocated) * 100);
-};
-
 const updateRowCalculations = (row) => {
   row.remaining = Math.max(0, (row.allocated || 0) - (row.utilized || 0) - (row.pending_approved || 0));
-  row.utilizationRate = calculateUtilizationRate(row.allocated, row.utilized);
 };
 
 const getRemainingClass = (remaining) => {
   if (remaining <= 0) return 'remaining-critical';
   if (remaining < 10000) return 'remaining-warning';
   return 'remaining-healthy';
-};
-
-const getUtilizationBarClass = (rate) => {
-  if (rate >= 85) return 'bar-critical';
-  if (rate >= 70) return 'bar-warning';
-  return 'bar-healthy';
-};
-
-const getUtilizationTextClass = (rate) => {
-  if (rate >= 85) return 'text-critical';
-  if (rate >= 70) return 'text-warning';
-  return 'text-healthy';
-};
-
-const getFieldLabel = (field) => {
-  return field === 'allocated' ? 'Total Allocated Budget' : 'Utilized Amount';
-};
-
-const getUnitName = (rowId) => {
-  const row = budgetRows.value.find(r => r.id === rowId);
-  return row ? row.unit_name : 'Unknown Mandate';
-};
-
-const setCellInputRef = (el, id, field) => {
-  if (el) inputRefs[`${id}_${field}`] = el;
-};
-
-const isEditing = (id, field) => editingRowId.value === id && editingFieldName.value === field;
-
-const startEditingCell = (id, field, currentVal) => {
-  editingRowId.value = id;
-  editingFieldName.value = field;
-  activeEditValue.value = currentVal || 0;
-  nextTick(() => {
-    const el = inputRefs[`${id}_${field}`];
-    if (el) el.focus();
-  });
-};
-
-const saveCellAdjustment = (id, field) => {
-  if (activeEditValue.value < 0) activeEditValue.value = 0;
-  
-  pendingUpdate.value = { rowId: id, field, value: activeEditValue.value };
-  showConfirmModal.value = true;
-  editingRowId.value = null;
-  editingFieldName.value = null;
-};
-
-const cancelCellAdjustment = () => {
-  editingRowId.value = null;
-  editingFieldName.value = null;
-};
-
-const confirmModalAction = async () => {
-  showConfirmModal.value = false;
-  const target = budgetRows.value.find(r => r.id === pendingUpdate.value.rowId);
-  
-  if (target) {
-    const oldValue = target[pendingUpdate.value.field];
-    target[pendingUpdate.value.field] = pendingUpdate.value.value;
-    
-    updateRowCalculations(target);
-    
-    try {
-      const postData = new FormData();
-      postData.append('id', pendingUpdate.value.rowId);
-      postData.append('field', pendingUpdate.value.field);
-      postData.append('new_value', pendingUpdate.value.value);
-
-      await api.post('staff/budget-monitoring/update', postData);
-      console.log('Budget update committed successfully');
-      fetchBudgetData(); // Refresh data to ensure alignment
-    } catch (err) { 
-      console.error('Error saving budget update:', err); 
-      // Rollback on error
-      target[pendingUpdate.value.field] = oldValue;
-      updateRowCalculations(target);
-    }
-  }
-};
-
-const cancelModalAction = () => { 
-  showConfirmModal.value = false; 
 };
 
 const fetchBudgetData = async () => {
@@ -331,10 +164,9 @@ const fetchBudgetData = async () => {
 
     if (summaryRes.data && summaryRes.data.success) {
       const b = summaryRes.data.data;
-      totalAllocatedBudget.value = b.total_budget || 0;
-      totalAvailableBudget.value = b.remaining_balance || 0;
-      totalUtilizedAmount.value = b.total_utilized || 0;
-      totalPendingBudget.value = b.total_pending_approved || 0;
+      totalGadBudget.value = b.total_budget || 0;
+      actualCost.value = b.total_utilized || 0;
+      proposedBudget.value = b.total_pending_approved || 0;
       overallUtilizationRate.value = Number(b.utilization_rate || 0).toFixed(1);
     }
   } catch (err) { 
@@ -520,7 +352,29 @@ onMounted(() => {
 }
 
 .table-wrapper {
-  /* overflow removed for full panning */
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  scrollbar-color: #b979cc rgba(0, 0, 0, 0.25);
+  scrollbar-width: thin;
+}
+
+.table-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #9333ea 0%, #c084fc 100%);
+  border-radius: 999px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, #a855f7 0%, #d8b4fe 100%);
 }
 
 .data-table {
@@ -532,11 +386,11 @@ onMounted(() => {
 
 .col-number { width: 60px; text-align: center; }
 .col-unit { width: 220px; }
+.col-activity { width: 260px; }
 .col-allocated { width: 150px; text-align: center; }
 .col-pending { width: 150px; text-align: center; }
-.col-utilized { width: 150px; text-align: center; }
 .col-remaining { width: 150px; text-align: center; }
-.col-percent { width: 150px; text-align: center; }
+.col-actual-cost { width: 190px; text-align: center; }
 
 .table-header-row {
   border-bottom: 1px solid rgba(185, 121, 204, 0.1);
@@ -594,6 +448,12 @@ onMounted(() => {
   text-align: left;
 }
 
+.cell-activity {
+  min-width: 260px;
+  color: #e2e8f0;
+  line-height: 1.4;
+}
+
 .unit-name {
   font-weight: 700;
   color: #e2e8f0;
@@ -608,17 +468,6 @@ onMounted(() => {
   font-family: monospace;
 }
 
-.editable-cell {
-  cursor: pointer;
-  position: relative;
-  transition: all 0.2s;
-  text-align: center;
-}
-
-.editable-cell:hover {
-  background: rgba(0, 0, 0, 0.4);
-}
-
 .cell-value {
   width: 100%;
   height: 100%;
@@ -630,42 +479,11 @@ onMounted(() => {
   position: relative;
 }
 
-.edit-icon {
-  position: absolute;
-  right: 4px;
-  font-size: 0.8rem;
-  color: rgba(185, 121, 204, 0.4);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.editable-cell:hover .edit-icon {
-  opacity: 1;
-}
-
-.edit-input-wrapper {
-  position: absolute;
-  inset: 4px;
-  z-index: 10;
-}
-
-.edit-input {
-  width: 100%;
-  height: 100%;
+.table-header-cell.col-actual-cost,
+.cell-actual-cost {
+  color: #fff;
+  font-weight: 700;
   text-align: center;
-  background: #1a1a2e;
-  border-radius: 0.5rem;
-  border: 1px solid #b979cc;
-  color: white;
-  font-size: 1rem;
-  font-family: monospace;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-  padding: 0.25rem;
-}
-
-.edit-input:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px #b979cc;
 }
 
 /* Remaining Budget Colors */

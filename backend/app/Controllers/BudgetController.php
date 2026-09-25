@@ -187,10 +187,12 @@ class BudgetController extends Controller
 
             $budgetRows[] = [
                 'id' => $gpbId,
-                'unit_name' => $gpb['activity'] ?: $gpb['mandate'],
+                'mandate' => $gpb['mandate'],
+                'activity' => $gpb['activity'],
                 'unit_code' => 'GPB-' . $gpbId,
                 'allocated' => $allocated,
                 'utilized' => $utilized,
+                'actual_cost' => $utilized,
                 'pending_approved' => $pendingApproved,
                 'remaining' => $remaining,
                 'utilizationRate' => $utilizationRate
