@@ -99,8 +99,20 @@ class BudgetController extends Controller
     {
         $db = \Config\Database::connect();
         
-        $rows = $db->table('gad_plan_budget gpb')
-            ->select('gpb.*, gpb.source_of_budget AS source')
+        // Aliasing the new columns to match the old expected JSON response for the frontend
+        $rows = $db->table('gpb_items')
+            ->select('
+                id as gpb_id,
+                mandate as gender_issue_mandate,
+                cause as cause_of_gender_issue,
+                objective as gad_result_objective,
+                mfo as relevant_org_mfo_pap,
+                activity as gad_activity,
+                targets as performance_indicators_targets,
+                budget as gad_budget,
+                source as source_of_budget,
+                responsible as responsible_unit_office
+            ')
             ->get()
             ->getResultArray();
 
@@ -122,12 +134,12 @@ class BudgetController extends Controller
     public function getOfficeUtilization()
     {
         $db = \Config\Database::connect();
-        $gpbs = $db->table('gad_plan_budget')->orderBy('gpb_id', 'ASC')->get()->getResultArray();
+        $gpbs = $db->table('gpb_items')->orderBy('id', 'ASC')->get()->getResultArray();
         $budgetRows = [];
 
         foreach ($gpbs as $gpb) {
-            $gpbId = $gpb['gpb_id'];
-            $allocated = (float) $gpb['gad_budget'];
+            $gpbId = $gpb['id'];
+            $allocated = (float) $gpb['budget'];
 
             // Get approved activity designs for this mandate (GPB item)
             $designs = $db->table('activity_design')
@@ -175,7 +187,7 @@ class BudgetController extends Controller
 
             $budgetRows[] = [
                 'id' => $gpbId,
-                'unit_name' => $gpb['gad_activity'] ?: $gpb['gender_issue_mandate'],
+                'unit_name' => $gpb['activity'] ?: $gpb['mandate'],
                 'unit_code' => 'GPB-' . $gpbId,
                 'allocated' => $allocated,
                 'utilized' => $utilized,
@@ -205,14 +217,14 @@ class BudgetController extends Controller
         }
 
         if ($field === 'allocated') {
-            $gpb = $db->table('gad_plan_budget')->where('gpb_id', $gpbId)->get()->getRowArray();
+            $gpb = $db->table('gpb_items')->where('id', $gpbId)->get()->getRowArray();
             if (!$gpb) {
                 return $this->fail('Mandate activity not found');
             }
 
-            $db->table('gad_plan_budget')
-                ->where('gpb_id', $gpbId)
-                ->update(['gad_budget' => $newValue]);
+            $db->table('gpb_items')
+                ->where('id', $gpbId)
+                ->update(['budget' => $newValue]);
         }
 
         return $this->respond([
@@ -229,12 +241,12 @@ class BudgetController extends Controller
     public function getAvailableMandates()
     {
         $db = \Config\Database::connect();
-        $gpbs = $db->table('gad_plan_budget')->get()->getResultArray();
+        $gpbs = $db->table('gpb_items')->get()->getResultArray();
         $mandates = [];
 
         foreach ($gpbs as $gpb) {
-            $gpbId = $gpb['gpb_id'];
-            $totalBudget = (float) $gpb['gad_budget'];
+            $gpbId = $gpb['id'];
+            $totalBudget = (float) $gpb['budget'];
 
             // Sum proposed budget of all active designs linked to this GPB activity
             $proposedActive = $db->table('activity_design')
@@ -254,7 +266,7 @@ class BudgetController extends Controller
             $mandates[] = [
                 'id' => $gpbId,
                 'control_no' => 'GPB-' . $gpbId,
-                'title' => $gpb['gad_activity'] ?: $gpb['gender_issue_mandate'],
+                'title' => $gpb['activity'] ?: $gpb['mandate'],
                 'current_balance' => $currentBalance
             ];
         }
@@ -271,8 +283,8 @@ class BudgetController extends Controller
     {
         $db = \Config\Database::connect();
         $logs = $db->table('budget_realignment_logs brl')
-            ->select('brl.*, gpb.gad_activity as mandate_title')
-            ->join('gad_plan_budget gpb', 'gpb.gpb_id = brl.gpb_id', 'left')
+            ->select('brl.*, gpb.activity as mandate_title')
+            ->join('gpb_items gpb', 'gpb.id = brl.gpb_id', 'left')
             ->orderBy('brl.created_at', 'DESC')
             ->get()
             ->getResultArray();
@@ -302,9 +314,9 @@ class BudgetController extends Controller
     {
         $db = \Config\Database::connect();
         
-        $totalBudget = $db->table('gad_plan_budget')
-            ->selectSum('gad_budget')
-            ->get()->getRow()->gad_budget ?? 0.0;
+        $totalBudget = $db->table('gpb_items')
+            ->selectSum('budget')
+            ->get()->getRow()->budget ?? 0.0;
 
         // Sum proposed budget of all designs
         $totalUtilizedActive = $db->table('activity_design')
@@ -344,7 +356,7 @@ class BudgetController extends Controller
             return $this->fail('All adjustment parameters are required.');
         }
 
-        $gpb = $db->table('gad_plan_budget')->where('gpb_id', $gpbId)->get()->getRowArray();
+        $gpb = $db->table('gpb_items')->where('id', $gpbId)->get()->getRowArray();
         if (!$gpb) {
             return $this->fail('Target mandate activity not found.');
         }
@@ -365,7 +377,7 @@ class BudgetController extends Controller
             ]);
 
             // 2. Adjust target GPB activity budget
-            $currentBudget = (float) $gpb['gad_budget'];
+            $currentBudget = (float) $gpb['budget'];
             $newBudget = $currentBudget;
 
             if ($type === 'augmentation') {
@@ -377,9 +389,9 @@ class BudgetController extends Controller
                 }
             }
 
-            $db->table('gad_plan_budget')
-                ->where('gpb_id', $gpbId)
-                ->update(['gad_budget' => $newBudget]);
+            $db->table('gpb_items')
+                ->where('id', $gpbId)
+                ->update(['budget' => $newBudget]);
 
             $db->transComplete();
 
