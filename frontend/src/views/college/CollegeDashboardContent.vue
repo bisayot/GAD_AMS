@@ -46,7 +46,7 @@
             </button>
           </router-link>
         </div>
-        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+        <div class="table-responsive w-full" style="max-height: 400px; overflow-y: auto; overflow-x: auto;">
           <table class="data-table">
             <thead>
               <tr class="table-header-row">

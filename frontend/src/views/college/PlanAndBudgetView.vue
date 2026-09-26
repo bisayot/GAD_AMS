@@ -214,7 +214,7 @@
     </div>
 
     <!-- MANDATE STATISTICS SECTION -->
-    <div id="mandate-statistics-section" class="card" style="margin: 24px 32px 32px 32px; padding: 24px; border-top: 1px solid var(--border); border-radius: 16px;">
+    <div id="mandate-statistics-section" class="card" style="min-width: 1200px; margin: 24px 32px 32px 32px; padding: 24px; border-top: 1px solid var(--border); border-radius: 16px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
         <h2 style="display: flex; align-items: center; gap: 8px; color: var(--text-primary); font-size: 1.25rem; margin: 0; font-weight: 600;">
           GAD Budget Distribution by Mandate

@@ -7,7 +7,7 @@
     
     <div v-for="vId in (venues && venues.length ? venues : [])" :key="vId" class="venue-budget-wrapper" style="margin-bottom: 2rem; border-radius: 8px; padding: 1rem; border: 1px solid rgba(185, 121, 204, 0.3);">
       <h4 style="color: #e9d5ff; margin-bottom: 15px; border-left: 4px solid #b979cc; padding-left: 10px;">Budget for Venue: {{ getVenueName(vId) }}</h4>
-      <div class="budget-groups-container" style="display: flex; flex-direction: column; gap: 16px;">
+      <div class="budget-groups-container" style="display: flex; flex-direction: column; gap: 16px; overflow-x: auto; padding-bottom: 8px;">
         <div v-for="g in budgetGroups" :key="g.key" class="budget-group-card">
           <div class="budget-group-header" style="justify-content: space-between;">
             <div style="display: flex; align-items: center; gap: 10px;">
@@ -225,6 +225,7 @@ const getVenueName = (id) => {
   border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 8px;
   overflow: hidden;
+  min-width: 600px;
 }
 .budget-group-header {
   background: rgba(15, 23, 42, 0.6);

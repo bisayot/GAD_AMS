@@ -252,7 +252,7 @@
                       You can customize the Time for specific days (e.g., half-day on the last day) below:
                     </div>
                     <div v-for="(sch, index) in schedules" :key="index" class="schedule-inputs-wrapper" style="margin-bottom: 16px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); position: relative;">
-                      <div style="flex: 1; min-width: 0;">
+                      <div style="flex: 1; min-width: 130px;">
                         <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 6px; display: block;">Date</label>
                         <VueDatePicker dark v-model="sch.date" @update:model-value="handleScheduleDateChange($event, index)" :disabled="scheduleType === 'continuous'" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
 <template #dp-input="{ value }">
@@ -260,7 +260,7 @@
 </template>
 </VueDatePicker>
                       </div>
-                      <div style="flex: 1; min-width: 0;">
+                      <div style="flex: 1; min-width: 130px;">
                         <div class="label-container" style="margin-bottom: 6px;">
                           <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 0;">Start Time</label>
                           <div class="info-btn-wrapper">
@@ -270,7 +270,7 @@
                         </div>
                         <input type="time" v-model="sch.start_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="validateScheduleTime(index)">
                       </div>
-                      <div style="flex: 1; min-width: 0;">
+                      <div style="flex: 1; min-width: 130px;">
                         <div class="label-container" style="margin-bottom: 6px;">
                           <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 0;">End Time</label>
                           <div class="info-btn-wrapper">
@@ -679,7 +679,7 @@ const getVenueName = (id) => {
     const custom = customVenuesList.value.find(x => String(x.venue_id) === String(id));
     return custom ? custom.venue_name : 'Custom Venue';
   }
-  const v = filteredVenues.value.find(x => String(x.venue_id) === String(id));
+  const v = venues.value.find(x => String(x.venue_id) === String(id));
   return v ? v.venue_name : 'Unknown Venue';
 };
 

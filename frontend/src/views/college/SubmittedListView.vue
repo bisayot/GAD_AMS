@@ -1087,6 +1087,7 @@ onMounted(() => {
   .filter-inline {
     flex-direction: column;
     align-items: stretch;
+    gap: 1rem;
   }
   
   .filter-actions {

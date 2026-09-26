@@ -21,7 +21,7 @@
     </div>
 
     <!-- Table -->
-    <div class="bg-slate-800 rounded-xl shadow-sm border border-slate-700 overflow-hidden">
+    <div class="bg-slate-800 rounded-xl shadow-sm border border-slate-700 overflow-hidden overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="bg-slate-800/50 border-b border-slate-700">

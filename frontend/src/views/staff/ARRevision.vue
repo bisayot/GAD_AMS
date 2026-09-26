@@ -563,10 +563,12 @@
                 </div>
 
                 <!-- Rating -->
-                <div class="full-width-info mt-4" style="display:flex;align-items:center;gap:12px;">
-                  <label class="info-label">Total Average Rating *</label>
-                  <input type="number" :value="form.rating" readonly class="custom-input-field" placeholder="0.00" style="width:120px; background: rgba(255,255,255,0.05);">
-                  <span :class="getInterpretationClass(form.rating)" style="font-weight: 500;">{{ getInterpretation(form.rating) }}</span>
+                <div class="full-width-info mt-4" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                  <label class="info-label" style="white-space:nowrap;margin-right:8px;">Total Average Rating *</label>
+                  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                    <input type="number" :value="form.rating" readonly class="custom-input-field" placeholder="0.00" style="width:120px; background: rgba(255,255,255,0.05);">
+                    <span :class="getInterpretationClass(form.rating)" style="font-weight: 500;">{{ getInterpretation(form.rating) }}</span>
+                  </div>
                 </div>
 
                 <!-- File Upload -->

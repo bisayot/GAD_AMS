@@ -97,7 +97,7 @@
                   
                   <tr 
                     v-else
-                    v-for="(unit, index) in filteredUnits" 
+                    v-for="(unit, index) in paginatedUnits" 
                     :key="unit.id"
                     class="table-row"
                   >
@@ -137,7 +137,7 @@
 
             <div class="pagination-container">
               <p class="pagination-info">
-                Showing <span class="pagination-highlight">{{ paginationMeta.from || 0 }}</span> to <span class="pagination-highlight">{{ paginationMeta.to || 0 }}</span> of <span class="pagination-highlight">{{ paginationMeta.total || 0 }}</span> Technical Working Groups
+                Showing <span class="pagination-highlight">{{ computedPaginationMeta.from || 0 }}</span> to <span class="pagination-highlight">{{ computedPaginationMeta.to || 0 }}</span> of <span class="pagination-highlight">{{ computedPaginationMeta.total || 0 }}</span> Technical Working Groups
               </p>
               
               <div class="pagination-controls">
@@ -149,7 +149,7 @@
                   ←
                 </button>
                 <button 
-                  v-for="page in paginationMeta.last_page" 
+                  v-for="page in computedPaginationMeta.last_page" 
                   :key="page"
                   @click="changePage(page)"
                   :class="['pagination-page', currentPage === page && 'pagination-page-active']"
@@ -158,7 +158,7 @@
                 </button>
                 <button 
                   @click="changePage(currentPage + 1)"
-                  :disabled="currentPage === paginationMeta.last_page"
+                  :disabled="currentPage === computedPaginationMeta.last_page"
                   class="pagination-btn"
                 >
                   →
@@ -178,7 +178,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../../api';
 
@@ -191,13 +191,6 @@ const statusFilter = ref('all');
 const twgUnits = ref([]);
 const currentPage = ref(1);
 const perPage = ref(10);
-
-const paginationMeta = ref({
-  total: 0,
-  from: 0,
-  to: 0,
-  last_page: 1
-});
 
 const GAD_OFFICE_ID = 1;
 
@@ -256,6 +249,23 @@ const filteredUnits = computed(() => {
   return records;
 });
 
+watch([searchQuery, statusFilter], () => {
+  currentPage.value = 1;
+});
+
+const paginatedUnits = computed(() => {
+  const start = (currentPage.value - 1) * perPage.value;
+  return filteredUnits.value.slice(start, start + perPage.value);
+});
+
+const computedPaginationMeta = computed(() => {
+  const total = filteredUnits.value.length;
+  const last_page = Math.ceil(total / perPage.value) || 1;
+  const from = total === 0 ? 0 : ((currentPage.value - 1) * perPage.value) + 1;
+  const to = Math.min(currentPage.value * perPage.value, total);
+  return { total, last_page, from, to };
+});
+
 const fetchTWGSubmissions = async (page = 1) => {
   try {
     // Staged to fetch live data records matching your endpoint framework
@@ -265,10 +275,6 @@ const fetchTWGSubmissions = async (page = 1) => {
       ...unit,
       name: unit.office_name,
     }));
-    paginationMeta.value = {
-      ...response.data.meta,
-      total: normalized.length,
-    };
     currentPage.value = page;
 
     metricsStats.value[0].value = response.data.meta.total_twg || 0;
@@ -282,12 +288,11 @@ const fetchTWGSubmissions = async (page = 1) => {
 
 const handlePerPageChange = () => {
   currentPage.value = 1;
-  fetchTWGSubmissions(1);
 };
 
 const changePage = (page) => {
-  if (page >= 1 && page <= paginationMeta.value.last_page) {
-    fetchTWGSubmissions(page);
+  if (page >= 1 && page <= computedPaginationMeta.value.last_page) {
+    currentPage.value = page;
   }
 };
 
@@ -884,16 +889,23 @@ onMounted(() => {
   .filter-section {
     flex-direction: column;
     align-items: stretch;
+    gap: 1rem;
   }
   
   .filter-controls {
     width: 100%;
     flex-direction: column;
+    gap: 1rem;
   }
   
   .search-wrapper,
   .select-wrapper {
     width: 100%;
+  }
+
+  .per-page-controls {
+    width: 100%;
+    justify-content: flex-start;
   }
   
   .pagination-container {

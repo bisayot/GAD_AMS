@@ -31,7 +31,7 @@
     
     <!-- Venues Table -->
     <div v-else class="glass-card table-container overflow-x-auto">
-      <table class="w-full text-left border-collapse custom-table">
+      <table class="w-full text-left border-collapse custom-table min-w-[600px]">
         <thead>
           <tr>
             <th class="p-4 font-semibold border-b border-purple-900/30 text-white">Venue Name</th>

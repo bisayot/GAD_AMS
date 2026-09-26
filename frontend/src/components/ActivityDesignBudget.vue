@@ -1,5 +1,6 @@
 <template>
-  <div v-if="parsedBudget.length" class="budget-groups-container w-full mt-4">
+  <div v-if="parsedBudget.length" class="w-full mt-4 overflow-x-auto">
+    <div class="budget-groups-container min-w-[500px]">
     <div v-for="(venue, vIdx) in parsedBudget" :key="vIdx" class="venue-budget-container mb-6 bg-slate-900/40 border border-slate-700/50 rounded-2xl overflow-hidden shadow-lg">
       <div @click="toggleVenueBudget(vIdx)" class="venue-budget-header cursor-pointer flex justify-between items-center p-4 bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 transition-colors">
         <div class="flex items-center gap-3">
@@ -69,6 +70,7 @@
       <div class="grand-total-value-banner font-bold text-2xl text-white">
         ₱{{ formatCurrency(grandTotal) }}
       </div>
+    </div>
     </div>
   </div>
   <div v-else class="empty-budget-notice p-4 text-center text-slate-400 bg-slate-900/30 rounded-xl border border-slate-700/50 mt-4">

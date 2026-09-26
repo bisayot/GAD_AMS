@@ -601,6 +601,8 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
 }
 
 .user-card {
@@ -609,6 +611,7 @@ onMounted(() => {
   min-height: 250px;
   max-height: 500px;
   overflow: hidden;
+  min-width: 1000px;
 }
 
 .card-header {

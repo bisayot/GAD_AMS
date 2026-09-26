@@ -6,7 +6,7 @@
     </div>
 
     <!-- Tabs -->
-    <div class="flex gap-4 border-b border-white/10 mb-6 px-4 sm:px-0">
+    <div class="flex flex-wrap overflow-x-auto gap-4 border-b border-white/10 mb-6 px-4 sm:px-0">
       <button 
         class="tab-btn" 
         :class="{ 'active-tab': activeTab === 'offices' }"
@@ -34,10 +34,12 @@
     </div>
 
     <!-- Content Area -->
-    <div class="tab-content">
-      <OfficeManagementView v-if="activeTab === 'offices'" :is-nested="true" />
-      <VenuesManagementView v-if="activeTab === 'venues'" :is-nested="true" />
-      <HolidaysManagementView v-if="activeTab === 'holidays'" />
+    <div class="tab-content overflow-x-auto">
+      <div class="min-w-[1024px]">
+        <OfficeManagementView v-if="activeTab === 'offices'" :is-nested="true" />
+        <VenuesManagementView v-if="activeTab === 'venues'" :is-nested="true" />
+        <HolidaysManagementView v-if="activeTab === 'holidays'" />
+      </div>
     </div>
   </div>
 </template>

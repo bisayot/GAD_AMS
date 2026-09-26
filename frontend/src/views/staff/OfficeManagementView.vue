@@ -52,7 +52,7 @@
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
       </div>
       
-      <table v-else class="w-full text-left border-collapse custom-table">
+      <table v-else class="w-full text-left border-collapse custom-table min-w-[600px]">
         <thead>
           <tr>
             <th class="p-4 font-semibold border-b border-purple-900/30 text-white w-16 text-center">ID</th>

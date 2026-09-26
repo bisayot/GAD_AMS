@@ -46,7 +46,7 @@
           </div>
 
           <div class="table-container">
-            <div class="table-wrapper">
+            <div class="table-wrapper overflow-x-auto w-full">
               <table class="data-table">
                 <thead>
                   <tr class="table-header-row">
