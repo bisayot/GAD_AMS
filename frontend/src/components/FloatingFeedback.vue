@@ -52,7 +52,7 @@ onUnmounted(() => {
 <style scoped>
 .floating-feedback-container {
   position: fixed;
-  bottom: 30px;
+  bottom: 90px;
   right: 30px;
   display: flex;
   flex-direction: column;
@@ -135,7 +135,7 @@ onUnmounted(() => {
 
 @media (max-width: 768px) {
   .floating-feedback-container {
-    bottom: 20px;
+    bottom: 80px;
     right: 20px;
   }
   .floating-feedback-btn {
