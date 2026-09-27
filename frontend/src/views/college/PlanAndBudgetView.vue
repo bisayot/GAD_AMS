@@ -11,9 +11,7 @@
         <!-- nav removed -->
   
         <div class="topbar-actions">
-          <button class="topbar-btn secondary" @click="scrollToStats" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
-            Budget Distribution
-          </button>
+          <router-link to="/college/budget-distribution"><button class="topbar-btn secondary" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">Budget Distribution</button></router-link>
           <button id="btnExpandAll" class="topbar-btn outline" @click="expandAll">Expand All</button>
           <button id="btnCollapseAll" class="topbar-btn outline" @click="collapseAll">Collapse All</button>
           <button id="btnExport" class="topbar-btn primary" @click="exportToExcel" :disabled="exporting">
@@ -211,91 +209,6 @@
 
       <footer class="note">Reference: Republic Act No. 9710 (Magna Carta of Women) IRR Section 36(b) sets the GAD budget mandate at a minimum of 5% of an agency's total annual appropriations.</footer>
     </main>
-    </div>
-
-    <!-- MANDATE STATISTICS SECTION -->
-    <div id="mandate-statistics-section" class="card" style="min-width: 1200px; margin: 24px 32px 32px 32px; padding: 24px; border-top: 1px solid var(--border); border-radius: 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-        <h2 style="display: flex; align-items: center; gap: 8px; color: var(--text-primary); font-size: 1.25rem; margin: 0; font-weight: 600;">
-          GAD Budget Distribution by Mandate
-        </h2>
-        <div style="display: flex; align-items: center; gap: 8px;">
-           <label style="color: var(--text-muted); font-size: 0.85rem;">Filter by Classification:</label>
-           <select v-model="mandateStatsFilter" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: white; padding: 6px 12px; border-radius: 6px; outline: none; font-size: 0.9rem;">
-             <option value="all" style="background: #1e293b; color: #fff;">All Classifications</option>
-             <option value="client" style="background: #1e293b; color: #fff;">Client-Focused</option>
-             <option value="org" style="background: #1e293b; color: #fff;">Organization-Focused</option>
-             <option value="attributed" style="background: #1e293b; color: #fff;">Attributed Program</option>
-           </select>
-        </div>
-      </div>
-      <div v-if="loadingStats" style="text-align: center; color: var(--text-muted); padding: 40px;">
-        Loading statistics...
-      </div>
-      <div v-else-if="mandateStats.length === 0" style="text-align: center; color: var(--text-muted); padding: 40px;">
-        <span style="font-size: 2rem; display: block; margin-bottom: 12px;">📭</span>
-        <h3 style="color: var(--text); margin-bottom: 8px;">No Mandate Data Available</h3>
-        <p style="font-size: 0.9rem;">The statistics are generated from your saved GAD Plan.<br>Please click <b>"Save Plan"</b> first to generate statistics.</p>
-      </div>
-      <div v-else>
-         <div v-if="filteredMandateStats.length === 0" style="text-align: center; color: var(--text-muted); padding: 24px;">No mandates found for this classification.</div>
-         <!-- Data Cards Grid -->
-         <div v-else style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px;">
-           <div v-for="(stat, idx) in filteredMandateStats" :key="idx" style="background: rgba(0,0,0,0.25); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';">
-             
-             <!-- Content Section -->
-             <div style="display: flex; flex-direction: column; gap: 12px; flex: 1;">
-               <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border-left: 3px solid #6366f1;">
-                 <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px; letter-spacing: 0.5px;">Gender Issue / Mandate</div>
-                 <div style="font-size: 0.95rem; color: var(--text-primary); font-weight: 500; line-height: 1.4;">{{ stat.mandate || 'N/A' }}</div>
-               </div>
-               
-               <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border-left: 3px solid #8b5cf6;">
-                 <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px; letter-spacing: 0.5px;">Cause of Gender Issue</div>
-                 <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">{{ stat.cause || 'N/A' }}</div>
-               </div>
-               
-               <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border-left: 3px solid #ec4899;">
-                 <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px; letter-spacing: 0.5px;">GAD Activity</div>
-                 <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">{{ stat.activity || 'N/A' }}</div>
-               </div>
-             </div>
-             
-             <!-- Stats Section -->
-             <div style="background: rgba(0,0,0,0.15); border-radius: 8px; padding: 16px; border: 1px solid rgba(255,255,255,0.03);">
-               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                 <div style="text-align: center; padding: 8px; background: rgba(255,255,255,0.02); border-radius: 6px;">
-                   <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Approved ADs</div>
-                   <div style="font-size: 1.1rem; color: var(--text-primary); font-weight: 700;">{{ stat.approved_ad_count }}</div>
-                 </div>
-                 <div style="text-align: center; padding: 8px; background: rgba(255,255,255,0.02); border-radius: 6px;">
-                   <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Approved ARs</div>
-                   <div style="font-size: 1.1rem; color: var(--text-primary); font-weight: 700;">{{ stat.approved_ar_count }}</div>
-                 </div>
-               </div>
-               
-               <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.85rem; color: var(--text-secondary);">
-                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                   <span style="font-weight: 500;">Budget:</span>
-                   <span style="color: var(--text-primary); font-family: monospace; font-size: 0.95rem;">₱{{ Number(stat.budget).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
-                 </div>
-                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                   <span style="font-weight: 500;">Utilized:</span>
-                   <span style="color: #10b981; font-family: monospace; font-size: 0.95rem;">₱{{ Number(stat.utilized_budget).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
-                 </div>
-                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                   <span style="font-weight: 500;">Pending (ADs):</span>
-                   <span style="color: #f59e0b; font-family: monospace; font-size: 0.95rem;">₱{{ Number(stat.pending_budget).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
-                 </div>
-                 <div style="display: flex; justify-content: space-between; align-items: center; font-weight: 700; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.1); margin-top: 4px;">
-                    <span style="text-transform: uppercase; font-size: 0.75rem;">Remaining:</span>
-                    <span :style="{ color: stat.remaining_budget < 0 ? '#ef4444' : '#3b82f6' }" style="font-family: monospace; font-size: 1.05rem;">₱{{ Number(stat.remaining_budget).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-       </div>
     </div>
 
 

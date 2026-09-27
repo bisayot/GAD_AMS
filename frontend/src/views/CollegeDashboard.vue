@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-slate-50 flex flex-col overflow-x-clip w-full" :style="$route.path.includes('/plan-and-budget') ? 'overflow-x: auto;' : 'overflow-x: clip; max-width: 100%;'">
+  <div class="min-h-screen bg-slate-50 flex flex-col overflow-x-clip w-full" :style="($route.path.includes('/plan-and-budget') || $route.path.includes('/budget-distribution')) ? 'overflow-x: auto;' : 'overflow-x: clip; max-width: 100%;'">
     <!-- Top Navbar for Desktop/Tablet -->
     <DashboardNavbar 
       :menuItems="collegeMenu"
@@ -20,7 +20,7 @@
       />
     </div>
 
-    <main :class="['flex-grow w-full min-w-0 overflow-x-hidden', $route.path.includes('/plan-and-budget') ? 'p-0' : 'p-4 md:p-10']" :style="$route.path.includes('/plan-and-budget') ? 'overflow-x: auto;' : ''">
+    <main :class="['flex-grow w-full min-w-0 overflow-x-hidden', ($route.path.includes('/plan-and-budget') || $route.path.includes('/budget-distribution')) ? 'p-0' : 'p-4 md:p-10']" :style="($route.path.includes('/plan-and-budget') || $route.path.includes('/budget-distribution')) ? 'overflow-x: auto;' : ''">
       <router-view />
     </main>
   </div>
@@ -51,19 +51,20 @@ const handleScroll = () => {
 
 const collegeMenu = ref([
   { label: 'Dashboard', icon: 'dashboard', href: '/college/dashboard' },
+  { label: 'New Submission', icon: 'add', href: '/college/submit' },
   {
     label: 'Documents', icon: 'folder',
     children: [
-      { label: 'New Submission', icon: 'add', href: '/college/submit' },
       { label: 'Submitted List', icon: 'list', href: '/college/submitted-list' },
       { label: 'Archives', icon: 'archive', href: '/college/archive' },
       { label: 'Document Trash Bin', icon: 'delete', href: '/college/trashbin' }
     ]
   },
   {
-    label: 'Plan & Budget Distribution', icon: 'gavel',
+    label: 'Plan & Budget', icon: 'gavel',
     children: [
-      { label: 'Plan and Budget Distribution', icon: 'gavel', href: '/college/plan-and-budget' }
+      { label: 'Plan and Budget', icon: 'gavel', href: '/college/plan-and-budget' },
+      { label: 'Budget Distribution by Mandate', icon: 'pie_chart', href: '/college/budget-distribution' }
     ]
   },
   { label: 'Activity Logs', icon: 'history', href: '/college/activity-logs' }

@@ -20,7 +20,7 @@
       />
     </div>
 
-    <main :class="['flex-grow w-full min-w-0 overflow-x-hidden', $route.path.includes('/plan-and-budget') ? 'p-0' : 'p-4 md:p-10']">
+    <main :class="['flex-grow w-full min-w-0 overflow-x-hidden', ($route.path.includes('/plan-and-budget') || $route.path.includes('/budget-distribution')) ? 'p-0' : 'p-4 md:p-10']">
       <router-view />
     </main>
   </div>
@@ -51,10 +51,10 @@ const handleScroll = () => {
 
 const staffMenu = ref([
   { label: 'Dashboard', icon: 'dashboard', href: '/staff/dashboard' },
+  { label: 'New Submission', icon: 'add', href: '/staff/submit' },
   {
     label: 'Documents', icon: 'folder',
     children: [
-      { label: 'New Submission', icon: 'add', href: '/staff/submit' },
       { label: 'Submitted List', icon: 'list', href: '/staff/submitted-list' },
       { label: 'Activity Design List', icon: 'list', href: '/staff/ad-list' },
       { label: 'Accomplishment Report List', icon: 'list', href: '/staff/ar-list' },
@@ -63,9 +63,10 @@ const staffMenu = ref([
     ]
   },
   {
-    label: 'Plan & Budget Distribution', icon: 'gavel',
+    label: 'Plan & Budget', icon: 'gavel',
     children: [
-      { label: 'Plan and Budget Distribution', icon: 'gavel', href: '/staff/plan-and-budget' },
+      { label: 'Plan and Budget', icon: 'gavel', href: '/staff/plan-and-budget' },
+      { label: 'Budget Distribution by Mandate', icon: 'pie_chart', href: '/staff/budget-distribution' },
       { label: 'Report Monitoring', icon: 'description', href: '/staff/reports' },
       { label: 'Budget Monitoring', icon: 'payments', href: '/staff/budget' }
     ]

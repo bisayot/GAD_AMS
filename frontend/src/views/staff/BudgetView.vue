@@ -8,6 +8,14 @@
                 <h1 class="page-title">Budget Utilization Monitoring</h1>
                 <p class="page-subtitle">Track budget allocation, utilization, remaining balances, and percentage utilization across all GAD mandates and activities.</p>
               </div>
+              <div style="display: flex; gap: 8px;">
+                <router-link to="/staff/budget-distribution" style="text-decoration: none;">
+                  <button class="btn-outline">📊 Budget Distribution by Mandate</button>
+                </router-link>
+                <router-link to="/staff/plan-and-budget" style="text-decoration: none;">
+                  <button class="btn-primary">✏️ Edit GAD Plan</button>
+                </router-link>
+              </div>
             </div>
           </div>
 
@@ -153,7 +161,11 @@ const fetchBudgetData = async () => {
     ]);
 
     if (monitoringRes.data) {
-      budgetRows.value = monitoringRes.data;
+      // Handle both the old array format and the new structured JSON format
+      budgetRows.value = Array.isArray(monitoringRes.data) 
+        ? monitoringRes.data 
+        : (monitoringRes.data.data || []);
+      
       budgetRows.value.forEach(row => {
         updateRowCalculations(row);
       });
@@ -736,6 +748,46 @@ onMounted(() => {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(153, 13, 209, 0.5);
+}
+
+/* Action Buttons */
+.btn-primary {
+  padding: 0.625rem 1.125rem;
+  border-radius: 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%);
+  color: white;
+  box-shadow: 0 4px 12px -2px rgba(153, 13, 209, 0.4);
+  white-space: nowrap;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px -2px rgba(153, 13, 209, 0.5);
+  opacity: 0.95;
+}
+
+.btn-outline {
+  padding: 0.625rem 1.125rem;
+  border-radius: 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid rgba(185, 121, 204, 0.35);
+  background: rgba(185, 121, 204, 0.06);
+  color: #b979cc;
+  white-space: nowrap;
+}
+
+.btn-outline:hover {
+  background: rgba(185, 121, 204, 0.12);
+  border-color: rgba(185, 121, 204, 0.5);
+  transform: translateY(-1px);
 }
 
 /* Responsive */

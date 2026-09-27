@@ -37,9 +37,8 @@ class BudgetController extends Controller
         
         $totalBudget += $otherSources;
 
-        $archivedDesigns = $db->table('activity_design')
+        $approvedDesigns = $db->table('activity_design')
             ->where('status', 'Approved')
-            ->where('is_archived', 1)
             ->where('deleted_at', null)
             ->get()
             ->getResultArray();
@@ -47,8 +46,7 @@ class BudgetController extends Controller
         $utilized = 0.0;
         $pendingApproved = 0.0;
 
-        foreach ($archivedDesigns as $design) {
-            $designId = $design['act_design_id'];
+        foreach ($approvedDesigns as $design) {
 
             // Check for completed/verified accomplishment report (active or archived)
             $report = $db->table('accomplishment_report')
@@ -134,7 +132,28 @@ class BudgetController extends Controller
     public function getOfficeUtilization()
     {
         $db = \Config\Database::connect();
-        $gpbs = $db->table('gpb_items')->orderBy('id', 'ASC')->get()->getResultArray();
+        $fiscalYear = $this->request->getGet('fiscal_year');
+
+        // Fetch distinct fiscal years for switcher
+        $yearsRows = $db->table('gpb_items')
+            ->select('DISTINCT(fiscal_year) as year')
+            ->where('fiscal_year IS NOT NULL')
+            ->where('fiscal_year !=', '')
+            ->orderBy('fiscal_year', 'DESC')
+            ->get()
+            ->getResultArray();
+        $availableYears = array_values(array_filter(array_map(function($r) {
+            return !empty($r['year']) ? (string)$r['year'] : null;
+        }, $yearsRows)));
+        if (empty($availableYears)) {
+            $availableYears = [(string)date('Y')];
+        }
+
+        $gpbQuery = $db->table('gpb_items');
+        if (!empty($fiscalYear) && $fiscalYear !== 'all') {
+            $gpbQuery->where('fiscal_year', $fiscalYear);
+        }
+        $gpbs = $gpbQuery->orderBy('id', 'ASC')->get()->getResultArray();
         $budgetRows = [];
 
         foreach ($gpbs as $gpb) {
@@ -142,43 +161,84 @@ class BudgetController extends Controller
             $allocated = (float) $gpb['budget'];
 
             // Get approved activity designs for this mandate (GPB item)
-            $designs = $db->table('activity_design')
-                ->where('gpb_id', $gpbId)
-                ->where('status', 'Approved')
-                ->where('is_archived', 1)
-                ->where('deleted_at', null)
+            // Check both modern activity_design_mandates and direct gpb_id
+            $designs = $db->table('activity_design ad')
+                ->select('ad.act_design_id, ad.control_number, ad.activity_title, ad.proposed_budget, COALESCE(u.user_acronym, u.username, "") as college, COALESCE(ad.start_date, "") as created_at, ad.attachment')
+                ->join('users u', 'u.id = ad.user_id', 'left')
+                ->join('activity_design_mandates adm', 'adm.act_design_id = ad.act_design_id', 'left')
+                ->join('activity_design_issues adi', 'adi.act_design_id = ad.act_design_id', 'left')
+                ->groupStart()
+                    ->groupStart()
+                        ->where('adm.mandate_id', $gpbId)
+                        ->groupStart()
+                            ->where('adi.issue_id', $gpbId)
+                            ->orWhere('adi.issue_id IS NULL')
+                        ->groupEnd()
+                    ->groupEnd()
+                    ->orWhere('ad.gpb_id', $gpbId)
+                ->groupEnd()
+                ->where('ad.status', 'Approved')
+                ->where('ad.deleted_at', null)
+                ->groupBy('ad.act_design_id')
                 ->get()
                 ->getResultArray();
 
             $utilized = 0.0;
             $pendingApproved = 0.0;
+            $pendingAds = [];
+            $completedArs = [];
 
             foreach ($designs as $design) {
                 // Check for a completed accomplishment report (active or archived)
-                $report = $db->table('accomplishment_report')
-                    ->where('control_number', $design['control_number'])
-                    ->whereIn('status', ['Completed', 'Verified', 'Approved'])
-                    ->where('deleted_at', null)
+                $report = $db->table('accomplishment_report ar')
+                    ->select('ar.*, COALESCE(u_ar.user_acronym, u_ar.username, "") as college, COALESCE(ar.start_date, "") as report_date')
+                    ->join('users u_ar', 'u_ar.id = ar.user_id', 'left')
+                    ->where('ar.control_number', $design['control_number'])
+                    ->whereIn('ar.status', ['Completed', 'Verified', 'Approved'])
+                    ->where('ar.deleted_at', null)
                     ->get()
                     ->getRowArray();
 
                 if ($report) {
                     // Use actual spending total from accomplishment_budget_items
                     $reportId = $report['id'];
-                    $table = 'accomplishment_budget_items';
-                    
-                    $actualTotalRow = $db->table($table)
+                    $actualTotalRow = $db->table('accomplishment_budget_items')
                         ->select('SUM(amount) as total')
                         ->where('accomplishment_report_id', $reportId)
                         ->get()
                         ->getRowArray();
 
+                    $arAmount = 0.0;
                     if ($actualTotalRow && $actualTotalRow['total'] !== null) {
-                        $utilized += (float)$actualTotalRow['total'];
+                        $arAmount = (float)$actualTotalRow['total'];
+                    } else {
+                        $arAmount = (float)$design['proposed_budget'];
                     }
+                    $utilized += $arAmount;
+
+                    $completedArs[] = [
+                        'id'             => $reportId,
+                        'control_number' => $report['control_number'],
+                        'title'          => !empty($report['activity_title']) ? $report['activity_title'] : (!empty($design['activity_title']) ? $design['activity_title'] : 'Accomplishment Report'),
+                        'amount'         => $arAmount,
+                        'college'        => !empty($report['college']) ? $report['college'] : ($design['college'] ?? ''),
+                        'created_at'     => $report['report_date'] ?? '',
+                        'attachment'     => $report['attachment'] ?? null
+                    ];
                 } else {
-                    // No completed report, so it goes to pending approved
-                    $pendingApproved += (float) $design['proposed_budget'];
+                    // No completed report yet, so it counts as pending approved commitment
+                    $adAmount = (float) $design['proposed_budget'];
+                    $pendingApproved += $adAmount;
+
+                    $pendingAds[] = [
+                        'id'             => $design['act_design_id'],
+                        'control_number' => $design['control_number'],
+                        'title'          => !empty($design['activity_title']) ? $design['activity_title'] : 'Activity Design',
+                        'amount'         => $adAmount,
+                        'college'        => $design['college'] ?? '',
+                        'created_at'     => $design['created_at'] ?? '',
+                        'attachment'     => $design['attachment'] ?? null
+                    ];
                 }
             }
 
@@ -186,20 +246,30 @@ class BudgetController extends Controller
             $utilizationRate = $allocated > 0 ? ($utilized / $allocated) * 100 : 0.0;
 
             $budgetRows[] = [
-                'id' => $gpbId,
-                'mandate' => $gpb['mandate'],
-                'activity' => $gpb['activity'],
-                'unit_code' => 'GPB-' . $gpbId,
-                'allocated' => $allocated,
-                'utilized' => $utilized,
-                'actual_cost' => $utilized,
+                'id'               => $gpbId,
+                'mandate'          => $gpb['mandate'],
+                'activity'         => $gpb['activity'],
+                'section'          => $gpb['section'] ?? '',
+                'responsible'      => $gpb['responsible'] ?? '',
+                'fiscal_year'      => $gpb['fiscal_year'] ?? '',
+                'unit_code'        => 'GPB-' . $gpbId,
+                'allocated'        => $allocated,
+                'utilized'         => $utilized,
+                'actual_cost'      => $utilized,
                 'pending_approved' => $pendingApproved,
-                'remaining' => $remaining,
-                'utilizationRate' => $utilizationRate
+                'remaining'        => $remaining,
+                'utilizationRate'  => $utilizationRate,
+                'pending_ads'      => $pendingAds,
+                'completed_ars'    => $completedArs,
+                'total_docs_count' => count($pendingAds) + count($completedArs)
             ];
         }
 
-        return $this->respond($budgetRows);
+        return $this->respond([
+            'success'         => true,
+            'data'            => $budgetRows,
+            'available_years' => $availableYears
+        ]);
     }
 
     /**

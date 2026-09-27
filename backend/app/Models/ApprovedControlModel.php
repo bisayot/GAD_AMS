@@ -28,14 +28,15 @@ class ApprovedControlModel extends Model
                         form_types.name as form_type_name
                     ')
                     
-                    ->join('accomplishment_report', 'accomplishment_report.control_number = activity_design.control_number', 'left')
+                    ->join('accomplishment_report', 'accomplishment_report.control_number = activity_design.control_number AND accomplishment_report.deleted_at IS NULL', 'left')
                     ->join('venues', 'venues.venue_id = activity_design.venue_id', 'left')
                     ->join('activity_classifications', 'activity_classifications.id = activity_design.classification_id', 'left')
                     ->join('form_types', 'form_types.id = activity_design.form_type', 'left')
                     ->where('activity_design.user_id', $userId)
                     ->where('activity_design.status', 'Approved')
                     ->where('activity_design.is_archived', 1)
-                    ->where('accomplishment_report.id IS NULL')
+                    ->where('activity_design.deleted_at IS NULL', null, false)
+                    ->where('accomplishment_report.id IS NULL', null, false)
                     ->findAll();
     }
 }
