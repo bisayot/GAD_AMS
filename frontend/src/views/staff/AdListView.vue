@@ -311,9 +311,9 @@ const filteredDesigns = computed(() => {
       case 'oldest_submission':
         return a.act_design_id - b.act_design_id;
       case 'earliest_implementation':
-        return new Date(a.date) - new Date(b.date);
+        return new Date(a.start_date) - new Date(b.start_date);
       case 'latest_implementation':
-        return new Date(b.date) - new Date(a.date);
+        return new Date(b.start_date) - new Date(a.start_date);
       case 'title_asc':
         return (a.title || '').localeCompare(b.title || '');
       case 'title_desc':
@@ -343,7 +343,7 @@ const statusBadgeClass = (status) => {
 
 const isRush = (item) => {
   if (item.status !== 'Pending') return false;
-  const startDate = new Date(item.date);
+  const startDate = new Date(item.start_date);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   startDate.setHours(0, 0, 0, 0);

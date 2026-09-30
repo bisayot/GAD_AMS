@@ -510,6 +510,7 @@
                         :isOutsideBsu="isOutsideBsu"
                         :computedDays="computedDays"
                         :filteredVenues="venues"
+                        :venueInsideMap="venueInsideMap"
                         :label="''"
                       />
                     </div>
@@ -778,6 +779,52 @@ const form = ref({
 });
 
 const snacksSelected = ref({ am: false, pm: false });
+// Meal-time mismatch warning helper (non-blocking)
+const checkMealTimeMismatch = async () => {
+  const allSchedules = form.value.schedules || [];
+  const budgetItems = Object.values(form.value.venue_budgets || {}).flat();
+  const getAmount = name => {
+    const item = budgetItems.find(i => i.name === name);
+    if (!item) return 0;
+    const mults = Array.isArray(item.mult) ? item.mult.filter(m => m && typeof m === 'object') : [];
+    return (Number(item.rate) || 0) * mults.reduce((p, m) => p * (Number(m.q) || 0), 1);
+  };
+  const hasBf = getAmount('Breakfast') > 0;
+  const hasAm = getAmount('AM Snack') > 0;
+  const hasLn = getAmount('Lunch') > 0;
+  const hasPm = getAmount('PM Snack') > 0;
+  const hasDn = getAmount('Dinner') > 0;
+  const warnings = [];
+  for (const sch of allSchedules) {
+    if (!sch.start_time || !sch.end_time) continue;
+    const [sh, sm] = sch.start_time.split(':').map(Number);
+    const [eh, em] = sch.end_time.split(':').map(Number);
+    const startMins = sh * 60 + sm;
+    const endMins = eh * 60 + em;
+    const dateLabel = sch.date ? ` (${sch.date})` : '';
+    if (endMins <= 720 && (hasLn || hasPm || hasDn)) {
+      warnings.push(`Schedule${dateLabel} ends at ${sch.end_time} (AM only) but budget includes: ${[hasLn && 'Lunch', hasPm && 'PM Snack', hasDn && 'Dinner'].filter(Boolean).join(', ')}.`);
+    }
+    if (startMins >= 780 && (hasBf || hasAm)) {
+      warnings.push(`Schedule${dateLabel} starts at ${sch.start_time} (PM only) but budget includes: ${[hasBf && 'Breakfast', hasAm && 'AM Snack'].filter(Boolean).join(', ')}.`);
+    }
+  }
+  if (warnings.length > 0) {
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: 'Possible Meal Mismatch',
+      html: `<div style="text-align:left;font-size:13px;"><ul style="margin:0;padding-left:18px;">${warnings.map(w => `<li style="margin-bottom:6px;">${w}</li>`).join('')}</ul><br>You may still proceed if this is intentional.</div>`,
+      showCancelButton: true,
+      confirmButtonText: 'Proceed Anyway',
+      cancelButtonText: 'Go Back & Fix',
+      confirmButtonColor: '#b979cc',
+      cancelButtonColor: '#64748b'
+    });
+    return result.isConfirmed;
+  }
+  return true;
+};
+
 const mealsSelected = ref({ breakfast: false, amSnack: false, lunch: false, pmSnack: false, dinner: false });
 
 const addOtherItem = (vId) => {
@@ -1060,10 +1107,20 @@ const fetchVenues = async () => {
 };
 
 const filteredVenues = computed(() => {
+  if (form.value.is_inside_bsu === 'mixed') {
+    return venues.value.filter(v => v.venue_name && v.venue_name.trim() !== '');
+  }
   return venues.value.filter(v => 
     (v.is_inside_bsu == 1 || v.is_inside_bsu === true) === form.value.is_inside_bsu &&
     v.venue_name && v.venue_name.trim() !== ''
   );
+});
+
+const venueInsideMap = computed(() => {
+  if (form.value.is_inside_bsu !== 'mixed') return null;
+  const map = {};
+  venues.value.forEach(v => { map[String(v.venue_id)] = v.is_inside_bsu == 1 || v.is_inside_bsu === true; });
+  return map;
 });
 
 watch(() => form.value.is_inside_bsu, () => {
@@ -1186,34 +1243,6 @@ watch(() => form.value.start_time, (newTime) => {
       document.activeElement?.blur();
       Swal.fire({ icon: 'warning', title: 'Invalid Time Range', text: 'The activity duration must be at least 1 hour.', confirmButtonColor: '#b979cc' });
       form.value.start_time = '';
-    }
-  }
-
-  const paxBased = /(breakfast|lunch|dinner|snack|professional fee|honoraria|token)/i;
-  for (const venueId of form.value.venues || []) {
-    const items = form.value.venue_budgets?.[venueId] || [];
-    let venueTotal = 0;
-    for (const item of items) {
-      const multipliers = Array.isArray(item.mult) ? item.mult.filter(multiplier => multiplier && typeof multiplier === 'object') : [];
-      const amount = (Number(item.rate) || 0) * multipliers.reduce((total, multiplier) => total * (Number(multiplier.q) || 0), 1);
-      const paxMultiplier = multipliers.find(multiplier => /^(pax|person|persons|head|heads)$/i.test(String(multiplier.u || '').trim()));
-      const pax = paxMultiplier ? Number(paxMultiplier.q) : 0;
-      if (amount < 0 || pax < 0 || (amount === 0 && pax > 0)) {
-        isSubmitting.value = false;
-        Swal.fire({ icon: 'warning', title: 'Invalid Budget', text: 'Each budget line must have a non-negative amount, and a zero-cost line cannot have a positive pax count.', confirmButtonColor: '#b979cc' });
-        return;
-      }
-      if (amount > 0 && paxBased.test(String(item.name || '')) && pax <= 0) {
-        isSubmitting.value = false;
-        Swal.fire({ icon: 'warning', title: 'Invalid Budget', text: `${item.name} requires a pax count greater than zero when it has an amount.`, confirmButtonColor: '#b979cc' });
-        return;
-      }
-      venueTotal += amount;
-    }
-    if (venueTotal <= 0) {
-      isSubmitting.value = false;
-      Swal.fire({ icon: 'warning', title: 'Empty Venue Budget', text: `Please enter at least one positive budget amount for ${getVenueName(venueId)}.`, confirmButtonColor: '#b979cc' });
-      return;
     }
   }
 });
@@ -1794,7 +1823,7 @@ const submitReport = async () => {
         formData.append(key, form.value[key]);
       }
     });
-    formData.append('is_inside_bsu', form.value.is_inside_bsu ? 1 : 0);
+    formData.append('is_inside_bsu', form.value.is_inside_bsu === 'mixed' ? 'mixed' : (form.value.is_inside_bsu ? 1 : 0));
     
     uploadedFiles.value.forEach(file => {
         formData.append('attachments[]', file);
@@ -2059,7 +2088,7 @@ const fetchReportDetails = async () => {
       form.value.start_time = r.start_time || '';
       form.value.end_time = r.end_time || '';
       form.value.venue = r.venue || '';
-      form.value.is_inside_bsu = r.is_inside_bsu == 1 || r.is_inside_bsu === true;
+      form.value.is_inside_bsu = Number(r.is_inside_bsu) === 2 ? 'mixed' : (r.is_inside_bsu == 1 || r.is_inside_bsu === true);
 
       form.value.attendees = r.number_of_attendees || r.attendees || '';
       form.value.male = r.male_participants || r.male || '';

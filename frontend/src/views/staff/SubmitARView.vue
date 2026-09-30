@@ -255,6 +255,12 @@
                       <label style="color: #cbd5e1; font-size: 14px; cursor: pointer;">
                         <input type="radio" :value="false" v-model="form.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Outside BSU
                       </label>
+                      <label style="color: #cbd5e1; font-size: 14px; cursor: pointer;">
+                        <input type="radio" value="mixed" v-model="form.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Mixed (Inside &amp; Outside)
+                      </label>
+                    </div>
+                    <div v-if="form.is_inside_bsu === 'mixed'" style="margin-top: 8px; font-size: 12px; color: #94a3b8; padding: 6px 10px; background: rgba(185,121,204,0.07); border-radius: 6px; border: 1px solid rgba(185,121,204,0.2);">
+                      💡 Mixed mode: all venues are shown. Each venue will use its own inside/outside baseline rate automatically.
                     </div>
                   </div>
 
@@ -351,6 +357,7 @@
                         :baselineSettings="baselineSettings"
                         :isOutsideBsu="isOutsideBsu"
                         :computedDays="computedDays"
+                        :venueInsideMap="venueInsideMap"
                         :label="''"
                       />
                     </div>
@@ -649,6 +656,52 @@ const computedEndDate = computed(() => {
   return form.value.end_date;
 });
 
+// Meal-time mismatch warning helper (non-blocking)
+const checkMealTimeMismatch = async () => {
+  const allSchedules = form.value.schedules || [];
+  const budgetItems = Object.values(form.value.venue_budgets || {}).flat();
+  const getAmount = name => {
+    const item = budgetItems.find(i => i.name === name);
+    if (!item) return 0;
+    const mults = Array.isArray(item.mult) ? item.mult.filter(m => m && typeof m === 'object') : [];
+    return (Number(item.rate) || 0) * mults.reduce((p, m) => p * (Number(m.q) || 0), 1);
+  };
+  const hasBf = getAmount('Breakfast') > 0;
+  const hasAm = getAmount('AM Snack') > 0;
+  const hasLn = getAmount('Lunch') > 0;
+  const hasPm = getAmount('PM Snack') > 0;
+  const hasDn = getAmount('Dinner') > 0;
+  const warnings = [];
+  for (const sch of allSchedules) {
+    if (!sch.start_time || !sch.end_time) continue;
+    const [sh, sm] = sch.start_time.split(':').map(Number);
+    const [eh, em] = sch.end_time.split(':').map(Number);
+    const startMins = sh * 60 + sm;
+    const endMins = eh * 60 + em;
+    const dateLabel = sch.date ? ` (${sch.date})` : '';
+    if (endMins <= 720 && (hasLn || hasPm || hasDn)) {
+      warnings.push(`Schedule${dateLabel} ends at ${sch.end_time} (AM only) but budget includes: ${[hasLn && 'Lunch', hasPm && 'PM Snack', hasDn && 'Dinner'].filter(Boolean).join(', ')}.`);
+    }
+    if (startMins >= 780 && (hasBf || hasAm)) {
+      warnings.push(`Schedule${dateLabel} starts at ${sch.start_time} (PM only) but budget includes: ${[hasBf && 'Breakfast', hasAm && 'AM Snack'].filter(Boolean).join(', ')}.`);
+    }
+  }
+  if (warnings.length > 0) {
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: 'Possible Meal Mismatch',
+      html: `<div style="text-align:left;font-size:13px;"><ul style="margin:0;padding-left:18px;">${warnings.map(w => `<li style="margin-bottom:6px;">${w}</li>`).join('')}</ul><br>You may still proceed if this is intentional.</div>`,
+      showCancelButton: true,
+      confirmButtonText: 'Proceed Anyway',
+      cancelButtonText: 'Go Back & Fix',
+      confirmButtonColor: '#b979cc',
+      cancelButtonColor: '#64748b'
+    });
+    return result.isConfirmed;
+  }
+  return true;
+};
+
 const computedDays = computed(() => {
   let totalDays = 0;
   form.value.schedules.forEach(s => {
@@ -868,10 +921,20 @@ const fetchVenues = async () => {
 };
 
 const filteredVenues = computed(() => {
+  if (form.value.is_inside_bsu === 'mixed') {
+    return venues.value.filter(v => v.venue_name && v.venue_name.trim() !== '');
+  }
   return venues.value.filter(v => 
     (v.is_inside_bsu == 1 || v.is_inside_bsu === true) === form.value.is_inside_bsu &&
     v.venue_name && v.venue_name.trim() !== ''
   );
+});
+
+const venueInsideMap = computed(() => {
+  if (form.value.is_inside_bsu !== 'mixed') return null;
+  const map = {};
+  venues.value.forEach(v => { map[String(v.venue_id)] = v.is_inside_bsu == 1 || v.is_inside_bsu === true; });
+  return map;
 });
 
 const isAutoFillingFromAD = ref(false);
@@ -1486,21 +1549,18 @@ const submitReport = async () => {
     }
   }
 
-  const paxBased = /(breakfast|lunch|dinner|snack|professional fee|honoraria|token)/i;
+  // Warn about meal-time mismatch (non-blocking)
+  const mealTimeOk = await checkMealTimeMismatch();
+  if (!mealTimeOk) return;
+
   for (const venueId of form.value.venues || []) {
     const items = form.value.venue_budgets?.[venueId] || [];
     let venueTotal = 0;
     for (const item of items) {
       const multipliers = Array.isArray(item.mult) ? item.mult.filter(multiplier => multiplier && typeof multiplier === 'object') : [];
       const amount = (Number(item.rate) || 0) * multipliers.reduce((total, multiplier) => total * (Number(multiplier.q) || 0), 1);
-      const paxMultiplier = multipliers.find(multiplier => /^(pax|person|persons|head|heads)$/i.test(String(multiplier.u || '').trim()));
-      const pax = paxMultiplier ? Number(paxMultiplier.q) : 0;
-      if (amount < 0 || pax < 0 || (amount === 0 && pax > 0)) {
-        Swal.fire({ icon: 'warning', title: 'Invalid Budget', text: 'Each budget line must have a non-negative amount, and a zero-cost line cannot have a positive pax count.', confirmButtonColor: '#b979cc' });
-        return;
-      }
-      if (amount > 0 && paxBased.test(String(item.name || '')) && pax <= 0) {
-        Swal.fire({ icon: 'warning', title: 'Invalid Budget', text: `${item.name} requires a pax count greater than zero when it has an amount.`, confirmButtonColor: '#b979cc' });
+      if (amount < 0) {
+        Swal.fire({ icon: 'warning', title: 'Invalid Budget', text: 'Each budget line must have a non-negative amount.', confirmButtonColor: '#b979cc' });
         return;
       }
       venueTotal += amount;
@@ -1622,7 +1682,7 @@ const submitReport = async () => {
     } else {
       formData.append('venue', form.value.venue);
     }
-    formData.append('is_inside_bsu', form.value.is_inside_bsu ? 1 : 0);
+    formData.append('is_inside_bsu', form.value.is_inside_bsu === 'mixed' ? 'mixed' : (form.value.is_inside_bsu ? 1 : 0));
 
     const selectedClassification = ActClassification.value.find(c => c.classification_name === form.value.activity_classification);
     if (selectedClassification) {

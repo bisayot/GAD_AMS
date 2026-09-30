@@ -365,6 +365,7 @@ const fetchSubmissions = async () => {
         title: d.title || d.activity_title || 'Untitled',
         control: d.control || 'NO CONTROL NUMBER',
         dateRaw: d.date,
+        startDateRaw: d.start_date,
         date: d.date,
         formClass: 'badge-purple',
         formLabel: d.formLabel || 'Activity Design',
@@ -414,7 +415,7 @@ const resetFilters = () => {
 
 const isRush = (item) => {
   if (item.type !== 'design' || item.status !== 'pending') return false;
-  const startDate = new Date(item.dateRaw);
+  const startDate = new Date(item.startDateRaw);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   startDate.setHours(0, 0, 0, 0);

@@ -52,6 +52,7 @@ const handleScroll = () => {
 const staffMenu = ref([
   { label: 'Dashboard', icon: 'dashboard', href: '/staff/dashboard' },
   { label: 'New Submission', icon: 'add', href: '/staff/submit' },
+  { label: 'Post', icon: 'post_add', href: '/staff/publish-news-iec' },
   {
     label: 'Documents', icon: 'folder',
     children: [
@@ -70,11 +71,6 @@ const staffMenu = ref([
       { label: 'Report Monitoring', icon: 'description', href: '/staff/reports' },
       { label: 'Budget Monitoring', icon: 'payments', href: '/staff/budget' }
     ]
-  },
-  {
-    label: 'Publish Bulletin',
-    icon: 'post_add',
-    href: '/staff/publish-news-iec'
   },
   {
     label: 'System & Controls', icon: 'admin_panel_settings',

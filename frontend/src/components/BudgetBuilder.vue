@@ -6,7 +6,12 @@
     </datalist>
     
     <div v-for="vId in (venues && venues.length ? venues : [])" :key="vId" class="venue-budget-wrapper" style="margin-bottom: 2rem; border-radius: 8px; padding: 1rem; border: 1px solid rgba(185, 121, 204, 0.3);">
-      <h4 style="color: #e9d5ff; margin-bottom: 15px; border-left: 4px solid #b979cc; padding-left: 10px;">Budget for Venue: {{ getVenueName(vId) }}</h4>
+      <h4 style="color: #e9d5ff; margin-bottom: 6px; border-left: 4px solid #b979cc; padding-left: 10px;">Budget for Venue: {{ getVenueName(vId) }}</h4>
+      <div v-if="venueInsideMap !== null" style="margin-bottom: 12px; padding-left: 14px;">
+        <span :style="venueIsOutside(vId) ? 'color:#f9a8d4;font-size:12px;font-weight:600;' : 'color:#86efac;font-size:12px;font-weight:600;'">
+          {{ venueIsOutside(vId) ? '🏙️ Outside BSU — using outside rates' : '🏫 Inside BSU — using inside rates' }}
+        </span>
+      </div>
       <div class="budget-groups-container" style="display: flex; flex-direction: column; gap: 16px; overflow-x: auto; padding-bottom: 8px;">
         <div v-for="g in budgetGroups" :key="g.key" class="budget-group-card">
           <div class="budget-group-header" style="justify-content: space-between;">
@@ -65,7 +70,10 @@ const props = defineProps({
   isOutsideBsu: { type: Boolean, required: true },
   computedDays: { type: Number, required: true },
   filteredVenues: { type: Array, default: () => [] },
-  customVenuesList: { type: Array, default: () => [] }
+  customVenuesList: { type: Array, default: () => [] },
+  // Per-venue inside/outside map: { [venueId]: true (inside) | false (outside) }
+  // When provided (mixed mode), overrides isOutsideBsu per venue
+  venueInsideMap: { type: Object, default: null }
 });
 
 const emit = defineEmits(['update:venueBudgets']);
@@ -84,19 +92,28 @@ const lineTotal = it => (Number(it.rate) || 0) * it.mult.reduce((p, m) => p * (N
 const paxOf = it => Number((it.mult.find(m => /^(pax|person|persons|head|heads)$/i.test(String(m.u || '').trim())) || {}).q) || 0;
 const lineFormula = it => [peso(it.rate), ...it.mult.map(m => `${Number(m.q) || 0} ${String(m.u || '').trim()}`.trim())].join(' × ');
 
-const baseFor = l => {
+// Determine if a specific venue is outside BSU
+const venueIsOutside = (vId) => {
+  if (props.venueInsideMap !== null && props.venueInsideMap !== undefined) {
+    // Mixed mode: use per-venue map. true = inside, false = outside
+    return !(props.venueInsideMap[String(vId)] ?? true);
+  }
+  return props.isOutsideBsu;
+};
+
+const baseFor = (l, vId) => {
   const b = props.baselineSettings;
-  const out = props.isOutsideBsu;
+  const out = vId !== undefined ? venueIsOutside(vId) : props.isOutsideBsu;
   if (!b) return 0;
   if (l.baseKey === 'meals') return out ? b.meals_outside : b.meals_inside;
   if (l.baseKey === 'snacks') return out ? b.snacks_outside : b.snacks_inside;
   return b[l.baseKey] || 0;
 };
 
-const bl = (group, name, mult = [], extra = {}) => {
+const bl = (group, name, mult = [], extra = {}, vId = undefined) => {
   const l = { id: lineSeq++, group, name, rate: '', mult, ...extra };
   if (l.baseKey) { 
-    l.base = baseFor(l); 
+    l.base = baseFor(l, vId); 
     l.rate = l.base; 
   }
   return l;
@@ -104,12 +121,12 @@ const bl = (group, name, mult = [], extra = {}) => {
 
 const cateringMult = () => [{ q: 0, u: 'pax' }, { q: props.computedDays, u: 'days' }];
 
-const defaultBudgetLines = () => [
-  bl('catering', 'Breakfast', cateringMult(), { baseKey: 'meals', custom: true }),
-  bl('catering', 'Lunch', cateringMult(), { baseKey: 'meals', custom: true }),
-  bl('catering', 'Dinner', cateringMult(), { baseKey: 'meals', custom: true }),
-  bl('catering', 'AM Snack', cateringMult(), { baseKey: 'snacks', custom: true }),
-  bl('catering', 'PM Snack', cateringMult(), { baseKey: 'snacks', custom: true }),
+const defaultBudgetLines = (vId = undefined) => [
+  bl('catering', 'Breakfast', cateringMult(), { baseKey: 'meals', custom: true }, vId),
+  bl('catering', 'Lunch', cateringMult(), { baseKey: 'meals', custom: true }, vId),
+  bl('catering', 'Dinner', cateringMult(), { baseKey: 'meals', custom: true }, vId),
+  bl('catering', 'AM Snack', cateringMult(), { baseKey: 'snacks', custom: true }, vId),
+  bl('catering', 'PM Snack', cateringMult(), { baseKey: 'snacks', custom: true }, vId),
   bl('logistics', 'Function Room/Venue', [], { hint: 'Leave blank/zero for Attribution' }),
   bl('logistics', 'Accommodation'),
   bl('logistics', 'Equipment Rental'),
@@ -123,7 +140,7 @@ const groupItems = (vId, g) => (props.venueBudgets[vId] || []).filter(i => i.gro
 const groupTotal = (vId, g) => groupItems(vId, g).reduce((s, i) => s + lineTotal(i), 0);
 const addLine = (vId, g) => {
   if (!props.venueBudgets[vId]) return;
-  props.venueBudgets[vId].push(bl(g, '', g === 'catering' ? cateringMult() : [], { custom: true }));
+  props.venueBudgets[vId].push(bl(g, '', g === 'catering' ? cateringMult() : [], { custom: true }, vId));
 };
 const removeLine = (vId, item) => {
   if (!props.venueBudgets[vId]) return;
@@ -133,13 +150,20 @@ const removeLine = (vId, item) => {
 const clearLine = item => { item.mult = []; item.rate = ''; };
 
 const allLines = () => Object.values(props.venueBudgets).flat();
+const allLinesWithVenue = () => {
+  const result = [];
+  Object.entries(props.venueBudgets).forEach(([vId, lines]) => {
+    (lines || []).forEach(line => result.push({ line, vId }));
+  });
+  return result;
+};
 
 watch(() => props.venues, (newVenues) => {
   if (!newVenues) return;
   let changed = false;
   newVenues.forEach(vid => {
     if (!Array.isArray(props.venueBudgets[vid]) || props.venueBudgets[vid].length === 0) {
-      props.venueBudgets[vid] = defaultBudgetLines();
+      props.venueBudgets[vid] = defaultBudgetLines(vid);
       changed = true;
     }
   });
@@ -149,10 +173,10 @@ watch(() => props.venues, (newVenues) => {
 }, { deep: true, immediate: true });
 
 // Untouched rates follow the baseline (and the Inside/Outside BSU switch); edited rates are left alone
-watch([() => props.isOutsideBsu, () => props.baselineSettings], () => {
-  allLines().forEach(l => {
+watch([() => props.isOutsideBsu, () => props.baselineSettings, () => props.venueInsideMap], () => {
+  allLinesWithVenue().forEach(({ line: l, vId }) => {
     if (!l.baseKey) return;
-    const nb = baseFor(l);
+    const nb = baseFor(l, vId);
     if (Number(l.rate) === Number(l.base)) l.rate = nb;
     l.base = nb;
   });

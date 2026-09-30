@@ -3,8 +3,8 @@
     <div class="content-wrapper">
       
       <div class="page-header">
-        <h1 class="page-title">Publish Bulletin</h1>
-        <p class="page-subtitle">Publish new News updates, IEC materials, or Announcements for the public GAD Corner.</p>
+        <h1 class="page-title">Post a Bulletin</h1>
+        <p class="page-subtitle">Post new News updates, IEC materials, or Announcements for the public GAD Corner.</p>
       </div>
 
       <div class="form-container">

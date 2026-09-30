@@ -66,7 +66,7 @@ class AccomplishmentReportController extends BaseController
                 "end_time"       => $this->request->getPost("end_time"),
                 "schedule_type"  => $this->request->getPost("schedule_type"),
                 "venue"          => $this->request->getPost("venue"),
-                "is_inside_bsu"  => filter_var($this->request->getPost('is_inside_bsu'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0,
+                "is_inside_bsu"  => (function() { $r = $this->request->getPost('is_inside_bsu'); return ($r === 'mixed' || $r === '2' || (int)$r === 2) ? 2 : (filter_var($r, FILTER_VALIDATE_BOOLEAN) ? 1 : 0); })(),
                 "attendees"      => $this->request->getPost("attendees"),
                 "male"           => $this->request->getPost("male"),
                 "female"         => $this->request->getPost("female"),
@@ -606,7 +606,7 @@ class AccomplishmentReportController extends BaseController
             'end_time'       => $this->request->getPost('end_time'),
             'schedule_type'  => $this->request->getPost('schedule_type'),
             'venue'          => $this->request->getPost('venue'),
-            'is_inside_bsu'  => $this->request->getPost('is_inside_bsu') !== null ? (filter_var($this->request->getPost('is_inside_bsu'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0) : null,
+            'is_inside_bsu'  => (function() { $r = $this->request->getPost('is_inside_bsu'); if ($r === null) return null; return ($r === 'mixed' || $r === '2' || (int)$r === 2) ? 2 : (filter_var($r, FILTER_VALIDATE_BOOLEAN) ? 1 : 0); })(),
             'attendees'      => $this->request->getPost('attendees'),
             'male'           => $this->request->getPost('male'),
             'female'         => $this->request->getPost('female'),
@@ -1038,21 +1038,13 @@ class AccomplishmentReportController extends BaseController
         }
 
         $venueTotals = [];
-        $paxBased = '/(breakfast|lunch|dinner|snack|professional fee|honoraria|token)/i';
         foreach ($items as $item) {
             if (!is_array($item) || !isset($item['venue_id'])) {
                 return 'Every budget item must identify a venue.';
             }
             $amount = filter_var($item['amount'] ?? null, FILTER_VALIDATE_FLOAT);
-            $pax = ($item['pax'] ?? null) === null || $item['pax'] === '' ? null : filter_var($item['pax'], FILTER_VALIDATE_INT);
-            if ($amount === false || $amount < 0 || ($pax !== null && ($pax === false || $pax < 0))) {
-                return 'Budget amounts and pax counts must be non-negative numbers.';
-            }
-            if ($amount == 0.0 && $pax !== null && $pax > 0) {
-                return 'A zero-cost budget item cannot have a positive pax count.';
-            }
-            if ($amount > 0 && preg_match($paxBased, (string)($item['item_name'] ?? '')) && ($pax === null || $pax <= 0)) {
-                return 'Meals, snacks, professional fees, honoraria, and tokens require a pax count greater than zero.';
+            if ($amount === false || $amount < 0) {
+                return 'Budget amounts must be non-negative numbers.';
             }
             $venueKey = (string)$item['venue_id'];
             $venueTotals[$venueKey] = ($venueTotals[$venueKey] ?? 0) + (float)$amount;

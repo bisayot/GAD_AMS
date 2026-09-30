@@ -21,7 +21,7 @@
       </div>
 
       <!-- Center: Navigation -->
-      <div class="navbar-center hidden xl:flex items-center gap-4">
+      <div class="navbar-center hidden xl:flex items-center gap-1">
         <div 
           v-for="(item, index) in menuItems" 
           :key="index"
@@ -354,17 +354,18 @@ onUnmounted(() => {
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: transparent;
   border: none;
   color: #cbd5e1;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  padding: 8px 16px;
+  padding: 6px 12px;
   border-radius: 8px;
   cursor: pointer;
   text-decoration: none;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .nav-item:hover {

@@ -65,7 +65,8 @@ class ActivityDesignController extends BaseController
             if ($budgetError !== null) {
                 return $this->response->setJSON(['success' => false, 'message' => $budgetError])->setStatusCode(422);
             }
-            $isInsideBsu = filter_var($this->request->getPost('is_inside_bsu'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0;
+            $rawIsInside = $this->request->getPost('is_inside_bsu');
+            $isInsideBsu = ($rawIsInside === 'mixed' || $rawIsInside === '2' || (int)$rawIsInside === 2) ? 2 : (filter_var($rawIsInside, FILTER_VALIDATE_BOOLEAN) ? 1 : 0);
             $venuesStr = $this->request->getPost("venues");
             $venuesArr = $venuesStr ? json_decode($venuesStr, true) : [];
             
@@ -257,7 +258,7 @@ class ActivityDesignController extends BaseController
         $db = \Config\Database::connect();
         
         $active = $db->table('activity_design as ad')
-            ->select('ad.act_design_id, ad.status, ad.control_number as control, office_units.office_name as office, users.full_name as submitter_name, ad.activity_title as title, COALESCE(form_types.name, ad.form_type) as formLabel, ad.start_date as date, ad.end_date, ad.modification_request_status, ad.is_modified')
+            ->select('ad.act_design_id, ad.status, ad.control_number as control, office_units.office_name as office, users.full_name as submitter_name, ad.activity_title as title, COALESCE(form_types.name, ad.form_type) as formLabel, DATE(ad.created_at) as date, ad.start_date, ad.end_date, ad.modification_request_status, ad.is_modified')
             ->join('users', 'users.id = ad.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->join('form_types', 'form_types.id = ad.form_type', 'left')
@@ -288,7 +289,7 @@ class ActivityDesignController extends BaseController
         $db = \Config\Database::connect();
         
         $active = $db->table('activity_design as ad')
-            ->select('ad.act_design_id, ad.status, ad.control_number as control, office_units.office_name as office, users.full_name as submitter_name, ad.activity_title as title, COALESCE(form_types.name, ad.form_type) as formLabel, ad.start_date as date, ad.end_date, ad.modification_request_status, ad.is_modified')
+            ->select('ad.act_design_id, ad.status, ad.control_number as control, office_units.office_name as office, users.full_name as submitter_name, ad.activity_title as title, COALESCE(form_types.name, ad.form_type) as formLabel, DATE(ad.created_at) as date, ad.start_date, ad.end_date, ad.modification_request_status, ad.is_modified')
             ->join('users', 'users.id = ad.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->join('form_types', 'form_types.id = ad.form_type', 'left')
@@ -533,7 +534,7 @@ class ActivityDesignController extends BaseController
 
         // Fetch designs that are 'Approved' or 'Cancelled'
         $designs = $activityDesignModel
-            ->select('activity_design.*, activity_design.control_number as control, office_units.office_name as office, users.full_name as submitter_name, activity_design.activity_title as title, COALESCE(form_types.name, activity_design.form_type) as formLabel, activity_design.start_date as date, activity_design.modification_request_status, activity_design.is_modified')
+            ->select('activity_design.*, activity_design.control_number as control, office_units.office_name as office, users.full_name as submitter_name, activity_design.activity_title as title, COALESCE(form_types.name, activity_design.form_type) as formLabel, DATE(activity_design.created_at) as date, activity_design.start_date, activity_design.modification_request_status, activity_design.is_modified')
             ->join('users', 'users.id = activity_design.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->join('form_types', 'form_types.id = activity_design.form_type', 'left')
@@ -572,7 +573,8 @@ class ActivityDesignController extends BaseController
               }
         }
 
-        $isInsideBsu = filter_var($this->request->getPost('is_inside_bsu'), FILTER_VALIDATE_BOOLEAN) ? 1 : 0;
+        $rawIsInside = $this->request->getPost('is_inside_bsu');
+        $isInsideBsu = ($rawIsInside === 'mixed' || $rawIsInside === '2' || (int)$rawIsInside === 2) ? 2 : (filter_var($rawIsInside, FILTER_VALIDATE_BOOLEAN) ? 1 : 0);
         $venuesStr = $this->request->getPost("venues");
         $venuesArr = $venuesStr ? json_decode($venuesStr, true) : [];
         
@@ -1052,21 +1054,13 @@ class ActivityDesignController extends BaseController
         }
 
         $venueTotals = [];
-        $paxBased = '/(breakfast|lunch|dinner|snack|professional fee|honoraria|token)/i';
         foreach ($items as $item) {
             if (!is_array($item) || !isset($item['venue_id'])) {
                 return 'Every budget item must identify a venue.';
             }
             $amount = filter_var($item['amount'] ?? null, FILTER_VALIDATE_FLOAT);
-            $pax = ($item['pax'] ?? null) === null || $item['pax'] === '' ? null : filter_var($item['pax'], FILTER_VALIDATE_INT);
-            if ($amount === false || $amount < 0 || ($pax !== null && ($pax === false || $pax < 0))) {
-                return 'Budget amounts and pax counts must be non-negative numbers.';
-            }
-            if ($amount == 0.0 && $pax !== null && $pax > 0) {
-                return 'A zero-cost budget item cannot have a positive pax count.';
-            }
-            if ($amount > 0 && preg_match($paxBased, (string)($item['item_name'] ?? '')) && ($pax === null || $pax <= 0)) {
-                return 'Meals, snacks, professional fees, honoraria, and tokens require a pax count greater than zero.';
+            if ($amount === false || $amount < 0) {
+                return 'Budget amounts must be non-negative numbers.';
             }
             $venueKey = (string)$item['venue_id'];
             $venueTotals[$venueKey] = ($venueTotals[$venueKey] ?? 0) + (float)$amount;
