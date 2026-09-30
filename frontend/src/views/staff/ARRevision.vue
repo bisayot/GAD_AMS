@@ -471,6 +471,20 @@
                       placeholder="e.g. Hotel ABC, XYZ Convention Center"
                     >
                   </div>
+                  <div class="full-width-info">
+                    <label class="info-label">Venue Location *</label>
+                    <div class="toggle-container" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; min-height: 42px; height: auto; padding: 4px 0;">
+                      <label style="color: #cbd5e1; font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
+                        <input type="radio" :value="true" v-model="form.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Inside BSU
+                      </label>
+                      <label style="color: #cbd5e1; font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
+                        <input type="radio" :value="false" v-model="form.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Outside BSU
+                      </label>
+                      <label style="color: #cbd5e1; font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
+                        <input type="radio" value="mixed" v-model="form.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Mixed (Inside &amp; Outside)
+                      </label>
+                    </div>
+                  </div>
                   <div>
                     <label class="info-label">Number of Attendees</label>
                     <input type="number" v-model="form.attendees" min="0" class="custom-input-field mt-1" readonly style="opacity:0.6;cursor:not-allowed;">

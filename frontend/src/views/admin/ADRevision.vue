@@ -276,7 +276,25 @@
                       </div>
                     </div>
                   </div>
-                </div></div></div>
+                </div>
+                <div class="venue-col">
+                  <label class="form-label">Venue Location *</label>
+                  <div class="toggle-container" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; min-height: 42px; height: auto; padding: 4px 0;">
+                    <label style="color: #cbd5e1; font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
+                      <input type="radio" :value="true" v-model="formData.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Inside BSU
+                    </label>
+                    <label style="color: #cbd5e1; font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
+                      <input type="radio" :value="false" v-model="formData.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Outside BSU
+                    </label>
+                    <label style="color: #cbd5e1; font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
+                      <input type="radio" value="mixed" v-model="formData.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Mixed (Inside &amp; Outside)
+                    </label>
+                  </div>
+                  <div v-if="formData.is_inside_bsu === 'mixed'" style="margin-top: 8px; font-size: 12px; color: #94a3b8; padding: 6px 10px; background: rgba(185,121,204,0.07); border-radius: 6px; border: 1px solid rgba(185,121,204,0.2);">
+                    ?? Mixed mode: all venues are shown. Each venue will use its own inside/outside baseline rate automatically.
+                  </div>
+                </div>
+              </div></div>
 
             
             <div class="section-card">

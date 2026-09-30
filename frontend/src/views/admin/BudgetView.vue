@@ -122,7 +122,7 @@
             </div>
             <div class="stat-sub-info mt-1.5 flex justify-between">
               <span>Remaining Balance:</span>
-              <span class="font-bold text-slate-200 mono">₱{{ formatNum(Math.max(0, totalGadBudget - actualCost - proposedBudget)) }}</span>
+              <span class="font-bold mono" :class="(totalGadBudget - actualCost - proposedBudget) < 0 ? 'text-red-400' : 'text-slate-200'">{{ (totalGadBudget - actualCost - proposedBudget) < 0 ? '-' : '' }}₱{{ formatNum(Math.abs(totalGadBudget - actualCost - proposedBudget)) }}</span>
             </div>
           </div>
         </div>
@@ -344,7 +344,8 @@
                   <!-- Remaining -->
                   <td class="table-cell cell-remaining text-right">
                     <div class="cell-value mono font-bold" :class="getRemainingClass(row.remaining)">
-                      ₱{{ formatNum(row.remaining) }}
+                      <span v-if="row.remaining < 0">-</span>₱{{ formatNum(Math.abs(row.remaining)) }}
+                      <span v-if="row.remaining < 0" class="text-[10px] font-bold text-red-400 ml-1 uppercase tracking-wide">Excess</span>
                     </div>
 
                     <!-- Segmented Utilization Progress Bar -->
@@ -353,23 +354,31 @@
                         <div 
                           v-if="getSegmentPercentages(row).disbursed > 0" 
                           class="segment segment-disbursed" 
-                          :style="{ width: getSegmentPercentages(row).disbursed + '%' }"
+                          :style="{ width: Math.min(getSegmentPercentages(row).disbursed, 100) + '%' }"
                         ></div>
                         <div 
                           v-if="getSegmentPercentages(row).committed > 0" 
                           class="segment segment-committed" 
-                          :style="{ width: getSegmentPercentages(row).committed + '%' }"
+                          :style="{ width: Math.min(getSegmentPercentages(row).committed, 100 - Math.min(getSegmentPercentages(row).disbursed, 100)) + '%' }"
                         ></div>
                         <div 
                           v-if="getSegmentPercentages(row).remaining > 0" 
                           class="segment segment-remaining" 
                           :style="{ width: getSegmentPercentages(row).remaining + '%' }"
                         ></div>
+                        <!-- Overflow / Excess indicator strip -->
+                        <div
+                          v-if="row.remaining < 0"
+                          class="segment segment-excess"
+                          :style="{ width: Math.min(getSegmentPercentages(row).excess, 100) + '%' }"
+                          title="Overspent — Actual exceeds allocated budget"
+                        ></div>
                       </div>
                       <div class="segmented-legend">
                         <span class="text-emerald-400">{{ getSegmentPercentages(row).disbursed.toFixed(0) }}% spent</span>
                         <span v-if="getSegmentPercentages(row).committed > 0" class="text-amber-400">{{ getSegmentPercentages(row).committed.toFixed(0) }}% pending</span>
-                        <span class="text-slate-400">{{ getSegmentPercentages(row).remaining.toFixed(0) }}% left</span>
+                        <span v-if="row.remaining >= 0" class="text-slate-400">{{ getSegmentPercentages(row).remaining.toFixed(0) }}% left</span>
+                        <span v-else class="text-red-400 font-bold">+{{ getSegmentPercentages(row).excess.toFixed(0) }}% over</span>
                       </div>
                     </div>
                   </td>
@@ -427,7 +436,10 @@
                           <span class="summary-sep">|</span>
                           <span class="summary-item">
                             <span class="text-slate-400">Remaining Balance:</span>
-                            <span class="font-bold" :class="getRemainingClass(row.remaining)">₱{{ formatNum(row.remaining) }}</span>
+                            <span class="font-bold" :class="getRemainingClass(row.remaining)">
+                              <span v-if="row.remaining < 0">-</span>₱{{ formatNum(Math.abs(row.remaining)) }}
+                              <span v-if="row.remaining < 0" class="text-[10px] font-bold text-red-400 ml-1 uppercase tracking-wide">Excess</span>
+                            </span>
                           </span>
                         </div>
                       </div>
@@ -645,37 +657,48 @@ const formatCompactNum = (val) => {
 };
 
 const updateRowCalculations = (row) => {
-  row.remaining = Math.max(0, (row.allocated || 0) - (row.utilized || 0) - (row.pending_approved || 0));
+  // Allow negative remaining to reflect overspending
+  row.remaining = (row.allocated || 0) - (row.utilized || 0) - (row.pending_approved || 0);
 };
 
 const getRemainingClass = (remaining) => {
-  if (remaining <= 0) return 'remaining-critical';
+  if (remaining < 0) return 'remaining-excess';     // overspent
+  if (remaining === 0) return 'remaining-critical';  // exactly exhausted
   if (remaining < 20000) return 'remaining-warning';
   return 'remaining-healthy';
 };
 
 const getHealthLabel = (remaining) => {
-  if (remaining <= 0) return 'Exhausted';
+  if (remaining < 0) return 'Overspent';
+  if (remaining === 0) return 'Exhausted';
   if (remaining < 20000) return 'Low Balance';
   return 'Healthy';
 };
 
 const getSegmentPercentages = (row) => {
   const allocated = Number(row.allocated) || 0;
-  if (allocated <= 0) return { disbursed: 0, committed: 0, remaining: 100 };
-  
   const disbursed = Number(row.utilized ?? row.actual_cost) || 0;
   const committed = Number(row.pending_approved) || 0;
-  
-  const disbursedPct = Math.min(100, Math.max(0, (disbursed / allocated) * 100));
-  const committedPct = Math.min(100 - disbursedPct, Math.max(0, (committed / allocated) * 100));
-  const remainingPct = Math.max(0, 100 - disbursedPct - committedPct);
-  
-  return {
-    disbursed: disbursedPct,
-    committed: committedPct,
-    remaining: remainingPct
-  };
+
+  if (allocated <= 0) {
+    return { disbursed: 100, committed: 0, remaining: 0, excess: 0 };
+  }
+
+  const total = disbursed + committed;
+
+  if (total <= allocated) {
+    // Normal case: within budget
+    const disbursedPct = (disbursed / allocated) * 100;
+    const committedPct = (committed / allocated) * 100;
+    const remainingPct = Math.max(0, 100 - disbursedPct - committedPct);
+    return { disbursed: disbursedPct, committed: committedPct, remaining: remainingPct, excess: 0 };
+  } else {
+    // Overspent: show full bar as disbursed/committed, with excess indicator
+    const disbursedPct = Math.min(100, (disbursed / total) * 100);
+    const committedPct = Math.min(100 - disbursedPct, (committed / total) * 100);
+    const excessPct = ((total - allocated) / allocated) * 100; // % over budget
+    return { disbursed: disbursedPct, committed: committedPct, remaining: 0, excess: excessPct };
+  }
 };
 
 
@@ -903,7 +926,7 @@ const exportToExcel = () => {
   rows.push(['', '', '', '', '', '', '', '', '', '', '', '', '']); // Row 4 spacer
 
   // 2. Executive Financial Summary Cards (Rows 5 - 7)
-  const remainingBudgetVal = Math.max(0, totalGadBudget.value - actualCost.value - proposedBudget.value);
+  const remainingBudgetVal = totalGadBudget.value - actualCost.value - proposedBudget.value; // can be negative (overspent)
   rows.push([
     'TOTAL GAD ALLOCATED BUDGET', '', '',
     'PROPOSED BUDGET (COMMITTED ADs)', '', '',
@@ -2099,7 +2122,10 @@ onMounted(() => {
   color: #f87171;
 }
 
-
+.remaining-excess {
+  color: #ef4444;
+  text-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+}
 
 /* Segmented Progress Bars */
 .segmented-progress-container {
@@ -2134,6 +2160,17 @@ onMounted(() => {
 .segment-remaining {
   background: rgba(147, 51, 234, 0.25);
   border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.segment-excess {
+  background: linear-gradient(90deg, #dc2626, #f97316);
+  border-left: 2px solid rgba(255, 100, 100, 0.6);
+  animation: excess-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes excess-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }
 
 .segmented-legend {

@@ -317,7 +317,7 @@ class ActivityDesignController extends BaseController
         $activityDesignModel = new ActivityDesignModel();
 
         $design = $activityDesignModel
-            ->select('activity_design.*, office_units.office_name as office, users.full_name as submitter_name, activity_design.start_date as date, venues.venue_name as venue, venues.is_inside_bsu, activity_classifications.classification_name as activity_classification, form_types.name as form_type_name')
+            ->select('activity_design.*, office_units.office_name as office, users.full_name as submitter_name, activity_design.start_date as date, venues.venue_name as venue, venues.is_inside_bsu as venue_is_inside_bsu, activity_classifications.classification_name as activity_classification, form_types.name as form_type_name')
             ->select('(SELECT GROUP_CONCAT(DISTINCT CONCAT(\'GPB - \', CASE WHEN gm.mandate = \'\' OR gm.mandate IS NULL THEN CONCAT(\'N/A (Attributed Program) - \', IFNULL(gm.activity, \'\')) ELSE gm.mandate END) SEPARATOR \';;; \') FROM activity_design_mandates adm JOIN gpb_items gm ON gm.id = adm.mandate_id WHERE adm.act_design_id = activity_design.act_design_id) as gad_mandate')
             ->select('(SELECT GROUP_CONCAT(DISTINCT CASE WHEN gi.cause = \'\' OR gi.cause IS NULL THEN CONCAT(\'N/A (Attributed Program) - \', IFNULL(gi.activity, \'\')) ELSE gi.cause END SEPARATOR \';;; \') FROM activity_design_issues adi JOIN gpb_items gi ON gi.id = adi.issue_id WHERE adi.act_design_id = activity_design.act_design_id) as gender_issue')
             ->select('(SELECT GROUP_CONCAT(DISTINCT adm.mandate_id SEPARATOR \',\') FROM activity_design_mandates adm WHERE adm.act_design_id = activity_design.act_design_id) as gad_mandate_ids')
@@ -631,6 +631,7 @@ class ActivityDesignController extends BaseController
             'start_time'          => $this->request->getPost('start_time'),
             'end_time'            => $this->request->getPost('end_time'),
             'venue_id'            => !empty($finalVenues) ? $finalVenues[0] : null,
+            'is_inside_bsu'       => $isInsideBsu,
             'proposed_budget'     => $this->request->getPost('proposed_budget'),
             'target_participants' => $this->request->getPost('target_participants'),
             'schedule_type'       => $this->request->getPost('schedule_type'),
@@ -832,6 +833,13 @@ class ActivityDesignController extends BaseController
         \App\Models\ActivityLogModel::log($actionUserId, 'Approve Document', 'approved Activity Design: ' . $item['activity_title']);
 
         NotificationService::send($item['user_id'], 'Activity Design Approved', 'Your Activity Design "' . $item['activity_title'] . '" has been approved.', '/staff/activity-designs', 'success');
+
+        NotificationService::sendToGadStaff(
+            'Allocate Budget for Approved AD',
+            'The Activity Design "' . $item['activity_title'] . '" has been approved and archived. Please allocate its budget.',
+            '/staff/budget-distribution',
+            'warning'
+        );
 
         \App\Libraries\FileStorage::moveToArchived($item['attachment']);
 

@@ -234,4 +234,23 @@ class NotificationService
             self::send($admin['id'], $title, $message, $link, $type);
         }
     }
+
+    /**
+     * Send a notification to all GAD Staff users.
+     * 
+     * @param string $title Notification title
+     * @param string $message Notification detailed message
+     * @param string|null $link Optional link when clicking notification
+     * @param string|null $type Optional type (e.g. 'success', 'warning', 'info')
+     * @return void
+     */
+    public static function sendToGadStaff($title, $message, $link = null, $type = 'info')
+    {
+        $db = \Config\Database::connect();
+        $staffMembers = $db->table('users')->where('role', 'gad_staff')->get()->getResultArray();
+        
+        foreach ($staffMembers as $staff) {
+            self::send($staff['id'], $title, $message, $link, $type);
+        }
+    }
 }

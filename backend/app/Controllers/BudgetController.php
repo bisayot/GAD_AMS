@@ -242,7 +242,7 @@ class BudgetController extends Controller
                 }
             }
 
-            $remaining = max(0.0, $allocated - $utilized - $pendingApproved);
+            $remaining = $allocated - $utilized - $pendingApproved;  // can be negative (overspent)
             $utilizationRate = $allocated > 0 ? ($utilized / $allocated) * 100 : 0.0;
 
             $budgetRows[] = [

@@ -949,6 +949,13 @@ class AccomplishmentReportController extends BaseController
 
         NotificationService::send($item['user_id'], 'Accomplishment Report Verified', 'Your Accomplishment Report "' . $item['activity_title'] . '" has been verified and archived.', '/staff/accomplishment-reports', 'success');
 
+        NotificationService::sendToGadStaff(
+            'Allocate Budget for Verified AR',
+            'The Accomplishment Report "' . $item['activity_title'] . '" has been verified and archived. Please review and allocate its budget.',
+            '/staff/budget-distribution',
+            'warning'
+        );
+
         return $this->response->setJSON([
             'success' => true,
             'message' => 'Accomplishment Report verified and archived successfully.'

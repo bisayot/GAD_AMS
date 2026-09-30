@@ -473,11 +473,11 @@
                   </div>
                   <div class="full-width-info">
                     <label class="info-label">Venue Location *</label>
-                    <div class="toggle-container" style="display: flex; gap: 1rem; align-items: center; height: 42px;">
-                      <label style="color: #cbd5e1; font-size: 14px; cursor: pointer;">
+                    <div class="toggle-container" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; min-height: 42px; height: auto; padding: 4px 0;">
+                      <label style="color: #cbd5e1; font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
                         <input type="radio" :value="true" v-model="form.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Inside BSU
                       </label>
-                      <label style="color: #cbd5e1; font-size: 14px; cursor: pointer;">
+                      <label style="color: #cbd5e1; font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
                         <input type="radio" :value="false" v-model="form.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Outside BSU
                       </label>
                     </div>
