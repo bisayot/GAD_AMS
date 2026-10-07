@@ -112,10 +112,6 @@
                    <span class="b-lbl">Utilized:</span>
                    <span class="b-val text-green">₱{{ Number(stat.utilized_budget).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
                  </div>
-                 <div class="budget-row">
-                   <span class="b-lbl">Pending (ADs):</span>
-                   <span class="b-val text-yellow">₱{{ Number(stat.pending_budget).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
-                 </div>
                  <div class="budget-row remaining-row">
                     <span class="b-lbl">Remaining:</span>
                     <span :class="stat.remaining_budget < 0 ? 'text-red' : 'text-blue'" class="b-val font-mono">₱{{ Number(stat.remaining_budget).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
@@ -132,9 +128,6 @@
                       </div>
                       <div class="bl-row text-green">
                          <span>Utilized:</span> <span class="font-mono">₱{{ Number(bl.utilized_budget || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
-                      </div>
-                      <div class="bl-row text-yellow">
-                         <span>Pending (AD):</span> <span class="font-mono">₱{{ Number(bl.pending_budget || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
                       </div>
                    </div>
                  </div>
@@ -154,7 +147,7 @@
       <div class="allocation-modal-card">
         <h2 class="modal-title">Budget Allocations</h2>
         <p class="modal-subtitle">
-          Assign specific Activity Design and Accomplishment Report budgets to this mandate.
+          Assign specific Accomplishment Report budgets to this mandate.
         </p>
 
         <div v-if="loadingAllocations" class="modal-loading-box">Loading...</div>
@@ -166,7 +159,6 @@
                  <tr>
                    <th>Budget Line</th>
                    <th>Original Amount</th>
-                   <th>Pending (AD)</th>
                    <th>Utilized (AR)</th>
                  </tr>
                </thead>
@@ -174,7 +166,6 @@
                  <tr v-for="bl in currentAllocationStat.budget_lines" :key="bl.id">
                    <td class="modal-td-bold">{{ bl.label || 'Unnamed Line' }}</td>
                    <td>₱{{ Number(bl.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</td>
-                   <td class="text-yellow">₱{{ Number(bl.pending_budget || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</td>
                    <td class="text-green">₱{{ Number(bl.utilized_budget || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</td>
                  </tr>
                </tbody>
@@ -202,7 +193,7 @@
           </div>
 
           <div v-if="allocationsData.length === 0" class="modal-empty-box">
-            No approved Activity Designs or Accomplishment Reports found for this mandate.
+            No approved Accomplishment Reports found for this mandate.
           </div>
           <div v-else>
             <div v-for="doc in allocationsData" :key="doc.type + doc.id" class="doc-accordion-box">
@@ -344,7 +335,7 @@ export default {
       try {
         const res = await api.get(`/plan/mandate-allocations?gpb_ids=${stat.gpb_ids.join(',')}`);
         if (res.data.success) {
-           allocationsData.value = res.data.data.map(d => ({ ...d, _expanded: true }));
+           allocationsData.value = res.data.data.filter(d => d.type === 'AR').map(d => ({ ...d, _expanded: true }));
         } else {
            Swal.fire('Error', res.data.message || 'Failed to load allocations.', 'error');
         }

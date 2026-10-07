@@ -67,7 +67,7 @@
                     <label class="form-label">Gender Issue / GAD Mandate *</label>
                     <div class="checkbox-group-container custom-input-field" style="min-height: 120px; max-height: 250px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
                       <label v-for="mandate in GADMandates" :key="mandate.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-                        <input type="radio" v-model="form.gad_mandate_id" :value="mandate.id" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
+                        <input type="checkbox" v-model="form.gad_mandate_id" :value="mandate.id" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
                         <span style="font-size: 14px; line-height: 1.4;">{{ mandate.code }} - {{ mandate.title }}</span>
                       </label>
                       
@@ -79,7 +79,7 @@
                     <label class="form-label">Cause of Gender Issue *</label>
                     <div class="checkbox-group-container custom-input-field" style="min-height: 120px; max-height: 250px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
                       <label v-for="issue in genderIssues" :key="issue.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-                        <input type="radio" v-model="form.gender_issue_id" :value="issue.id" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
+                        <input type="checkbox" v-model="form.gender_issue_id" :value="issue.id" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
                         <span style="font-size: 14px; line-height: 1.4;">{{ issue.title }}</span>
                       </label>
                       
@@ -696,8 +696,8 @@ const form = ref({
   form_type: '',
   nature: '',
   activity_classification_id: '',
-  gad_mandate_id: '',
-  gender_issue_id: '',
+  gad_mandate_id: [],
+  gender_issue_id: [],
   activity_title: '',
   start_date: '',
   end_date: '',
@@ -923,13 +923,13 @@ const fetchGenderIssues = async (mandateIds) => {
 };
 
 watch(() => form.value.activity_classification_id, (newVal) => {
-    form.value.gad_mandate_id = '';
-    form.value.gender_issue_id = '';
+    form.value.gad_mandate_id = [];
+    form.value.gender_issue_id = [];
     fetchGADMandates();
   });
 
   watch(() => form.value.gad_mandate_id, (newVal) => {
-  form.value.gender_issue_id = '';
+  form.value.gender_issue_id = [];
   fetchGenderIssues(newVal);
 });
 
@@ -1436,10 +1436,10 @@ const submitActivityDesign = async () => {
     formData.append('gad_mandate_id', mandateVal);
     formData.append('gender_issue_id', issueVal);
     
-    if (mandateVal === 'Other') {
+    if (mandateVal.includes('Other')) {
       formData.append('custom_gad_mandate', customMandate.value);
     }
-    if (issueVal === 'Other') {
+    if (issueVal.includes('Other')) {
       formData.append('custom_gender_issue', customGenderIssue.value);
     }
 

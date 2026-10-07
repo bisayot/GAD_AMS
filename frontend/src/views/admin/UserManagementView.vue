@@ -1081,7 +1081,7 @@ onMounted(() => {
 }
 
 .form-input {
-  background: #f8fafc;
+  background-color: #f8fafc;
   border: 1px solid #cbd5e1;
   color: #0f172a;
   padding: 0.75rem 1rem;
@@ -1092,7 +1092,7 @@ onMounted(() => {
 }
 .form-input:focus {
   border-color: #9333ea;
-  background: #ffffff;
+  background-color: #ffffff;
   box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.15);
 }
 .form-input option {
@@ -1440,14 +1440,14 @@ html.dark .form-label,
 
 html.dark .form-input,
 .dark .form-input {
-  background: rgba(0, 0, 0, 0.3) !important;
+  background-color: rgba(0, 0, 0, 0.3) !important;
   border: 1px solid rgba(185, 121, 204, 0.3) !important;
   color: white !important;
 }
 html.dark .form-input:focus,
 .dark .form-input:focus {
   border-color: #b979cc !important;
-  background: rgba(0, 0, 0, 0.5) !important;
+  background-color: rgba(0, 0, 0, 0.5) !important;
 }
 html.dark .form-input option,
 .dark .form-input option {
@@ -1458,6 +1458,9 @@ html.dark .form-input option,
 html.dark select.form-input,
 .dark select.form-input {
   background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23b979cc' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 1rem center !important;
+  background-size: 1.25rem 1.25rem !important;
 }
 
 /* Custom Scrollbars */

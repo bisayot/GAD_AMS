@@ -282,7 +282,7 @@
                     <label class="info-label">Gender Issue / GAD Mandate</label>
                     <div class="checkbox-group-container custom-input-field mt-1" style="max-height: 200px; overflow-y: auto; overflow-x: hidden; padding: 8px; display: flex; flex-direction: column; gap: 8px;">
                       <label v-for="mandate in GADMandates" :key="mandate.id" class="mandate-checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-                        <input type="radio" @change="handleMandateChange" v-model="form.gad_mandate_id" :value="mandate.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
+                        <input type="checkbox" @change="handleMandateChange" v-model="form.gad_mandate_id" :value="mandate.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
                         <span style="font-size: 13px; line-height: 1.4; word-break: break-word; min-width: 0; flex: 1;">{{ mandate.code }} - {{ mandate.title }}</span>
                       </label>
                       </div>
@@ -291,7 +291,7 @@
                     <label class="info-label">Cause of Gender Issue</label>
                     <div class="checkbox-group-container custom-input-field mt-1" style="max-height: 200px; overflow-y: auto; overflow-x: hidden; padding: 8px; display: flex; flex-direction: column; gap: 8px;">
                       <label v-for="issue in genderIssues" :key="issue.id" class="mandate-checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-                        <input type="radio" v-model="form.gender_issue_id" :value="issue.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
+                        <input type="checkbox" v-model="form.gender_issue_id" :value="issue.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
                         <span style="font-size: 13px; line-height: 1.4; word-break: break-word; min-width: 0; flex: 1;">{{ issue.title }}</span>
                       </label>
                       <p v-if="!form.gad_mandate_id || form.gad_mandate_id.length === 0" style="color: #94a3b8; font-size: 13px; font-style: italic; margin: 0;">Select a mandate first to see gender issues.</p>
@@ -737,8 +737,8 @@ const loading = ref(true);
 const form = ref({
   activity_classification_id: '',
     form_type: '',
-  gad_mandate_id: '',
-  gender_issue_id: '',
+  gad_mandate_id: [],
+  gender_issue_id: [],
   activity_title: '',
   control_number: '',
   act_design_id: null,
@@ -949,14 +949,14 @@ const fetchGADMandates = async () => {
 };
 
 const handleClassificationChange = async () => {
-  form.value.gad_mandate_id = '';
-  form.value.gender_issue_id = '';
+  form.value.gad_mandate_id = [];
+  form.value.gender_issue_id = [];
   await fetchGADMandates();
   await fetchGenderIssues();
 };
 
 const handleMandateChange = async () => {
-  form.value.gender_issue_id = '';
+  form.value.gender_issue_id = [];
   await fetchGenderIssues(form.value.gad_mandate_id);
 };
 
@@ -2065,9 +2065,9 @@ const fetchReportDetails = async () => {
         form.value.gad_mandate_id = GADMandates.value.filter(m => {
            const mIds = String(m.id).split(',');
            return mIds.every(id => savedMandates.includes(id));
-        }).map(m => String(m.id))[0] || '';
-        if (savedMandates.includes('Other') && form.value.gad_mandate_id !== 'Other') {
-            form.value.gad_mandate_id = 'Other';
+        }).map(m => String(m.id));
+        if (savedMandates.includes('Other') && !form.value.gad_mandate_id.includes('Other')) {
+            form.value.gad_mandate_id.push('Other');
         }
 
         if (form.value.gad_mandate_id.length > 0) {
@@ -2078,9 +2078,9 @@ const fetchReportDetails = async () => {
         form.value.gender_issue_id = genderIssues.value.filter(m => {
            const mIds = String(m.id).split(',');
            return mIds.every(id => savedIssues.includes(id));
-        }).map(m => String(m.id))[0] || '';
-        if (savedIssues.includes('Other') && form.value.gender_issue_id !== 'Other') {
-            form.value.gender_issue_id = 'Other';
+        }).map(m => String(m.id));
+        if (savedIssues.includes('Other') && !form.value.gender_issue_id.includes('Other')) {
+            form.value.gender_issue_id.push('Other');
         }
       }
 

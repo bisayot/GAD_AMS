@@ -82,7 +82,7 @@
                     <label class="form-label-ar">Gender Issue / GAD Mandate *</label>
                     <div class="checkbox-group-container custom-input-field" style="min-height: 120px; max-height: 250px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
                       <label v-for="mandate in GADMandates" :key="mandate.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-                        <input type="radio" @change="handleMandateChange" v-model="form.gad_mandate_id" :value="mandate.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
+                        <input type="checkbox" @change="handleMandateChange" v-model="form.gad_mandate_id" :value="mandate.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
                         <span style="font-size: 14px; line-height: 1.4;">{{ mandate.code }} - {{ mandate.title }}</span>
                       </label>
                       
@@ -94,7 +94,7 @@
                     <label class="form-label-ar">Cause of Gender Issue *</label>
                     <div class="checkbox-group-container custom-input-field" style="min-height: 120px; max-height: 250px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
                       <label v-for="issue in genderIssues" :key="issue.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-                        <input type="radio" v-model="form.gender_issue_id" :value="issue.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
+                        <input type="checkbox" v-model="form.gender_issue_id" :value="issue.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
                         <span style="font-size: 14px; line-height: 1.4;">{{ issue.title }}</span>
                       </label>
                       
@@ -603,8 +603,8 @@ const form = ref({
   nature: '',
   activity_classification_id: '',
   activity_classification: '',
-  gad_mandate_id: '',
-  gender_issue_id: '',
+  gad_mandate_id: [],
+  gender_issue_id: [],
   target_participants: '',
   act_design_id: null,
   start_date: '',
@@ -859,13 +859,13 @@ const fetchGADMandates = async () => {
 };
 
 const handleClassificationChange = async () => {
-  form.value.gad_mandate_id = '';
-  form.value.gender_issue_id = '';
+  form.value.gad_mandate_id = [];
+  form.value.gender_issue_id = [];
   await fetchGADMandates();
 };
 
 const handleMandateChange = async () => {
-  form.value.gender_issue_id = '';
+  form.value.gender_issue_id = [];
   await fetchGenderIssues(form.value.gad_mandate_id);
 };
 
@@ -1026,9 +1026,9 @@ watch(() => form.value.control_number, async (newVal) => {
     form.value.gad_mandate_id = GADMandates.value.filter(m => {
        const mIds = String(m.id).split(',');
        return mIds.every(id => savedMandates.includes(id));
-    }).map(m => String(m.id))[0] || '';
-    if (savedMandates.includes('Other') && form.value.gad_mandate_id !== 'Other') {
-        form.value.gad_mandate_id = 'Other';
+    }).map(m => String(m.id));
+    if (savedMandates.includes('Other') && !form.value.gad_mandate_id.includes('Other')) {
+        form.value.gad_mandate_id.push('Other');
     }
 
     await fetchGenderIssues(form.value.gad_mandate_id);
@@ -1037,9 +1037,9 @@ watch(() => form.value.control_number, async (newVal) => {
     form.value.gender_issue_id = genderIssues.value.filter(m => {
        const mIds = String(m.id).split(',');
        return mIds.every(id => savedIssues.includes(id));
-    }).map(m => String(m.id))[0] || '';
-    if (savedIssues.includes('Other') && form.value.gender_issue_id !== 'Other') {
-        form.value.gender_issue_id = 'Other';
+    }).map(m => String(m.id));
+    if (savedIssues.includes('Other') && !form.value.gender_issue_id.includes('Other')) {
+        form.value.gender_issue_id.push('Other');
     }
     selectedProposedBudget.value = Number(selected.proposed_budget) || 0;
 
@@ -1104,8 +1104,8 @@ watch(() => form.value.control_number, async (newVal) => {
     form.value.form_type = '';
     form.value.target_participants = '';
     form.value.activity_classification = '';
-    form.value.gad_mandate_id = '';
-    form.value.gender_issue_id = '';
+    form.value.gad_mandate_id = [];
+    form.value.gender_issue_id = [];
     othersList.value = [];
   }
 });
@@ -1757,14 +1757,14 @@ const submitReport = async () => {
     if (form.value.gad_mandate_id) {
       formData.append('gad_mandate_id', Array.isArray(form.value.gad_mandate_id) ? form.value.gad_mandate_id.join(',') : form.value.gad_mandate_id);
     }
-    if (form.value.gad_mandate_id === 'Other') {
+    if (form.value.gad_mandate_id && form.value.gad_mandate_id.includes('Other')) {
       formData.append('custom_gad_mandate', customMandate.value);
     }
     
     if (form.value.gender_issue_id) {
       formData.append('gender_issue_id', Array.isArray(form.value.gender_issue_id) ? form.value.gender_issue_id.join(',') : form.value.gender_issue_id);
     }
-    if (form.value.gender_issue_id === 'Other') {
+    if (form.value.gender_issue_id && form.value.gender_issue_id.includes('Other')) {
       formData.append('custom_gender_issue', customGenderIssue.value);
     }
     
