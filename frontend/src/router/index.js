@@ -43,9 +43,6 @@ const routes = [
       { path: 'annual-report-view/:id', name: 'admin-annual-report-view', component: () => import('../views/AnnualReportView.vue') },
       { path: 'user-manual', name: 'admin-user-manual', component: () => import('../views/admin/UserManualView.vue') },
       { path: 'budget', name: 'admin-budget', component: () => import('../views/admin/BudgetView.vue') },
-      { path: 'design-review', name: 'admin-design-review', component: () => import('../views/admin/DesignReview.vue') },
-      { path: 'design-view', name: 'admin-design-view', component: () => import('../views/admin/DesignView.vue') },
-      { path: 'assign-mandates', name: 'admin-assign-mandates', component: () => import('../views/admin/AssignMandates.vue') },
       { path: 'data-privacy-policy', name: 'admin-privacy-policy', component: () => import('../views/admin/PrivacyPolicyView.vue') },
       { path: 'messages', name: 'admin-messages', component: () => import('../views/admin/MessagesView.vue') },
       { path: 'contact-inquiries', name: 'admin-contact-inquiries', component: () => import('../views/admin/ContactInquiriesView.vue') },
@@ -110,7 +107,6 @@ const routes = [
       { path: 'annual-report-archives', name: 'staff-annual-report-archives', component: () => import('../views/AnnualReportArchiveView.vue') },
       { path: 'annual-report-view/:id', name: 'staff-annual-report-view', component: () => import('../views/AnnualReportView.vue') },
       { path: 'budget', name: 'staff-budget', component: () => import('../views/staff/BudgetView.vue') },
-      { path: 'budget-allocation', name: 'staff-budget-allocation', component: () => import('../views/staff/BudgetAllocationView.vue') },
       { path: 'user-manual', name: 'staff-user-manual', component: () => import('../views/staff/UserManualView.vue') },
       { path: 'data-privacy-policy', name: 'staff-privacy-policy', component: () => import('../views/staff/PrivacyPolicyView.vue') },
       { path: 'messages', name: 'staff-messages', component: () => import('../views/staff/MessagesView.vue') },
@@ -122,6 +118,9 @@ const routes = [
       { path: 'publish-news-iec', name: 'staff-publish-news-iec', component: () => import('../views/staff/PublishNewsIecView.vue') },
     ]
   },
+  
+  // Catch-all route for 404 Not Found
+  { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('../views/NotFoundView.vue') },
 ]
 
 const router = createRouter({
@@ -138,5 +137,54 @@ const router = createRouter({
     return { top: 0 };
   }
 })
+
+// ---------------------------------------------------------------------------
+// Global Navigation Guard
+// Protects /admin, /staff, and /college routes.
+// Checks: (1) user is logged in, (2) user has the right role for the section.
+// ---------------------------------------------------------------------------
+router.beforeEach((to, from, next) => {
+  const userStr = localStorage.getItem('user');
+  const token   = localStorage.getItem('authToken');
+  const user    = userStr ? JSON.parse(userStr) : null;
+
+  const isLoggedIn = !!(user && user.id && token);
+
+  const isAdminRoute   = to.path.startsWith('/admin');
+  const isStaffRoute   = to.path.startsWith('/staff');
+  const isCollegeRoute = to.path.startsWith('/college');
+
+  // If not a protected route, allow through
+  if (!isAdminRoute && !isStaffRoute && !isCollegeRoute) {
+    // Already logged in? Redirect away from login/register
+    if (isLoggedIn && (to.path === '/login' || to.path === '/register')) {
+      const safeRole = (user.role || '').toLowerCase();
+      if (safeRole === 'admin')     return next('/admin/dashboard');
+      if (safeRole === 'gad_staff') return next('/staff/dashboard');
+      return next('/college/dashboard');
+    }
+    return next();
+  }
+
+  // Not logged in — redirect to login
+  if (!isLoggedIn) {
+    return next('/login');
+  }
+
+  const safeRole = (user.role || '').toLowerCase();
+
+  // Role-based section access
+  if (isAdminRoute && safeRole !== 'admin') {
+    return next('/login');
+  }
+  if (isStaffRoute && safeRole !== 'gad_staff') {
+    return next('/login');
+  }
+  if (isCollegeRoute && !['twg', 'non-twg', 'college'].includes(safeRole)) {
+    return next('/login');
+  }
+
+  next();
+});
 
 export default router

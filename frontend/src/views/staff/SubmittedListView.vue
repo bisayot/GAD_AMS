@@ -167,12 +167,6 @@
             </div>
           </div>
 
-          <div class="footer-note">
-            <p class="footer-text">
-              📋 Tracking submission configurations for all university Technical Working Groups
-            </p>
-          </div>
-
         </div>
       </main>
 </template>
@@ -347,6 +341,7 @@ onMounted(() => {
   width: 100%;
   min-width: 0;
   overflow-x: hidden;
+  background-color: transparent;
 }
 
 .twg-content-wrapper {
@@ -365,12 +360,12 @@ onMounted(() => {
   font-size: 1.5rem;
   font-weight: 900;
   letter-spacing: -0.025em;
-  color: #1a1a2e;
+  color: #0f172a;
 }
 
 .twg-subtitle {
   font-size: 1rem;
-  color: #475569;
+  color: #64748b;
   margin-top: 0.25rem;
 }
 
@@ -383,11 +378,11 @@ onMounted(() => {
 .stat-card {
   padding: 1rem;
   border-radius: 1rem;
-  border: 1px solid rgba(185, 121, 204, 0.15);
+  border: 1px solid var(--color-outline-variant);
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(8px);
   transition: all 0.3s;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: var(--color-surface);
 }
 
 .stat-card:hover {
@@ -435,7 +430,7 @@ onMounted(() => {
   font-size: 1.25rem;
   font-weight: 900;
   letter-spacing: -0.025em;
-  color: white;
+  color: var(--color-on-background);
   line-height: 1.25;
   white-space: nowrap;
   overflow: hidden;
@@ -447,7 +442,7 @@ onMounted(() => {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: rgba(203, 213, 225, 0.7);
+  color: var(--color-on-surface-variant);
   margin-top: 0.125rem;
   white-space: nowrap;
   overflow: hidden;
@@ -458,15 +453,15 @@ onMounted(() => {
 .filter-section {
   padding: 1rem;
   border-radius: 1rem;
-  border: 1px solid rgba(185, 121, 204, 0.15);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--color-outline-variant);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(8px);
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: var(--color-surface);
 }
 
 .filter-controls {
@@ -495,11 +490,11 @@ onMounted(() => {
   width: 100%;
   padding: 0.5rem 1rem 0.5rem 2.25rem;
   border-radius: 0.75rem;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(185, 121, 204, 0.2);
+  background: var(--color-surface-variant);
+  border: 1px solid var(--color-outline-variant);
   font-size: 1rem;
   font-weight: 600;
-  color: white;
+  color: var(--color-on-background);
   transition: all 0.3s;
 }
 
@@ -509,7 +504,7 @@ onMounted(() => {
 }
 
 .search-input::placeholder {
-  color: #94a3b8;
+  color: var(--color-on-surface-variant);
 }
 
 .select-wrapper {
@@ -521,11 +516,11 @@ onMounted(() => {
   width: 100%;
   padding: 0.5rem 0.75rem;
   border-radius: 0.75rem;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(185, 121, 204, 0.2);
+  background: var(--color-surface-variant);
+  border: 1px solid var(--color-outline-variant);
   font-size: 1rem;
   font-weight: 600;
-  color: white;
+  color: var(--color-on-background);
   appearance: none;
   cursor: pointer;
   transition: all 0.3s;
@@ -554,18 +549,18 @@ onMounted(() => {
 
 .per-page-label {
   font-size: 0.9rem;
-  color: #94a3b8;
+  color: var(--color-on-surface-variant);
   font-weight: 500;
 }
 
 .per-page-select {
   padding: 0.375rem 0.625rem;
   border-radius: 0.5rem;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(185, 121, 204, 0.2);
+  background: var(--color-surface-variant);
+  border: 1px solid var(--color-outline-variant);
   font-size: 1rem;
   font-weight: 700;
-  color: white;
+  color: var(--color-on-background);
   cursor: pointer;
   transition: all 0.3s;
 }
@@ -578,11 +573,11 @@ onMounted(() => {
 /* Table Container */
 .table-container {
   border-radius: 1rem;
-  border: 1px solid rgba(185, 121, 204, 0.15);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--color-outline-variant);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   backdrop-filter: blur(8px);
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: var(--color-surface);
 }
 
 .table-wrapper {
@@ -597,8 +592,8 @@ onMounted(() => {
 }
 
 .table-header-row {
-  border-bottom: 1px solid rgba(185, 121, 204, 0.1);
-  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-variant);
 }
 
 .table-header-cell {
@@ -607,7 +602,7 @@ onMounted(() => {
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #b979cc;
+  color: var(--color-on-background);
 }
 
 .table-header-number {
@@ -631,17 +626,17 @@ onMounted(() => {
   padding: 3rem 1.5rem;
   text-align: center;
   font-size: 1rem;
-  color: #94a3b8;
+  color: var(--color-on-surface-variant);
   font-weight: 500;
 }
 
 .table-row {
   transition: all 0.3s;
-  border-bottom: 1px solid rgba(185, 121, 204, 0.05);
+  border-bottom: 1px solid var(--color-outline-variant);
 }
 
 .table-row:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(147, 51, 234, 0.05);
 }
 
 .table-cell {
@@ -652,7 +647,7 @@ onMounted(() => {
   font-size: 1rem;
   font-family: monospace;
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--color-on-surface-variant);
   text-align: center;
 }
 
@@ -668,17 +663,17 @@ onMounted(() => {
   font-family: monospace;
   font-size: 1rem;
   font-weight: 700;
-  color: #cbd5e1;
+  color: var(--color-on-background);
 }
 
 .unit-name {
   font-weight: 700;
-  color: #e2e8f0;
+  color: var(--color-on-background);
 }
 
 .unit-code {
   font-size: 0.85rem;
-  color: #b979cc;
+  color: var(--color-primary);
   font-weight: 500;
   letter-spacing: 0.025em;
   text-transform: uppercase;
@@ -730,15 +725,29 @@ onMounted(() => {
 }
 
 .submission-badge-active {
-  background: rgba(153, 13, 209, 0.2);
-  color: #b979cc;
-  border: 1px solid rgba(153, 13, 209, 0.3);
+  background: var(--color-badge-submission-bg, rgba(147, 51, 234, 0.16));
+  color: var(--color-badge-submission-text, #6b21a8);
+  border: 1px solid var(--color-badge-submission-border, rgba(147, 51, 234, 0.4));
+}
+
+:global(.dark) .submission-badge-active,
+:deep(.dark) .submission-badge-active {
+  background: rgba(168, 85, 247, 0.25) !important;
+  color: #e9d5ff !important;
+  border: 1px solid rgba(168, 85, 247, 0.5) !important;
 }
 
 .submission-badge-empty {
-  background: rgba(0, 0, 0, 0.3);
-  color: #94a3b8;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--color-surface-variant);
+  color: var(--color-on-background);
+  border: 1px solid var(--color-outline-variant);
+}
+
+:global(.dark) .submission-badge-empty,
+:deep(.dark) .submission-badge-empty {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #e2e8f0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
 }
 
 .view-details-btn {
@@ -765,8 +774,8 @@ onMounted(() => {
 /* Pagination */
 .pagination-container {
   padding: 1rem 1.5rem;
-  border-top: 1px solid rgba(185, 121, 204, 0.1);
-  background: rgba(0, 0, 0, 0.1);
+  border-top: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-variant);
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -776,13 +785,13 @@ onMounted(() => {
 
 .pagination-info {
   font-size: 1rem;
-  color: #94a3b8;
+  color: var(--color-on-surface-variant);
   font-weight: 500;
 }
 
 .pagination-highlight {
   font-weight: 700;
-  color: white;
+  color: var(--color-on-background);
 }
 
 .pagination-controls {
@@ -800,9 +809,9 @@ onMounted(() => {
   justify-content: center;
   font-size: 1rem;
   font-weight: 700;
-  color: white;
-  border: 1px solid rgba(185, 121, 204, 0.1);
-  background: rgba(0, 0, 0, 0.3);
+  color: var(--color-on-background);
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface);
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -812,7 +821,7 @@ onMounted(() => {
 }
 
 .pagination-btn:disabled {
-  opacity: 0.3;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -827,9 +836,9 @@ onMounted(() => {
   font-weight: 700;
   transition: all 0.2s;
   cursor: pointer;
-  color: #94a3b8;
-  border: 1px solid rgba(185, 121, 204, 0.1);
-  background: rgba(0, 0, 0, 0.2);
+  color: var(--color-on-surface-variant);
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface);
 }
 
 .pagination-page:hover {

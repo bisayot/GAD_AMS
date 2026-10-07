@@ -37,11 +37,11 @@
                   <div class="status-badge-view" :class="getStatusClass(design.status)">
                     <span class="status-text">{{ formatStatus(design.status) }}</span>
                   </div>
-                  <div v-if="design.revision_count > 0" class="status-badge-view" style="background: rgba(234,179,8,0.1); border-color: rgba(234,179,8,0.2); padding: 4px 10px;">
-                    <span class="status-text" style="color: #facc15; font-size: 11px; font-weight: bold;">Rev: {{ design.revision_count }}</span>
+                  <div v-if="design.revision_count > 0" class="status-badge-rev">
+                    <span>Rev: {{ design.revision_count }}</span>
                   </div>
-                  <div v-if="design.modification_count > 0" class="status-badge-view" style="background: rgba(168,85,247,0.1); border-color: rgba(168,85,247,0.2); padding: 4px 10px;">
-                    <span class="status-text" style="color: #c084fc; font-size: 11px; font-weight: bold;">Mod: {{ design.modification_count }}</span>
+                  <div v-if="design.modification_count > 0" class="status-badge-mod">
+                    <span>Mod: {{ design.modification_count }}</span>
                   </div>
                 </div>
                 <span class="control-number">{{ design.control || 'PENDING ASSIGNMENT' }}</span>
@@ -109,46 +109,46 @@
               <div class="grid-2">
                                 <div class="full-width-info" style="grid-column: span 2;">
                   <div class="flex flex-col md:flex-row gap-4 mb-4">
-                    <div class="flex-1 bg-[#1a1a2e] p-4 rounded-xl border border-pink-500/20 relative overflow-hidden group shadow-lg">
-                      <div class="absolute inset-0 bg-gradient-to-br from-pink-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                      <label class="text-[10px] font-bold text-pink-400 uppercase tracking-wider block mb-2">Calculated Start Date</label>
-                      <p class="text-white font-medium flex items-center gap-3 text-sm"><span class="material-symbols-outlined text-pink-500 bg-pink-500/10 p-1.5 rounded-lg">calendar_month</span> {{ formatDate(design.start_date) || 'Awaiting schedule...' }}</p>
+                    <div class="calc-date-box calc-date-box-pink group">
+                      <div class="calc-date-overlay"></div>
+                      <label class="calc-date-label-pink">Calculated Start Date</label>
+                      <p class="calc-date-val"><span class="material-symbols-outlined calc-date-icon-pink">calendar_month</span> {{ formatDate(design.start_date) || 'Awaiting schedule...' }}</p>
                     </div>
-                    <div class="flex-1 bg-[#1a1a2e] p-4 rounded-xl border border-purple-500/20 relative overflow-hidden group shadow-lg">
-                      <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                      <label class="text-[10px] font-bold text-purple-400 uppercase tracking-wider block mb-2">Calculated End Date</label>
-                      <p class="text-white font-medium flex items-center gap-3 text-sm"><span class="material-symbols-outlined text-purple-500 bg-purple-500/10 p-1.5 rounded-lg">event</span> {{ formatDate(design.end_date) || 'Awaiting schedule...' }}</p>
+                    <div class="calc-date-box calc-date-box-purple group">
+                      <div class="calc-date-overlay"></div>
+                      <label class="calc-date-label-purple">Calculated End Date</label>
+                      <p class="calc-date-val"><span class="material-symbols-outlined calc-date-icon-purple">event</span> {{ formatDate(design.end_date) || 'Awaiting schedule...' }}</p>
                     </div>
                   </div>
                   
-                  <div v-if="design.schedules && design.schedules.length" class="schedules-container" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
-                    <div class="flex justify-between items-center flex-wrap gap-4" style="cursor: pointer;" @click="isSchedulesExpanded = !isSchedulesExpanded">
+                  <div v-if="design.schedules && design.schedules.length" class="schedules-container">
+                    <div class="schedules-header-row" @click="isSchedulesExpanded = !isSchedulesExpanded">
                       <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-                          <label class="form-label !mb-0 flex items-center gap-2 text-purple-300" style="cursor: pointer;">
+                          <label class="section-title !mb-0 flex items-center gap-2" style="cursor: pointer;">
                             <span class="material-symbols-outlined" style="font-size: 18px;">schedule</span>
                             Activity Schedules
                           </label>
-                          <div style="display: flex; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 4px; border: 1px solid rgba(185,121,204,0.3);">
-                            <span :style="{ background: 'rgba(185, 121, 204, 0.2)', color: '#e9d5ff', padding: '4px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold' }">
+                          <div class="schedule-type-badge-wrapper">
+                            <span class="schedule-type-badge-tag">
                               {{ design.schedule_type === 'staggered' ? 'Non Consecutive / Custom' : 'Consecutive Daily' }}
                             </span>
                           </div>
                       </div>
-                      <button type="button" @click.stop="isSchedulesExpanded = !isSchedulesExpanded" style="background: rgba(185, 121, 204, 0.1); color: #e9d5ff; border: 1px solid rgba(185, 121, 204, 0.3); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                      <button type="button" @click.stop="isSchedulesExpanded = !isSchedulesExpanded" class="schedule-expand-btn">
                         {{ isSchedulesExpanded ? 'Hide Schedules' : 'View Schedules' }} <span class="material-symbols-outlined" style="font-size: 18px;">{{ isSchedulesExpanded ? 'expand_less' : 'expand_more' }}</span>
                       </button>
                     </div>
                     
                     <transition name="fade">
                     <div v-if="isSchedulesExpanded" style="margin-top: 16px;">
-                    <div v-for="(sch, index) in design.schedules" :key="index" style="display: flex; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 12px; background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(185,121,204,0.15); transition: all 0.3s;" class="hover:bg-white/5 hover:border-purple-400/30">
-                      <div style="display: flex; align-items: center; gap: 12px; min-width: 140px;">
-                        <span class="material-symbols-outlined text-pink-400 text-lg">calendar_today</span>
-                        <span class="text-white font-medium text-sm">{{ formatDate(sch.schedule_date || sch.date) }}</span>
+                    <div v-for="(sch, index) in design.schedules" :key="index" class="schedule-item-card">
+                      <div class="schedule-date-col">
+                        <span class="material-symbols-outlined schedule-date-icon">calendar_today</span>
+                        <span class="schedule-date-text">{{ formatDate(sch.schedule_date || sch.date) }}</span>
                       </div>
-                      <div style="display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.4); padding: 6px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05);">
-                        <span class="material-symbols-outlined text-purple-400 text-lg">schedule</span>
-                        <span class="text-purple-100 font-mono text-sm tracking-wide">{{ formatTime(sch.start_time) }} - {{ formatTime(sch.end_time) }}</span>
+                      <div class="schedule-time-pill">
+                        <span class="material-symbols-outlined schedule-time-icon">schedule</span>
+                        <span class="schedule-time-text">{{ formatTime(sch.start_time) }} - {{ formatTime(sch.end_time) }}</span>
                       </div>
 
                     </div>
@@ -156,33 +156,33 @@
                     </transition>
                   </div>
                   
-                  <div v-else class="schedules-container" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
-                    <div class="flex justify-between items-center flex-wrap gap-4" style="cursor: pointer;" @click="isSchedulesExpanded = !isSchedulesExpanded">
+                  <div v-else class="schedules-container">
+                    <div class="schedules-header-row" @click="isSchedulesExpanded = !isSchedulesExpanded">
                       <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-                          <label class="form-label !mb-0 flex items-center gap-2 text-slate-300" style="cursor: pointer;">
+                          <label class="section-title !mb-0 flex items-center gap-2" style="cursor: pointer;">
                             <span class="material-symbols-outlined" style="font-size: 18px;">schedule</span>
                             Activity Schedules
                           </label>
-                          <div style="display: flex; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                            <span style="background: rgba(255,255,255,0.1); color: #cbd5e1; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: bold;">
+                          <div class="schedule-type-badge-wrapper">
+                            <span class="schedule-type-badge-tag">
                               Legacy Format
                             </span>
                           </div>
                       </div>
-                      <button type="button" @click.stop="isSchedulesExpanded = !isSchedulesExpanded" style="background: rgba(255, 255, 255, 0.05); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.1); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                      <button type="button" @click.stop="isSchedulesExpanded = !isSchedulesExpanded" class="schedule-expand-btn">
                         {{ isSchedulesExpanded ? 'Hide Schedules' : 'View Schedules' }} <span class="material-symbols-outlined" style="font-size: 18px;">{{ isSchedulesExpanded ? 'expand_less' : 'expand_more' }}</span>
                       </button>
                     </div>
                     
                     <transition name="fade">
-                    <div v-if="isSchedulesExpanded" style="display: flex; align-items: center; flex-wrap: wrap; gap: 16px; background: rgba(0,0,0,0.3); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-top: 16px;">
+                    <div v-if="isSchedulesExpanded" class="schedule-legacy-card">
                       <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 200px;">
-                        <span class="material-symbols-outlined text-slate-400 text-lg">calendar_month</span>
-                        <span class="text-white font-medium text-sm">{{ formatDate(design.start_date) }} <span class="text-slate-500 mx-1">to</span> {{ formatDate(design.end_date) }}</span>
+                        <span class="material-symbols-outlined schedule-date-icon">calendar_month</span>
+                        <span class="legacy-date-text">{{ formatDate(design.start_date) }} <span class="text-slate-500 mx-1">to</span> {{ formatDate(design.end_date) }}</span>
                       </div>
-                      <div style="display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.4); padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05);">
-                        <span class="material-symbols-outlined text-slate-400 text-lg">schedule</span>
-                        <span class="text-slate-200 font-mono text-sm tracking-wide">{{ formatTime(design.start_time) }} - {{ formatTime(design.end_time) }}</span>
+                      <div class="schedule-time-pill">
+                        <span class="material-symbols-outlined schedule-time-icon">schedule</span>
+                        <span class="legacy-time-text">{{ formatTime(design.start_time) }} - {{ formatTime(design.end_time) }}</span>
                       </div>
                       <div style="flex-basis: 100%; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 12px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.1);">
                         <span style="font-size: 10px; text-transform: uppercase; font-weight: bold; color: #94a3b8; margin-right: 8px;" class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">restaurant</span> Meals Needed:</span>
@@ -192,26 +192,30 @@
                     </transition>
                   </div>
                 </div>
-                <div class="full-width-info">
-                  <label class="info-label">Venue</label>
-                  <div v-if="design.venues_list && design.venues_list.length > 0" class="flex flex-col gap-3 mt-2">
-                    <div v-for="v in design.venues_list" :key="v.venue_id" class="flex flex-col items-start pb-2 border-b border-white/5 last:border-0 last:pb-0">
-                      <p class="info-value-white !mb-1">{{ v.venue_name }}</p>
-                      <span :class="v.is_inside_bsu == 1 || v.is_inside_bsu === true ? 'venue-badge inside-bsu' : 'venue-badge outside-bsu'">
-                        {{ v.is_inside_bsu == 1 || v.is_inside_bsu === true ? '🏫 Inside BSU' : '🌐 Outside BSU' }}
+                <div class="w-full flex flex-col md:flex-row gap-4 mt-6">
+                  <div class="flex-1">
+                    <label class="info-label">Venue</label>
+                    <div v-if="design.venues_list && design.venues_list.length > 0" class="flex flex-col gap-3 mt-2">
+                      <div v-for="v in design.venues_list" :key="v.venue_id" class="venue-list-row flex flex-col items-start">
+                        <p class="info-value-white !mb-1">{{ v.venue_name }}</p>
+                        <span :class="v.is_inside_bsu == 1 || v.is_inside_bsu === true ? 'venue-badge inside-bsu' : 'venue-badge outside-bsu'">
+                          {{ v.is_inside_bsu == 1 || v.is_inside_bsu === true ? '🏫 Inside BSU' : '🌐 Outside BSU' }}
+                        </span>
+                      </div>
+                    </div>
+                    <div v-else class="mt-2 pb-2">
+                      <p class="info-value-white !mb-1">{{ design.venue }}</p>
+                      <span :class="design.is_inside_bsu == 1 || design.is_inside_bsu === true ? 'venue-badge inside-bsu' : 'venue-badge outside-bsu'">
+                        {{ design.is_inside_bsu == 1 || design.is_inside_bsu === true ? '🏫 Inside BSU' : '🌐 Outside BSU' }}
                       </span>
                     </div>
                   </div>
-                  <div v-else>
-                    <p class="info-value-white !mb-1">{{ design.venue }}</p>
-                    <span :class="design.is_inside_bsu == 1 || design.is_inside_bsu === true ? 'venue-badge inside-bsu' : 'venue-badge outside-bsu'">
-                      {{ design.is_inside_bsu == 1 || design.is_inside_bsu === true ? '🏫 Inside BSU' : '🌐 Outside BSU' }}
-                    </span>
+                  <div class="flex-1">
+                    <label class="info-label">Overall Expected Attendance (Auto-calculated)</label>
+                    <div class="flex items-center gap-3 mt-2 pb-2">
+                      <p class="attendance-val">{{ design.target_participants }} <span class="attendance-unit">individuals</span></p>
+                    </div>
                   </div>
-                </div>
-                <div class="full-width-info participants-info">
-                  <label class="info-label">Overall Expected Attendance (Auto-calculated)</label>
-                  <p class="info-value-white">{{ design.target_participants }} individuals</p>
                 </div>
               </div>
             </div>
@@ -222,19 +226,19 @@
                 <h3 class="section-title">Proposed Budgetary Requirements</h3>
               </div>
               <div v-if="parsedBudget.length" class="budget-groups-container">
-                <div v-for="(venue, vIdx) in parsedBudget" :key="vIdx" class="venue-budget-container mb-6 bg-slate-900/40 border border-slate-700/50 rounded-2xl overflow-hidden shadow-lg">
-                  <div @click="toggleVenueBudget(vIdx)" class="venue-budget-header cursor-pointer flex justify-between items-center p-4 bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 transition-colors">
+                <div v-for="(venue, vIdx) in parsedBudget" :key="vIdx" class="venue-budget-container">
+                  <div @click="toggleVenueBudget(vIdx)" class="venue-budget-header">
                     <div class="flex items-center gap-3">
                       <span class="material-symbols-outlined text-purple-400">location_on</span>
-                      <h4 class="text-slate-200 font-bold text-lg m-0">{{ venue.venue_name }}</h4>
+                      <h4 class="venue-budget-title">{{ venue.venue_name }}</h4>
                     </div>
                     <div class="flex items-center gap-4">
-                      <span class="text-pink-400 font-bold bg-pink-500/10 px-3 py-1 rounded-lg">₱{{ formatCurrency(venue.total) }}</span>
-                      <span class="material-symbols-outlined text-slate-400 transition-transform duration-300" :class="{ 'rotate-180': venueExpandedState[vIdx] !== false }">expand_more</span>
+                      <span class="venue-budget-total">₱{{ formatCurrency(venue.total) }}</span>
+                      <span class="material-symbols-outlined venue-expand-icon" :class="{ 'rotate-180': venueExpandedState[vIdx] !== false }">expand_more</span>
                     </div>
                   </div>
                   
-                  <div v-show="venueExpandedState[vIdx] !== false" class="venue-budget-content p-4 flex flex-col gap-4">
+                  <div v-show="venueExpandedState[vIdx] !== false" class="venue-budget-content">
                     <div v-for="(group, gIdx) in venue.groups" :key="gIdx" class="budget-group-card">
                       <div class="budget-group-header">
                         <span class="budget-group-icon">{{ group.icon }}</span>
@@ -242,17 +246,17 @@
                       </div>
                       <div class="budget-group-content">
                         <div v-for="(child, cIdx) in group.children" :key="cIdx" class="budget-row-item">
-                          <div class="budget-row-header" style="display: grid; grid-template-columns: minmax(0, 1fr) 160px; align-items: flex-start; column-gap: 16px;">
+                          <div class="budget-row-header">
                             <div class="budget-item-info">
                               <div class="budget-item-title" v-html="formatBudgetName(child.name)"></div>
-                              <div v-if="child.formula || child.computation" style="font-size: 12px; color: #94a3b8; font-family: monospace; margin-top: 4px;">
+                              <div v-if="child.formula || child.computation" class="budget-formula-text">
                                 {{ child.formula || child.computation }}
                               </div>
-                              <div v-else-if="child.sub_item && child.name !== child.sub_item" style="font-size: 12px; color: #94a3b8; margin-top: 4px;">
+                              <div v-else-if="child.sub_item && child.name !== child.sub_item" class="budget-sub-item-text">
                                 {{ child.sub_item }}
                               </div>
-                              <div v-if="child.othersBreakdown && child.othersBreakdown.length" class="budget-others-breakdown-container" style="width: 100%; margin-top: 8px;">
-                                <div v-for="(other, otherIdx) in child.othersBreakdown" :key="otherIdx" class="budget-others-breakdown-row" style="padding: 6px 10px; background: rgba(0,0,0,0.2); border: 1px dashed rgba(255,255,255,0.1); border-radius: 6px; color: #cbd5e1; font-size: 12px;">
+                              <div v-if="child.othersBreakdown && child.othersBreakdown.length" class="budget-others-breakdown-container">
+                                <div v-for="(other, otherIdx) in child.othersBreakdown" :key="otherIdx" class="budget-others-breakdown-row">
                                   {{ other.name || 'Unnamed Item' }}
                                 </div>
                               </div>
@@ -322,7 +326,7 @@
                 <label class="form-label">Assessment Date</label>
                 <VueDatePicker 
                   v-model="assessmentDate" 
-                  dark 
+                  :dark="isDarkMode" 
                   model-type="yyyy-MM-dd" 
                   :enable-time-picker="false" 
                   format="MM/dd/yyyy" 
@@ -339,7 +343,7 @@
                 <label class="form-label">Accomplishment Deadline</label>
                 <VueDatePicker 
                   v-model="accomplishmentDeadline" 
-                  dark 
+                  :dark="isDarkMode" 
                   model-type="yyyy-MM-dd" 
                   :enable-time-picker="false" 
                   format="MM/dd/yyyy" 
@@ -418,7 +422,7 @@
             <label>Revision Deadline</label>
             <VueDatePicker 
               v-model="revisionDeadline" 
-              dark
+              :dark="isDarkMode"
               :min-date="todayDate" 
               :max-date="maxDate" 
               :disabled-dates="isDisabledDate" 
@@ -488,6 +492,9 @@ import api from '../../api';
 import { useHolidays } from '../../utils/useHolidays';
 
 const { getWorkingDaysDiff, addWorkingDays, isDisabledDate } = useHolidays();
+
+const isDarkMode = ref(document.documentElement.classList.contains('dark'));
+let themeObserver = null;
 
 const parseAttachments = (attachmentString) => {
   if (!attachmentString) return [];
@@ -1305,568 +1312,18 @@ onMounted(() => {
   } else {
     fetchDesignDetails();
   }
+
+  themeObserver = new MutationObserver(() => {
+    isDarkMode.value = document.documentElement.classList.contains('dark');
+  });
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+});
+
+onBeforeUnmount(() => {
+  if (themeObserver) {
+    themeObserver.disconnect();
+  }
 });
 </script>
 
-<style scoped>
-.main-viewport { flex: 1; overflow-y: auto; background: transparent; }
-.loading-wrapper { display: flex; justify-content: center; align-items: center; min-height: 400px; }
-
-.error-container { max-width: 48rem; margin: 0 auto; padding: 2.5rem 1.5rem; }
-.error-box { background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 1rem; border-radius: 0 0.75rem 0.75rem 0; }
-.error-title { color: #b91c1c; font-weight: 700; }
-.error-message { color: #dc2626; font-size: 1.1rem; }
-.error-back-btn { margin-top: 1rem; font-size: 1.1rem; font-weight: 700; color: #b91c1c; background: transparent; border: none; cursor: pointer; }
-.error-back-btn:hover { text-decoration: underline; }
-
-.layout-grid { display: flex; gap: 32px; padding: 2.5rem; max-width: 80rem; margin: 0 auto; }
-.flex-06 { flex: 0.6; display: flex; flex-direction: column; overflow: hidden; }
-.flex-04-sidebar { flex: 0.4; position: sticky; top: 20px; align-self: flex-start; }
-
-button { transition: all 0.2s ease-in-out; cursor: pointer; }
-
-/* Page & Cards */
-.page-container {
-  min-height: 100vh;
-  
-}
-
-.glass-card {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  backdrop-filter: blur(24px);
-  border-radius: 1.5rem;
-  border: 1px solid rgba(185, 121, 204, 0.2);
-}
-
-.report-header { padding: 2rem; border-bottom: 1px solid rgba(185, 121, 204, 0.15); background: rgba(0, 0, 0, 0.2); }
-.meta-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
-.report-body { flex: 1; overflow-y: auto; padding: 2rem; }
-.report-body > * + * { margin-top: 1.5rem; }
-.assessment-form { display: flex; flex-direction: column; gap: 1rem; }
-
-.status-badge-view { padding: 4px 12px; border-radius: 9999px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; }
-.status-badge-view.completed { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
-.status-badge-view.cancelled { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
-.status-badge-view.pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
-.status-badge-view.approved { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
-.status-badge-view.revision { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
-
-.control-number { font-size: 11px; font-weight: 700; color: #b979cc; text-transform: uppercase; margin-left: 12px; font-family: monospace; }
-.report-title { font-size: 26px; color: white; line-height: 1.25; margin-bottom: 16px; margin-top: 16px; }
-
-.info-grid { display: flex; flex-wrap: wrap; gap: 24px; padding-top: 16px; border-top: 1px solid rgba(185, 121, 204, 0.1); }
-.info-item { display: flex; flex-direction: column; }
-.info-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #cbd5e1; font-weight: 700; margin-bottom: 4px; }
-.info-value-white { font-size: 14px; font-weight: 600; color: white; }
-.info-value-purple { font-size: 14px; font-weight: 600; color: #b979cc; }
-
-.icon-pink { color: #b979cc; }
-.text-sm-light { font-size: 1.1rem; color: #cbd5e1; font-weight: 500; margin-top: 0.25rem; }
-.full-width-info { grid-column: span 2; margin-top: 1rem; }
-
-.section-card { background-color: rgba(0, 0, 0, 0.2); border-radius: 16px; padding: 24px; border: 1px solid rgba(185, 121, 204, 0.15); }
-.section-header-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
-.section-title { font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: #b979cc; }
-
-.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-.metric-box { background-color: rgba(0, 0, 0, 0.3); border-radius: 12px; padding: 16px; text-align: center; border: 1px solid rgba(185, 121, 204, 0.1); }
-.metric-value { font-size: 24px; font-weight: 700; color: white; }
-.metric-label { font-size: 10px; color: #cbd5e1; text-transform: uppercase; margin-top: 4px; }
-
-.doc-item { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 16px; background: rgba(0, 0, 0, 0.3); border-radius: 12px; border: 1px solid rgba(185, 121, 204, 0.15); overflow-x: auto; }
-.doc-info { display: flex; align-items: center; gap: 12px; }
-.doc-pdf-icon { font-size: 1.875rem; color: #ef4444; }
-.doc-title { font-size: 13px; font-weight: 700; color: white; white-space: nowrap; }
-.doc-meta { font-size: 11px; color: #cbd5e1; margin-top: 2px; white-space: nowrap; }
-.preview-btn { color: #b979cc; font-size: 11px; padding: 6px 12px; border-radius: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(185, 121, 204, 0.15); font-weight: 700; }
-.preview-btn:hover { border-color: #b979cc; color: white; background: rgba(185, 121, 204, 0.1); }
-
-
-
-.assessment-card-custom {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border-radius: 1.5rem;
-  padding: 2rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(185, 121, 204, 0.2);
-}
-
-.assessment-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid rgba(185, 121, 204, 0.15); }
-.assessment-icon { width: 44px; height: 44px; background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: white; font-size: 22px; }
-.assessment-title { font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #b979cc; }
-
-.form-label { display: block; font-size: 10px; font-weight: 800; text-transform: uppercase; color: #cbd5e1; letter-spacing: 1px; margin-bottom: 8px; }
-.form-textarea { width: 100%; border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 12px; padding: 14px 16px; font-size: 13px; font-family: inherit; background: rgba(0, 0, 0, 0.3); color: white; resize: vertical; }
-.form-textarea:focus { outline: none; border-color: #b979cc; }
-
-.action-buttons { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(185, 121, 204, 0.15); }
-
-.btn-approve {
-  width: 100%;
-  background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%);
-  color: white; border: none; border-radius: 14px; padding: 14px;
-  font-size: 12px; font-weight: 800; text-transform: uppercase;
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-}
-.btn-approve:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(153, 13, 209, 0.25); }
-
-.btn-revision {
-  width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(185, 121, 204, 0.3); color: white;
-  border-radius: 14px; padding: 14px; font-size: 12px; font-weight: 800; text-transform: uppercase;
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-}
-.btn-revision:hover { background: rgba(0,0,0,0.5); border-color: rgba(185, 121, 204, 0.5); }
-
-.btn-cancel-req {
-  width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444;
-  border-radius: 14px; padding: 14px; font-size: 12px; font-weight: 800; text-transform: uppercase;
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-}
-.btn-cancel-req:hover { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; }
-
-.btn-trash {
-  width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444;
-  border-radius: 14px; padding: 14px; font-size: 12px; font-weight: 800; text-transform: uppercase;
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-}
-.btn-trash:hover { background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #fca5a5; }
-
-.btn-back { display: block; width: 100%; padding: 12px; font-size: 11px; color: #cbd5e1; text-align: center; border-radius: 12px; background: transparent; border: 1px solid rgba(185, 121, 204, 0.15); margin-top: 8px; }
-.btn-back:hover { color: white; border-color: #b979cc; background: rgba(185, 121, 204, 0.05); }
-
-
-/* Modals */
-.revision-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; display: none; }
-.revision-modal.show { display: flex; }
-.revision-modal-content { background: #1a1a2e; border: 1px solid rgba(185, 121, 204, 0.3); border-radius: 24px; max-width: 520px; width: 90%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); overflow: hidden; }
-.revision-modal-header { background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%); padding: 24px 28px; color: white; }
-.revision-modal-header h3 { font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 12px; }
-.revision-modal-body { padding: 28px; }
-.revision-modal-footer { padding: 20px 28px; background: rgba(0, 0, 0, 0.2); display: flex; gap: 14px; justify-content: flex-end; border-top: 1px solid rgba(185, 121, 204, 0.15); }
-
-.activity-preview { background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 16px; margin-bottom: 24px; border: 1px solid rgba(185, 121, 204, 0.1); }
-.activity-preview p { font-size: 11px; color: #cbd5e1; opacity: 0.6; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
-.activity-preview h4 { font-size: 16px; font-weight: 700; color: white; }
-
-.form-group { margin-bottom: 24px; }
-.form-group label { display: block; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #cbd5e1; letter-spacing: 1px; margin-bottom: 10px; }
-.modal-textarea { width: 100%; padding: 14px 18px; border: 1px solid rgba(185, 121, 204, 0.2); background: rgba(0, 0, 0, 0.4); color: white; border-radius: 14px; font-size: 13px; font-family: inherit; }
-.modal-input { width: 100%; padding: 12px 18px; border: 1px solid rgba(185, 121, 204, 0.2); background: rgba(0, 0, 0, 0.4); color: white; border-radius: 12px; font-size: 13px; }
-.modal-input:focus { outline: none; border-color: #b979cc; }
-.disabled-input { opacity: 0.6; cursor: not-allowed; }
-.input-hint { font-size: 9px; color: #cbd5e1; opacity: 0.6; margin-top: 8px; }
-
-.btn-send { background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%); color: white; border: none; padding: 14px 28px; border-radius: 14px; font-weight: 800; font-size: 12px; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; gap: 10px; }
-.btn-send:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(153, 13, 209, 0.3); }
-.btn-cancel-modal { background: rgba(0, 0, 0, 0.3); color: #cbd5e1; border: 1px solid rgba(185, 121, 204, 0.15); padding: 14px 28px; border-radius: 14px; font-weight: 800; font-size: 12px; text-transform: uppercase; cursor: pointer; }
-.btn-cancel-modal:hover { background: rgba(0, 0, 0, 0.5); border-color: #b979cc; color: white; }
-
-.loading-spinner { width: 40px; height: 40px; border: 3px solid #f3f3f3; border-top: 3px solid #990dd1; border-radius: 50%; animation: spin 1s linear infinite; }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-@media (max-width: 1024px) {
-  .layout-grid { flex-direction: column; padding: 1rem; }
-  .flex-06, .flex-055, .flex-04-sidebar, .flex-045-sidebar { flex: 1 !important; width: 100% !important; max-width: 100% !important; position: relative !important; top: 0 !important; }
-}
-
-@media (max-width: 768px) {
-  .grid-2, .grid-3 { grid-template-columns: 1fr !important; }
-  .info-grid { flex-direction: column !important; gap: 12px !important; }
-}
-.budget-table-wrapper {
-  /* overflow removed for full panning */
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background-color: rgba(0, 0, 0, 0.2);
-}
-
-.budget-table {
-  width: 100%;
-  text-align: left;
-  border-collapse: collapse;
-}
-
-.budget-table-header {
-  background-color: rgba(255, 255, 255, 0.05);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #b979cc;
-}
-
-.table-header-cell {
-  padding: 10px 16px;
-  font-weight: 700;
-}
-
-.budget-table-row {
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.budget-item-name {
-  padding: 12px 16px;
-  color: #b979cc;
-  line-height: 1.25;
-  font-size: 13px;
-}
-
-.budget-item-subtext {
-  display: block;
-  font-size: 12px;
-  color: #64748b;
-  font-weight: 400;
-  margin-top: 2px;
-}
-
-.budget-item-value-cell {
-  color: white;
-  padding: 8px 16px;
-  font-size: 12px;
-}
-
-.budget-table-footer {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-.grand-total-label {
-  padding: 12px 16px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #b979cc;
-  text-align: right;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.grand-total-value-white {
-  padding: 12px 16px;
-  font-size: 14px;
-  font-weight: 700;
-  color: white;
-}
-
-
-
-/* CREATIVE BUDGET TABLE STYLES */
-.budget-table-wrapper {
-  overflow: hidden;
-  border-radius: 16px;
-  background: linear-gradient(145deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%);
-  border: 1px solid rgba(185, 121, 204, 0.25);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(10px);
-}
-
-.budget-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  text-align: left;
-}
-
-.budget-table-header {
-  background: linear-gradient(90deg, rgba(185, 121, 204, 0.2) 0%, rgba(185, 121, 204, 0.05) 100%);
-}
-
-.table-header-cell {
-  padding: 16px 20px;
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #e2e8f0;
-  border-bottom: 2px solid rgba(185, 121, 204, 0.4);
-}
-
-.budget-total-header {
-  text-align: right;
-}
-
-.budget-table-row {
-  transition: all 0.3s ease;
-}
-
-.budget-table-row:hover {
-  background: rgba(185, 121, 204, 0.1);
-  transform: scale(1.002);
-}
-
-.budget-table-row td {
-  border-bottom: 1px solid rgba(185, 121, 204, 0.1);
-}
-
-.budget-table-row:last-child td {
-  border-bottom: none;
-}
-
-.budget-item-name {
-  padding: 16px 20px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #f8fafc;
-}
-
-.budget-item-subtext {
-  display: inline-block;
-  font-size: 11px;
-  color: #94a3b8;
-  margin-left: 8px;
-  font-weight: 400;
-  background: rgba(0,0,0,0.2);
-  padding: 2px 8px;
-  border-radius: 12px;
-}
-
-.budget-item-value-cell {
-  padding: 16px 20px;
-  text-align: right;
-}
-
-.budget-item-value {
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 15px;
-  font-weight: 800;
-  color: #fff;
-  background: linear-gradient(135deg, rgba(185, 121, 204, 0.2) 0%, rgba(153, 13, 209, 0.2) 100%);
-  padding: 6px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(185, 121, 204, 0.3);
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.budget-table-footer {
-  background: linear-gradient(90deg, rgba(0,0,0,0.4) 0%, rgba(185, 121, 204, 0.15) 100%);
-}
-
-.budget-table-footer td {
-  border-top: 2px solid rgba(185, 121, 204, 0.4);
-}
-
-.grand-total-label {
-  padding: 20px;
-  font-size: 13px;
-  font-weight: 900;
-  color: #b979cc;
-  text-align: right;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-.grand-total-value-white {
-  padding: 20px;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 18px;
-  font-weight: 900;
-  color: #fff;
-  text-align: right;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-}
-
-
-.mandate-boxes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 5px;
-}
-.mandate-box {
-  background: rgba(185, 121, 204, 0.15);
-  border: 1px solid rgba(185, 121, 204, 0.3);
-  color: #f1f5f9;
-  padding: 5px 12px;
-  border-radius: 6px;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-
-/* GAD Grouped Budget Styles */
-.budget-groups-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  width: 100%;
-}
-.budget-group-card {
-  background: rgba(30, 41, 59, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  padding: 20px;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-}
-.budget-group-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: 12px;
-  margin-bottom: 16px;
-}
-.budget-group-icon { font-size: 18px; }
-.budget-group-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: #b979cc;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.budget-group-content {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-.budget-row-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-}
-.budget-row-item:last-child {
-  padding-bottom: 0;
-  border-bottom: none;
-}
-.budget-row-item.has-sub-options {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
-}
-.budget-row-header {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  align-items: center;
-}
-.budget-sub-options-container {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  padding-left: 8px;
-  margin-top: -4px;
-}
-.budget-read-only-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: not-allowed;
-  opacity: 0.9;
-}
-.budget-checkbox-disabled {
-  accent-color: #b979cc;
-  width: 15px;
-  height: 15px;
-}
-.budget-checkbox-label-text {
-  font-size: 13px;
-  color: #cbd5e1;
-}
-.budget-item-info {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex-grow: 1;
-}
-.budget-item-title {
-  font-weight: 600;
-  color: #f1f5f9;
-  font-size: 14px;
-}
-.budget-item-value {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 160px;
-  flex-shrink: 0;
-  justify-content: flex-end;
-}
-.budget-currency-symbol {
-  color: #64748b;
-  font-size: 14px;
-  font-weight: 600;
-}
-.budget-card-input-readonly {
-  color: #ffffff;
-  font-size: 14px;
-  padding: 8px 12px;
-  width: 100%;
-  text-align: right;
-  font-weight: 600;
-}
-.grand-total-banner-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: linear-gradient(135deg, rgba(185, 121, 204, 0.1) 0%, rgba(153, 13, 209, 0.1) 100%);
-  border: 1px solid rgba(185, 121, 204, 0.3);
-  border-radius: 14px;
-  padding: 20px;
-  box-shadow: 0 4px 15px -3px rgba(185, 121, 204, 0.1);
-}
-.grand-total-label-banner {
-  font-size: 13px;
-  font-weight: 700;
-  color: #ffffff;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.grand-total-value-banner {
-  font-size: 20px;
-  font-weight: 800;
-  color: #b979cc;
-  text-shadow: 0 0 10px rgba(185, 121, 204, 0.2);
-}
-.venue-badge {
-  display: inline-block;
-  margin-top: 6px;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-}
-.venue-badge.inside-bsu {
-  background: rgba(56, 189, 248, 0.15);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.3);
-}
-.venue-badge.outside-bsu {
-  background: rgba(251, 146, 60, 0.15);
-  color: #fb923c;
-  border: 1px solid rgba(251, 146, 60, 0.3);
-}
-
-@media (max-width: 768px) {
-  .budget-row-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  .budget-item-value {
-    width: 100%;
-    justify-content: flex-start;
-  }
-  .grand-total-banner-card {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  .doc-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  .doc-title {
-    word-break: break-all;
-    white-space: normal;
-  }
-  .doc-meta {
-    word-break: break-all;
-    white-space: normal;
-  }
-  .doc-info {
-    min-width: 0;
-    width: 100%;
-  }
-}
-</style>
+<style scoped src="../../assets/ad-view-styles.css"></style>

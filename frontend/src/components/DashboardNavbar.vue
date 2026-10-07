@@ -15,7 +15,7 @@
           </div>
           <div class="brand-text flex flex-col justify-center leading-tight">
             <span class="brand-subtitle hidden xl:block">BENGUET STATE UNIVERSITY</span>
-            <span class="brand-title text-white">GAD-AMS</span>
+            <span class="brand-title">GAD-AMS</span>
           </div>
         </router-link>
       </div>
@@ -75,10 +75,15 @@
 
       <!-- Right: Actions -->
       <div class="navbar-right">
+        <!-- Theme Toggle -->
+        <button class="action-btn" @click="toggleTheme" title="Toggle Theme">
+          <span class="material-symbols-outlined">{{ themeIcon }}</span>
+        </button>
+
         <!-- Messages -->
         <router-link :to="messagesLink" class="action-btn" title="Messages">
           <span class="material-symbols-outlined">chat</span>
-          <span v-if="unreadMessages > 0" class="absolute -top-1 -right-1.5 bg-[#ef4444] text-white text-[10px] font-bold px-1.5 py-[2px] rounded-full border-2 border-[#13111f] min-w-[18px] text-center leading-none shadow-sm">{{ unreadMessages > 99 ? '99+' : unreadMessages }}</span>
+          <span v-if="unreadMessages > 0" class="absolute -top-1 -right-1.5 bg-[#ef4444] text-white text-[10px] font-bold px-1.5 py-[2px] rounded-full border-2 border-white dark:border-[#13111f] min-w-[18px] text-center leading-none shadow-sm">{{ unreadMessages > 99 ? '99+' : unreadMessages }}</span>
         </router-link>
 
         <!-- Notifications -->
@@ -91,42 +96,42 @@
           </button>
           
           <transition name="dropdown">
-            <div v-if="isProfileOpen" class="dropdown-menu profile-menu !p-2 !bg-[#13101c] !border-[#2c2041] !rounded-2xl">
-              <div class="bg-[#24133d] rounded-[14px] p-4 flex items-center gap-4 mb-2 shadow-inner border border-[#371f5c]">
+            <div v-if="isProfileOpen" class="dropdown-menu profile-menu !p-2.5 !bg-white/98 dark:!bg-[#13111f]/95 backdrop-blur-xl !border !border-slate-200 dark:!border-purple-500/20 !rounded-2xl shadow-xl dark:shadow-2xl">
+              <div class="bg-slate-50 dark:bg-slate-800/60 rounded-[14px] p-3.5 flex items-center gap-3.5 mb-2 border border-slate-200/90 dark:border-white/10 shadow-sm">
                 <div :class="['w-[52px] h-[52px] rounded-full flex items-center justify-center flex-shrink-0 shadow-lg', avatarStyle]">
                   <span class="text-xl font-bold text-white">{{ userInitial }}</span>
                 </div>
                 <div class="flex flex-col overflow-hidden">
-                  <div class="text-[15px] font-bold text-white truncate leading-tight">{{ user?.full_name || user?.name || user?.username || 'User Name' }}</div>
-                  <div class="text-[13px] text-purple-200/60 truncate mb-2 mt-0.5">{{ user?.email || 'user@bsu.edu.ph' }}</div>
+                  <div class="text-[15px] font-bold text-slate-900 dark:text-white truncate leading-tight">{{ user?.full_name || user?.name || user?.username || 'User Name' }}</div>
+                  <div class="text-[13px] text-slate-600 dark:text-purple-200/70 font-medium truncate mb-2 mt-0.5">{{ user?.email || 'user@bsu.edu.ph' }}</div>
                   <div :class="['inline-flex items-center gap-1.5 border rounded-full px-3 py-1 w-fit shadow-sm', roleStyle.bgClass, roleStyle.borderClass]">
                     <span :class="['material-symbols-outlined text-[14px]', roleStyle.textClass]">{{ roleStyle.icon }}</span>
-                    <span class="text-[10px] font-black tracking-[0.05em] text-white uppercase leading-none mt-[1px]">{{ user?.user_role || user?.role || 'Role' }}</span>
+                    <span :class="['text-[10px] font-black tracking-[0.05em] uppercase leading-none mt-[1px]', roleStyle.textClass]">{{ user?.user_role || user?.role || 'Role' }}</span>
                   </div>
                 </div>
               </div>
               
-              <div class="flex flex-col px-1 pb-1">
-                <router-link :to="settingsLink" class="flex items-center gap-4 px-3 py-3 rounded-xl hover:bg-white/5 transition-colors text-white text-[15px] font-semibold no-underline" @click="isProfileOpen = false">
-                  <span class="material-symbols-outlined text-[24px] text-[#e9d5ff]">settings</span>
+              <div class="flex flex-col px-1 pb-1 gap-0.5">
+                <router-link :to="settingsLink" class="group flex items-center gap-3.5 px-3 py-2.5 rounded-xl hover:bg-purple-50 dark:hover:bg-white/5 transition-colors text-slate-700 dark:text-slate-200 hover:text-purple-900 dark:hover:text-white text-[14px] font-semibold no-underline" @click="isProfileOpen = false">
+                  <span class="material-symbols-outlined text-[22px] text-purple-600 dark:text-[#d8b4fe] group-hover:scale-110 transition-transform">settings</span>
                   <span>Account Settings</span>
                 </router-link>
                 
-                <router-link :to="manualLink" class="flex items-center gap-4 px-3 py-3 rounded-xl hover:bg-white/5 transition-colors text-white text-[15px] font-semibold no-underline" @click="isProfileOpen = false">
-                  <span class="material-symbols-outlined text-[24px] text-[#e9d5ff]">help</span>
+                <router-link :to="manualLink" class="group flex items-center gap-3.5 px-3 py-2.5 rounded-xl hover:bg-purple-50 dark:hover:bg-white/5 transition-colors text-slate-700 dark:text-slate-200 hover:text-purple-900 dark:hover:text-white text-[14px] font-semibold no-underline" @click="isProfileOpen = false">
+                  <span class="material-symbols-outlined text-[22px] text-purple-600 dark:text-[#d8b4fe] group-hover:scale-110 transition-transform">help</span>
                   <span>User Manual</span>
                 </router-link>
                 
-                <router-link :to="privacyLink" class="flex items-center gap-4 px-3 py-3 rounded-xl hover:bg-white/5 transition-colors text-white text-[15px] font-semibold no-underline" @click="isProfileOpen = false">
-                  <span class="material-symbols-outlined text-[24px] text-[#e9d5ff]">policy</span>
+                <router-link :to="privacyLink" class="group flex items-center gap-3.5 px-3 py-2.5 rounded-xl hover:bg-purple-50 dark:hover:bg-white/5 transition-colors text-slate-700 dark:text-slate-200 hover:text-purple-900 dark:hover:text-white text-[14px] font-semibold no-underline" @click="isProfileOpen = false">
+                  <span class="material-symbols-outlined text-[22px] text-purple-600 dark:text-[#d8b4fe] group-hover:scale-110 transition-transform">policy</span>
                   <span>Privacy Policy</span>
                 </router-link>
                 
-                <div class="h-px bg-white/5 mx-2 my-1"></div>
+                <div class="h-px bg-slate-200 dark:bg-white/10 mx-2 my-1.5"></div>
                 
-                <button @click="handleLogout" class="flex items-center gap-4 px-3 py-3 rounded-xl hover:bg-white/5 transition-colors !text-white text-[15px] font-semibold bg-transparent border-none cursor-pointer w-full text-left">
-                  <span class="material-symbols-outlined text-[24px] !text-white">logout</span>
-                  <span class="!text-white">Sign Out</span>
+                <button @click="handleLogout" class="group flex items-center gap-3.5 px-3 py-2.5 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors text-slate-700 dark:text-slate-200 hover:text-rose-600 dark:hover:text-rose-300 text-[14px] font-semibold bg-transparent border-none cursor-pointer w-full text-left">
+                  <span class="material-symbols-outlined text-[22px] text-rose-500 dark:text-rose-400 group-hover:translate-x-0.5 transition-transform">logout</span>
+                  <span>Sign Out</span>
                 </button>
               </div>
             </div>
@@ -160,6 +165,19 @@ const isProfileOpen = ref(false);
 const profileDropdownRef = ref(null);
 const unreadMessages = ref(0);
 
+const currentTheme = ref('light');
+const themeIcon = computed(() => {
+  return currentTheme.value === 'light' ? 'light_mode' : 'dark_mode';
+});
+
+const toggleTheme = () => {
+  const newTheme = currentTheme.value === 'light' ? 'dark' : 'light';
+  document.documentElement.classList.remove(currentTheme.value);
+  document.documentElement.classList.add(newTheme);
+  localStorage.setItem('theme', newTheme);
+  currentTheme.value = newTheme;
+};
+
 // Computed base route for dynamic links
 const baseRoute = computed(() => '/' + (route.path.split('/')[1] || 'dashboard'));
 const messagesLink = computed(() => `${baseRoute.value}/messages`);
@@ -177,31 +195,31 @@ const roleStyle = computed(() => {
   
   if (role.includes('admin') || role.includes('director')) {
     return {
-      bgClass: 'bg-[#401f71]',
-      borderClass: 'border-[#6b32b8]',
-      textClass: 'text-purple-100',
+      bgClass: 'bg-purple-100 dark:bg-[#401f71]',
+      borderClass: 'border-purple-300 dark:border-[#6b32b8]',
+      textClass: 'text-purple-800 dark:text-purple-100',
       icon: 'local_police'
     };
   } else if (role.includes('staff')) {
     return {
-      bgClass: 'bg-emerald-900/80',
-      borderClass: 'border-emerald-500/50',
-      textClass: 'text-emerald-300',
+      bgClass: 'bg-emerald-100 dark:bg-emerald-900/80',
+      borderClass: 'border-emerald-300 dark:border-emerald-500/50',
+      textClass: 'text-emerald-800 dark:text-emerald-300',
       icon: 'support_agent'
     };
   } else if (role.includes('twg')) {
     return {
-      bgClass: 'bg-blue-900/80',
-      borderClass: 'border-blue-500/50',
-      textClass: 'text-blue-300',
+      bgClass: 'bg-blue-100 dark:bg-blue-900/80',
+      borderClass: 'border-blue-300 dark:border-blue-500/50',
+      textClass: 'text-blue-800 dark:text-blue-300',
       icon: 'school'
     };
   }
   
   return {
-    bgClass: 'bg-slate-800',
-    borderClass: 'border-slate-600',
-    textClass: 'text-slate-300',
+    bgClass: 'bg-slate-100 dark:bg-slate-800',
+    borderClass: 'border-slate-300 dark:border-slate-600',
+    textClass: 'text-slate-800 dark:text-slate-300',
     icon: 'badge'
   };
 });
@@ -268,6 +286,10 @@ const handleLogout = async () => {
 let msgInterval;
 
 onMounted(() => {
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  currentTheme.value = savedTheme;
+  document.documentElement.classList.add(savedTheme);
+
   document.addEventListener('click', closeProfileOnClickOutside);
   fetchUnreadMessages();
   msgInterval = setInterval(fetchUnreadMessages, 10000);
@@ -285,9 +307,9 @@ onUnmounted(() => {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: #1a1625;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  border-bottom: 1px solid rgba(185, 121, 204, 0.1);
+  background: #240b3b !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid rgba(192, 132, 252, 0.3);
   font-family: system-ui, -apple-system, sans-serif;
 }
 
@@ -328,14 +350,14 @@ onUnmounted(() => {
 .brand-subtitle {
   font-size: 9px;
   font-weight: 700;
-  color: #c084fc;
+  color: var(--color-on-background);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 .brand-title {
   font-size: 18px;
   font-weight: 900;
-  color: #ffffff;
+  color: var(--color-primary);
   letter-spacing: -0.02em;
 }
 
@@ -357,7 +379,7 @@ onUnmounted(() => {
   gap: 6px;
   background: transparent;
   border: none;
-  color: #cbd5e1;
+  color: var(--color-on-surface-variant);
   font-size: 13px;
   font-weight: 600;
   padding: 6px 12px;
@@ -369,13 +391,13 @@ onUnmounted(() => {
 }
 
 .nav-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #ffffff;
+  background: rgba(168, 85, 247, 0.1);
+  color: var(--color-on-background);
 }
 
 .nav-item.active {
   background: rgba(168, 85, 247, 0.15);
-  color: #ffffff;
+  color: var(--color-on-background);
   position: relative;
 }
 
@@ -401,11 +423,11 @@ onUnmounted(() => {
   top: calc(100% + 4px);
   left: 0;
   min-width: 240px;
-  background: #1e1b2e;
-  border: 1px solid rgba(185, 121, 204, 0.15);
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
   border-radius: 12px;
   padding: 8px 0;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   z-index: 100;
 }
 
@@ -420,9 +442,14 @@ onUnmounted(() => {
   padding: 8px 16px;
   font-size: 10px;
   font-weight: 800;
-  color: #c084fc;
+  color: #7e22ce;
   text-transform: uppercase;
   letter-spacing: 0.1em;
+}
+
+html.dark .dropdown-header,
+.dark .dropdown-header {
+  color: #c084fc;
 }
 
 .dropdown-item {
@@ -430,7 +457,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 12px;
   padding: 10px 16px;
-  color: #cbd5e1;
+  color: var(--color-on-surface-variant);
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
@@ -443,8 +470,8 @@ onUnmounted(() => {
 }
 
 .dropdown-item:hover, .dropdown-item.active {
-  background: rgba(255, 255, 255, 0.05);
-  color: #ffffff;
+  background: rgba(168, 85, 247, 0.1);
+  color: var(--color-on-background);
 }
 
 .dropdown-item.logout {
@@ -457,7 +484,7 @@ onUnmounted(() => {
 
 .dropdown-divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-outline-variant);
   margin: 8px 0;
 }
 
@@ -477,18 +504,18 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--color-surface-variant);
+  border: 1px solid var(--color-outline-variant);
   border-radius: 50%;
-  color: #cbd5e1;
+  color: var(--color-on-surface-variant);
   text-decoration: none;
   transition: all 0.2s;
   cursor: pointer;
 }
 
 .action-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: rgba(168, 85, 247, 0.1);
+  color: var(--color-on-background);
 }
 
 .badge {
@@ -503,7 +530,7 @@ onUnmounted(() => {
   border-radius: 10px;
   min-width: 16px;
   text-align: center;
-  border: 2px solid #1a1625;
+  border: 2px solid var(--color-surface);
 }
 
 .action-btn-wrapper :deep(.action-btn) {
@@ -513,15 +540,15 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--color-surface-variant);
+  border: 1px solid var(--color-outline-variant);
   border-radius: 50%;
-  color: #cbd5e1;
+  color: var(--color-on-surface-variant);
   cursor: pointer;
 }
 .action-btn-wrapper :deep(.action-btn:hover) {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: rgba(168, 85, 247, 0.1);
+  color: var(--color-on-background);
 }
 .action-btn-wrapper :deep(.notification-badge) {
   position: absolute;
@@ -535,7 +562,7 @@ onUnmounted(() => {
   border-radius: 10px;
   min-width: 16px;
   text-align: center;
-  border: 2px solid #1a1625;
+  border: 2px solid var(--color-surface);
 }
 
 .profile-btn {
@@ -611,4 +638,92 @@ onUnmounted(() => {
   }
 }
 
+/* Dark Mode Topbar (remains rich dark purple #240b3b) */
+:global(.dark) .dashboard-navbar,
+:global(html.dark) .dashboard-navbar {
+  background: #240b3b !important;
+  border-bottom: 1px solid rgba(192, 132, 252, 0.3) !important;
+}
+
+:global(.dark) .brand-title,
+:global(html.dark) .brand-title,
+.brand-title {
+  color: #ffffff !important;
+}
+
+:global(.dark) .brand-subtitle,
+:global(html.dark) .brand-subtitle,
+.brand-subtitle {
+  color: #d8b4fe !important;
+}
+
+:global(.dark) .nav-item,
+:global(html.dark) .nav-item,
+.nav-item {
+  color: #e9d5ff !important;
+}
+
+:global(.dark) .nav-item:hover,
+:global(html.dark) .nav-item:hover,
+.nav-item:hover {
+  background: rgba(192, 132, 252, 0.2) !important;
+  color: #ffffff !important;
+}
+
+:global(.dark) .nav-item.active,
+:global(html.dark) .nav-item.active,
+.nav-item.active {
+  background: rgba(192, 132, 252, 0.25) !important;
+  color: #ffffff !important;
+}
+
+:global(.dark) .dropdown-menu,
+:global(html.dark) .dropdown-menu,
+.dropdown-menu {
+  background: #31104e !important;
+  border-color: rgba(192, 132, 252, 0.3) !important;
+}
+
+:global(.dark) .dropdown-item,
+:global(html.dark) .dropdown-item,
+.dropdown-item {
+  color: #e9d5ff !important;
+}
+
+:global(.dark) .dropdown-item:hover,
+:global(html.dark) .dropdown-item:hover,
+.dropdown-item:hover {
+  background: rgba(192, 132, 252, 0.2) !important;
+  color: #ffffff !important;
+}
+
+:global(.dark) .action-btn,
+:global(html.dark) .action-btn,
+:global(.dark) .action-btn-wrapper .action-btn,
+:global(html.dark) .action-btn-wrapper .action-btn,
+.action-btn,
+.action-btn-wrapper :deep(.action-btn) {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(192, 132, 252, 0.3) !important;
+  color: #f3e8ff !important;
+}
+
+:global(.dark) .action-btn:hover,
+:global(html.dark) .action-btn:hover,
+:global(.dark) .action-btn-wrapper .action-btn:hover,
+:global(html.dark) .action-btn-wrapper .action-btn:hover,
+.action-btn:hover,
+.action-btn-wrapper :deep(.action-btn:hover) {
+  background: rgba(192, 132, 252, 0.25) !important;
+  color: #ffffff !important;
+}
+
+:global(.dark) .badge,
+:global(html.dark) .badge,
+:global(.dark) .action-btn-wrapper .notification-badge,
+:global(html.dark) .action-btn-wrapper .notification-badge,
+.badge,
+.action-btn-wrapper :deep(.notification-badge) {
+  border-color: #240b3b !important;
+}
 </style>

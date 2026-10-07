@@ -3,7 +3,8 @@
     
     <div 
       ref="welcomeBanner"
-      class="relative overflow-hidden bg-[#0f172a] p-8 rounded-[2rem] shadow-xl border border-purple-500/20 mb-8 mt-2 group"
+      class="relative overflow-hidden p-8 rounded-[2rem] shadow-xl border border-outline-variant mb-8 mt-2 group"
+      style="background: var(--color-surface);"
       @mousemove="handleMouseMove"
       @mouseleave="handleMouseLeave"
     >
@@ -16,8 +17,8 @@
       <div class="absolute top-0 right-0 -mt-16 -mr-16 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl pointer-events-none"></div>
       <div class="absolute bottom-0 left-0 -mb-16 -ml-16 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
       <div class="relative z-10">
-        <h1 class="text-3xl font-headline font-bold text-white mb-2">Welcome, <span class="text-purple-300">{{ displayName }}</span> to your Dashboard!</h1>
-        <p class="text-white font-medium font-body text-lg max-w-2xl">Manage your GAD programs, monitor activity designs, and oversee budget utilization from here.</p>
+        <h1 class="text-3xl font-headline font-bold text-on-background mb-2">Welcome, <span class="text-purple-500 dark:text-purple-400">{{ displayName }}</span> to your Dashboard!</h1>
+        <p class="text-on-surface-variant font-medium font-body text-lg max-w-2xl">Manage your GAD programs, monitor activity designs, and oversee budget utilization from here.</p>
       </div>
     </div>
 
@@ -86,14 +87,14 @@
         </div>
 
         <div class="analytics-section">
-          <div class="analytics-chart-container" style="background: rgba(0, 0, 0, 0.25); padding: 1.5rem; border-radius: 1rem; border: 1px solid rgba(147, 51, 234, 0.15); box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.1);">
+          <div class="analytics-chart-container" style="background: var(--color-surface-variant); padding: 1.5rem; border-radius: 1rem; border: 1px solid rgba(147, 51, 234, 0.15); box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.1);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-              <h4 style="color: #f8fafc; font-weight: 600; font-size: 1.25rem; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+              <h4 style="color: var(--color-on-background); font-weight: 600; font-size: 1.25rem; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
                 <span class="title-indicator" style="position: relative; height: 1.25rem; margin-right: 0;"></span>
                 Gender-Disaggregated Data
               </h4>
-              <select v-model="analyticsYear" @change="fetchAnalyticsData" style="background: rgba(15, 23, 42, 0.8); color: #f8fafc; border: 1px solid rgba(147, 51, 234, 0.3); border-radius: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.9rem; outline: none; cursor: pointer;">
-                <option v-for="year in availableYears" :key="year" :value="year" style="background: #1e293b; color: white;">{{ year }}</option>
+              <select v-model="analyticsYear" @change="fetchAnalyticsData" style="background: var(--color-surface); color: var(--color-on-background); border: 1px solid rgba(147, 51, 234, 0.3); border-radius: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.9rem; outline: none; cursor: pointer;">
+                <option v-for="year in availableYears" :key="year" :value="year" style="background: var(--color-surface-variant); color: var(--color-on-background);">{{ year }}</option>
               </select>
             </div>
             
@@ -101,95 +102,95 @@
               <!-- Yearly Summary -->
               <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; justify-content: center; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 120px; background: rgba(147, 51, 234, 0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(147, 51, 234, 0.2); text-align: center;">
-                  <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Total Participants</div>
-                  <div style="font-size: 1.25rem; font-weight: 700; color: #f8fafc;">{{ yearlyTotal }}</div>
+                  <div style="font-size: 0.7rem; color: var(--color-on-surface-variant); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Total Participants</div>
+                  <div style="font-size: 1.25rem; font-weight: 700; color: var(--color-on-background);">{{ yearlyTotal }}</div>
                 </div>
                 <div style="flex: 1; min-width: 120px; background: rgba(6, 182, 212, 0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(6, 182, 212, 0.2); text-align: center;">
-                  <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Total Male</div>
-                  <div style="font-size: 1.25rem; font-weight: 700; color: #22d3ee;">{{ yearlyMale }}</div>
+                  <div style="font-size: 0.7rem; color: var(--color-on-surface-variant); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Total Male</div>
+                  <div style="font-size: 1.25rem; font-weight: 700; color: var(--color-male);">{{ yearlyMale }}</div>
                 </div>
                 <div style="flex: 1; min-width: 120px; background: rgba(192, 132, 252, 0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(192, 132, 252, 0.2); text-align: center;">
-                  <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Total Female</div>
-                  <div style="font-size: 1.25rem; font-weight: 700; color: #c084fc;">{{ yearlyFemale }}</div>
+                  <div style="font-size: 0.7rem; color: var(--color-on-surface-variant); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Total Female</div>
+                  <div style="font-size: 1.25rem; font-weight: 700; color: var(--color-female);">{{ yearlyFemale }}</div>
                 </div>
               </div>
 
               <!-- Chart -->
               <div style="height: 250px; position: relative; margin-bottom: 1.5rem;">
-                <Bar :data="chartData" :options="chartOptions" />
+                <Bar :key="isDark ? 'dark' : 'light'" :data="chartData" :options="chartOptions" />
               </div>
 
               <!-- Monthly Breakdown -->
               <div style="max-height: 250px; overflow-y: auto; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 0.5rem;">
-                <table style="width: 100%; text-align: left; border-collapse: collapse; color: #e2e8f0; font-size: 0.85rem;">
-                  <thead style="background: #1e293b; position: sticky; top: 0; z-index: 1; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                <table style="width: 100%; text-align: left; border-collapse: collapse; color: var(--color-on-surface-variant); font-size: 0.85rem;">
+                  <thead style="background: var(--color-surface-variant); position: sticky; top: 0; z-index: 1; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
                     <tr>
                       <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600;">Month</th>
                       <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600;">Total</th>
-                      <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600; color: #22d3ee;">Male</th>
-                      <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600; color: #c084fc;">Female</th>
+                      <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600; color: var(--color-male);">Male</th>
+                      <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600; color: var(--color-female);">Female</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr v-for="(month, index) in monthlyData" :key="index" style="border-bottom: 1px solid rgba(255, 255, 255, 0.02);">
                       <td style="padding: 0.75rem 1rem;">{{ monthNames[index] }}</td>
                       <td style="padding: 0.75rem 1rem; font-weight: 600;">{{ month.male + month.female }}</td>
-                      <td style="padding: 0.75rem 1rem; color: rgba(34, 211, 238, 0.9);">{{ month.male }}</td>
-                      <td style="padding: 0.75rem 1rem; color: rgba(192, 132, 252, 0.9);">{{ month.female }}</td>
+                      <td style="padding: 0.75rem 1rem; color: var(--color-male);">{{ month.male }}</td>
+                      <td style="padding: 0.75rem 1rem; color: var(--color-female);">{{ month.female }}</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
 
               <!-- Office Breakdown -->
-              <h6 style="color: #f8fafc; font-weight: 600; font-size: 1rem; margin: 1.5rem 0 1rem 0;">Office / Unit Breakdown</h6>
+              <h6 style="color: var(--color-on-background); font-weight: 600; font-size: 1rem; margin: 1.5rem 0 1rem 0;">Office / Unit Breakdown</h6>
               
               <!-- Office Highlights -->
               <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; justify-content: center; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 120px; background: rgba(147, 51, 234, 0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(147, 51, 234, 0.2); text-align: center;">
-                  <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Highest Total</div>
-                  <div style="font-size: 0.9rem; font-weight: 700; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="highestTotalOffice ? highestTotalOffice.office : 'N/A'">{{ highestTotalOffice ? highestTotalOffice.office : 'N/A' }}</div>
-                  <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 0.2rem;">{{ highestTotalOffice ? (highestTotalOffice.male + highestTotalOffice.female) : 0 }}</div>
+                  <div style="font-size: 0.7rem; color: var(--color-on-surface-variant); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Highest Total</div>
+                  <div style="font-size: 0.9rem; font-weight: 700; color: var(--color-on-background); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="highestTotalOffice ? highestTotalOffice.office : 'N/A'">{{ highestTotalOffice ? highestTotalOffice.office : 'N/A' }}</div>
+                  <div style="font-size: 0.8rem; color: var(--color-on-surface-variant); margin-top: 0.2rem;">{{ highestTotalOffice ? (highestTotalOffice.male + highestTotalOffice.female) : 0 }}</div>
                 </div>
                 <div style="flex: 1; min-width: 120px; background: rgba(6, 182, 212, 0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(6, 182, 212, 0.2); text-align: center;">
-                  <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Highest Male</div>
-                  <div style="font-size: 0.9rem; font-weight: 700; color: #22d3ee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="highestMaleOffice ? highestMaleOffice.office : 'N/A'">{{ highestMaleOffice ? highestMaleOffice.office : 'N/A' }}</div>
-                  <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 0.2rem;">{{ highestMaleOffice ? highestMaleOffice.male : 0 }}</div>
+                  <div style="font-size: 0.7rem; color: var(--color-on-surface-variant); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Highest Male</div>
+                  <div style="font-size: 0.9rem; font-weight: 700; color: var(--color-male); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="highestMaleOffice ? highestMaleOffice.office : 'N/A'">{{ highestMaleOffice ? highestMaleOffice.office : 'N/A' }}</div>
+                  <div style="font-size: 0.8rem; color: var(--color-on-surface-variant); margin-top: 0.2rem;">{{ highestMaleOffice ? highestMaleOffice.male : 0 }}</div>
                 </div>
                 <div style="flex: 1; min-width: 120px; background: rgba(192, 132, 252, 0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(192, 132, 252, 0.2); text-align: center;">
-                  <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Highest Female</div>
-                  <div style="font-size: 0.9rem; font-weight: 700; color: #c084fc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="highestFemaleOffice ? highestFemaleOffice.office : 'N/A'">{{ highestFemaleOffice ? highestFemaleOffice.office : 'N/A' }}</div>
-                  <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 0.2rem;">{{ highestFemaleOffice ? highestFemaleOffice.female : 0 }}</div>
+                  <div style="font-size: 0.7rem; color: var(--color-on-surface-variant); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Highest Female</div>
+                  <div style="font-size: 0.9rem; font-weight: 700; color: var(--color-female); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="highestFemaleOffice ? highestFemaleOffice.office : 'N/A'">{{ highestFemaleOffice ? highestFemaleOffice.office : 'N/A' }}</div>
+                  <div style="font-size: 0.8rem; color: var(--color-on-surface-variant); margin-top: 0.2rem;">{{ highestFemaleOffice ? highestFemaleOffice.female : 0 }}</div>
                 </div>
               </div>
 
               <!-- Office Table -->
               <div style="max-height: 250px; overflow-y: auto; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 0.5rem;">
-                <table style="width: 100%; text-align: left; border-collapse: collapse; color: #e2e8f0; font-size: 0.85rem;">
-                  <thead style="background: #1e293b; position: sticky; top: 0; z-index: 1; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                <table style="width: 100%; text-align: left; border-collapse: collapse; color: var(--color-on-surface-variant); font-size: 0.85rem;">
+                  <thead style="background: var(--color-surface-variant); position: sticky; top: 0; z-index: 1; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
                     <tr>
                       <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600;">Office / Unit</th>
                       <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600;">Total</th>
-                      <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600; color: #22d3ee;">Male</th>
-                      <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600; color: #c084fc;">Female</th>
+                      <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600; color: var(--color-male);">Male</th>
+                      <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600; color: var(--color-female);">Female</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr v-if="officeData.length === 0">
-                      <td colspan="4" style="padding: 1rem; text-align: center; color: #94a3b8;">No data available</td>
+                      <td colspan="4" style="padding: 1rem; text-align: center; color: var(--color-on-surface-variant);">No data available</td>
                     </tr>
                     <tr v-else v-for="(office, index) in officeData" :key="index" style="border-bottom: 1px solid rgba(255, 255, 255, 0.02);">
                       <td style="padding: 0.75rem 1rem;">{{ office.office }}</td>
                       <td style="padding: 0.75rem 1rem; font-weight: 600;">{{ office.male + office.female }}</td>
-                      <td style="padding: 0.75rem 1rem; color: rgba(34, 211, 238, 0.9);">{{ office.male }}</td>
-                      <td style="padding: 0.75rem 1rem; color: rgba(192, 132, 252, 0.9);">{{ office.female }}</td>
+                      <td style="padding: 0.75rem 1rem; color: var(--color-male);">{{ office.male }}</td>
+                      <td style="padding: 0.75rem 1rem; color: var(--color-female);">{{ office.female }}</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
             </div>
             
-            <div v-else style="height: 300px; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
+            <div v-else style="height: 300px; display: flex; align-items: center; justify-content: center; color: var(--color-on-surface-variant);">
               <span class="material-symbols-outlined" style="animation: spin 1s linear infinite; font-size: 2rem;">refresh</span>
             </div>
           </div>
@@ -249,16 +250,16 @@
               Recent Activity
             </h4>
           </div>
-          <p class="text-xs text-slate-400 mt-1 mb-4">Latest system actions across all users.</p>
+          <p class="text-xs text-on-surface-variant mt-1 mb-4">Latest system actions across all users.</p>
           
           <div class="relative border-l border-slate-700 ml-3 space-y-6">
             <div v-for="log in activityLogs.slice(0, 10)" :key="'recent-'+log.id" class="relative pl-6">
               <div class="absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full bg-slate-800 border-2 border-pink-500"></div>
-              <div class="text-xs text-slate-400 mb-0.5">{{ formatTimeAgo(log.created_at) }}</div>
-              <div class="text-sm font-medium text-white mb-1">{{ log.email || 'Unknown User' }}</div>
-              <div class="text-xs text-slate-300">{{ log.action }}</div>
+              <div class="text-xs text-on-surface-variant mb-0.5">{{ formatTimeAgo(log.created_at) }}</div>
+              <div class="text-sm font-medium text-on-background mb-1">{{ log.email || 'Unknown User' }}</div>
+              <div class="text-xs text-on-surface-variant">{{ log.action }}</div>
             </div>
-            <div v-if="activityLogs.length === 0" class="text-slate-400 text-sm pl-6 py-4">
+            <div v-if="activityLogs.length === 0" class="text-on-surface-variant text-sm pl-6 py-4">
               No recent activity.
             </div>
           </div>
@@ -270,7 +271,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+
+const isDark = ref(typeof document !== 'undefined' ? document.documentElement.classList.contains('dark') : false);
+let themeObserver = null;
 import { useRouter } from 'vue-router';
 import api from '../../api';
 import { Bar } from 'vue-chartjs';
@@ -622,36 +626,50 @@ const chartData = ref({
   datasets: [
     {
       label: 'Male',
-      backgroundColor: '#06b6d4',
+      backgroundColor: '#0891b2',
       data: []
     },
     {
       label: 'Female',
-      backgroundColor: '#c084fc',
+      backgroundColor: '#9333ea',
       data: []
     }
   ]
 });
 
-const chartOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  scales: {
-    x: {
-      grid: { color: 'rgba(255, 255, 255, 0.05)' },
-      ticks: { color: '#94a3b8' }
+const chartOptions = computed(() => {
+  const textColor = isDark.value ? '#ffffff' : '#334155';
+  const gridColor = isDark.value ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)';
+
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        grid: { color: gridColor },
+        ticks: { 
+          color: textColor,
+          font: { weight: '600' }
+        }
+      },
+      y: {
+        grid: { color: gridColor },
+        ticks: { 
+          color: textColor,
+          font: { weight: '600' }
+        }
+      }
     },
-    y: {
-      grid: { color: 'rgba(255, 255, 255, 0.05)' },
-      ticks: { color: '#94a3b8' }
+    plugins: {
+      legend: {
+        labels: { 
+          color: textColor,
+          font: { weight: 'bold' }
+        }
+      }
     }
-  },
-  plugins: {
-    legend: {
-      labels: { color: '#e2e8f0' }
-    }
-  }
-};
+  };
+});
 
 const fetchAnalyticsData = async () => {
   analyticsLoading.value = true;
@@ -689,6 +707,20 @@ const fetchAnalyticsData = async () => {
 onMounted(() => {
   fetchAnalyticsData();
   fetchStats();
+
+  if (typeof document !== 'undefined') {
+    isDark.value = document.documentElement.classList.contains('dark');
+    themeObserver = new MutationObserver(() => {
+      isDark.value = document.documentElement.classList.contains('dark');
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  }
+});
+
+onUnmounted(() => {
+  if (themeObserver) {
+    themeObserver.disconnect();
+  }
 });
 </script>
 
@@ -708,9 +740,8 @@ onMounted(() => {
 .schedule-card,
 .activity-logs-card {
   border-radius: 1rem;
-  border: 1px solid rgba(147, 51, 234, 0.15);
-  background: linear-gradient(135deg, #0f172a, #020617);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface);
 }
 
 .stats-section {
@@ -749,7 +780,7 @@ onMounted(() => {
   font-size: 1.125rem;
 }
 
-.text-purple-400 { color: #c084fc; }
+.text-purple-400 { color: var(--color-female); }
 .text-blue-400 { color: #60a5fa; }
 .text-emerald-400 { color: #34d399; }
 .text-pink-400 { color: #f472b6; }
@@ -766,7 +797,7 @@ onMounted(() => {
 .stat-value {
   font-size: 1.25rem;
   font-weight: 900;
-  color: white;
+  color: var(--color-on-background);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -777,7 +808,7 @@ onMounted(() => {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #94a3b8;
+  color: var(--color-on-surface-variant);
   margin-top: 0.125rem;
   white-space: nowrap;
   overflow: hidden;
@@ -815,7 +846,7 @@ onMounted(() => {
 
 .section-title, .schedule-title {
   font-weight: 700;
-  color: #ffffff;
+  color: var(--color-on-background);
   font-size: 1.125rem;
   margin: 0;
 }
@@ -857,7 +888,7 @@ onMounted(() => {
   padding: 1rem;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #c084fc;
+  color: var(--color-primary-text);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -866,7 +897,7 @@ onMounted(() => {
   padding: 2.5rem;
   text-align: center;
   font-size: 1rem;
-  color: #94a3b8;
+  color: var(--color-on-surface-variant);
   font-weight: 500;
 }
 
@@ -884,18 +915,18 @@ onMounted(() => {
   padding: 1rem;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #f1f5f9;
+  color: var(--color-on-background);
   transition: color 0.2s ease;
 }
 
 .table-row:hover .activity-title-cell {
-  color: #c084fc;
+  color: var(--color-female);
 }
 
 .office-cell {
   padding: 1rem;
   font-size: 1.1rem;
-  color: #cbd5e1;
+  color: var(--color-on-surface-variant);
 }
 
 .type-cell {
@@ -914,13 +945,13 @@ onMounted(() => {
 
 .type-badge-design {
   background: rgba(153, 13, 209, 0.2);
-  color: #d8b4fe;
+  color: var(--color-on-background);
   border: 1px solid rgba(153, 13, 209, 0.3);
 }
 
 .type-badge-report {
   background: rgba(6, 182, 212, 0.15);
-  color: #7dd3fc;
+  color: var(--color-on-background);
   border: 1px solid rgba(6, 182, 212, 0.2);
 }
 
@@ -928,7 +959,7 @@ onMounted(() => {
   padding: 1rem;
   font-size: 1rem;
   font-family: monospace;
-  color: #94a3b8;
+  color: var(--color-on-surface-variant);
 }
 
 .table-footer {
@@ -942,14 +973,14 @@ onMounted(() => {
 }
 
 .footer-text {
-  color: #94a3b8;
+  color: var(--color-on-surface-variant);
   font-weight: 500;
 }
 
 .view-all-link {
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(147, 51, 234, 0.2);
-  color: white;
+  color: var(--color-on-background);
   padding: 0.375rem 0.75rem;
   border-radius: 0.5rem;
   font-size: 0.85rem;
@@ -964,7 +995,7 @@ onMounted(() => {
 }
 
 .view-all-link:hover {
-  color: #c084fc;
+  color: var(--color-female);
   border-color: rgba(147, 51, 234, 0.4);
 }
 
@@ -998,12 +1029,12 @@ onMounted(() => {
 .placeholder-title {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #c084fc;
+  color: var(--color-female);
 }
 
 .placeholder-text {
   font-size: 1rem;
-  color: #94a3b8;
+  color: var(--color-on-surface-variant);
   max-width: 448px;
   margin-top: 0.25rem;
   line-height: 1.5;
@@ -1020,7 +1051,7 @@ onMounted(() => {
   gap: 0.5rem;
   font-family: monospace;
   font-size: 1rem;
-  color: #cbd5e1;
+  color: var(--color-on-surface-variant);
 }
 
 .calendar-nav-btn {
@@ -1036,7 +1067,7 @@ onMounted(() => {
 
 .calendar-label {
   font-weight: 700;
-  color: white;
+  color: var(--color-on-background);
 }
 
 .calendar-weekdays {
@@ -1046,7 +1077,7 @@ onMounted(() => {
   text-align: center;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #c084fc;
+  color: var(--color-female);
   letter-spacing: 0.05em;
   margin-bottom: 0.5rem;
 }
@@ -1058,7 +1089,7 @@ onMounted(() => {
   text-align: center;
   font-family: monospace;
   font-size: 1rem;
-  color: #cbd5e1;
+  color: var(--color-on-surface-variant);
 }
 
 .date-cell {
@@ -1073,7 +1104,7 @@ onMounted(() => {
 }
 
 .date-cell:hover .date-number {
-  color: white;
+  color: var(--color-on-background);
 }
 
 .date-cell-past {
@@ -1087,18 +1118,18 @@ onMounted(() => {
 .date-cell-revision {
   background: rgba(239, 68, 68, 0.2);
   border: 1px solid rgba(239, 68, 68, 0.5);
-  color: #fff;
+  color: var(--color-on-background);
 }
 
 .date-cell-ardue {
   background: rgba(234, 179, 8, 0.2);
   border: 1px solid rgba(234, 179, 8, 0.5);
-  color: #fff;
+  color: var(--color-on-background);
 }
 
 .date-cell-today {
   border: 1px solid rgba(147, 51, 234, 0.5);
-  color: #c084fc;
+  color: var(--color-female);
 }
 
 .date-number {
@@ -1116,7 +1147,7 @@ onMounted(() => {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #c084fc;
+  color: var(--color-female);
   margin-bottom: 0.75rem;
 }
 
@@ -1130,7 +1161,7 @@ onMounted(() => {
   text-align: center;
   padding: 0.75rem;
   font-size: 1rem;
-  color: #94a3b8;
+  color: var(--color-on-surface-variant);
   font-weight: 500;
 }
 
@@ -1140,7 +1171,7 @@ onMounted(() => {
   justify-content: space-between;
   padding: 0.5rem;
   border-radius: 0.5rem;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--color-surface-variant);
   border: 1px solid rgba(255, 255, 255, 0.05);
   transition: all 0.2s ease;
 }
@@ -1166,7 +1197,7 @@ onMounted(() => {
 
 .deadline-title {
   font-size: 1rem;
-  color: #e2e8f0;
+  color: var(--color-on-surface-variant);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1231,7 +1262,7 @@ onMounted(() => {
 
 .log-action {
   font-size: 1rem;
-  color: #e2e8f0;
+  color: var(--color-on-surface-variant);
   line-height: 1.4;
   font-weight: 500;
   display: -webkit-box;
@@ -1243,7 +1274,7 @@ onMounted(() => {
 .log-time {
   font-size: 0.85rem;
   font-family: monospace;
-  color: #94a3b8;
+  color: var(--color-on-surface-variant);
   margin-top: 0.125rem;
 }
 

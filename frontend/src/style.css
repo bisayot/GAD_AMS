@@ -1,10 +1,102 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
+@custom-variant dark (&:where(.dark, .dark *));
 
-:root {
+:root,
+.light {
+  --color-primary: #b979cc;
+  --color-primary-text: #990dd1;
+  --color-male: #0891b2;
+  --color-female: #9333ea;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #f3e8f5;
+  --color-on-primary-container: #4a0081;
+  --color-secondary: #006600;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #a3f3b2;
+  --color-on-secondary-container: #002100;
+  --color-tertiary: #ffcc00;
+  --color-on-tertiary: #000000;
+  --color-tertiary-container: #ffebb3;
+  --color-on-tertiary-container: #332900;
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-background: #ffffff;
+  --color-on-background: #002200;
+  --color-surface: #f9fdf9;
+  --color-on-surface: #003300;
+  --color-surface-variant: #e6f0e6;
+  --color-on-surface-variant: #1a4d1a;
+  --color-outline: #eab308;
+  --color-outline-variant: #eab308;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f5fdf7;
+  --color-surface-container: #eafaf0;
+  --color-surface-container-high: #e0f8e9;
+  --color-surface-container-highest: #d6f5e2;
+  --color-inverse-surface: #003300;
+  --color-inverse-on-surface: #ffffff;
+  --color-inverse-primary: #854099;
+  --color-badge-submission-bg: rgba(147, 51, 234, 0.16);
+  --color-badge-submission-text: #6b21a8;
+  --color-badge-submission-border: rgba(147, 51, 234, 0.4);
+
   font-family: 'Manrope', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
+}
+
+.dark {
+  --color-primary: #deb7ff;
+  --color-primary-text: #c084fc;
+  --color-male: #22d3ee;
+  --color-female: #c084fc;
+  --color-on-primary: #4a0081;
+  --color-primary-container: #6100a4;
+  --color-on-primary-container: #f1dbff;
+  --color-secondary: #95d4b3;
+  --color-on-secondary: #003824;
+  --color-secondary-container: #125139;
+  --color-on-secondary-container: #b1f0ce;
+  --color-tertiary: #ffba27;
+  --color-on-tertiary: #422c00;
+  --color-tertiary-container: #5e4100;
+  --color-on-tertiary-container: #ffdea9;
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+  --color-background: #ffffff;
+  --color-on-background: #f8fafc;
+  --color-surface: #0f172a;
+  --color-on-surface: #f8fafc;
+  --color-surface-variant: #1e293b;
+  --color-on-surface-variant: #94a3b8;
+  --color-outline: #475569;
+  --color-outline-variant: rgba(147, 51, 234, 0.2);
+  --color-surface-container-lowest: #020617;
+  --color-surface-container-low: #0b1120;
+  --color-surface-container: #0f172a;
+  --color-surface-container-high: #1e293b;
+  --color-surface-container-highest: #334155;
+  --color-inverse-surface: #f8fafc;
+  --color-inverse-on-surface: #0f172a;
+  --color-inverse-primary: #6100a4;
+  --color-badge-submission-bg: rgba(168, 85, 247, 0.25);
+  --color-badge-submission-text: #e9d5ff;
+  --color-badge-submission-border: rgba(168, 85, 247, 0.5);
+}
+
+
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--color-background);
+  color: var(--color-on-background);
 }
 
 /* Vue Datepicker System Colorway (Purple) */
@@ -93,4 +185,39 @@ button.dp--button.dp--overlay-action,
   pointer-events: none !important;
   position: absolute !important;
   z-index: -9999 !important;
+}
+
+/* Theme Utility Classes */
+.text-on-background {
+  color: var(--color-on-background);
+}
+
+.text-on-surface {
+  color: var(--color-on-surface);
+}
+
+.text-on-surface-variant {
+  color: var(--color-on-surface-variant);
+}
+
+.text-male {
+  color: var(--color-male);
+}
+
+.text-female {
+  color: var(--color-female);
+}
+
+.bg-surface {
+  background-color: var(--color-surface);
+}
+
+.bg-surface-variant {
+  background-color: var(--color-surface-variant);
+}
+
+/* Global Container Card Outlines */
+:root:not(.dark) .stat-card,
+.light .stat-card {
+  border-color: var(--color-outline-variant) !important;
 }

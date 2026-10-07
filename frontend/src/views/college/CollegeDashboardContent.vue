@@ -1,7 +1,8 @@
 <template>
     <div 
       ref="welcomeBanner"
-      class="relative overflow-hidden bg-[#0f172a] p-5 md:p-8 rounded-[1.5rem] md:rounded-[2rem] shadow-xl border border-purple-500/20 mb-6 md:mb-8 mt-2 group"
+      class="relative overflow-hidden p-5 md:p-8 rounded-[1.5rem] md:rounded-[2rem] shadow-xl border border-outline-variant mb-6 md:mb-8 mt-2 group"
+      style="background: var(--color-surface);"
       @mousemove="handleMouseMove"
       @mouseleave="handleMouseLeave"
     >
@@ -14,8 +15,8 @@
       <div class="absolute top-0 right-0 -mt-16 -mr-16 w-48 md:w-64 h-48 md:h-64 bg-purple-500/5 rounded-full blur-3xl pointer-events-none"></div>
       <div class="absolute bottom-0 left-0 -mb-16 -ml-16 w-32 md:w-48 h-32 md:h-48 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
       <div class="relative z-10">
-        <h1 class="text-2xl md:text-3xl font-headline font-bold text-white mb-2">Welcome, <span class="text-purple-300">{{ displayName }}</span>!</h1>
-        <p class="text-white font-medium font-body text-sm md:text-lg max-w-2xl">Manage your college's GAD programs, submit activity designs, and upload accomplishment reports.</p>
+        <h1 class="text-2xl md:text-3xl font-headline font-bold text-on-background mb-2">Welcome, <span class="text-purple-500 dark:text-purple-400">{{ displayName }}</span>!</h1>
+        <p class="text-on-surface-variant font-medium font-body text-sm md:text-lg max-w-2xl">Manage your college's GAD programs, submit activity designs, and upload accomplishment reports.</p>
       </div>
     </div>
     
@@ -81,14 +82,14 @@
       </div>
 
       <div class="table-card min-w-0" style="margin-top: 1rem;">
-        <div class="analytics-chart-container" style="background: rgba(0, 0, 0, 0.25); padding: 1.5rem; border-radius: 1rem; border: 1px solid rgba(147, 51, 234, 0.15); box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.1);">
+        <div class="analytics-chart-container" style="background: var(--color-surface-variant); padding: 1.5rem; border-radius: 1rem; border: 1px solid rgba(147, 51, 234, 0.15); box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.1);">
           <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <h4 style="color: #f8fafc; font-weight: 600; font-size: 1.25rem; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+            <h4 style="color: var(--color-on-background); font-weight: 600; font-size: 1.25rem; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
               <span class="title-indicator" style="position: relative; height: 1.25rem; margin-right: 0;"></span>
               Your Gender-Disaggregated Data
             </h4>
-            <select v-model="analyticsYear" @change="fetchAnalyticsData" style="background: rgba(15, 23, 42, 0.8); color: #f8fafc; border: 1px solid rgba(147, 51, 234, 0.3); border-radius: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.9rem; outline: none; cursor: pointer;">
-              <option v-for="year in availableYears" :key="year" :value="year" style="background: #1e293b; color: white;">{{ year }}</option>
+            <select v-model="analyticsYear" @change="fetchAnalyticsData" style="background: var(--color-surface); color: var(--color-on-background); border: 1px solid rgba(147, 51, 234, 0.3); border-radius: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.9rem; outline: none; cursor: pointer;">
+              <option v-for="year in availableYears" :key="year" :value="year" style="background: var(--color-surface-variant); color: var(--color-on-background);">{{ year }}</option>
             </select>
           </div>
           
@@ -96,48 +97,48 @@
             <!-- Yearly Summary -->
             <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; justify-content: center; flex-wrap: wrap;">
               <div style="flex: 1; min-width: 120px; background: rgba(147, 51, 234, 0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(147, 51, 234, 0.2); text-align: center;">
-                <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Total Participants</div>
-                <div style="font-size: 1.25rem; font-weight: 700; color: #f8fafc;">{{ yearlyTotal }}</div>
+                <div style="font-size: 0.7rem; color: var(--color-on-surface-variant); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Total Participants</div>
+                <div style="font-size: 1.25rem; font-weight: 700; color: var(--color-on-background);">{{ yearlyTotal }}</div>
               </div>
               <div style="flex: 1; min-width: 120px; background: rgba(6, 182, 212, 0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(6, 182, 212, 0.2); text-align: center;">
-                <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Total Male</div>
-                <div style="font-size: 1.25rem; font-weight: 700; color: #22d3ee;">{{ yearlyMale }}</div>
+                <div style="font-size: 0.7rem; color: var(--color-on-surface-variant); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Total Male</div>
+                <div style="font-size: 1.25rem; font-weight: 700; color: var(--color-male);">{{ yearlyMale }}</div>
               </div>
               <div style="flex: 1; min-width: 120px; background: rgba(192, 132, 252, 0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(192, 132, 252, 0.2); text-align: center;">
-                <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Total Female</div>
-                <div style="font-size: 1.25rem; font-weight: 700; color: #c084fc;">{{ yearlyFemale }}</div>
+                <div style="font-size: 0.7rem; color: var(--color-on-surface-variant); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Total Female</div>
+                <div style="font-size: 1.25rem; font-weight: 700; color: var(--color-female);">{{ yearlyFemale }}</div>
               </div>
             </div>
 
             <!-- Chart -->
             <div style="height: 250px; position: relative; margin-bottom: 1.5rem;">
-              <Bar :data="chartData" :options="chartOptions" />
+              <Bar :key="isDark ? 'dark' : 'light'" :data="chartData" :options="chartOptions" />
             </div>
 
             <!-- Monthly Breakdown -->
             <div style="max-height: 250px; overflow-y: auto; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 0.5rem;">
-              <table style="width: 100%; text-align: left; border-collapse: collapse; color: #e2e8f0; font-size: 0.85rem;">
-                <thead style="background: #1e293b; position: sticky; top: 0; z-index: 1; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+              <table style="width: 100%; text-align: left; border-collapse: collapse; color: var(--color-on-surface-variant); font-size: 0.85rem;">
+                <thead style="background: var(--color-surface-variant); position: sticky; top: 0; z-index: 1; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
                   <tr>
                     <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600;">Month</th>
                     <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600;">Total</th>
-                    <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600; color: #22d3ee;">Male</th>
-                    <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600; color: #c084fc;">Female</th>
+                    <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600; color: var(--color-male);">Male</th>
+                    <th style="padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-weight: 600; color: var(--color-female);">Female</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="(month, index) in monthlyData" :key="index" style="border-bottom: 1px solid rgba(255, 255, 255, 0.02);">
                     <td style="padding: 0.75rem 1rem;">{{ monthNames[index] }}</td>
                     <td style="padding: 0.75rem 1rem; font-weight: 600;">{{ month.male + month.female }}</td>
-                    <td style="padding: 0.75rem 1rem; color: rgba(34, 211, 238, 0.9);">{{ month.male }}</td>
-                    <td style="padding: 0.75rem 1rem; color: rgba(192, 132, 252, 0.9);">{{ month.female }}</td>
+                    <td style="padding: 0.75rem 1rem; color: var(--color-male);">{{ month.male }}</td>
+                    <td style="padding: 0.75rem 1rem; color: var(--color-female);">{{ month.female }}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </div>
           
-          <div v-else style="height: 300px; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
+          <div v-else style="height: 300px; display: flex; align-items: center; justify-content: center; color: var(--color-on-surface-variant);">
             <span class="material-symbols-outlined" style="animation: spin 1s linear infinite; font-size: 2rem;">refresh</span>
           </div>
         </div>
@@ -200,7 +201,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+
+const isDark = ref(typeof document !== 'undefined' ? document.documentElement.classList.contains('dark') : false);
+let themeObserver = null;
 
 const welcomeBanner = ref(null);
 const mouseX = ref(-1000);
@@ -546,36 +550,50 @@ const chartData = ref({
   datasets: [
     {
       label: 'Male',
-      backgroundColor: '#06b6d4',
+      backgroundColor: '#0891b2',
       data: []
     },
     {
       label: 'Female',
-      backgroundColor: '#c084fc',
+      backgroundColor: '#9333ea',
       data: []
     }
   ]
 });
 
-const chartOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  scales: {
-    x: {
-      grid: { color: 'rgba(255, 255, 255, 0.05)' },
-      ticks: { color: '#94a3b8' }
+const chartOptions = computed(() => {
+  const textColor = isDark.value ? '#ffffff' : '#334155';
+  const gridColor = isDark.value ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)';
+
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        grid: { color: gridColor },
+        ticks: { 
+          color: textColor,
+          font: { weight: '600' }
+        }
+      },
+      y: {
+        grid: { color: gridColor },
+        ticks: { 
+          color: textColor,
+          font: { weight: '600' }
+        }
+      }
     },
-    y: {
-      grid: { color: 'rgba(255, 255, 255, 0.05)' },
-      ticks: { color: '#94a3b8' }
+    plugins: {
+      legend: {
+        labels: { 
+          color: textColor,
+          font: { weight: 'bold' }
+        }
+      }
     }
-  },
-  plugins: {
-    legend: {
-      labels: { color: '#e2e8f0' }
-    }
-  }
-};
+  };
+});
 
 const fetchAnalyticsData = async () => {
   analyticsLoading.value = true;
@@ -625,6 +643,20 @@ onMounted(() => {
   if (user.value && user.value.id) {
     loadDashboardData();
   }
+
+  if (typeof document !== 'undefined') {
+    isDark.value = document.documentElement.classList.contains('dark');
+    themeObserver = new MutationObserver(() => {
+      isDark.value = document.documentElement.classList.contains('dark');
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  }
+});
+
+onUnmounted(() => {
+  if (themeObserver) {
+    themeObserver.disconnect();
+  }
 });
 </script>
 
@@ -664,8 +696,8 @@ onMounted(() => {
 
 /* Base Card Layout Rules */
 .table-card, .calendar-card, .deadlines-card {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border: 1px solid rgba(185, 121, 204, 0.15);
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
   padding: 1.25rem;
   border-radius: 1rem;
   box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.4);
@@ -682,7 +714,7 @@ onMounted(() => {
 .table-title, .widget-title {
   font-size: 1rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--color-on-background);
   margin: 0;
   letter-spacing: -0.01em;
 }
@@ -705,8 +737,8 @@ onMounted(() => {
 .stat-card {
   padding: 1rem;
   border-radius: 0.75rem;
-  border: 1px solid rgba(147, 51, 234, 0.15);
-  background: #16213e;
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface);
   transition: transform 0.2s ease;
 }
 
@@ -736,13 +768,13 @@ onMounted(() => {
 .stat-value {
     font-size: 1.25rem;
     font-weight: 800;
-    color:#fff;
+    color: var(--color-on-background);
 }
 
 .stat-label {
     font-size: 0.9rem;
     font-weight: 400;
-    color: #cbd5e1;
+    color: var(--color-on-surface-variant);
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
@@ -753,7 +785,7 @@ onMounted(() => {
   gap: 0.5rem;
   font-size: 0.813rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--color-on-background);
   background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%);
   border: none;
   border-radius: 0.75rem;
@@ -794,7 +826,7 @@ onMounted(() => {
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #b979cc;
+  color: var(--color-primary-text);
   border-bottom: 1px solid rgba(185, 121, 204, 0.2);
 }
 
@@ -820,7 +852,7 @@ onMounted(() => {
 
 .title-cell {
   padding: 1.25rem 1rem;
-  color: #ffffff;
+  color: var(--color-on-background);
   font-size: 1.1rem;
 }
 
@@ -854,7 +886,7 @@ onMounted(() => {
   border-radius: 0.5rem;
   padding: 0.45rem;
   cursor: pointer;
-  color: #cbd5e1;
+  color: var(--color-on-surface-variant);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -862,7 +894,7 @@ onMounted(() => {
 }
 
 .view-button:hover {
-  color: #ffffff;
+  color: var(--color-on-background);
   background: rgba(153, 13, 209, 0.2);
   border-color: #b979cc;
 }
@@ -889,7 +921,7 @@ onMounted(() => {
 }
 
 .empty-content p, .empty-deadlines p {
-  color: #cbd5e1;
+  color: var(--color-on-surface-variant);
   font-size: 0.70rem;
   margin: 0;
   opacity: 0.7;
@@ -913,7 +945,7 @@ onMounted(() => {
 
 .calendar-month {
   font-weight: 700;
-  color: #fff;
+  color: var(--color-on-background);
 }
 
 .weekdays-grid {
@@ -941,7 +973,7 @@ onMounted(() => {
   padding: 0.5rem;
   border-radius: 0.5rem;
   font-size: 0.875rem;
-  color: #e2e8f0;
+  color: var(--color-on-surface-variant);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -961,18 +993,18 @@ onMounted(() => {
 .date-cell-revision {
   background: rgba(239, 68, 68, 0.2);
   border: 1px solid rgba(239, 68, 68, 0.5);
-  color: #fff;
+  color: var(--color-on-background);
 }
 
 .date-cell-ardue {
   background: rgba(234, 179, 8, 0.2);
   border: 1px solid rgba(234, 179, 8, 0.5);
-  color: #fff;
+  color: var(--color-on-background);
 }
 
 .date-cell-today {
   border: 1px solid rgba(147, 51, 234, 0.5);
-  color: #c084fc;
+  color: var(--color-female);
 }
 
 /* Contextual Target Evaluation Logs */
@@ -1002,7 +1034,7 @@ onMounted(() => {
 .deadline-item {
   padding: 1rem;
   border-radius: 0.875rem;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--color-surface-variant);
   border: 1px solid rgba(185, 121, 204, 0.1);
   transition: all 0.2s ease;
 }
@@ -1033,21 +1065,21 @@ onMounted(() => {
 .deadline-date-text {
   font-size: 1rem;
   font-weight: 600;
-  color: #cbd5e1;
+  color: var(--color-on-surface-variant);
   opacity: 0.8;
 }
 
 .deadline-title {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--color-on-background);
   margin: 0 0 0.375rem 0;
   line-height: 1.4;
 }
 
 .deadline-control-text {
   font-size: 0.85rem;
-  color: #94a3b8;
+  color: var(--color-on-surface-variant);
   margin: 0;
 }
 
@@ -1056,18 +1088,18 @@ onMounted(() => {
   padding: 1rem;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #e2e8f0;
+  color: var(--color-on-surface-variant);
   transition: color 0.2s ease;
 }
 
 .table-row:hover .activity-title-cell, .clickable-row:hover .activity-title-cell {
-  color: #c084fc;
+  color: var(--color-female);
 }
 
 .office-cell {
   padding: 1rem;
   font-size: 1.1rem;
-  color: #94a3b8;
+  color: var(--color-on-surface-variant);
 }
 
 .type-cell {
@@ -1086,13 +1118,13 @@ onMounted(() => {
 
 .type-badge-design {
   background: rgba(153, 13, 209, 0.2);
-  color: #b979cc;
+  color: var(--color-on-background);
   border: 1px solid rgba(153, 13, 209, 0.3);
 }
 
 .type-badge-report {
   background: rgba(6, 182, 212, 0.1);
-  color: #22d3ee;
+  color: var(--color-on-background);
   border: 1px solid rgba(6, 182, 212, 0.2);
 }
 
@@ -1100,7 +1132,7 @@ onMounted(() => {
   padding: 1rem;
   font-size: 1rem;
   font-family: monospace;
-  color: #94a3b8;
+  color: var(--color-on-surface-variant);
 }
 
 ::-webkit-scrollbar {

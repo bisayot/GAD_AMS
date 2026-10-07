@@ -1,10 +1,10 @@
 <template>
-  <div class="gad-corner text-white font-body pt-32" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh;">
+  <div class="gad-corner text-on-background font-body pt-32" style="background: var(--color-background); min-height: 100vh;">
     <!-- Formal Header -->
     <section class="py-20 px-12 text-center">
       <div class="max-w-screen-2xl mx-auto space-y-4">
-        <h1 class="text-5xl font-headline font-black text-white tracking-tight">GAD Corner</h1>
-        <p class="text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed">
+        <h1 class="text-5xl font-headline font-black text-on-background tracking-tight">GAD Corner</h1>
+        <p class="text-lg text-on-surface-variant max-w-3xl mx-auto leading-relaxed">
           Stay informed on the latest updates, activities, and achievements of the Gender and Development Office. Explore our public disclosures.
         </p>
       </div>
@@ -15,25 +15,25 @@
       <div class="max-w-7xl mx-auto space-y-12">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div class="space-y-4">
-            <span class="inline-block px-4 py-1.5 rounded-full bg-white/10 text-white font-label text-xs font-bold uppercase tracking-widest">Public Information</span>
-            <h2 class="text-4xl font-headline font-extrabold text-white tracking-tight">Bulletin</h2>
-            <p class="text-slate-300 text-lg max-w-lg leading-relaxed">
+            <span class="inline-block px-4 py-1.5 rounded-full bg-surface-variant text-on-surface font-label text-xs font-bold uppercase tracking-widest">Public Information</span>
+            <h2 class="text-4xl font-headline font-extrabold text-on-background tracking-tight">Bulletin</h2>
+            <p class="text-on-surface-variant text-lg max-w-lg leading-relaxed">
               Stay updated with the latest news, announcements, and Information, Education, and Communication (IEC) materials from the GAD Office.
             </p>
           </div>
           <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
             <div class="relative w-full sm:w-48 shrink-0">
-              <select v-model="filterNewsCategory" class="w-full appearance-none bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-10 text-white focus:ring-2 focus:ring-purple-500 outline-none cursor-pointer">
-                <option value="All" class="bg-[#1a1a2e]">All Categories</option>
-                <option value="News" class="bg-[#1a1a2e]">News</option>
-                <option value="IEC" class="bg-[#1a1a2e]">IEC Materials</option>
-                <option value="Announcement" class="bg-[#1a1a2e]">Announcements</option>
+              <select v-model="filterNewsCategory" class="w-full appearance-none bg-surface-container border border-outline-variant rounded-xl px-4 py-3 pr-10 text-on-surface focus:ring-2 focus:ring-purple-500 outline-none cursor-pointer">
+                <option value="All" class="bg-surface">All Categories</option>
+                <option value="News" class="bg-surface">News</option>
+                <option value="IEC" class="bg-surface">IEC Materials</option>
+                <option value="Announcement" class="bg-surface">Announcements</option>
               </select>
-              <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-white/70 pointer-events-none text-xl">keyboard_arrow_down</span>
+              <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-xl">keyboard_arrow_down</span>
             </div>
             <div class="relative w-full sm:w-64">
-              <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-              <input v-model="searchNewsQuery" class="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 text-white placeholder:text-slate-500 shadow-sm" placeholder="Search bulletin..." type="text"/>
+              <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+              <input v-model="searchNewsQuery" class="w-full pl-12 pr-4 py-3 bg-surface-container border border-outline-variant rounded-xl focus:ring-2 focus:ring-purple-500 text-on-surface placeholder:text-on-surface-variant shadow-sm" placeholder="Search bulletin..." type="text"/>
             </div>
           </div>
         </div>
@@ -44,10 +44,10 @@
         <div v-else class="mb-8">
           <!-- Massive Tag Header -->
           <div v-if="activeTag" class="mb-10">
-            <h1 class="text-4xl md:text-5xl lg:text-6xl font-headline font-black text-white mb-6 tracking-tight flex items-center gap-2">
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-headline font-black text-on-background mb-6 tracking-tight flex items-center gap-2">
               <span class="text-purple-500">#</span>{{ activeTag }}
             </h1>
-            <div class="h-px w-full bg-white/20"></div>
+            <div class="h-px w-full bg-outline-variant"></div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -92,27 +92,27 @@
     </section>
 
     <!-- Facilities Section -->
-    <section class="py-16 px-12 border-t border-white/10">
+    <section class="py-16 px-12">
       <div class="max-w-7xl mx-auto space-y-8">
         <div class="text-center md:text-left">
-          <span class="inline-block px-4 py-1.5 rounded-full bg-white/10 text-white font-label text-xs font-bold uppercase tracking-widest">Campus Facilities</span>
+          <span class="inline-block px-4 py-1.5 rounded-full bg-surface-variant text-on-surface font-label text-xs font-bold uppercase tracking-widest">Campus Facilities</span>
         </div>
 
         <div class="grid lg:grid-cols-2 gap-8">
           <!-- Breastfeeding/Lactation Rooms -->
-          <div id="lactation-rooms" class="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-colors scroll-mt-24">
+          <div id="lactation-rooms" class="bg-surface border border-outline-variant rounded-2xl p-8 hover:bg-surface-variant transition-colors scroll-mt-24">
             <div class="flex items-center gap-4 mb-6">
               <div class="w-12 h-12 rounded-xl bg-pink-500/20 flex items-center justify-center shrink-0">
                 <span class="material-symbols-outlined text-pink-400 text-2xl">child_care</span>
               </div>
-              <h3 class="text-2xl font-headline font-bold text-white">Breastfeeding / Lactation Rooms</h3>
+              <h3 class="text-2xl font-headline font-bold text-on-background">Breastfeeding / Lactation Rooms</h3>
             </div>
-            <p class="text-slate-300 mb-6 leading-relaxed">
+            <p class="text-on-surface-variant mb-6 leading-relaxed">
               The BSU Breastfeeding/Lactation Rooms provide a safe, private, clean, and comfortable space for breastfeeding and lactating individuals to breastfeed or express and store breast milk while on campus. The facility supports the well-being of employees, students, and BSU clients who require breastfeeding or lactation facilities.
             </p>
             <div class="space-y-3">
-              <h4 class="text-white font-bold uppercase tracking-wider text-sm mb-3 opacity-80">Locations:</h4>
-              <ul class="text-slate-300 space-y-2 font-label">
+              <h4 class="text-on-background font-bold uppercase tracking-wider text-sm mb-3 opacity-80">Locations:</h4>
+              <ul class="text-on-surface-variant space-y-2 font-label">
                 <li class="flex items-center gap-2"><span class="material-symbols-outlined text-pink-400 text-sm">location_on</span> BSU Administration Building</li>
                 <li class="flex items-center gap-2"><span class="material-symbols-outlined text-pink-400 text-sm">location_on</span> College of Human Ecology</li>
                 <li class="flex items-center gap-2"><span class="material-symbols-outlined text-pink-400 text-sm">location_on</span> College of Teacher Education</li>
@@ -124,19 +124,19 @@
           </div>
 
           <!-- Childminding Center -->
-          <div id="childminding-center" class="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-colors scroll-mt-24">
+          <div id="childminding-center" class="bg-surface border border-outline-variant rounded-2xl p-8 hover:bg-surface-variant transition-colors scroll-mt-24">
             <div class="flex items-center gap-4 mb-6">
               <div class="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center shrink-0">
                 <span class="material-symbols-outlined text-orange-400 text-2xl">family_restroom</span>
               </div>
-              <h3 class="text-2xl font-headline font-bold text-white">Childminding Center</h3>
+              <h3 class="text-2xl font-headline font-bold text-on-background">Childminding Center</h3>
             </div>
-            <p class="text-slate-300 mb-6 leading-relaxed">
+            <p class="text-on-surface-variant mb-6 leading-relaxed">
               The BSU Childminding Center provides a safe, child-friendly, and supervised space for the temporary care of children while their parents or guardians attend to their work, studies, or other activities within BSU. The facility is intended primarily for BSU employees, students, and BSU clients who need accessible childcare support.
             </p>
             <div class="space-y-3">
-              <h4 class="text-white font-bold uppercase tracking-wider text-sm mb-3 opacity-80">Locations:</h4>
-              <ul class="text-slate-300 space-y-2 font-label">
+              <h4 class="text-on-background font-bold uppercase tracking-wider text-sm mb-3 opacity-80">Locations:</h4>
+              <ul class="text-on-surface-variant space-y-2 font-label">
                 <li class="flex items-center gap-2"><span class="material-symbols-outlined text-orange-400 text-sm">location_on</span> International Dorm</li>
                 <li class="flex items-center gap-2"><span class="material-symbols-outlined text-orange-400 text-sm">location_on</span> College of Agriculture</li>
                 <li class="flex items-center gap-2"><span class="material-symbols-outlined text-orange-400 text-sm">location_on</span> College of Public Administration & Governance</li>
@@ -148,15 +148,15 @@
         </div>
 
         <!-- Campus Map Banner -->
-        <a href="https://map.bsu.edu.ph/" target="_blank" rel="noopener noreferrer" class="mt-8 block rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-gradient-to-br from-[#1a1a2e] to-purple-900/40 hover:border-purple-500/50 transition-all duration-300 group">
+        <a href="https://map.bsu.edu.ph/" target="_blank" rel="noopener noreferrer" class="mt-8 block rounded-2xl overflow-hidden border border-outline-variant shadow-2xl bg-surface-variant hover:border-[rgba(var(--rgb-home-hover),0.5)] transition-all duration-300 group">
           <div class="px-8 py-10 flex flex-col md:flex-row items-center justify-between gap-8">
             <div class="flex items-center gap-6">
               <div class="w-16 h-16 rounded-2xl bg-purple-500/20 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-purple-500/30 transition-all duration-300">
                 <span class="material-symbols-outlined text-purple-400 text-3xl">map</span>
               </div>
               <div>
-                <h3 class="font-headline font-black text-2xl text-white mb-2">Interactive Campus Map</h3>
-                <p class="text-slate-300 font-label">Explore Benguet State University campus locations and facilities.</p>
+                <h3 class="font-headline font-black text-2xl text-on-surface mb-2">Interactive Campus Map</h3>
+                <p class="text-on-surface-variant font-label">Explore Benguet State University campus locations and facilities.</p>
               </div>
             </div>
             <div class="shrink-0">
@@ -170,13 +170,13 @@
     </section>
 
     <!-- Accomplishment Reports Section -->
-    <section id="accomplishment-reports" class="pt-8 pb-16 px-12 border-t border-transparent scroll-mt-24">
+    <section id="accomplishment-reports" class="pt-8 pb-16 px-12 scroll-mt-24">
       <div class="max-w-7xl mx-auto space-y-12">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div class="space-y-4">
-            <span class="inline-block px-4 py-1.5 rounded-full bg-white/10 text-white font-label text-xs font-bold uppercase tracking-widest">Public Disclosures</span>
-            <h2 class="text-4xl font-headline font-extrabold text-white tracking-tight">Accomplishment Reports</h2>
-            <p class="text-slate-300 text-lg max-w-lg leading-relaxed">
+            <span class="inline-block px-4 py-1.5 rounded-full bg-surface-variant text-on-surface font-label text-xs font-bold uppercase tracking-widest">Public Disclosures</span>
+            <h2 class="text-4xl font-headline font-extrabold text-on-background tracking-tight">Accomplishment Reports</h2>
+            <p class="text-on-surface-variant text-lg max-w-lg leading-relaxed">
               Review the university's verified gender-responsive activities and archived annual reports.
             </p>
           </div>
@@ -186,8 +186,8 @@
           <!-- Verified Accomplishment Reports -->
           <div>
             <div class="flex items-center gap-4 mb-8">
-              <h3 class="text-2xl font-headline font-bold text-white">Verified Accomplishment Reports</h3>
-              <div class="h-px flex-grow bg-white/10"></div>
+              <h3 class="text-2xl font-headline font-bold text-on-background">Verified Accomplishment Reports</h3>
+              <div class="h-px flex-grow bg-outline-variant"></div>
             </div>
             
             <div v-if="loadingReports" class="text-center py-8 text-slate-400">Loading reports...</div>
@@ -196,8 +196,8 @@
               <div v-for="group in reportsByYear" :key="'ver_'+group.year" class="book-container group relative w-full h-[450px]" :class="{ 'is-open': openBooks['ver_' + group.year] }">
                 <div class="book relative w-full h-full pointer-events-none">
                   <!-- Cover -->
-                  <div class="book-cover absolute inset-0 bg-white rounded-r-xl border-2 border-black shadow-[4px_0_15px_rgba(0,0,0,0.05)] flex flex-col items-center justify-center p-8 z-20 pointer-events-auto cursor-pointer" @click="toggleBook('ver_' + group.year)" style="border: 2px solid black !important;">
-                    <div class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-300 to-transparent rounded-l-xl" style="border-right: 2px solid black;"></div>
+                  <div class="book-cover absolute inset-0 bg-white rounded-r-xl border-2 border-slate-300 shadow-[4px_0_15px_rgba(0,0,0,0.05)] flex flex-col items-center justify-center p-8 z-20 pointer-events-auto cursor-pointer" @click="toggleBook('ver_' + group.year)">
+                    <div class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-300 to-transparent rounded-l-xl border-r border-slate-300 book-spine"></div>
                     <img src="/images/logo.png" alt="Logo" class="w-28 mb-8 object-contain drop-shadow-md ml-4 group-hover:scale-105 transition-transform" />
                     <h4 class="font-headline font-black text-center text-slate-800 text-2xl mb-2 ml-4 leading-snug">{{ group.year }} Accomplishment Reports</h4>
                     <div class="mt-4 px-4 py-1.5 bg-emerald-50 rounded-full text-xs font-label uppercase tracking-widest font-bold text-emerald-700 border border-emerald-100 ml-4 mb-8">
@@ -208,22 +208,22 @@
                     </div>
                   </div>
                   <!-- Inside Page -->
-                  <div class="book-page absolute inset-0 bg-slate-50 rounded-r-xl border-2 border-black shadow-inner p-6 flex flex-col z-10 pointer-events-auto" style="border: 2px solid black !important;">
-                    <div class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-300 to-transparent rounded-l-xl" style="border-right: 2px solid black;"></div>
+                  <div class="book-page absolute inset-0 bg-slate-50 rounded-r-xl border-2 border-slate-300 shadow-inner p-6 flex flex-col z-10 pointer-events-auto">
+                    <div class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-300 to-transparent rounded-l-xl border-r border-slate-300 book-spine"></div>
                     <div class="pl-6 flex flex-col h-full">
                       <div class="flex items-center gap-3 mb-4 shrink-0">
                         <div class="relative flex-grow">
                           <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
-                          <input type="text" v-model="verifiedFilters[group.year]" placeholder="Search records..." class="w-full pl-9 pr-14 py-2.5 bg-white border-2 border-black rounded-xl text-sm font-medium focus:ring-2 focus:ring-purple-500 outline-none placeholder:text-slate-500 shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-shadow" style="border: 2px solid black !important; color: black !important;" />
-                          <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-md" style="color: black !important;">{{ group.reports.length }}</span>
+                          <input type="text" v-model="verifiedFilters[group.year]" placeholder="Search records..." class="w-full pl-9 pr-14 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-purple-500 outline-none placeholder:text-slate-500 shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-shadow" />
+                          <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">{{ group.reports.length }}</span>
                         </div>
-                        <button @click="toggleBook('ver_' + group.year)" class="w-10 h-10 shrink-0 rounded-xl bg-black hover:bg-slate-800 border-2 border-black flex items-center justify-center text-white shadow-md transition-all" title="Close Book" style="background-color: black !important; color: white !important; border: 2px solid black !important;">
-                          <span class="material-symbols-outlined text-[20px] font-bold" style="color: white !important;">close</span>
+                        <button @click="toggleBook('ver_' + group.year)" class="w-10 h-10 shrink-0 rounded-xl bg-purple-900 hover:bg-purple-800 border border-purple-700 flex items-center justify-center text-white shadow-md transition-all book-close-btn" title="Close Book">
+                          <span class="material-symbols-outlined text-[20px] font-bold">close</span>
                         </button>
                       </div>
                       <div class="overflow-y-auto flex-grow pr-3 space-y-3 custom-scrollbar pb-4">
                         <div v-if="filterGroup(group.reports, verifiedFilters[group.year]).length === 0" class="text-slate-400 text-sm py-8 text-center flex flex-col items-center gap-2"><span class="material-symbols-outlined text-3xl opacity-50">search_off</span> No matches found.</div>
-                        <div v-else v-for="report in filterGroup(group.reports, verifiedFilters[group.year])" :key="report.id" @click.stop="viewPdf(report)" class="bg-white p-3 rounded-xl border-2 border-black shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md transition-all cursor-pointer group/item flex items-center gap-3" style="border: 2px solid black !important;">
+                        <div v-else v-for="report in filterGroup(group.reports, verifiedFilters[group.year])" :key="report.id" @click.stop="viewPdf(report)" class="bg-white p-3 rounded-xl border border-slate-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md transition-all cursor-pointer group/item flex items-center gap-3">
                           <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center shrink-0 group-hover/item:bg-purple-100 transition-colors">
                             <span class="material-symbols-outlined text-purple-600 text-[20px]">description</span>
                           </div>
@@ -249,8 +249,8 @@
           <!-- Archived Annual Reports -->
           <div>
             <div class="flex items-center gap-4 mb-8">
-              <h3 class="text-2xl font-headline font-bold text-white">Archived Annual Reports</h3>
-              <div class="h-px flex-grow bg-white/10"></div>
+              <h3 class="text-2xl font-headline font-bold text-on-background">Archived Annual Reports</h3>
+              <div class="h-px flex-grow bg-outline-variant"></div>
             </div>
             
             <div v-if="loadingArchives" class="text-center py-8 text-slate-400">Loading archives...</div>
@@ -259,8 +259,8 @@
               <div v-for="group in archivesByYear" :key="'arch_'+group.year" class="book-container group relative w-full h-[450px]" :class="{ 'is-open': openBooks['arch_' + group.year] }">
                 <div class="book relative w-full h-full pointer-events-none">
                   <!-- Cover -->
-                  <div class="book-cover absolute inset-0 bg-white rounded-r-xl border-2 border-black shadow-[4px_0_15px_rgba(0,0,0,0.05)] flex flex-col items-center justify-center p-8 z-20 pointer-events-auto cursor-pointer" @click="toggleBook('arch_' + group.year)" style="border: 2px solid black !important;">
-                    <div class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-300 to-transparent rounded-l-xl" style="border-right: 2px solid black;"></div>
+                  <div class="book-cover absolute inset-0 bg-white rounded-r-xl border-2 border-slate-300 shadow-[4px_0_15px_rgba(0,0,0,0.05)] flex flex-col items-center justify-center p-8 z-20 pointer-events-auto cursor-pointer" @click="toggleBook('arch_' + group.year)">
+                    <div class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-300 to-transparent rounded-l-xl border-r border-slate-300 book-spine"></div>
                     <img src="/images/logo.png" alt="Logo" class="w-28 mb-8 object-contain drop-shadow-md ml-4 group-hover:scale-105 transition-transform" />
                     <h4 class="font-headline font-black text-center text-slate-800 text-2xl mb-2 ml-4 leading-snug">Archived Annual Reports</h4>
                     <div class="mt-4 px-4 py-1.5 bg-blue-50 rounded-full text-xs font-label uppercase tracking-widest font-bold text-blue-700 border border-blue-100 ml-4 mb-8">
@@ -271,22 +271,22 @@
                     </div>
                   </div>
                   <!-- Inside Page -->
-                  <div class="book-page absolute inset-0 bg-slate-50 rounded-r-xl border-2 border-black shadow-inner p-6 flex flex-col z-10 pointer-events-auto" style="border: 2px solid black !important;">
-                    <div class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-300 to-transparent rounded-l-xl" style="border-right: 2px solid black;"></div>
+                  <div class="book-page absolute inset-0 bg-slate-50 rounded-r-xl border-2 border-slate-300 shadow-inner p-6 flex flex-col z-10 pointer-events-auto">
+                    <div class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-300 to-transparent rounded-l-xl border-r border-slate-300 book-spine"></div>
                     <div class="pl-6 flex flex-col h-full">
                       <div class="flex items-center gap-3 mb-4 shrink-0">
                         <div class="relative flex-grow">
                           <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
-                          <input type="text" v-model="archiveFilters[group.year]" placeholder="Search records..." class="w-full pl-9 pr-14 py-2.5 bg-white border-2 border-black rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none placeholder:text-slate-500 shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-shadow" style="border: 2px solid black !important; color: black !important;" />
-                          <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-md" style="color: black !important;">{{ group.reports.length }}</span>
+                          <input type="text" v-model="archiveFilters[group.year]" placeholder="Search records..." class="w-full pl-9 pr-14 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none placeholder:text-slate-500 shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-shadow" />
+                          <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">{{ group.reports.length }}</span>
                         </div>
-                        <button @click="toggleBook('arch_' + group.year)" class="w-10 h-10 shrink-0 rounded-xl bg-black hover:bg-slate-800 border-2 border-black flex items-center justify-center text-white shadow-md transition-all" title="Close Book" style="background-color: black !important; color: white !important; border: 2px solid black !important;">
-                          <span class="material-symbols-outlined text-[20px] font-bold" style="color: white !important;">close</span>
+                        <button @click="toggleBook('arch_' + group.year)" class="w-10 h-10 shrink-0 rounded-xl bg-purple-900 hover:bg-purple-800 border border-purple-700 flex items-center justify-center text-white shadow-md transition-all book-close-btn" title="Close Book">
+                          <span class="material-symbols-outlined text-[20px] font-bold">close</span>
                         </button>
                       </div>
                       <div class="overflow-y-auto flex-grow pr-3 space-y-3 custom-scrollbar pb-4">
                         <div v-if="filterGroup(group.reports, archiveFilters[group.year]).length === 0" class="text-slate-400 text-sm py-8 text-center flex flex-col items-center gap-2"><span class="material-symbols-outlined text-3xl opacity-50">search_off</span> No matches found.</div>
-                        <div v-else v-for="archive in filterGroup(group.reports, archiveFilters[group.year])" :key="archive.id" @click.stop="viewHtmlReport(archive)" class="bg-white p-3 rounded-xl border-2 border-black shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md transition-all cursor-pointer group/item flex items-center gap-3" style="border: 2px solid black !important;">
+                        <div v-else v-for="archive in filterGroup(group.reports, archiveFilters[group.year])" :key="archive.id" @click.stop="viewHtmlReport(archive)" class="bg-white p-3 rounded-xl border border-slate-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md transition-all cursor-pointer group/item flex items-center gap-3">
                           <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 group-hover/item:bg-blue-100 transition-colors">
                             <span class="material-symbols-outlined text-blue-600 text-[20px]">history_edu</span>
                           </div>
@@ -706,5 +706,54 @@ onUnmounted(() => {
 }
 .book-page {
   z-index: 10;
+}
+
+/* ==========================================================================
+   DARK PURPLE MODE FOR GAD CORNER PAGE
+   ========================================================================== */
+:global(.dark) .gad-corner,
+.dark .gad-corner {
+  background-color: #1f0b35 !important;
+  color: #f5efff !important;
+}
+
+:global(.dark) .gad-corner section {
+  background-color: #1f0b35 !important;
+}
+
+:global(.dark) .gad-corner .bg-surface,
+.dark .gad-corner .bg-surface {
+  background-color: #2b1147 !important;
+  border-color: #532385 !important;
+}
+
+:global(.dark) .gad-corner .bg-surface-variant,
+.dark .gad-corner .bg-surface-variant {
+  background-color: #38165c !important;
+  color: #f5efff !important;
+}
+
+:global(.dark) .gad-corner .bg-surface-container,
+.dark .gad-corner .bg-surface-container {
+  background-color: #2b1147 !important;
+  border-color: #532385 !important;
+  color: #f5efff !important;
+}
+
+:global(.dark) .gad-corner .text-on-background,
+.dark .gad-corner .text-on-background,
+:global(.dark) .gad-corner .text-on-surface,
+.dark .gad-corner .text-on-surface {
+  color: #f5efff !important;
+}
+
+:global(.dark) .gad-corner .text-on-surface-variant,
+.dark .gad-corner .text-on-surface-variant {
+  color: #deb7ff !important;
+}
+
+:global(.dark) .gad-corner .border-outline-variant,
+.dark .gad-corner .border-outline-variant {
+  border-color: #532385 !important;
 }
 </style>

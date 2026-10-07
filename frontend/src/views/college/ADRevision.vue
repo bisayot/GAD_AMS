@@ -28,12 +28,12 @@
 
     <div v-else class="page-container">
       <!-- Rejection/Revision Note Alert -->
-      <div v-if="(design?.modification_remarks || existingReport?.modification_remarks)" class="mb-6 p-5 rounded-xl" style="background: rgba(45, 25, 60, 0.9); border: 1px solid rgba(239, 68, 68, 0.4); border-left: 5px solid #ef4444; box-shadow: 0 8px 24px rgba(0,0,0,0.3); width: 100%; max-width: 80rem; margin: 0 auto 20px auto; box-sizing: border-box;">
+      <div v-if="(design?.modification_remarks || existingReport?.modification_remarks)" class="mb-6 p-5 rounded-xl revision-note-alert" style="width: 100%; max-width: 80rem; margin: 0 auto 20px auto; box-sizing: border-box;">
         <div style="display: flex; align-items: flex-start; gap: 16px;">
-          <span class="material-symbols-outlined" style="color: #ef4444; font-size: 28px; margin-top: 2px;">error</span>
+          <span class="material-symbols-outlined revision-note-icon" style="font-size: 28px; margin-top: 2px;">error</span>
           <div style="flex: 1;">
-            <h4 style="color: #ffffff; font-size: 15px; font-weight: 700; margin: 0 0 6px 0; font-family: 'Inter', sans-serif; letter-spacing: 0.5px; text-transform: uppercase;">Rejection / Revision Note</h4>
-            <p style="color: #e2e8f0; font-size: 14px; margin: 0; font-family: 'Inter', sans-serif; line-height: 1.6; white-space: pre-wrap;">{{ design?.modification_remarks || existingReport?.modification_remarks }}</p>
+            <h4 class="revision-note-title" style="font-size: 15px; font-weight: 700; margin: 0 0 6px 0; font-family: 'Inter', sans-serif; letter-spacing: 0.5px; text-transform: uppercase;">Rejection / Revision Note</h4>
+            <p class="revision-note-body" style="font-size: 14px; margin: 0; font-family: 'Inter', sans-serif; line-height: 1.6; white-space: pre-wrap;">{{ design?.modification_remarks || existingReport?.modification_remarks }}</p>
           </div>
         </div>
       </div>
@@ -83,8 +83,8 @@
               <div class="info-item" style="grid-column: span 2;">
                 <span class="info-label">Gender Issue / GAD Mandate *</span>
                 <div class="checkbox-group-container modal-input" style="min-height: 120px; max-height: 250px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
-                  <label v-for="mandate in gadMandates" :key="mandate.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
-                    <input type="radio" v-model="formData.gad_mandate" :value="mandate.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
+                  <label v-for="mandate in gadMandates" :key="mandate.id" class="checkbox-label mandate-radio-label">
+                    <input type="radio" v-model="formData.gad_mandate" :value="mandate.id.toString()" class="radio-accent" />
                     <span style="font-size: 14px; line-height: 1.4;">{{ mandate.code }} - {{ mandate.title }}</span>
                   </label>
                   
@@ -94,12 +94,12 @@
               <div class="info-item" style="grid-column: span 2;">
                 <span class="info-label">Cause of Gender Issue *</span>
                 <div class="checkbox-group-container modal-input" style="min-height: 120px; max-height: 250px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
-                  <label v-for="issue in genderIssues" :key="issue.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
-                    <input type="radio" v-model="formData.gender_issue" :value="issue.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
+                  <label v-for="issue in genderIssues" :key="issue.id" class="checkbox-label gender-issue-radio-label">
+                    <input type="radio" v-model="formData.gender_issue" :value="issue.id.toString()" class="radio-accent" />
                     <span style="font-size: 14px; line-height: 1.4;">{{ issue.title }}</span>
                   </label>
                   
-                  <p v-if="!formData.gad_mandate || formData.gad_mandate.length === 0" style="color: #94a3b8; font-size: 13px; font-style: italic; margin: 0;">Select a mandate first to see gender issues.</p>
+                  <p v-if="!formData.gad_mandate || formData.gad_mandate.length === 0" class="mandate-prompt-hint">Select a mandate first to see gender issues.</p>
                 </div>
                 
               </div>
@@ -144,7 +144,7 @@
                   </div>
 
 <!-- Staggered Schedules Section -->
-                  <div class="schedules-container" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
+                  <div class="schedules-container">
                     <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
                       <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
                           <label class="form-label !mb-0 flex items-center gap-2" style="white-space: nowrap;">
@@ -152,11 +152,11 @@
                             Activity Schedules *
                           </label>
                           <div class="schedule-type-toggle-container">
-                            <button type="button" @click.prevent="handleScheduleTypeChange('staggered')" class="schedule-type-toggle-btn" :style="{ background: scheduleType === 'staggered' ? 'rgba(185, 121, 204, 0.2)' : 'transparent', color: scheduleType === 'staggered' ? '#e9d5ff' : '#94a3b8' }">Non Consecutive</button>
-                            <button type="button" @click.prevent="handleScheduleTypeChange('continuous')" class="schedule-type-toggle-btn" :style="{ background: scheduleType === 'continuous' ? 'rgba(185, 121, 204, 0.2)' : 'transparent', color: scheduleType === 'continuous' ? '#e9d5ff' : '#94a3b8' }">Consecutive</button>
+                            <button type="button" @click.prevent="handleScheduleTypeChange('staggered')" class="schedule-type-toggle-btn" :class="{ 'schedule-toggle-active': scheduleType === 'staggered' }">Non Consecutive</button>
+                            <button type="button" @click.prevent="handleScheduleTypeChange('continuous')" class="schedule-type-toggle-btn" :class="{ 'schedule-toggle-active': scheduleType === 'continuous' }">Consecutive</button>
                           </div>
                       </div>
-                      <button type="button" v-if="scheduleType === 'staggered'" @click.prevent="addSchedule" style="background: rgba(185, 121, 204, 0.2); color: #e9d5ff; border: 1px solid rgba(185, 121, 204, 0.3); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s;">
+                      <button type="button" v-if="scheduleType === 'staggered'" @click.prevent="addSchedule" class="btn-add-schedule">
                         <span class="material-symbols-outlined" style="font-size: 14px;">add</span> Add Schedule
                       </button>
                     </div>
@@ -167,11 +167,11 @@
                     
                     
                     <!-- Continuous Config UI -->
-                    <div v-if="scheduleType === 'continuous'" class="schedule-row mb-3 p-4 bg-white border border-slate-200 rounded-lg relative" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
+                    <div v-if="scheduleType === 'continuous'" class="schedule-row schedule-card-row mb-3 p-4 rounded-lg relative">
                       <div class="schedule-inputs-wrapper" style="margin-bottom: 16px;">
                         <div class="flex-1">
                           <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Start Date</label>
-                          <VueDatePicker dark v-model="continuousConfig.start_date" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
+                          <VueDatePicker :dark="isDarkMode" v-model="continuousConfig.start_date" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
 <template #dp-input="{ value }">
 <input type="text" :value="value ? String(value).replace(',', '').trim().split(' ')[0] : ''" class="custom-input-field dp-custom-transparent !text-xs !p-2" readonly placeholder="Select Date" />
 </template>
@@ -179,7 +179,7 @@
                         </div>
                         <div class="flex-1">
                           <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">End Date</label>
-                          <VueDatePicker dark v-model="continuousConfig.end_date" :min-date="continuousConfig.start_date || minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
+                          <VueDatePicker :dark="isDarkMode" v-model="continuousConfig.end_date" :min-date="continuousConfig.start_date || minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
 <template #dp-input="{ value }">
 <input type="text" :value="value ? String(value).replace(',', '').trim().split(' ')[0] : ''" class="custom-input-field dp-custom-transparent !text-xs !p-2" readonly placeholder="Select Date" />
 </template>
@@ -193,7 +193,7 @@
                               <transition name="fade-pop"><div v-if="helpState.startTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                             </div>
                           </div>
-                          <input type="time" v-model="continuousConfig.start_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="handleTimeChange(continuousConfig)">
+                          <input type="time" v-model="continuousConfig.start_time" min="04:00" max="20:00" required class="custom-input-field" :style="{ colorScheme: isDarkMode ? 'dark' : 'light' }" style="cursor: pointer;" @change="handleTimeChange(continuousConfig)">
                         </div>
                         <div class="flex-1">
                           <div class="label-container" style="margin-bottom: 4px;">
@@ -203,7 +203,7 @@
                               <transition name="fade-pop"><div v-if="helpState.endTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                             </div>
                           </div>
-                          <input type="time" v-model="continuousConfig.end_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="handleTimeChange(continuousConfig)">
+                          <input type="time" v-model="continuousConfig.end_time" min="04:00" max="20:00" required class="custom-input-field" :style="{ colorScheme: isDarkMode ? 'dark' : 'light' }" style="cursor: pointer;" @change="handleTimeChange(continuousConfig)">
                         </div>
                       </div>
                     </div>
@@ -213,10 +213,10 @@
                       <span class="material-symbols-outlined" style="font-size: 14px;">info</span>
                       You can customize the Time and Meals for specific days (e.g., half-day on the last day) below:
                     </div>
-                    <div v-for="(sch, index) in schedules" :key="index" class="schedule-inputs-wrapper" style="margin-bottom: 16px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); position: relative;">
+                    <div v-for="(sch, index) in schedules" :key="index" class="schedule-inputs-wrapper schedule-card-row" style="margin-bottom: 16px; padding: 16px; position: relative;">
                       <div style="flex: 1; min-width: 130px;">
-                        <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 6px; display: block;">Date</label>
-                        <VueDatePicker dark v-model="sch.date" @update:model-value="handleScheduleDateChange($event, index)" :disabled="scheduleType === 'continuous'" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
+                        <label style="font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 6px; display: block;">Date</label>
+                        <VueDatePicker :dark="isDarkMode" v-model="sch.date" @update:model-value="handleScheduleDateChange($event, index)" :disabled="scheduleType === 'continuous'" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
 <template #dp-input="{ value }">
 <input type="text" :value="value ? String(value).replace(',', '').trim().split(' ')[0] : ''" class="custom-input-field dp-custom-transparent !text-xs !p-2" readonly placeholder="Select Date" />
 </template>
@@ -224,25 +224,25 @@
                       </div>
                       <div style="flex: 1; min-width: 130px;">
                         <div class="label-container" style="margin-bottom: 6px;">
-                          <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 0;">Start Time</label>
+                          <label style="font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 0;">Start Time</label>
                           <div class="info-btn-wrapper">
                             <span class="material-symbols-outlined" @click.stop="toggleHelp('startTime')" style="font-size: 14px; cursor: pointer; color: #94a3b8; transition: color 0.2s;" onmouseover="this.style.color='#b979cc'" onmouseout="this.style.color='#94a3b8'">info</span>
                             <transition name="fade-pop"><div v-if="helpState.startTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                           </div>
                         </div>
-                        <input type="time" v-model="sch.start_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="validateScheduleTime(index)">
+                        <input type="time" v-model="sch.start_time" min="04:00" max="20:00" required class="custom-input-field" :style="{ colorScheme: isDarkMode ? 'dark' : 'light' }" style="cursor: pointer;" @change="validateScheduleTime(index)">
                       </div>
                       <div style="flex: 1; min-width: 130px;">
                         <div class="label-container" style="margin-bottom: 6px;">
-                          <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 0;">End Time</label>
+                          <label style="font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 0;">End Time</label>
                           <div class="info-btn-wrapper">
                             <span class="material-symbols-outlined" @click.stop="toggleHelp('endTime')" style="font-size: 14px; cursor: pointer; color: #94a3b8; transition: color 0.2s;" onmouseover="this.style.color='#b979cc'" onmouseout="this.style.color='#94a3b8'">info</span>
                             <transition name="fade-pop"><div v-if="helpState.endTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                           </div>
                         </div>
-                        <input type="time" v-model="sch.end_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="validateScheduleTime(index)">
+                        <input type="time" v-model="sch.end_time" min="04:00" max="20:00" required class="custom-input-field" :style="{ colorScheme: isDarkMode ? 'dark' : 'light' }" style="cursor: pointer;" @change="validateScheduleTime(index)">
                       </div>
-                      <button type="button" v-if="scheduleType === 'staggered' && schedules.length > 1" @click.prevent="removeSchedule(index)" style="background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" title="Remove Schedule">
+                      <button type="button" v-if="scheduleType === 'staggered' && schedules.length > 1" @click.prevent="removeSchedule(index)" class="btn-remove-schedule" title="Remove Schedule">
                         <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
                       </button>
                       
@@ -280,17 +280,17 @@
                 <div class="venue-col">
                   <label class="form-label">Venue Location *</label>
                   <div class="toggle-container" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; min-height: 42px; height: auto; padding: 4px 0;">
-                    <label style="color: #cbd5e1; font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
-                      <input type="radio" :value="true" v-model="formData.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Inside BSU
+                    <label class="location-radio-label">
+                      <input type="radio" :value="true" v-model="formData.is_inside_bsu" class="radio-accent" style="margin-right: 5px;" /> Inside BSU
                     </label>
-                    <label style="color: #cbd5e1; font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
-                      <input type="radio" :value="false" v-model="formData.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Outside BSU
+                    <label class="location-radio-label">
+                      <input type="radio" :value="false" v-model="formData.is_inside_bsu" class="radio-accent" style="margin-right: 5px;" /> Outside BSU
                     </label>
-                    <label style="color: #cbd5e1; font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
-                      <input type="radio" value="mixed" v-model="formData.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Mixed (Inside &amp; Outside)
+                    <label class="location-radio-label">
+                      <input type="radio" value="mixed" v-model="formData.is_inside_bsu" class="radio-accent" style="margin-right: 5px;" /> Mixed (Inside &amp; Outside)
                     </label>
                   </div>
-                  <div v-if="formData.is_inside_bsu === 'mixed'" style="margin-top: 8px; font-size: 12px; color: #94a3b8; padding: 6px 10px; background: rgba(185,121,204,0.07); border-radius: 6px; border: 1px solid rgba(185,121,204,0.2);">
+                  <div v-if="formData.is_inside_bsu === 'mixed'" class="mixed-mode-hint">
                     💡 Mixed mode: all venues are shown. Each venue will use its own inside/outside baseline rate automatically.
                   </div>
                 </div></div></div>
@@ -298,9 +298,9 @@
             
             <div class="section-card">
               <!-- Overall Target Participants Banner -->
-              <div class="grand-total-banner-card" style="background: rgba(30,41,59,0.7); margin-bottom: 12px; border-color: #334155; padding: 12px 20px;">
-                <div class="grand-total-label-banner" style="color: #94a3b8; font-size: 13px;">Overall Expected Attendance (Auto-calculated)</div>
-                <div class="grand-total-value-banner" style="color: #cbd5e1; font-size: 16px;">
+              <div class="attendance-banner-card">
+                <div class="attendance-banner-label">Overall Expected Attendance (Auto-calculated)</div>
+                <div class="attendance-banner-value">
                   {{ formData.target_participants || 0 }} Pax
                 </div>
               </div>
@@ -312,7 +312,7 @@
               <!-- Proposed Budgetary Requirements Table (Refactored Inline) -->
               <div v-if="formData.venues && formData.venues.length" class="budget-content">
                     <BudgetBuilder 
-                      ref="budgetBuilder"
+                       ref="budgetBuilder"
                       v-model:venueBudgets="formData.venue_budgets" 
                       :venues="formData.venues" 
                       :baselineSettings="baselineSettings"
@@ -325,9 +325,9 @@
                     />
 
                     <!-- Overall Target Participants Banner -->
-                    <div class="grand-total-banner-card" style="background: rgba(30,41,59,0.7); margin-bottom: 12px; border-color: #334155; padding: 12px 20px;">
-                      <div class="grand-total-label-banner" style="color: #94a3b8; font-size: 13px;">Overall Expected Attendance (Auto-calculated)</div>
-                      <div class="grand-total-value-banner" style="color: #cbd5e1; font-size: 16px;">
+                    <div class="attendance-banner-card">
+                      <div class="attendance-banner-label">Overall Expected Attendance (Auto-calculated)</div>
+                      <div class="attendance-banner-value">
                         {{ formData.target_participants || 0 }} Pax
                       </div>
                     </div>
@@ -369,21 +369,21 @@
               <div class="document-previews" style="margin-top: 15px;">
                 <div v-if="design.attachment" style="margin-bottom: 20px;">
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <p style="color: #cbd5e1; font-size: 13px; font-weight: bold; margin: 0;">Previous Document:</p>
-                    <button type="button" @click.prevent="expandToNewTab(`${api.defaults.baseURL}/files/${Number(design.is_archived) === 1 ? 'archived' : 'drafts'}/${design.attachment}`)" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #cbd5e1; padding: 4px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; display: flex; align-items: center;">
+                    <p class="prev-doc-label" style="font-size: 13px; font-weight: bold; margin: 0;">Previous Document:</p>
+                    <button type="button" @click.prevent="expandToNewTab(`${api.defaults.baseURL}/files/${Number(design.is_archived) === 1 ? 'archived' : 'drafts'}/${design.attachment}`)" class="btn-expand-doc">
                       <span class="material-symbols-outlined" style="font-size: 14px; margin-right: 4px;">open_in_new</span> Expand
                     </button>
                   </div>
-                  <iframe :src="getPdfViewerUrl(`${api.defaults.baseURL}/files/${Number(design.is_archived) === 1 ? 'archived' : 'drafts'}/${design.attachment}`)" width="100%" height="400px" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;"></iframe>
+                  <iframe :src="getPdfViewerUrl(`${api.defaults.baseURL}/files/${Number(design.is_archived) === 1 ? 'archived' : 'drafts'}/${design.attachment}`)" width="100%" height="400px" class="doc-preview-iframe"></iframe>
                 </div>
                 <div v-if="newFileURL">
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <p style="color: #b979cc; font-size: 13px; font-weight: bold; margin: 0;">New Document Preview:</p>
-                    <button type="button" @click.prevent="expandToNewTab(newFileURL)" style="background: transparent; border: 1px solid rgba(185,121,204,0.4); color: #b979cc; padding: 4px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; display: flex; align-items: center;">
+                    <p class="new-doc-label" style="font-size: 13px; font-weight: bold; margin: 0;">New Document Preview:</p>
+                    <button type="button" @click.prevent="expandToNewTab(newFileURL)" class="btn-expand-new-doc">
                       <span class="material-symbols-outlined" style="font-size: 14px; margin-right: 4px;">open_in_new</span> Expand
                     </button>
                   </div>
-                  <iframe :src="getPdfViewerUrl(newFileURL)" width="100%" height="400px" style="border: 1px solid #b979cc; border-radius: 8px;"></iframe>
+                  <iframe :src="getPdfViewerUrl(newFileURL)" width="100%" height="400px" class="doc-preview-new-iframe"></iframe>
                 </div>
               </div>
             </div>
@@ -455,12 +455,15 @@
 <script setup>
 import { useHolidays } from '../../utils/useHolidays';
 const { isDisabledDate, fetchHolidays, getWorkingDaysDiff, addWorkingDays } = useHolidays();
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '../../api';
 import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
 import Swal from 'sweetalert2';
 import BudgetBuilder from '../../components/BudgetBuilder.vue';
+
+const isDarkMode = ref(typeof document !== 'undefined' ? document.documentElement.classList.contains('dark') : false);
+let themeObserver = null;
 
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 const userRole = user.value?.role || user.value?.user_role || '';
@@ -1935,18 +1938,27 @@ const handleUpdate = async () => {
   }, { deep: true });
   
   onMounted(async () => {
-  if (!user.value.id || !['twg', 'non-twg'].includes(user.value.role)) {
-    router.push('/login');
-  } else {
-    formData.value.office = user.value.office || '';
-    fetchHolidays();
-    fetchBaselineSettings();
-    await fetchFormTypes();
-    await fetchActivityClassifications();
-    await fetchVenues();
-    await fetchDesignDetails();
-  }
-});
+    themeObserver = new MutationObserver(() => {
+      isDarkMode.value = document.documentElement.classList.contains('dark');
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+    if (!user.value.id || !['twg', 'non-twg'].includes(user.value.role)) {
+      router.push('/login');
+    } else {
+      formData.value.office = user.value.office || '';
+      fetchHolidays();
+      fetchBaselineSettings();
+      await fetchFormTypes();
+      await fetchActivityClassifications();
+      await fetchVenues();
+      await fetchDesignDetails();
+    }
+  });
+
+  onUnmounted(() => {
+    if (themeObserver) themeObserver.disconnect();
+  });
 
 const checkTransportationLimit = (vId) => {
   const limit = Number(baselineSettings.value?.transportation_limit || 20000);
@@ -1974,1013 +1986,10 @@ const checkTransportationLimit = (vId) => {
     });
   }
 };
-
 </script>
 
-<style scoped>
-.main-viewport { flex: 1; min-height: 100vh; background: transparent; }
-.loading-wrapper { display: flex; justify-content: center; align-items: center; min-height: 400px; }
+<style scoped src="../../assets/ad-revision-styles.css"></style>
 
-.error-view-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; min-height: 400px; }
-.error-card { position: relative; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(24px); border-radius: 24px; border: 1px solid rgba(239, 68, 68, 0.2); padding: 40px; width: 100%; max-width: 448px; text-align: center; overflow: hidden; display: flex; flex-direction: column; align-items: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-.error-glow { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 256px; height: 256px; background: rgba(239, 68, 68, 0.1); border-radius: 50%; filter: blur(64px); pointer-events: none; }
-.error-icon-container { width: 96px; height: 96px; border-radius: 50%; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); display: flex; align-items: center; justify-content: center; margin-bottom: 24px; position: relative; z-index: 10; }
-.error-icon { font-size: 48px; color: #f87171; }
-.error-heading { font-size: 24px; font-weight: 900; color: white; margin-bottom: 12px; position: relative; z-index: 10; letter-spacing: -0.025em; }
-.error-text { color: #e2e8f0; font-size: 16px; margin-bottom: 40px; position: relative; z-index: 10; line-height: 1.6; }
-.error-btn-red { position: relative; z-index: 10; background: #ef4444; color: white; padding: 12px 32px; border-radius: 9999px; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; transition: all 0.2s; display: flex; align-items: center; gap: 8px; border: none; cursor: pointer; }
-.error-btn-red:hover { background: #dc2626; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.4); }
-.btn-icon { font-weight: bold; }
-
-.page-container { min-height: 100vh; }
-.layout-grid { display: flex; gap: 15px; max-width: 80rem; margin: 0 auto; }
-.flex-06 { flex: 0.65; display: flex; flex-direction: column; overflow: hidden; }
-.flex-100 { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-.flex-04-sidebar { flex: 0.35; position: sticky; top: 120px; align-self: flex-start; }
-
-.glass-card { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); backdrop-filter: blur(24px); border-radius: 1.5rem; border: 1px solid rgba(185, 121, 204, 0.2); }
-.report-header { padding: 2rem; border-bottom: 1px solid rgba(185, 121, 204, 0.15); background: rgba(0, 0, 0, 0.2); }
-.meta-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; }
-.report-body { flex: 1; overflow-y: visible; padding: 2rem; }
-.report-body > * + * { margin-top: 1.5rem; }
-
-.status-badge-revision { display: inline-flex; align-items: center; gap: 8px; background-color: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 4px 12px; border-radius: 9999px; border: 1px solid rgba(239, 68, 68, 0.3); }
-.status-dot-pulse { width: 8px; height: 8px; background-color: #ef4444; border-radius: 9999px; animation: pulse 2s infinite; }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-.status-text { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; }
-
-.control-number { font-size: 13px; font-weight: 700; color: #b979cc; text-transform: uppercase; margin-left: 12px; font-family: monospace; }
-.form-group-top { margin-bottom: 1.5rem; }
-.title-input { font-size: 20px !important; font-family: 'Times New Roman', serif; font-weight: 700; }
-
-.info-grid { display: flex; flex-wrap: wrap; gap: 24px; padding-top: 16px; border-top: 1px solid rgba(185, 121, 204, 0.1); }
-.info-item { display: flex; flex-direction: column; }
-.info-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: #b979cc; font-weight: 700; margin-bottom: 4px; }
-.info-value-white { font-size: 14px; font-weight: 600; color: white; }
-
-.assessment-date-display { margin-bottom: 1.5rem; }
-.icon-pink { color: #b979cc; }
-.full-width-info { grid-column: span 2; margin-top: 1rem; }
-
-.section-card { background-color: rgba(0, 0, 0, 0.2); border-radius: 16px; padding: 24px; border: 1px solid rgba(185, 121, 204, 0.15); }
-.section-header-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
-.section-title { font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: #b979cc; }
-
-.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.venue-participants-row {
-  display: grid;
-  grid-template-columns: 2.25fr 1fr;
-  gap: 16px;
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(185, 121, 204, 0.1);
-}
-
-.doc-item { display: flex; align-items: center; justify-content: space-between; padding: 16px; background-color: rgba(0, 0, 0, 0.3); border-radius: 12px; border: 1px solid rgba(185, 121, 204, 0.15); }
-.doc-info { display: flex; align-items: center; gap: 12px; color: white; font-size: 12px;}
-.doc-pdf-icon { font-size: 1.875rem; color: #ef4444; }
-.doc-title { font-size: 13px; font-weight: 700; color: b979cc; }
-.doc-meta { font-size: 11px; color: #cbd5e1; margin-top: 2px; }
-.preview-btn { color: #b979cc; font-size: 11px; padding: 6px 12px; border-radius: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(185, 121, 204, 0.15); font-weight: 700; text-align: center; cursor: pointer; }
-.preview-btn:hover { border-color: #b979cc; color: white; background: rgba(185, 121, 204, 0.1); }
-
-.assessment-card-custom { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 1.5rem; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); border: 1px solid rgba(185, 121, 204, 0.2); }
-.assessment-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid rgba(185, 121, 204, 0.15); }
-.assessment-icon { width: 44px; height: 44px; background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: white; font-size: 22px; }
-.assessment-title { font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #b979cc; }
-.assessment-form { display: flex; flex-direction: column; }
-
-.read-only-remarks { width: 100%; border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 12px; padding: 14px 16px; font-size: 13px; background: rgba(0, 0, 0, 0.3); color: #cbd5e1; min-height: 100px; line-height: 1.5; }
-.feedback-remarks { margin-bottom: 1rem; }
-
-.form-label { display: block; font-size: 12px; font-weight: 800; text-transform: uppercase; color: #b979cc; letter-spacing: 1px; margin-bottom: 8px; }
-.modal-input { width: 100%; padding: 12px 18px; border: 1px solid rgba(185, 121, 204, 0.2); background: rgba(0, 0, 0, 0.4); color: white; border-radius: 12px; font-size: 13px; }
-.modal-input:focus { outline: none; border-color: #b979cc; }
-.modal-input-center { text-align: center; }
-.select-input { appearance: none; cursor: pointer; }
-.select-arrow-fix {
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b979cc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 16px center;
-  background-size: 14px;
-}
-.dark-option { background-color: #16213e; color: #ffffff; }
-.custom-venue-wrapper { margin-top: 1rem; }
-.file-input-hidden { display: none; }
-
-.action-buttons { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(185, 121, 204, 0.15); }
-.btn-approve { width: 100%; background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%); color: white; border: none; border-radius: 14px; padding: 14px; font-size: 12px; font-weight: 800; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
-.btn-approve:disabled { opacity: 0.6; cursor: not-allowed; }
-.btn-approve:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(153, 13, 209, 0.25); }
-
-.btn-back { display: block; width: 100%; padding: 12px; font-size: 11px; color: #cbd5e1; text-align: center; border-radius: 12px; background: transparent; border: 1px solid rgba(185, 121, 204, 0.15); margin-top: 8px; cursor: pointer; }
-.btn-back:hover { color: white; border-color: #b979cc; background: rgba(185, 121, 204, 0.05); }
-
-.loading-spinner { width: 40px; height: 40px; border: 3px solid #f3f3f3; border-top: 3px solid #990dd1; border-radius: 50%; animation: spin 1s linear infinite; }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-.budget-table-wrapper {
-  overflow-x: auto;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background-color: rgba(0, 0, 0, 0.2);
-}
-
-.budget-table {
-  width: 100%;
-  text-align: left;
-  border-collapse: collapse;
-}
-
-.budget-table-header {
-  background-color: rgba(255, 255, 255, 0.05);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #b979cc;
-}
-
-.table-header-cell {
-  padding: 10px 16px;
-  font-weight: 700;
-}
-
-.budget-col-total {
-  width: 128px; /* Adjust as needed */
-}
-
-.budget-table-body {
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.budget-table-row {
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.budget-item-name {
-  padding: 12px 16px;
-  color: #b979cc;
-  line-height: 1.25;
-  font-size: 13px;
-}
-
-.budget-item-subtext {
-  display: block;
-  font-size: 12px;
-  color: #64748b;
-  font-weight: 400;
-  margin-top: 2px;
-}
-
-.budget-item-input-cell {
-  padding: 8px 16px;
-}
-
-.budget-input-field {
-  background-color: transparent;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  outline: none;
-  width: 100%;
-  color: #ffffff;
-  font-size: 14px;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  text-align: right; /* Align budget input to the right */
-}
-.budget-input-field:focus {
-  border-color: #b979cc;
-}
-
-.budget-total-field {
-  font-weight: 600;
-}
-
-.budget-table-footer {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-.grand-total-label {
-  padding: 12px 16px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #b979cc;
-  text-align: right;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.grand-total-value-white {
-  padding: 12px 16px;
-  font-size: 14px;
-  font-weight: 700;
-  color: white;
-  text-align: right; /* Align grand total value to the right */
-}
-
-.empty-budget-notice {
-  color: #64748b;
-  font-size: 13px;
-  font-style: italic;
-  padding: 16px;
-  text-align: center;
-}
-
-/* GAD Budget Table Inline Styles */
-.budget-sub-controls {
-  margin-top: 8px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  font-size: 11px;
-  color: #94a3b8;
-}
-
-.budget-checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  user-select: none;
-  color: #cbd5e1;
-  font-size: 13px;
-  font-weight: 500;
-  transition: color 0.2s ease;
-}
-
-.budget-checkbox-label:hover {
-  color: #ffffff;
-}
-
-.budget-checkbox {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
-  background-color: rgba(15, 23, 42, 0.3);
-  border: 2px solid rgba(185, 121, 204, 0.4);
-  border-radius: 5px;
-  display: inline-grid;
-  place-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin: 0;
-  position: relative;
-}
-
-.budget-checkbox:hover {
-  border-color: #b979cc;
-  background-color: rgba(185, 121, 204, 0.1);
-  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.2);
-}
-
-.budget-checkbox:checked {
-  background-color: #b979cc;
-  border-color: #b979cc;
-  box-shadow: 0 0 8px rgba(185, 121, 204, 0.4);
-}
-
-.budget-checkbox:checked::before {
-  content: "";
-  width: 10px;
-  height: 10px;
-  background-color: #ffffff;
-  clip-path: polygon(14% 44%, 0 58%, 38% 95%, 100% 23%, 86% 9%, 38% 68%);
-}
-
-.budget-number-input-label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #cbd5e1;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.budget-sub-number-input {
-  background-color: rgba(15, 23, 42, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  padding: 8px 12px;
-  width: 90px;
-  color: #ffffff;
-  font-size: 14px;
-  outline: none;
-  box-sizing: border-box;
-  text-align: center;
-  transition: all 0.2s ease;
-  font-weight: 600;
-}
-
-.budget-sub-number-input:focus {
-  border-color: #b979cc;
-  background-color: rgba(15, 23, 42, 0.5);
-  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.2);
-}
-
-.budget-warning-inline {
-  margin-top: 6px;
-  font-size: 11px;
-  color: #fbbf24;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.budget-error-inline {
-  margin-top: 6px;
-  font-size: 11px;
-  color: #f43f5e;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* Others Breakdown Styles */
-.others-breakdown-container {
-  margin-top: 10px;
-  padding: 12px;
-  background-color: rgba(0, 0, 0, 0.25);
-  border-radius: 10px;
-  border: 1px dashed rgba(185, 121, 204, 0.2);
-}
-
-.others-breakdown-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
-  align-items: center;
-}
-
-.others-input-name {
-  flex: 1;
-  background-color: rgba(26, 26, 46, 0.6);
-  border: 1px solid rgba(185, 121, 204, 0.2);
-  border-radius: 8px;
-  padding: 6px 10px;
-  color: #ffffff;
-  font-size: 12px;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.others-input-amount {
-  width: 110px;
-  background-color: rgba(26, 26, 46, 0.6);
-  border: 1px solid rgba(185, 121, 204, 0.2);
-  border-radius: 8px;
-  padding: 6px 10px;
-  color: #ffffff;
-  font-size: 12px;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.others-input-name:focus,
-.others-input-amount:focus {
-  border-color: #b979cc;
-  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.15);
-}
-
-.btn-remove-other {
-  background: transparent;
-  border: none;
-  color: #f43f5e;
-  cursor: pointer;
-  font-size: 18px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-  transition: color 0.2s;
-}
-
-.btn-remove-other:hover {
-  color: #fda4af;
-}
-
-.btn-add-other {
-  background-color: rgba(185, 121, 204, 0.1);
-  border: 1px solid rgba(185, 121, 204, 0.25);
-  color: #b979cc;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 4px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
-.btn-add-other:hover {
-  background-color: rgba(185, 121, 204, 0.2);
-  transform: translateY(-0.5px);
-}
-
-.resize-none {
-  resize: none;
-}
-
-.select-arrow-fix {
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b979cc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 20px center;
-  background-size: 16px;
-}
-
-.others-total-badge {
-  background-color: rgba(185, 121, 204, 0.15);
-  border: 1px solid rgba(185, 121, 204, 0.3);
-  color: #b979cc;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 13px;
-  display: inline-block;
-}
-
-.budget-groups-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  margin-top: 10px;
-}
-
-.budget-group-card {
-  background: rgba(30, 41, 59, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  padding: 20px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-}
-
-.budget-group-card:hover {
-  border-color: rgba(185, 121, 204, 0.3);
-  background: rgba(30, 41, 59, 0.6);
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-}
-
-.budget-group-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: 12px;
-  margin-bottom: 16px;
-}
-
-.budget-group-icon {
-  font-size: 18px;
-}
-
-.budget-group-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: #b979cc;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.budget-group-content {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.budget-row-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.budget-row-item:last-child {
-  padding-bottom: 0;
-  border-bottom: none;
-}
-
-.budget-item-info {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex-grow: 1;
-}
-
-.budget-item-title {
-  font-weight: 600;
-  color: #f1f5f9;
-  font-size: 14px;
-}
-
-.budget-item-subtext {
-  font-size: 11px;
-  color: #64748b;
-}
-
-.budget-item-value {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 240px;
-  flex-shrink: 0;
-  justify-content: flex-end;
-}
-
-.budget-currency-symbol {
-  color: #64748b;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.budget-card-input {
-  background-color: rgba(15, 23, 42, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  color: #ffffff;
-  font-size: 14px;
-  padding: 8px 12px;
-  width: 100%;
-  text-align: right;
-  transition: all 0.2s ease;
-  font-weight: 600;
-}
-
-.budget-card-input:focus {
-  border-color: #b979cc;
-  background-color: rgba(15, 23, 42, 0.5);
-  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.2);
-  outline: none;
-}
-
-.grand-total-banner-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: linear-gradient(135deg, rgba(185, 121, 204, 0.1) 0%, rgba(153, 13, 209, 0.1) 100%);
-  border: 1px solid rgba(185, 121, 204, 0.3);
-  border-radius: 14px;
-  padding: 20px;
-  margin-top: 20px;
-  box-shadow: 0 4px 15px -3px rgba(185, 121, 204, 0.1);
-}
-
-.grand-total-label-banner {
-  font-size: 13px;
-  font-weight: 700;
-  color: #ffffff;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.grand-total-value-banner {
-  font-size: 20px;
-  font-weight: 800;
-  color: #b979cc;
-  text-shadow: 0 0 10px rgba(185, 121, 204, 0.2);
-}
-@media (max-width: 768px) {
-  .budget-row-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  .budget-item-value {
-    width: 100%;
-    justify-content: flex-start;
-  }
-  .others-breakdown-row {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .others-input-name {
-    width: 100%;
-    flex: none;
-  }
-  .others-input-amount {
-    flex: 1;
-  }
-  .budget-sub-controls {
-    flex-wrap: wrap;
-    width: 100%;
-  }
-  .budget-item-info {
-    width: 100%;
-  }
-  .budget-card-input {
-    width: 100%;
-  }
-  .doc-item, .doc-item-custom {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  .doc-info {
-    width: 100%;
-    word-break: break-word;
-  }
-  .preview-btn {
-    align-self: flex-start;
-    width: 100%;
-    box-sizing: border-box;
-  }
-}
-
-.custom-input-field { width: 100%;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 14px 20px;
-  font-size: 14px;
-  color: #ffffff;
-  transition: all 0.2s ease;
-}
-
-.custom-input-field:focus {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: #b979cc;
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(153, 13, 209, 0.2);
-}
-
-.custom-input-field::placeholder {
-  color: #94a3b8;
-}
-
-
-.label-container {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.info-btn {
-  background: rgba(185, 121, 204, 0.08);
-  border: 1px solid rgba(185, 121, 204, 0.35);
-  color: #b979cc;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  font-size: 10px;
-  font-weight: bold;
-  font-family: serif;
-  line-height: 1;
-  transition: all 0.25s ease;
-}
-
-.info-btn:hover {
-  background: #b979cc;
-  color: #16213e;
-  border-color: #b979cc;
-  transform: scale(1.15);
-  box-shadow: 0 0 8px rgba(185, 121, 204, 0.4);
-}
-
-.info-btn-wrapper {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
-
-.simple-popup {
-  position: absolute;
-  bottom: calc(100% + 10px);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000;
-  background: #1a1a2e;
-  border: 1px solid #b979cc;
-  border-radius: 8px;
-  padding: 10px 14px;
-  color: #ffffff;
-  font-size: 12px;
-  width: 240px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  line-height: 1.45;
-  pointer-events: auto;
-  text-transform: none;
-  white-space: normal;
-}
-
-.simple-popup::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 6px;
-  border-style: solid;
-  border-color: #1a1a2e transparent transparent transparent;
-}
-
-.simple-popup::before {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 7px;
-  border-style: solid;
-  border-color: #b979cc transparent transparent transparent;
-  z-index: -1;
-}
-
-.fade-pop-enter-active,
-.fade-pop-leave-active {
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.fade-pop-enter-from,
-.fade-pop-leave-to {
-  opacity: 0;
-  transform: translate(-50%, 8px) scale(0.95);
-}
-
-.fade-pop-enter-to,
-.fade-pop-leave-from {
-  opacity: 1;
-  transform: translate(-50%, 0) scale(1);
-}
-
-
-.form-sub-grid {
-  display: grid;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  gap: 20px;
-}
-@media (min-width: 768px) {
-  .form-sub-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-  .input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  @media (max-width: 1024px) {
-    .layout-grid { flex-direction: column; padding: 1rem; }
-    .flex-06, .flex-100, .flex-04-sidebar { flex: 1 !important; width: 100% !important; max-width: 100% !important; position: relative !important; top: 0 !important; }
-  }
-
-  @media (max-width: 768px) {
-    .info-grid { flex-direction: column !important; gap: 12px !important; }
-    .venue-participants-row { flex-direction: column; gap: 12px; }
-  }
-.schedule-inputs-wrapper {
-  display: flex;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.schedule-inputs-wrapper > * {
-  min-width: 0;
-  width: 100%;
-}
-
-@media (max-width: 1024px) {
-  .schedule-inputs-wrapper {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-.schedule-type-toggle-container {
-  display: flex; 
-  background: rgba(0,0,0,0.3); 
-  border-radius: 8px; 
-  padding: 4px; 
-  border: 1px solid rgba(255,255,255,0.05);
-  gap: 4px;
-}
-
-.schedule-type-toggle-btn {
-  padding: 4px 12px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-  flex: 1;
-  text-align: center;
-}
-
-@media (max-width: 480px) {
-  .schedule-type-toggle-container {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-@media (max-width: 768px) {
-  .grand-total-banner-card {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  .grand-total-value-banner {
-    word-break: break-word;
-    font-size: 18px;
-  }
-}
-
-/* Custom Multi-select Styles */
-.custom-multiselect-container {
-  position: relative;
-  width: 100%;
-}
-
-.multiselect-backdrop {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  z-index: 99;
-}
-
-.multiselect-trigger {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  user-select: none;
-  background-color: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-}
-
-.multiselect-trigger:hover, .multiselect-trigger.is-open {
-  border-color: #b979cc;
-  box-shadow: 0 0 0 3px rgba(185, 121, 204, 0.1);
-}
-
-.placeholder-text {
-  color: #94a3b8;
-}
-
-.selected-text {
-  color: #f8fafc;
-  font-weight: 500;
-}
-
-.dropdown-arrow {
-  color: #94a3b8;
-  font-size: 0.8rem;
-  transition: transform 0.3s ease;
-  margin-left: auto;
-}
-.multiselect-trigger.is-open .dropdown-arrow {
-  transform: rotate(180deg);
-}
-
-.multiselect-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  margin-top: 0.5rem;
-  background-color: #1e293b;
-  border: 1px solid rgba(185, 121, 204, 0.3);
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  max-height: 250px;
-  overflow-y: auto;
-  z-index: 100;
-  padding: 0.5rem 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.multiselect-option {
-  display: flex;
-  align-items: center;
-  padding: 0.6rem 1rem;
-  cursor: pointer;
-  color: #e2e8f0;
-  transition: background-color 0.2s;
-  margin: 0;
-  width: 100%;
-}
-
-.multiselect-option:hover {
-  background-color: rgba(185, 121, 204, 0.15);
-}
-
-.multiselect-checkbox {
-  margin-right: 0.75rem;
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-  accent-color: #b979cc;
-}
-
-.multiselect-divider {
-  height: 1px;
-  background-color: rgba(255, 255, 255, 0.1);
-  margin: 0.5rem 0;
-}
-
-/* Chips Styles */
-.chips-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-}
-
-.venue-chip {
-  display: inline-flex;
-  align-items: center;
-  background: linear-gradient(135deg, rgba(185, 121, 204, 0.2), rgba(185, 121, 204, 0.05));
-  border: 1px solid rgba(185, 121, 204, 0.4);
-  color: #f8fafc;
-  padding: 0.25rem 0.75rem;
-  border-radius: 999px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  backdrop-filter: blur(4px);
-  animation: fadeInChip 0.3s ease-out forwards;
-}
-
-.chip-remove {
-  background: none;
-  border: none;
-  color: #94a3b8;
-  margin-left: 0.5rem;
-  font-size: 1.1rem;
-  line-height: 1;
-  cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s;
-}
-
-.chip-remove:hover {
-  color: #ef4444;
-}
-
-@keyframes fadeInChip {
-  from { opacity: 0; transform: translateY(5px) scale(0.95); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.btn-add-custom-venue {
-  width: 100%;
-  padding: 0.75rem;
-  background: transparent;
-  border: none;
-  color: #b979cc;
-  font-weight: 500;
-  cursor: pointer;
-  text-align: left;
-  transition: background-color 0.2s;
-}
-.btn-add-custom-venue:hover {
-  background-color: rgba(185, 121, 204, 0.1);
-}
-
-.pax-input-group {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.creative-pax-input {
-  width: 65px;
-  padding: 8px;
-  background: #1e293b;
-  border: 1px solid #475569;
-  border-radius: 6px;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 500;
-  text-align: center;
-  transition: all 0.2s ease;
-}
-.creative-pax-input:focus {
-  border-color: #b979cc;
-  background: #2a3b54;
-  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.2);
-  outline: none;
-}
-.pax-label { font-size: 14px; color: #e2e8f0; font-weight: 500; } .pax-calc-text { font-size: 12px; color: #94a3b8; margin-left: 77px; display: flex; align-items: center; gap: 6px; background: rgba(0, 0, 0, 0.2); padding: 4px 8px; border-radius: 4px; width: fit-content; } .pax-calc-formula { color: #cbd5e1; } .pax-calc-equals { color: #64748b; } .pax-calc-total { color: #10b981; font-weight: 600; font-size: 13px; } .budget-group-total { font-weight: 600; color: #10b981; background: rgba(16, 185, 129, 0.1); padding: 4px 10px; border-radius: 6px; font-size: 13px; margin-top: 4px; } .budget-row-item:has(.pax-breakdown-list) { flex-wrap: wrap !important; } .budget-group-header { flex-wrap: wrap !important; } .pax-calc-text { flex-wrap: wrap !important; max-width: 100% !important; margin-top: 8px !important; margin-left: 0 !important; } .pax-calc-formula, .pax-calc-equals, .pax-calc-total { white-space: nowrap !important; } </style>
 
 
 

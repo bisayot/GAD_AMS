@@ -26,12 +26,12 @@
 
   /* ---------- Masthead ---------- */
   .masthead{
-    background:linear-gradient(160deg,var(--green-deep),var(--green-mid) 70%);
-    color:var(--cream);
-    padding:38px clamp(18px,4vw,56px) 30px;
+    background:linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+    color:var(--ink);
+    padding:38px clamp(18px,4vw,56px) 34px;
     position:relative;
     overflow:hidden;
-    border-bottom:5px solid var(--gold);
+    border-bottom:4px solid var(--gold);
   }
   .masthead::after{
     content:"";
@@ -54,22 +54,25 @@
     font-size:11px;
     letter-spacing:.14em;
     text-transform:uppercase;
-    color:var(--gold-soft);
+    color:var(--gold);
+    font-weight:800;
     margin:0 0 10px;
   }
-  h1{
+  .masthead h1,
+  .report-wrapper h1{
     font-family: 'Manrope', system-ui, Avenir, Helvetica, Arial, sans-serif;
-    font-weight:600;
-    font-size:clamp(28px,4vw,42px);
+    font-weight:800;
+    font-size:clamp(26px,3.8vw,40px);
+    color:#0f172a;
     margin:0 0 6px;
-    letter-spacing:-.01em;
+    letter-spacing:-.02em;
   }
   .org-line{
     font-family: 'Manrope', system-ui, Avenir, Helvetica, Arial, sans-serif;
     font-style:italic;
-    font-weight:500;
+    font-weight:600;
     font-size:17px;
-    color:var(--gold-soft);
+    color:var(--gold);
   }
   .badge{
     font-family: 'Manrope', system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -160,8 +163,8 @@
   button:active{transform:scale(.97);}
   button.primary{background:var(--gold);color:white;border-color:var(--gold);}
   button.primary:hover{background:var(--green-mid);}
-  button.gold{background:var(--green-deep);color:white;border-color:var(--green-deep);}
-  button.gold:hover{background:var(--green-mid);border-color:var(--green-mid);}
+  button.gold{background:#ffffff;color:#334155;border:1px solid #cbd5e1;}
+  button.gold:hover{background:#f8fafc;border-color:var(--gold);color:var(--gold);}
   .hint{
     font-family: 'Manrope', system-ui, Avenir, Helvetica, Arial, sans-serif;
     font-size:11px;
@@ -188,16 +191,17 @@
     position:sticky;
     top:0;
     z-index:3;
-    background:var(--green-deep);
-    color:var(--cream);
+    background:#f8fafc;
+    color:#0f172a;
     font-family: 'Manrope', system-ui, Avenir, Helvetica, Arial, sans-serif;
-    font-weight:500;
-    font-size: 12.5px;
+    font-weight:700;
+    font-size: 12px;
     letter-spacing:.05em;
     text-transform:uppercase;
     text-align:left;
     padding:12px 12px;
-    border-right:1px solid rgba(250,247,240,.12);
+    border-right:1px solid #e2e8f0;
+    border-bottom:2px solid #cbd5e1;
     white-space:normal;
     vertical-align:bottom;
   }
@@ -205,11 +209,12 @@
     display:block;
     font-family: 'Manrope', system-ui, Avenir, Helvetica, Arial, sans-serif;
     font-style:italic;
-    color:var(--gold-soft);
-    font-size: 14px;
+    color:var(--gold);
+    font-size: 13.5px;
+    font-weight:800;
     margin-bottom:2px;
   }
-  .report-wrapper thead th em{font-style:normal;color:var(--gold-soft);display:block;font-size:9.5px;margin-top:3px;text-transform:none;letter-spacing:0;}
+  .report-wrapper thead th em{font-style:normal;color:#64748b;display:block;font-size:9.5px;margin-top:3px;text-transform:none;letter-spacing:0;}
   .report-wrapper th.col-num, .report-wrapper td.col-num{width:34px;min-width:34px;text-align:center;}
   .report-wrapper th.col-actions, .report-wrapper td.col-actions{width:40px;min-width:40px;}
 
@@ -347,21 +352,23 @@
   .gc-compare.negative{background:var(--danger-bg);color:var(--danger);}
 
   tfoot td{
-    background:var(--green-deep) !important;
-    color:var(--cream);
+    background:#f8fafc;
+    color:#0f172a;
     font-family: 'Manrope', system-ui, Avenir, Helvetica, Arial, sans-serif;
-    font-weight:600;
-    font-size: 14.5px;
+    font-weight:700;
+    font-size: 14px;
     padding:12px;
     border-top:2px solid var(--gold);
+    border-bottom:1px solid var(--line);
+    border-right:1px solid var(--line);
     vertical-align:middle;
   }
-  tfoot tr.foot-computed td{background:var(--green-mid) !important;font-weight:500;}
-  tfoot tr.foot-diff td{background:var(--ink) !important;font-weight:500;font-size: 13.5px;}
-  tfoot tr.foot-gender td{background:var(--green-mid) !important;font-weight:500;font-size: 13.5px;}
+  tfoot tr.foot-computed td{background:#f1f5f9;color:#0f172a;font-weight:600;}
+  tfoot tr.foot-diff td{background:#f8fafc;color:#0f172a;font-weight:600;font-size: 13.5px;}
+  tfoot tr.foot-gender td{background:#f1f5f9;color:#0f172a;font-weight:600;font-size: 13.5px;}
   tfoot .foot-label{text-align:right;padding-right:18px;font-family: 'Manrope', system-ui, Avenir, Helvetica, Arial, sans-serif;letter-spacing:.03em;}
   tfoot td[contenteditable="true"]{outline:none;}
-  tfoot td[contenteditable="true"]:focus{background:rgba(255,255,255,.12) !important;}
+  tfoot td[contenteditable="true"]:focus{background:#faf5ff !important;box-shadow:inset 0 0 0 2px var(--gold);}
 
   /* ---------- Signature block ---------- */
   .sign-wrap{padding:34px clamp(18px,4vw,56px) 0;}
@@ -410,59 +417,254 @@
     tfoot td{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   }
 
-.scroller {
-    background: #0f172a !important; /* Dark Slate-900 */
+html.dark .scroller,
+.dark .scroller {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
+    border-color: rgba(185, 121, 204, 0.25) !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35) !important;
     --paper: #0f172a;
     --ink: #f8fafc;
     --ink-soft: #cbd5e1;
-    --line: #334155;
-    --sage: #1e293b; /* Dark alternate row */
+    --line: rgba(185, 121, 204, 0.15);
+    --sage: #1e293b;
     --danger-bg: #450a0a;
     --ok-bg: #064e3b;
-    color: var(--ink);
-}
-.scroller table { color: var(--ink); background: transparent !important; }
-.scroller tbody td { background: transparent !important; }
-
-/* Dark mode for info-panel */
-.info-panel {
-    background: #0f172a !important;
-    border-color: #334155 !important;
-    color: #f8fafc;
-}
-.info-panel .field label { color: #cbd5e1 !important; }
-.info-panel .field .val { color: #f8fafc !important; }
-.info-panel .field.stat .val { color: var(--gold-soft) !important; }
-.info-panel .field.computed .val { 
-    background: #1e293b !important; 
-    color: var(--gold-soft) !important; 
-}
-.info-panel .field .val:focus {
-    background: #1e293b !important;
-    border-color: var(--gold) !important;
-}
-
-.scroller tbody tr { background: #0f172a !important; }
-.scroller tbody tr:hover { background: #1e293b !important; }
-.scroller tbody tr:hover td { background: transparent !important; }
-.scroller input, .scroller select, .scroller textarea, .scroller .editable, .scroller .val {
-    color: var(--ink) !important;
-    background: transparent !important;
-}
-.scroller thead th {
-    background: #020617 !important; /* Slate-950 for headers */
-    color: #e2e8f0 !important;
-}
-.scroller .td-inner:focus-within {
-    background: #2e1065 !important; /* Dark purple focus */
-    outline: 2px solid var(--gold);
-}
-.scroller .val:focus,
-.scroller td[contenteditable="true"]:focus,
-.scroller .gc-text:focus,
-.scroller .item-label:focus,
-.scroller .item-amt:focus,
-.scroller .item-src:focus {
-    background: #2e1065 !important;
     color: #ffffff !important;
 }
+html.dark .scroller table,
+.dark .scroller table { color: #ffffff !important; background: transparent !important; }
+html.dark .scroller tbody td,
+.dark .scroller tbody td {
+    background: transparent !important;
+    border-right-color: rgba(185, 121, 204, 0.15) !important;
+    border-bottom-color: rgba(185, 121, 204, 0.15) !important;
+    color: #ffffff !important;
+}
+
+/* Dark mode for info-panel */
+html.dark .info-panel,
+.dark .info-panel {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
+    border-color: rgba(185, 121, 204, 0.25) !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35) !important;
+    color: #ffffff !important;
+}
+html.dark .info-panel .field label,
+.dark .info-panel .field label { color: #cbd5e1 !important; }
+html.dark .info-panel .field .val,
+.dark .info-panel .field .val { color: #ffffff !important; }
+html.dark .info-panel .field .val:hover,
+.dark .info-panel .field .val:hover {
+    border-color: rgba(185, 121, 204, 0.4) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+html.dark .info-panel .field.stat .val,
+.dark .info-panel .field.stat .val { color: #c084fc !important; }
+html.dark .info-panel .field.computed .val,
+.dark .info-panel .field.computed .val { 
+    background: rgba(0, 0, 0, 0.3) !important; 
+    border-color: rgba(185, 121, 204, 0.2) !important;
+    color: #60a5fa !important; 
+}
+html.dark .info-panel .field .val:focus,
+.dark .info-panel .field .val:focus {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border-color: #c084fc !important;
+}
+
+html.dark .scroller tbody tr,
+.dark .scroller tbody tr { background: transparent !important; }
+html.dark .scroller tbody tr:nth-child(even) td,
+.dark .scroller tbody tr:nth-child(even) td { background: rgba(0, 0, 0, 0.2) !important; }
+html.dark .scroller tbody tr:hover td,
+.dark .scroller tbody tr:hover td { background: rgba(255, 255, 255, 0.04) !important; }
+html.dark .scroller input, html.dark .scroller select, html.dark .scroller textarea, html.dark .scroller .editable, html.dark .scroller .val,
+.dark .scroller input, .dark .scroller select, .dark .scroller textarea, .dark .scroller .editable, .dark .scroller .val {
+    color: #ffffff !important;
+    background: transparent !important;
+}
+html.dark .scroller thead th,
+.dark .scroller thead th {
+    background: #020617 !important;
+    color: #ffffff !important;
+    border-right-color: rgba(185, 121, 204, 0.2) !important;
+}
+html.dark .scroller .td-inner:focus-within,
+.dark .scroller .td-inner:focus-within {
+    background: rgba(147, 51, 234, 0.2) !important;
+    outline: 2px solid #c084fc;
+}
+html.dark .scroller .val:focus,
+html.dark .scroller td[contenteditable="true"]:focus,
+html.dark .scroller .gc-text:focus,
+html.dark .scroller .item-label:focus,
+html.dark .scroller .item-amt:focus,
+html.dark .scroller .item-src:focus,
+.dark .scroller .val:focus,
+.dark .scroller td[contenteditable="true"]:focus,
+.dark .scroller .gc-text:focus,
+.dark .scroller .item-label:focus,
+.dark .scroller .item-amt:focus,
+.dark .scroller .item-src:focus {
+    background: rgba(147, 51, 234, 0.2) !important;
+    color: #ffffff !important;
+}
+
+html.dark .toolbar button.gold,
+.dark .toolbar button.gold {
+    background: linear-gradient(135deg, #1e1b4b 0%, #1a1a2e 100%) !important;
+    border: 1px solid rgba(192, 132, 252, 0.4) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+html.dark .toolbar button.gold:hover,
+.dark .toolbar button.gold:hover {
+    background: linear-gradient(135deg, #7e22ce 0%, #6b21a8 100%) !important;
+    border-color: #c084fc !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 16px rgba(147, 51, 234, 0.35) !important;
+}
+html.dark .toolbar .hint,
+.dark .toolbar .hint {
+    color: #475569 !important;
+}
+html.dark .toolbar .hint b,
+.dark .toolbar .hint b {
+    color: #7e22ce !important;
+}
+
+.report-wrapper .toolbar button.gold.btn-active {
+  background: #faf5ff;
+  border-color: var(--gold);
+  color: var(--gold);
+  box-shadow: 0 0 0 1px var(--gold);
+}
+html.dark .report-wrapper .toolbar button.gold.btn-active,
+.dark .report-wrapper .toolbar button.gold.btn-active {
+  background: linear-gradient(135deg, #7e22ce 0%, #6b21a8 100%) !important;
+  border-color: #c084fc !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 16px rgba(147, 51, 234, 0.4) !important;
+}
+
+/* ==========================================================================
+   Fit-to-Screen Mode (No swiping / horizontal scrolling on desktop)
+   ========================================================================== */
+.report-wrapper.fit-screen .table-wrap {
+  padding: 16px clamp(8px, 1.2vw, 20px) 0;
+}
+.report-wrapper.fit-screen .scroller {
+  overflow-x: auto;
+  width: 100%;
+}
+.report-wrapper.fit-screen table {
+  width: 100%;
+  table-layout: auto;
+}
+.report-wrapper.fit-screen thead th {
+  padding: 8px 5px;
+  font-size: 11px;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+}
+.report-wrapper.fit-screen thead th .colnum {
+  font-size: 11.5px;
+  margin-bottom: 1px;
+}
+.report-wrapper.fit-screen thead th em {
+  font-size: 8px;
+  line-height: 1.15;
+  margin-top: 1px;
+}
+.report-wrapper.fit-screen tbody td {
+  padding: 7px 5px;
+  font-size: 11px;
+  line-height: 1.35;
+  min-width: 0 !important;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.report-wrapper.fit-screen th.col-num,
+.report-wrapper.fit-screen td.col-num {
+  width: 26px !important;
+  min-width: 26px !important;
+  padding: 6px 2px;
+}
+.report-wrapper.fit-screen th.col-actions,
+.report-wrapper.fit-screen td.col-actions {
+  width: 28px !important;
+  min-width: 28px !important;
+  padding: 6px 2px;
+}
+.report-wrapper.fit-screen tbody td[data-col="budget"],
+.report-wrapper.fit-screen tbody td[data-col="cost"] {
+  min-width: 105px !important;
+  max-width: 140px;
+}
+.report-wrapper.fit-screen tbody td[data-col="issue"] {
+  min-width: 105px !important;
+}
+.report-wrapper.fit-screen tbody td[data-col="indicators"],
+.report-wrapper.fit-screen tbody td[data-col="actualResult"] {
+  min-width: 105px !important;
+}
+.report-wrapper.fit-screen .item-label {
+  font-size: 11px;
+  padding: 1px 0;
+}
+.report-wrapper.fit-screen .item-amt {
+  width: 60px;
+  font-size: 11px;
+  padding: 1px 0;
+}
+.report-wrapper.fit-screen .item-src {
+  width: 28px;
+  font-size: 8.5px;
+}
+.report-wrapper.fit-screen .item-subtotal {
+  font-size: 11px;
+  margin-top: 4px;
+  padding-top: 4px;
+}
+.report-wrapper.fit-screen .item-add {
+  font-size: 10px;
+  padding: 2px 4px;
+  margin-top: 3px;
+}
+.report-wrapper.fit-screen .item-rm {
+  width: 16px;
+  height: 16px;
+  font-size: 10px;
+}
+.report-wrapper.fit-screen .gc-text {
+  font-size: 11px;
+}
+.report-wrapper.fit-screen .gc-gender-row {
+  gap: 5px;
+  margin-top: 4px;
+  padding-top: 4px;
+}
+.report-wrapper.fit-screen .gc-field {
+  font-size: 10.5px;
+  gap: 2px;
+}
+.report-wrapper.fit-screen .gc-amt {
+  width: 32px;
+  font-size: 11px;
+  padding: 1px 0;
+}
+.report-wrapper.fit-screen .gc-total {
+  font-size: 10px;
+}
+.report-wrapper.fit-screen .gc-compare {
+  font-size: 10px;
+  padding: 2px 4px;
+  margin-top: 4px;
+}
+.report-wrapper.fit-screen tfoot td {
+  padding: 8px 5px;
+  font-size: 11.5px;
+}
+
+

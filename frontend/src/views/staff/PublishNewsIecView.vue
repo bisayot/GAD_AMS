@@ -11,12 +11,12 @@
         <form @submit.prevent="confirmPublish" class="space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="input-group md:col-span-2">
-              <label class="input-label">Title <span class="text-red-400">*</span></label>
+              <label class="input-label">Title <span class="text-red-500 dark:text-red-400">*</span></label>
               <textarea v-model="form.title" class="custom-input resize-none overflow-hidden" rows="1" placeholder="Enter title" required @input="autoResize" style="min-height: 48px;"></textarea>
             </div>
 
             <div class="input-group md:col-span-2">
-              <label class="input-label">Category <span class="text-red-400">*</span></label>
+              <label class="input-label">Category <span class="text-red-500 dark:text-red-400">*</span></label>
               <div class="select-wrapper">
                 <select v-model="form.category" class="custom-select" required>
                   <option value="News">News</option>
@@ -32,13 +32,12 @@
               
               <div class="relative w-full">
                 <!-- Highlighted Text Overlay -->
-                <div class="absolute inset-0 custom-input pointer-events-none whitespace-pre-wrap break-words overflow-hidden" style="color: white; border-color: transparent; background: transparent;" v-html="highlightedDescription"></div>
+                <div class="desc-overlay absolute inset-0 custom-input pointer-events-none whitespace-pre-wrap break-words overflow-hidden" v-html="highlightedDescription"></div>
                 <!-- Actual Textarea -->
                 <textarea 
                   v-model="form.description" 
                   rows="4" 
-                  class="custom-input relative z-10 w-full bg-transparent resize-none overflow-hidden" 
-                  style="color: transparent; caret-color: white;"
+                  class="desc-textarea custom-input relative z-10 w-full bg-transparent resize-none overflow-hidden" 
                   @scroll="syncScroll"
                   @input="autoResize"
                   ref="descTextarea"
@@ -50,20 +49,20 @@
             <div class="input-group md:col-span-2">
               <label class="input-label">Images (Optional)</label>
               <div 
-                class="border-2 border-dashed border-white/20 rounded-xl p-8 flex flex-col items-center justify-center hover:border-purple-500/50 transition-colors cursor-pointer bg-black/20 relative"
+                class="upload-dropzone"
                 @dragover.prevent
                 @drop.prevent="handleFileDrop"
                 @click="$refs.fileInput.click()"
               >
                 <input ref="fileInput" @change="handleFileChange" type="file" multiple accept="image/*" class="hidden" />
-                <span class="material-symbols-outlined text-4xl text-slate-400 mb-2">cloud_upload</span>
-                <p class="text-slate-300 font-bold text-center">Click or drag and drop images here</p>
-                <p class="text-xs text-slate-500 mt-1 text-center">Supports JPG, PNG, WEBP</p>
+                <span class="material-symbols-outlined dropzone-icon">cloud_upload</span>
+                <p class="dropzone-text">Click or drag and drop images here</p>
+                <p class="dropzone-subtext">Supports JPG, PNG, WEBP</p>
               </div>
               
               <!-- Small Previews inside the form -->
-              <div v-if="previewImageUrls.length > 0" class="flex flex-wrap gap-4 mt-2 p-4 bg-black/20 rounded-xl border border-white/10">
-                <div v-for="(url, idx) in previewImageUrls" :key="idx" class="relative w-20 h-20 rounded-lg overflow-hidden border border-white/20 group shadow-lg">
+              <div v-if="previewImageUrls.length > 0" class="preview-images-container flex flex-wrap gap-4 mt-3 p-4 rounded-xl">
+                <div v-for="(url, idx) in previewImageUrls" :key="idx" class="preview-image-item relative w-20 h-20 rounded-lg overflow-hidden group shadow-md">
                   <img :src="url" class="object-cover w-full h-full" />
                   <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <button @click.prevent="removeImage(idx)" class="text-red-400 hover:text-red-300 bg-white/10 p-1.5 rounded-full backdrop-blur-md shadow-sm">
@@ -76,10 +75,10 @@
 
             <div class="input-group md:col-span-2">
               <label class="input-label">Tags (Optional)</label>
-              <div class="flex gap-2 mb-2 flex-wrap">
-                <span v-for="(tag, index) in tagsList" :key="index" class="bg-purple-900/40 text-purple-200 border border-purple-500/30 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2">
+              <div class="flex gap-2 mb-2 flex-wrap" v-if="tagsList.length > 0">
+                <span v-for="(tag, index) in tagsList" :key="index" class="tag-chip">
                   #{{ tag }}
-                  <button @click.prevent="removeTag(index)" class="hover:text-red-400">&times;</button>
+                  <button @click.prevent="removeTag(index)" class="tag-remove-btn">&times;</button>
                 </span>
               </div>
               <div class="relative flex items-center w-full">
@@ -87,8 +86,7 @@
                 <button 
                   @click.prevent="addTag" 
                   :disabled="!currentTagInput.trim()" 
-                  class="absolute right-2 px-4 py-1.5 rounded-lg font-bold text-sm shadow-md"
-                  :style="currentTagInput.trim() ? 'background-color: #9333ea !important; color: white !important;' : 'background-color: #475569 !important; color: white !important; opacity: 0.5;'"
+                  class="tag-add-btn"
                 >Add</button>
               </div>
             </div>
@@ -108,39 +106,38 @@
       </div>
 
       <!-- Live Preview Modal -->
-      <div v-if="showPreview" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" style="margin-left: 0;">
-        <div class="form-container max-w-4xl w-full shadow-2xl relative max-h-[90vh] overflow-y-auto" style="padding: 2rem;">
+      <div v-if="showPreview" class="preview-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4" style="margin-left: 0;">
+        <div class="preview-modal-container form-container max-w-4xl w-full shadow-2xl relative max-h-[90vh] overflow-y-auto p-6 md:p-8">
           <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-headline font-bold text-white">Live Preview</h3>
-            <button @click="showPreview = false" class="text-slate-400 hover:text-white transition-colors">
+            <h3 class="preview-modal-title text-xl font-headline font-bold">Live Preview</h3>
+            <button @click="showPreview = false" class="preview-modal-close transition-colors">
               <span class="material-symbols-outlined">close</span>
             </button>
           </div>
           
           <!-- Full Post Preview -->
-          <!-- Full Post Preview -->
-          <div class="bg-slate-50 rounded-2xl shadow-2xl overflow-hidden mb-8 max-w-4xl mx-auto border border-slate-200">
+          <div class="bg-slate-50 dark:bg-slate-900 rounded-2xl shadow-xl overflow-hidden mb-8 max-w-4xl mx-auto border border-slate-200 dark:border-slate-800">
             <div class="p-8 md:p-12 pb-12 text-left">
               
               <!-- Tags (At the very top) -->
               <div class="mb-6 flex flex-wrap gap-3" v-if="tagsList.length > 0">
-                <span v-for="tag in tagsList" :key="tag" class="text-sm font-body text-slate-600 bg-white px-4 py-1.5 rounded-full border border-slate-200 flex items-center gap-2">
+                <span v-for="tag in tagsList" :key="tag" class="text-sm font-body text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 px-4 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 flex items-center gap-2">
                   {{ tag.trim() }} <span class="material-symbols-outlined text-[14px] text-slate-400">arrow_outward</span>
                 </span>
               </div>
 
               <!-- Title -->
               <div class="mb-6">
-                <h1 class="text-4xl md:text-5xl lg:text-[56px] font-headline font-black text-slate-900 leading-[1.1] tracking-tight">{{ form.title || 'Untitled Material' }}</h1>
+                <h1 class="text-4xl md:text-5xl lg:text-[56px] font-headline font-black text-slate-900 dark:text-white leading-[1.1] tracking-tight">{{ form.title || 'Untitled Material' }}</h1>
               </div>
 
               <!-- Meta Info -->
-              <div class="mb-12 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-sm text-slate-600 font-body">
+              <div class="mb-12 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-sm text-slate-600 dark:text-slate-400 font-body">
                 <div class="flex items-center gap-3">
                   <img src="/images/logo.png" class="w-10 h-10 rounded-full object-contain bg-white border border-slate-100 shadow-sm" alt="Author" />
                   <div class="flex items-center flex-wrap gap-x-2">
-                    <span class="font-medium text-slate-900">BSU GAD Office</span>
-                    <span class="px-3 py-0.5 rounded-full border border-slate-200 text-xs font-medium">{{ form.category }}</span>
+                    <span class="font-medium text-slate-900 dark:text-slate-200">BSU GAD Office</span>
+                    <span class="px-3 py-0.5 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-medium">{{ form.category }}</span>
                     <span>&middot;</span>
                     <span>{{ new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) }}</span>
                   </div>
@@ -148,9 +145,9 @@
               </div>
 
               <!-- Image Carousel -->
-              <div class="relative min-h-[300px] w-full bg-slate-100 rounded-xl overflow-hidden mb-12 flex items-center justify-center">
+              <div class="relative min-h-[300px] w-full bg-slate-100 dark:bg-slate-800 rounded-xl overflow-hidden mb-12 flex items-center justify-center">
                 <img v-if="previewImageUrls.length > 0" :src="previewImageUrls[currentPreviewIndex]" class="w-full max-h-[80vh] object-contain transition-all duration-300" />
-                <div v-else class="w-full h-full flex items-center justify-center bg-slate-200">
+                <div v-else class="w-full h-full flex items-center justify-center bg-slate-200 dark:bg-slate-700">
                   <span class="material-symbols-outlined text-6xl text-slate-400">newspaper</span>
                 </div>
                 
@@ -178,7 +175,7 @@
               </div>
 
               <!-- Description -->
-              <div class="text-slate-800 leading-relaxed whitespace-pre-wrap text-lg md:text-xl font-body" v-html="linkify(form.description) || '<span class=\'text-slate-400\'>No description provided.</span>'"></div>
+              <div class="text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-wrap text-lg md:text-xl font-body" v-html="linkify(form.description) || '<span class=\'text-slate-400\'>No description provided.</span>'"></div>
             </div>
           </div>
 
@@ -193,8 +190,8 @@
       </div>
 
       <div class="table-container mt-8">
-        <div class="p-6 border-b border-white/10">
-          <h2 class="text-xl font-headline font-bold text-white">Published Bulletin Items</h2>
+        <div class="table-card-header">
+          <h2 class="table-card-title text-xl font-headline font-bold">Published Bulletin Items</h2>
         </div>
         
         <div v-if="loadingItems" class="empty-state">Loading...</div>
@@ -224,8 +221,8 @@
                 <td class="table-cell title-cell">{{ item.title }}</td>
                 <td class="table-cell date-cell">{{ new Date(item.created_at).toLocaleDateString() }}</td>
                 <td class="table-cell text-right">
-                  <button @click="deleteItem(item.id)" class="transition-colors" title="Delete">
-                    <span class="material-symbols-outlined text-sm" style="color: white !important;">delete</span>
+                  <button @click="deleteItem(item.id)" class="btn-delete-item transition-colors" title="Delete">
+                    <span class="material-symbols-outlined text-sm">delete</span>
                   </button>
                 </td>
               </tr>
@@ -281,7 +278,7 @@ const highlightedDescription = computed(() => {
   let text = form.value.description || '';
   if (!text) {
     // Return placeholder formatting if empty
-    return '<span class="text-slate-500">Enter description...</span>';
+    return '<span class="text-slate-400">Enter description...</span>';
   }
   // Escape HTML first to prevent XSS and formatting issues
   const escapeHTML = (str) => str.replace(/[&<>'"]/g, 
@@ -297,7 +294,7 @@ const highlightedDescription = computed(() => {
   
   // Highlight links
   const urlRegex = /(https?:\/\/[^\s]+|(?:www\.)?[a-zA-Z0-9-]+\.(?:com|org|net|edu|gov|ph|io|co|info|me)(?:\/[^\s]*)?)/ig;
-  return text.replace(urlRegex, (url) => `<span class="text-purple-400 underline">${url}</span>`);
+  return text.replace(urlRegex, (url) => `<span class="text-purple-600 dark:text-purple-400 underline font-semibold">${url}</span>`);
 });
 
 const linkify = (text) => {
@@ -541,26 +538,36 @@ const deleteItem = (id) => {
   padding: 0 0.25rem;
 }
 
+/* ==========================================================================
+   Page Header
+   ========================================================================== */
 .page-title {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 900;
   letter-spacing: -0.025em;
-  color: #16213e;
+  background: linear-gradient(135deg, #7e22ce 0%, #9333ea 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .page-subtitle {
   font-size: 1rem;
   color: #475569;
   margin-top: 0.25rem;
+  transition: color 0.3s;
 }
 
+/* ==========================================================================
+   Form Card Container
+   ========================================================================== */
 .form-container {
   padding: 2rem;
   border-radius: 1rem;
-  border: 1px solid rgba(185, 121, 204, 0.15);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(8px);
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
 }
 
 .input-group {
@@ -574,24 +581,30 @@ const deleteItem = (id) => {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-weight: 800;
-  color: rgba(203, 213, 225, 0.7);
+  color: #475569;
+  transition: color 0.3s;
 }
 
+/* ==========================================================================
+   Inputs & Selects (Light Mode Default)
+   ========================================================================== */
 .custom-input {
   width: 100%;
   padding: 0.75rem 1rem;
   border-radius: 0.75rem;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(185, 121, 204, 0.2);
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
   font-size: 1rem;
-  font-weight: 600;
-  color: white;
+  font-weight: 500;
+  color: #0f172a;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
   transition: all 0.3s;
 }
 
 .custom-input:focus {
   outline: none;
-  border-color: rgba(185, 121, 204, 0.5);
+  border-color: #9333ea;
+  box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.15);
 }
 
 .custom-input::placeholder {
@@ -605,26 +618,28 @@ const deleteItem = (id) => {
 
 .custom-select {
   width: 100%;
-  padding: 0.75rem 2rem 0.75rem 1rem;
+  padding: 0.75rem 2.25rem 0.75rem 1rem;
   border-radius: 0.75rem;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(185, 121, 204, 0.2);
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
   font-size: 1rem;
-  font-weight: 600;
-  color: white;
+  font-weight: 500;
+  color: #0f172a;
   appearance: none;
   cursor: pointer;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
   transition: all 0.3s;
 }
 
 .custom-select:focus {
   outline: none;
-  border-color: rgba(185, 121, 204, 0.5);
+  border-color: #9333ea;
+  box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.15);
 }
 
 .custom-select option {
-  background-color: #1a1a2e;
-  color: #ffffff;
+  background-color: #ffffff;
+  color: #0f172a;
 }
 
 .select-arrow {
@@ -632,23 +647,171 @@ const deleteItem = (id) => {
   right: 16px;
   top: 50%;
   transform: translateY(-50%);
-  color: #b979cc;
+  color: #7e22ce;
   font-size: 0.85rem;
   pointer-events: none;
+  transition: color 0.3s;
 }
 
-.custom-file-input {
-  width: 100%;
-  padding: 0.75rem 1rem;
+/* ==========================================================================
+   Description Field (Overlay & Caret)
+   ========================================================================== */
+.desc-overlay {
+  color: #0f172a;
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.desc-textarea {
+  color: transparent !important;
+  caret-color: #0f172a !important;
+  background: transparent !important;
+}
+
+/* ==========================================================================
+   Upload Dropzone
+   ========================================================================== */
+.upload-dropzone {
+  border: 2px dashed #cbd5e1;
   border-radius: 0.75rem;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(185, 121, 204, 0.2);
-  color: #94a3b8;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  cursor: pointer;
+  position: relative;
   transition: all 0.3s;
 }
 
+.upload-dropzone:hover {
+  border-color: #9333ea;
+  background: #faf5ff;
+}
+
+.upload-dropzone .dropzone-icon {
+  font-size: 2.25rem;
+  color: #9333ea;
+  margin-bottom: 0.5rem;
+  transition: color 0.3s;
+}
+
+.upload-dropzone .dropzone-text {
+  color: #1e293b;
+  font-weight: 700;
+  text-align: center;
+  font-size: 0.95rem;
+  transition: color 0.3s;
+}
+
+.upload-dropzone .dropzone-subtext {
+  color: #64748b;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  text-align: center;
+  transition: color 0.3s;
+}
+
+.preview-images-container {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s;
+}
+
+.preview-image-item {
+  border: 1px solid #cbd5e1;
+}
+
+/* ==========================================================================
+   Tags
+   ========================================================================== */
+.tag-chip {
+  background: #f3e8ff;
+  color: #7e22ce;
+  border: 1px solid #d8b4fe;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.tag-remove-btn {
+  color: #9333ea;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+.tag-remove-btn:hover {
+  color: #dc2626;
+}
+
+.tag-add-btn {
+  position: absolute;
+  right: 0.5rem;
+  padding: 0.375rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  font-size: 0.875rem;
+  background-color: #9333ea;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(147, 51, 234, 0.3);
+  transition: all 0.2s;
+}
+
+.tag-add-btn:hover:not(:disabled) {
+  background-color: #7e22ce;
+}
+
+.tag-add-btn:disabled {
+  background-color: #e2e8f0;
+  color: #94a3b8;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Action Buttons
+   ========================================================================== */
+.preview-btn {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  padding: 0.75rem 2rem;
+  border-radius: 9999px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.preview-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+  transform: translateY(-2px);
+}
+
 .publish-btn {
-  background: linear-gradient(135deg, #9333ea, #6b21a8);
+  background: linear-gradient(135deg, #9333ea, #7e22ce);
   border: 1px solid rgba(185, 121, 204, 0.5);
   color: white;
   padding: 0.75rem 2rem;
@@ -660,50 +823,63 @@ const deleteItem = (id) => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 14px rgba(147, 51, 234, 0.35);
   transition: all 0.3s;
   cursor: pointer;
 }
 
 .publish-btn:hover:not(:disabled) {
-  opacity: 0.9;
+  opacity: 0.95;
   transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(147, 51, 234, 0.45);
 }
 
-.preview-btn {
-  background: linear-gradient(135deg, #1e293b, #0f172a);
-  border: 1px solid rgba(185, 121, 204, 0.3);
-  color: white;
-  padding: 0.75rem 2rem;
-  border-radius: 9999px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-size: 0.875rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s;
-  cursor: pointer;
+/* ==========================================================================
+   Modal Header & Backdrop
+   ========================================================================== */
+.preview-modal-backdrop {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
 }
 
-.preview-btn:hover {
-  background: linear-gradient(135deg, #334155, #1e293b);
-  transform: translateY(-2px);
+.preview-modal-title {
+  color: #0f172a;
+  transition: color 0.3s;
 }
 
+.preview-modal-close {
+  color: #64748b;
+}
+
+.preview-modal-close:hover {
+  color: #0f172a;
+}
+
+/* ==========================================================================
+   Table Container & Table (Light Mode Default)
+   ========================================================================== */
 .table-container {
   border-radius: 1rem;
-  border: 1px solid rgba(185, 121, 204, 0.15);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
   overflow: hidden;
-  backdrop-filter: blur(8px);
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: #ffffff;
+  transition: all 0.3s;
+}
+
+.table-card-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  transition: border-color 0.3s;
+}
+
+.table-card-title {
+  color: #0f172a;
+  transition: color 0.3s;
 }
 
 .table-wrapper {
-  /* overflow removed for full panning */
+  overflow-x: auto;
 }
 
 .data-table {
@@ -713,17 +889,19 @@ const deleteItem = (id) => {
 }
 
 .table-header-row {
-  border-bottom: 1px solid rgba(185, 121, 204, 0.1);
-  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+  transition: all 0.3s;
 }
 
 .table-header-cell {
   padding: 1rem 1.5rem;
   font-size: 0.85rem;
-  font-weight: 900;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #b979cc;
+  letter-spacing: 0.08em;
+  color: #7e22ce;
+  transition: color 0.3s;
 }
 
 .table-body {
@@ -734,17 +912,18 @@ const deleteItem = (id) => {
   padding: 3rem 1.5rem;
   text-align: center;
   font-size: 1rem;
-  color: #94a3b8;
+  color: #64748b;
   font-weight: 500;
+  transition: color 0.3s;
 }
 
 .table-row {
-  transition: all 0.3s;
-  border-bottom: 1px solid rgba(185, 121, 204, 0.05);
+  transition: all 0.2s;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .table-row:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: #f8fafc;
 }
 
 .table-cell {
@@ -753,39 +932,326 @@ const deleteItem = (id) => {
 
 .title-cell {
   font-weight: 600;
-  color: #e2e8f0;
+  color: #0f172a;
+  transition: color 0.3s;
 }
 
 .date-cell {
-  color: #94a3b8;
-  font-family: monospace;
-  font-size: 1rem;
+  color: #64748b;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.btn-delete-item {
+  color: #ef4444;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.375rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-delete-item:hover {
+  color: #dc2626;
+  background: #fee2e2;
 }
 
 .category-badge {
   padding: 0.25rem 0.625rem;
   border-radius: 0.5rem;
   font-size: 0.8rem;
-  font-weight: 900;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  transition: all 0.3s;
 }
 
 .badge-news {
-  background: rgba(59, 130, 246, 0.15);
-  border: 1px solid rgba(59, 130, 246, 0.4);
-  color: #93c5fd;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
 }
 
 .badge-iec {
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  color: #6ee7b7;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #047857;
 }
 
 .badge-announcement {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #c2410c;
+}
+
+/* ==========================================================================
+   Dark Mode Overrides
+   ========================================================================== */
+:global(.dark) .page-title,
+.dark .page-title {
+  background: linear-gradient(135deg, #deb7ff 0%, #c084fc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+:global(.dark) .page-subtitle,
+.dark .page-subtitle {
+  color: #cbd5e1;
+}
+
+:global(.dark) .form-container,
+.dark .form-container {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-color: rgba(185, 121, 204, 0.15);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+}
+
+:global(.dark) .input-label,
+.dark .input-label {
+  color: rgba(203, 213, 225, 0.7);
+}
+
+:global(.dark) .custom-input,
+.dark .custom-input {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: rgba(185, 121, 204, 0.2);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+:global(.dark) .custom-input:focus,
+.dark .custom-input:focus {
+  border-color: rgba(185, 121, 204, 0.5);
+  box-shadow: 0 0 0 3px rgba(185, 121, 204, 0.2);
+}
+
+:global(.dark) .custom-input::placeholder,
+.dark .custom-input::placeholder {
+  color: #94a3b8;
+}
+
+:global(.dark) .custom-select,
+.dark .custom-select {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: rgba(185, 121, 204, 0.2);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+:global(.dark) .custom-select:focus,
+.dark .custom-select:focus {
+  border-color: rgba(185, 121, 204, 0.5);
+  box-shadow: 0 0 0 3px rgba(185, 121, 204, 0.2);
+}
+
+:global(.dark) .custom-select option,
+.dark .custom-select option {
+  background-color: #1a1a2e;
+  color: #ffffff;
+}
+
+:global(.dark) .select-arrow,
+.dark .select-arrow {
+  color: #b979cc;
+}
+
+:global(.dark) .desc-overlay,
+.dark .desc-overlay {
+  color: #ffffff;
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+:global(.dark) .desc-textarea,
+.dark .desc-textarea {
+  color: transparent !important;
+  caret-color: #ffffff !important;
+  background: transparent !important;
+}
+
+:global(.dark) .upload-dropzone,
+.dark .upload-dropzone {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+:global(.dark) .upload-dropzone:hover,
+.dark .upload-dropzone:hover {
+  border-color: rgba(168, 85, 247, 0.5);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+:global(.dark) .upload-dropzone .dropzone-icon,
+.dark .upload-dropzone .dropzone-icon {
+  color: #94a3b8;
+}
+
+:global(.dark) .upload-dropzone .dropzone-text,
+.dark .upload-dropzone .dropzone-text {
+  color: #cbd5e1;
+}
+
+:global(.dark) .upload-dropzone .dropzone-subtext,
+.dark .upload-dropzone .dropzone-subtext {
+  color: #64748b;
+}
+
+:global(.dark) .preview-images-container,
+.dark .preview-images-container {
+  background: rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+:global(.dark) .preview-image-item,
+.dark .preview-image-item {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+:global(.dark) .tag-chip,
+.dark .tag-chip {
+  background: rgba(88, 28, 135, 0.4);
+  color: #e9d5ff;
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+:global(.dark) .tag-remove-btn,
+.dark .tag-remove-btn {
+  color: #e9d5ff;
+}
+
+:global(.dark) .tag-remove-btn:hover,
+.dark .tag-remove-btn:hover {
+  color: #f87171;
+}
+
+:global(.dark) .tag-add-btn:disabled,
+.dark .tag-add-btn:disabled {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #64748b;
+}
+
+:global(.dark) .preview-btn,
+.dark .preview-btn {
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  border-color: rgba(185, 121, 204, 0.3);
+  color: #ffffff;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+}
+
+:global(.dark) .preview-btn:hover,
+.dark .preview-btn:hover {
+  background: linear-gradient(135deg, #334155, #1e293b);
+}
+
+:global(.dark) .preview-modal-backdrop,
+.dark .preview-modal-backdrop {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+:global(.dark) .preview-modal-title,
+.dark .preview-modal-title {
+  color: #ffffff;
+}
+
+:global(.dark) .preview-modal-close,
+.dark .preview-modal-close {
+  color: #94a3b8;
+}
+
+:global(.dark) .preview-modal-close:hover,
+.dark .preview-modal-close:hover {
+  color: #ffffff;
+}
+
+:global(.dark) .table-container,
+.dark .table-container {
+  border-color: rgba(185, 121, 204, 0.15);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+:global(.dark) .table-card-header,
+.dark .table-card-header {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+:global(.dark) .table-card-title,
+.dark .table-card-title {
+  color: #ffffff;
+}
+
+:global(.dark) .table-header-row,
+.dark .table-header-row {
+  border-bottom-color: rgba(185, 121, 204, 0.1);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+:global(.dark) .table-header-cell,
+.dark .table-header-cell {
+  color: #b979cc;
+}
+
+:global(.dark) .table-row,
+.dark .table-row {
+  border-bottom-color: rgba(185, 121, 204, 0.05);
+}
+
+:global(.dark) .table-row:hover,
+.dark .table-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+:global(.dark) .title-cell,
+.dark .title-cell {
+  color: #e2e8f0;
+}
+
+:global(.dark) .date-cell,
+.dark .date-cell {
+  color: #94a3b8;
+}
+
+:global(.dark) .btn-delete-item,
+.dark .btn-delete-item {
+  color: #f87171;
+}
+
+:global(.dark) .btn-delete-item:hover,
+.dark .btn-delete-item:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+:global(.dark) .empty-state,
+.dark .empty-state {
+  color: #94a3b8;
+}
+
+:global(.dark) .badge-news,
+.dark .badge-news {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.4);
+  color: #93c5fd;
+}
+
+:global(.dark) .badge-iec,
+.dark .badge-iec {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #6ee7b7;
+}
+
+:global(.dark) .badge-announcement,
+.dark .badge-announcement {
   background: rgba(249, 115, 22, 0.15);
-  border: 1px solid rgba(249, 115, 22, 0.4);
+  border-color: rgba(249, 115, 22, 0.4);
   color: #fdba74;
 }
 </style>

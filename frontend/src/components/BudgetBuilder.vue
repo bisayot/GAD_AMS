@@ -5,14 +5,14 @@
       <option v-for="u in unitSuggestions" :key="u" :value="u"></option>
     </datalist>
     
-    <div v-for="vId in (venues && venues.length ? venues : [])" :key="vId" class="venue-budget-wrapper" style="margin-bottom: 2rem; border-radius: 8px; padding: 1rem; border: 1px solid rgba(185, 121, 204, 0.3);">
-      <h4 style="color: #e9d5ff; margin-bottom: 6px; border-left: 4px solid #b979cc; padding-left: 10px;">Budget for Venue: {{ getVenueName(vId) }}</h4>
-      <div v-if="venueInsideMap !== null" style="margin-bottom: 12px; padding-left: 14px;">
-        <span :style="venueIsOutside(vId) ? 'color:#f9a8d4;font-size:12px;font-weight:600;' : 'color:#86efac;font-size:12px;font-weight:600;'">
+    <div v-for="vId in (venues && venues.length ? venues : [])" :key="vId" class="venue-budget-wrapper">
+      <h4 class="venue-budget-title">Budget for Venue: {{ getVenueName(vId) }}</h4>
+      <div v-if="venueInsideMap !== null" class="venue-rate-status-container">
+        <span :class="venueIsOutside(vId) ? 'venue-rate-outside' : 'venue-rate-inside'">
           {{ venueIsOutside(vId) ? '🏙️ Outside BSU — using outside rates' : '🏫 Inside BSU — using inside rates' }}
         </span>
       </div>
-      <div class="budget-groups-container" style="display: flex; flex-direction: column; gap: 16px; overflow-x: auto; padding-bottom: 8px;">
+      <div class="budget-groups-container">
         <div v-for="g in budgetGroups" :key="g.key" class="budget-group-card">
           <div class="budget-group-header" style="justify-content: space-between;">
             <div style="display: flex; align-items: center; gap: 10px;">
@@ -241,77 +241,148 @@ const getVenueName = (id) => {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #b979cc;
+  color: #7e22ce;
 }
 
-.budget-group-card {
-  background: rgba(30, 41, 59, 0.4);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 8px;
-  overflow: hidden;
-  min-width: 600px;
+.venue-budget-wrapper {
+  margin-bottom: 2rem;
+  border-radius: 14px;
+  padding: 1.25rem;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  transition: all 0.3s ease;
 }
-.budget-group-header {
-  background: rgba(15, 23, 42, 0.6);
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
-}
-.budget-group-icon {
-  font-size: 20px;
-}
-.budget-group-title {
-  color: #f8fafc;
-  font-weight: 600;
-  font-size: 14px;
-}
-.budget-group-total {
-  color: #b979cc;
+
+.venue-budget-title {
+  color: #7e22ce;
+  margin-bottom: 8px;
+  border-left: 4px solid #7e22ce;
+  padding-left: 10px;
   font-weight: 700;
   font-size: 15px;
 }
+
+.venue-rate-status-container {
+  margin-bottom: 12px;
+  padding-left: 14px;
+}
+
+.venue-rate-outside {
+  color: #be185d;
+  background: #fdf2f8;
+  border: 1px solid #fbcfe8;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.venue-rate-inside {
+  color: #15803d;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.budget-groups-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.budget-group-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  min-width: 600px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.budget-group-header {
+  background: #f1f5f9;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.budget-group-icon {
+  font-size: 20px;
+}
+
+.budget-group-title {
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.budget-group-total {
+  color: #7e22ce;
+  font-weight: 700;
+  font-size: 15px;
+  background: #f3e8ff;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
 .budget-group-content {
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
+
 .budget-row-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 12px;
-  background: rgba(15, 23, 42, 0.4);
-  border-radius: 6px;
-  border: 1px solid rgba(148, 163, 184, 0.1);
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
 }
+
 .budget-item-title {
-  color: #e2e8f0;
+  color: #1e293b;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   margin-bottom: 6px;
 }
+
 .others-input-name {
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  color: #ffffff;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 14px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 13px;
   width: 100%;
   max-width: 200px;
   margin-bottom: 6px;
 }
+
 .others-input-name:focus {
   outline: none;
-  border-color: #b979cc;
+  border-color: #7e22ce;
+  box-shadow: 0 0 0 2px rgba(126, 34, 206, 0.15);
 }
+
 .budget-item-subtext {
-  color: #94a3b8;
+  color: #64748b;
   font-size: 12px;
   margin-left: 6px;
 }
+
 .bl-ctl {
   display: flex;
   align-items: center;
@@ -319,48 +390,59 @@ const getVenueName = (id) => {
   gap: 8px;
   margin-top: 4px;
 }
+
 .budget-currency-symbol {
-  color: #cbd5e1;
-  font-weight: 500;
+  color: #64748b;
+  font-weight: 600;
 }
+
 .bl-rate, .bl-q {
   appearance: auto;
   -webkit-appearance: auto;
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  color: #ffffff;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 14px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
 }
+
 .bl-rate { width: 90px; }
 .bl-q { width: 60px; }
+
 .bl-rate:focus, .bl-q:focus, .bl-u:focus {
   outline: none;
-  border-color: #b979cc;
+  border-color: #7e22ce;
+  box-shadow: 0 0 0 2px rgba(126, 34, 206, 0.15);
 }
+
 .bl-x {
-  color: #94a3b8;
+  color: #64748b;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
 }
+
 .bl-mult {
   display: flex;
   align-items: center;
-  background: rgba(30, 41, 59, 0.5);
-  border-radius: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: #ffffff;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
   padding: 2px;
   gap: 4px;
 }
+
 .bl-u {
   background: transparent;
   border: none;
-  color: #e2e8f0;
+  color: #6b21a8;
   width: 60px;
   font-size: 13px;
+  font-weight: 500;
   padding: 2px 4px;
 }
+
 .bl-rm {
   background: none;
   border: none;
@@ -369,74 +451,219 @@ const getVenueName = (id) => {
   padding: 0 4px;
   font-size: 12px;
 }
+
 .bl-rm:hover {
-  color: #f87171;
+  color: #dc2626;
 }
+
 .btn-add-other {
-  background: rgba(185, 121, 204, 0.1);
-  color: #d8b4e2;
-  border: 1px dashed rgba(185, 121, 204, 0.4);
-  padding: 4px 10px;
-  border-radius: 4px;
+  background: #faf5ff;
+  color: #7e22ce;
+  border: 1px dashed #d8b4fe;
+  padding: 6px 12px;
+  border-radius: 6px;
   font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 4px;
   transition: all 0.2s;
 }
+
 .btn-add-other:hover {
-  background: rgba(185, 121, 204, 0.2);
-  border-color: rgba(185, 121, 204, 0.6);
+  background: #f3e8ff;
+  border-color: #7e22ce;
 }
+
 .bl-note {
   font-size: 11px;
   color: #64748b;
   margin-top: 4px;
 }
+
 .bl-link {
   background: none;
   border: none;
-  color: #b979cc;
+  color: #7e22ce;
   cursor: pointer;
   padding: 0;
   text-decoration: underline;
   font-size: 11px;
+  font-weight: 600;
 }
+
 .budget-error-inline {
   color: #ef4444;
   font-size: 11px;
   margin-top: 4px;
 }
+
 .others-total-badge {
-  background: rgba(15, 23, 42, 0.6);
+  background: #f3e8ff;
   padding: 4px 12px;
-  border-radius: 4px;
-  color: #e2e8f0;
-  font-weight: 600;
+  border-radius: 6px;
+  color: #7e22ce;
+  font-weight: 700;
   font-size: 14px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  border: 1px solid #e9d5ff;
 }
+
 .bl-acts {
   display: flex;
   gap: 8px;
   margin-top: 8px;
 }
+
 .bl-clear, .btn-remove-other {
   background: none;
   border: none;
-  color: #94a3b8;
+  color: #64748b;
   cursor: pointer;
   font-size: 11px;
   text-decoration: underline;
 }
-.bl-clear:hover, .btn-remove-other:hover {
-  color: #cbd5e1;
+
+.bl-clear:hover {
+  color: #0f172a;
 }
+
 .btn-remove-other {
   color: #ef4444;
 }
+
 .btn-remove-other:hover {
-  color: #f87171;
+  color: #dc2626;
+}
+
+/* ==========================================================================
+   Dark Mode Overrides
+   ========================================================================== */
+html.dark .form-label, .dark .form-label {
+  color: #b979cc;
+}
+
+html.dark .venue-budget-wrapper, .dark .venue-budget-wrapper {
+  background: transparent;
+  border-color: rgba(185, 121, 204, 0.3);
+}
+
+html.dark .venue-budget-title, .dark .venue-budget-title {
+  color: #e9d5ff;
+  border-left-color: #b979cc;
+}
+
+html.dark .venue-rate-outside, .dark .venue-rate-outside {
+  color: #f9a8d4;
+  background: rgba(244, 63, 94, 0.1);
+  border-color: rgba(244, 63, 94, 0.3);
+}
+
+html.dark .venue-rate-inside, .dark .venue-rate-inside {
+  color: #86efac;
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+html.dark .budget-group-card, .dark .budget-group-card {
+  background: rgba(30, 41, 59, 0.4);
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+html.dark .budget-group-header, .dark .budget-group-header {
+  background: rgba(15, 23, 42, 0.6);
+  border-bottom-color: rgba(148, 163, 184, 0.2);
+}
+
+html.dark .budget-group-title, .dark .budget-group-title {
+  color: #f8fafc;
+}
+
+html.dark .budget-group-total, .dark .budget-group-total {
+  color: #b979cc;
+  background: rgba(185, 121, 204, 0.15);
+}
+
+html.dark .budget-row-item, .dark .budget-row-item {
+  background: rgba(15, 23, 42, 0.4);
+  border-color: rgba(148, 163, 184, 0.1);
+}
+
+html.dark .budget-item-title, .dark .budget-item-title {
+  color: #e2e8f0;
+}
+
+html.dark .others-input-name, .dark .others-input-name {
+  background: rgba(15, 23, 42, 0.8);
+  border-color: rgba(148, 163, 184, 0.3);
+  color: #ffffff;
+}
+
+html.dark .others-input-name:focus, .dark .others-input-name:focus {
+  border-color: #b979cc;
+  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.2);
+}
+
+html.dark .budget-item-subtext, .dark .budget-item-subtext {
+  color: #94a3b8;
+}
+
+html.dark .budget-currency-symbol, .dark .budget-currency-symbol {
+  color: #cbd5e1;
+}
+
+html.dark .bl-rate, html.dark .bl-q,
+.dark .bl-rate, .dark .bl-q {
+  background: rgba(15, 23, 42, 0.8);
+  border-color: rgba(148, 163, 184, 0.3);
+  color: #ffffff;
+}
+
+html.dark .bl-rate:focus, html.dark .bl-q:focus, html.dark .bl-u:focus,
+.dark .bl-rate:focus, .dark .bl-q:focus, .dark .bl-u:focus {
+  border-color: #b979cc;
+  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.2);
+}
+
+html.dark .bl-x, .dark .bl-x {
+  color: #94a3b8;
+}
+
+html.dark .bl-mult, .dark .bl-mult {
+  background: rgba(30, 41, 59, 0.5);
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+html.dark .bl-u, .dark .bl-u {
+  color: #e2e8f0;
+}
+
+html.dark .btn-add-other, .dark .btn-add-other {
+  background: rgba(185, 121, 204, 0.1);
+  color: #d8b4e2;
+  border-color: rgba(185, 121, 204, 0.4);
+}
+
+html.dark .btn-add-other:hover, .dark .btn-add-other:hover {
+  background: rgba(185, 121, 204, 0.2);
+  border-color: rgba(185, 121, 204, 0.6);
+}
+
+html.dark .bl-link, .dark .bl-link {
+  color: #b979cc;
+}
+
+html.dark .others-total-badge, .dark .others-total-badge {
+  background: rgba(15, 23, 42, 0.6);
+  border-color: rgba(148, 163, 184, 0.2);
+  color: #e2e8f0;
+}
+
+html.dark .bl-clear, .dark .bl-clear {
+  color: #94a3b8;
+}
+
+html.dark .bl-clear:hover, .dark .bl-clear:hover {
+  color: #cbd5e1;
 }
 </style>

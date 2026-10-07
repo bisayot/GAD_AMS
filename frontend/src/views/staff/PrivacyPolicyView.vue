@@ -122,7 +122,7 @@
 
       <footer class="footer-watermark">
         <p class="watermark-text">
-          Benguet State University - Gender and Development Activities Management System | GAD-AMS v1.0
+          
         </p>
       </footer>
 </template>
@@ -176,22 +176,9 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.privacy-policy {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  min-height: 100vh;
-  display: flex;
-}
-
-.main-content {
-  flex-grow: 1;
-  margin-left: 256px;
-  display: flex;
-  flex-direction: column;
-}
-
 .content-main {
   min-height: 100vh;
-  background: #fff;
+  background: transparent;
 }
 
 .content-wrapper {
@@ -208,73 +195,86 @@ onMounted(() => {
 .sticky-toc {
   position: sticky;
   top: 6rem;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-
-  backdrop-filter: blur(10px);
-  border-radius: 0.5rem;
-  border: 1px solid rgba(185, 121, 204, 0.15);
-  padding: 1rem;
+  background: #ffffff;
+  border-radius: 1.5rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+  padding: 1.25rem 1rem;
+  transition: all 0.3s ease;
 }
 
 .toc-title {
-  font-weight: 600;
-  color: #cbd5e1;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(185, 121, 204, 0.15);
-  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.875rem;
+  padding-bottom: 0.625rem;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.875rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
+  transition: all 0.3s ease;
 }
 
 .toc-list {
   list-style: none;
   padding: 0;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .toc-list li {
-  margin-bottom: 0.25rem;
+  margin-bottom: 0;
 }
 
 .sidebar-nav-item {
   width: 100%;
   text-align: left;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.375rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 0.5rem;
   font-weight: 500;
-  color: #cbd5e1;
+  color: #475569;
   background: transparent;
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 0.813rem;
+  font-size: 0.85rem;
+  line-height: 1.35;
 }
 
 .sidebar-nav-item:hover {
-  background: rgba(0, 0, 0, 0.3);
-  color: #b979cc;
+  background: #faf5ff;
+  color: #7e22ce;
+  transform: translateX(2px);
 }
 
 .active-nav-item {
-  background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%);
-  color: white;
-  font-weight: 600;
+  background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.25);
+}
+
+.active-nav-item:hover {
+  transform: none;
+  color: #ffffff !important;
 }
 
 /* Content Area */
 .content-area {
   flex: 1;
+  min-width: 0;
 }
 
 /* Policy Card */
 .policy-card {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-
-  backdrop-filter: blur(10px);
-  border-radius: 0.5rem;
-  border: 1px solid rgba(185, 121, 204, 0.15);
-  padding: 2rem;
+  background: #ffffff;
+  border-radius: 1.5rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+  padding: 2.25rem;
+  transition: all 0.3s ease;
   animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
@@ -287,8 +287,9 @@ onMounted(() => {
 /* Policy Sections */
 .policy-section {
   scroll-margin-top: 96px;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(185, 121, 204, 0.1);
+  padding-top: 2rem;
+  border-top: 1px solid #f1f5f9;
+  transition: border-color 0.3s ease;
 }
 
 .policy-section:first-of-type {
@@ -298,124 +299,117 @@ onMounted(() => {
 
 /* Policy Header */
 .policy-header {
-  border-bottom: 1px solid rgba(185, 121, 204, 0.15);
+  border-bottom: 1px solid #f1f5f9;
   padding-bottom: 1.5rem;
   margin-bottom: 0;
   display: flex;
   align-items: center;
   gap: 0.75rem;
-}
-
-.header-icon {
-  padding: 0.625rem;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 0.75rem;
-  font-size: 1.5rem;
-  border: 1px solid rgba(185, 121, 204, 0.15);
+  transition: border-color 0.3s ease;
 }
 
 .policy-title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%);
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #7e22ce 0%, #9333ea 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   letter-spacing: -0.025em;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
 }
 
 @media (min-width: 768px) {
   .policy-title {
-    font-size: 1.875rem;
+    font-size: 2.25rem;
   }
 }
 
 .policy-subtitle {
   font-size: 1rem;
-  color: #cbd5e1;
-  opacity: 0.7;
+  color: #64748b;
   font-weight: 500;
+  transition: color 0.3s ease;
 }
 
 /* Typography */
 .section-heading {
-  font-size: 1rem;
-  font-weight: 600;
-  background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%);
+  font-size: 1.15rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #7e22ce 0%, #9333ea 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .section-text {
-  font-size: 1.1rem;
-  color: #cbd5e1;
-  opacity: 0.8;
-  line-height: 1.625;
+  font-size: 1.05rem;
+  color: #334155;
+  line-height: 1.75;
+  transition: color 0.3s ease;
 }
 
 /* Lists */
 .styled-list {
   list-style: disc;
-  padding-left: 1rem;
+  padding-left: 1.25rem;
   margin-left: 0.5rem;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
 .styled-list li {
-  font-size: 1.1rem;
-  color: #cbd5e1;
-  opacity: 0.8;
+  font-size: 1.05rem;
+  color: #334155;
   margin-bottom: 0.625rem;
-  line-height: 1.5;
+  line-height: 1.6;
+  transition: color 0.3s ease;
 }
 
 .styled-list li::marker {
-  color: #b979cc;
+  color: #9333ea;
 }
 
 .highlight-text {
-  color: #cbd5e1;
-  font-weight: 500;
-  opacity: 1;
+  color: #0f172a;
+  font-weight: 600;
 }
 
 /* Contact Box */
 .contact-box {
-  margin-top: 0.75rem;
-  padding: 1.25rem;
-  border-radius: 0.75rem;
-  border: 1px solid rgba(185, 121, 204, 0.15);
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(5px);
-  max-width: 28rem;
+  margin-top: 1rem;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  max-width: 30rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
 }
 
 .contact-title {
   font-size: 1.1rem;
-  font-weight: bold;
-  background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%);
+  font-weight: 700;
+  background: linear-gradient(135deg, #7e22ce 0%, #9333ea 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.35rem;
 }
 
 .contact-text {
-  font-size: 1.1rem;
-  color: #cbd5e1;
-  opacity: 0.8;
+  font-size: 0.95rem;
+  color: #475569;
   margin-bottom: 0.25rem;
+  transition: color 0.3s ease;
 }
 
 .contact-email {
-  font-size: 1.1rem;
-  color: #b979cc;
+  font-size: 0.95rem;
+  color: #7e22ce;
   font-weight: 600;
   margin-top: 0.5rem;
   margin-bottom: 0.25rem;
@@ -423,27 +417,29 @@ onMounted(() => {
 
 /* Effective Date */
 .effective-date {
-  font-size: 1rem;
-  color: #b979cc;
-  opacity: 0.6;
+  font-size: 0.95rem;
+  color: #7e22ce;
+  font-weight: 600;
   font-style: italic;
-  margin-top: 1rem;
+  margin-top: 1.25rem;
+  transition: color 0.3s ease;
 }
 
 /* Footer */
 .footer-watermark {
-  padding: 1rem;
+  padding: 1.5rem 1rem;
   text-align: center;
-  border-top: 1px solid rgba(185, 121, 204, 0.1);
+  border-top: 1px solid #e2e8f0;
   pointer-events: none;
   background: transparent;
+  transition: border-color 0.3s ease;
 }
 
 .watermark-text {
-  font-size: 0.688rem;
+  font-size: 0.75rem;
   font-weight: 400;
-  color: #cbd5e1;
-  opacity: 0.4;
+  color: #94a3b8;
+  transition: color 0.3s ease;
 }
 
 /* Animation */
@@ -458,20 +454,8 @@ onMounted(() => {
   }
 }
 
-/* Button styles */
-button {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(185, 121, 204, 0.15);
-  transition: all 0.2s ease;
-}
-
-button:hover {
-  background: rgba(0, 0, 0, 0.5);
-  border-color: rgba(185, 121, 204, 0.3);
-}
-
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .content-wrapper {
     flex-direction: column;
   }
@@ -479,26 +463,153 @@ button:hover {
   .sidebar-container {
     width: 100%;
   }
-  
-  .main-content {
-    margin-left: 0;
-  }
-  
-  .content-main {
-    padding: 1rem;
+
+  .sticky-toc {
+    position: static;
   }
   
   .policy-card {
-    padding: 1rem;
+    padding: 1.5rem;
   }
   
   .policy-header {
     flex-direction: column;
-    text-align: center;
+    align-items: flex-start;
   }
   
   .policy-title {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
   }
+}
+
+/* ==========================================================================
+   Dark Mode Overrides
+   ========================================================================== */
+:global(.dark) .sticky-toc,
+.dark .sticky-toc {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-color: rgba(185, 121, 204, 0.2);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+}
+
+:global(.dark) .toc-title,
+.dark .toc-title {
+  color: #cbd5e1;
+  border-bottom-color: rgba(185, 121, 204, 0.15);
+}
+
+:global(.dark) .sidebar-nav-item,
+.dark .sidebar-nav-item {
+  color: #cbd5e1;
+}
+
+:global(.dark) .sidebar-nav-item:hover,
+.dark .sidebar-nav-item:hover {
+  background: rgba(0, 0, 0, 0.3);
+  color: #deb7ff;
+}
+
+:global(.dark) .active-nav-item,
+.dark .active-nav-item {
+  background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%) !important;
+  color: #ffffff !important;
+}
+
+:global(.dark) .policy-card,
+.dark .policy-card {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-color: rgba(185, 121, 204, 0.2);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+}
+
+:global(.dark) .policy-section,
+.dark .policy-section {
+  border-top-color: rgba(185, 121, 204, 0.15);
+}
+
+:global(.dark) .policy-header,
+.dark .policy-header {
+  border-bottom-color: rgba(185, 121, 204, 0.15);
+}
+
+:global(.dark) .policy-title,
+.dark .policy-title {
+  background: linear-gradient(135deg, #deb7ff 0%, #c084fc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+:global(.dark) .policy-subtitle,
+.dark .policy-subtitle {
+  color: #cbd5e1;
+}
+
+:global(.dark) .section-heading,
+.dark .section-heading {
+  background: linear-gradient(135deg, #deb7ff 0%, #c084fc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+:global(.dark) .section-text,
+.dark .section-text {
+  color: #cbd5e1;
+}
+
+:global(.dark) .styled-list li,
+.dark .styled-list li {
+  color: #cbd5e1;
+}
+
+:global(.dark) .styled-list li::marker,
+.dark .styled-list li::marker {
+  color: #b979cc;
+}
+
+:global(.dark) .highlight-text,
+.dark .highlight-text {
+  color: #deb7ff;
+}
+
+:global(.dark) .contact-box,
+.dark .contact-box {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: rgba(185, 121, 204, 0.15);
+  box-shadow: none;
+}
+
+:global(.dark) .contact-title,
+.dark .contact-title {
+  background: linear-gradient(135deg, #deb7ff 0%, #c084fc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+:global(.dark) .contact-text,
+.dark .contact-text {
+  color: #cbd5e1;
+}
+
+:global(.dark) .contact-email,
+.dark .contact-email {
+  color: #b979cc;
+}
+
+:global(.dark) .effective-date,
+.dark .effective-date {
+  color: #b979cc;
+}
+
+:global(.dark) .footer-watermark,
+.dark .footer-watermark {
+  border-top-color: rgba(185, 121, 204, 0.1);
+}
+
+:global(.dark) .watermark-text,
+.dark .watermark-text {
+  color: #cbd5e1;
 }
 </style>

@@ -1,11 +1,14 @@
 <template>
-  <div class="h-full flex flex-col bg-slate-900">
-    <div class="bg-slate-800 shadow-sm border-b border-slate-700 px-6 py-4 flex justify-between items-center z-10">
+  <div class="h-full flex flex-col viewer-container min-h-screen">
+    <div class="viewer-header shadow-sm border-b px-6 py-4 flex justify-between items-center z-10">
       <div class="flex items-center gap-4">
-        <button @click="$router.back()" class="text-slate-400 hover:text-slate-200 transition-colors">
-          <span class="text-2xl">&larr;</span>
+        <button @click="$router.back()" class="viewer-back-btn transition-colors">
+          <span class="text-2xl leading-none">&larr;</span>
         </button>
-        <h1 class="text-xl font-bold text-slate-100">Archived Annual Report <span v-if="report" class="text-purple-400">#{{ report.id }} (FY {{ report.fiscal_year }})</span></h1>
+        <h1 class="text-xl font-bold viewer-title">
+          Archived Annual Report 
+          <span v-if="report" class="text-purple-600 dark:text-purple-400">#{{ report.id }} (FY {{ report.fiscal_year }})</span>
+        </h1>
       </div>
       <div>
       </div>
@@ -16,16 +19,16 @@
     </div>
 
     <div v-else-if="error" class="flex-1 flex items-center justify-center">
-      <div class="bg-red-900/50 text-red-400 p-6 rounded-lg max-w-md text-center border border-red-800">
+      <div class="bg-red-50 dark:bg-red-900/50 text-red-600 dark:text-red-400 p-6 rounded-lg max-w-md text-center border border-red-200 dark:border-red-800">
         <p class="text-lg font-semibold">{{ error }}</p>
-        <button @click="$router.back()" class="mt-4 px-4 py-2 bg-red-800/50 rounded hover:bg-red-700/50 transition-colors">Go Back</button>
+        <button @click="$router.back()" class="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">Go Back</button>
       </div>
     </div>
 
-    <div v-else class="flex-1 overflow-auto p-4 md:p-8 flex justify-center bg-slate-900">
+    <div v-else class="flex-1 overflow-auto p-4 md:p-8 flex justify-center viewer-frame-wrapper">
       <!-- The inner HTML of the archived report is rendered here. 
            We use an iframe to isolate its styles from the admin dashboard -->
-      <iframe ref="reportFrame" class="w-full max-w-7xl bg-slate-900 shadow-2xl min-h-screen border-0" @load="resizeIframe"></iframe>
+      <iframe ref="reportFrame" class="w-full max-w-7xl shadow-xl min-h-screen border-0 rounded-xl" @load="resizeIframe"></iframe>
     </div>
   </div>
 </template>
@@ -69,16 +72,20 @@ const injectHtml = () => {
         styles += el.outerHTML;
       });
       
+      const isDark = document.documentElement.classList.contains('dark');
+      const bodyBg = isDark ? '#1a1a2e' : '#ffffff';
+      const htmlClass = isDark ? 'class="dark"' : '';
+
       doc.write(`
         <!DOCTYPE html>
-        <html>
+        <html ${htmlClass}>
           <head>
             ${styles}
             <style>
               .toolbar { display: none !important; }
             </style>
           </head>
-          <body style="background: #0f172a; padding: 2rem;">
+          <body style="background: ${bodyBg}; padding: 2rem;">
             ${report.value.html_content}
           </body>
         </html>
@@ -96,9 +103,57 @@ const resizeIframe = () => {
   }
 };
 
-
-
 onMounted(() => {
   fetchReport();
 });
 </script>
+
+<style scoped>
+.viewer-container {
+  background: #ffffff;
+}
+.viewer-header {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+.viewer-title {
+  color: #0f172a;
+}
+.viewer-back-btn {
+  color: #475569;
+}
+.viewer-back-btn:hover {
+  color: #0f172a;
+}
+.viewer-frame-wrapper {
+  background: #f8fafc;
+}
+</style>
+
+<style>
+html.dark .viewer-container,
+.dark .viewer-container {
+  background: #ffffff !important;
+}
+html.dark .viewer-header,
+.dark .viewer-header {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
+  border-color: rgba(185, 121, 204, 0.25) !important;
+}
+html.dark .viewer-title,
+.dark .viewer-title {
+  color: #ffffff !important;
+}
+html.dark .viewer-back-btn,
+.dark .viewer-back-btn {
+  color: #cbd5e1 !important;
+}
+html.dark .viewer-back-btn:hover,
+.dark .viewer-back-btn:hover {
+  color: #ffffff !important;
+}
+html.dark .viewer-frame-wrapper,
+.dark .viewer-frame-wrapper {
+  background: rgba(0, 0, 0, 0.4) !important;
+}
+</style>

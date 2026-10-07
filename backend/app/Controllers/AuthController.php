@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Libraries\JwtHelper;
 use App\Models\UserModel;
 use CodeIgniter\RESTful\ResourceController;
 
@@ -53,12 +54,8 @@ class AuthController extends ResourceController
             return $this->failUnauthorized("Password verification failed for user: " . $user['username']);
         }
 
-        log_message('error', "LOGIN SUCCESS: User [" . $user['username'] . "] authenticated.");
-
-        // In a real app, you'd generate a JWT here. 
-        // For this demo, we'll just return user info.
         $userModel->update($user['id'], ['last_login' => date('Y-m-d H:i:s')]);
-        
+
         $userRole = $user['profile_role'] ?? 'Non-TWG';
 
         \App\Models\ActivityLogModel::log($user['id'], 'Login', $user['full_name'] . " logged in");
@@ -72,14 +69,23 @@ class AuthController extends ResourceController
             }
         }
 
+        // Generate a signed JWT — this is the real auth token the frontend will
+        // attach to every subsequent request via Authorization: Bearer <token>
+        $token = JwtHelper::generate([
+            'sub'       => $user['id'],
+            'role'      => $user['role'],
+            'user_role' => $userRole,
+        ]);
+
         return $this->respond([
-            'status' => 200,
+            'status'  => 200,
             'message' => 'Login successful',
-            'user' => [
-                'id' => $user['id'],
-                'username' => $user['username'],
-                'email' => $user['email'] ?? '',
-                'role' => $user['role'],
+            'token'   => $token,
+            'user'    => [
+                'id'        => $user['id'],
+                'username'  => $user['username'],
+                'email'     => $user['email'] ?? '',
+                'role'      => $user['role'],
                 'user_role' => $userRole,
                 'full_name' => $user['full_name'],
                 'office_id' => $user['office_id']
@@ -141,16 +147,19 @@ class AuthController extends ResourceController
             }
         }
 
-        // Map user_role from frontend to actual database role
+        // Map user_role from frontend to actual database role.
+        // Self-registration is ONLY allowed for TWG and Non-TWG.
+        // Admin (Director) and Staff accounts must be created by an admin
+        // through the User Management panel — never through public registration.
         $role = 'twg'; // Default
         if (isset($data['user_role'])) {
             switch ($data['user_role']) {
-                case 'Director': $role = 'admin'; break;
-                case 'Staff': $role = 'gad_staff'; break;
-                case 'TWG': $role = 'twg'; break;
+                case 'TWG':     $role = 'twg';     break;
                 case 'Non-TWG': $role = 'non-twg'; break;
                 default:
-                    $role = 'twg'; break;
+                    // Silently downgrade any attempt to register as Director/Staff
+                    $role = 'twg';
+                    break;
             }
         }
 
@@ -457,7 +466,10 @@ class AuthController extends ResourceController
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);        // fail after 10 s
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);  // fail connection after 5 s
+        // SSL certificate verification is intentionally left ON (default)
+        // so PHP validates Cloudflare's certificate against its CA store.
 
         $result = curl_exec($ch);
         

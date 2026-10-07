@@ -8,7 +8,7 @@
     <!-- Stats / Overview Cards -->
     <div class="grid grid-cols-1 gap-6 mb-8">
       <div class="stat-card">
-        <div class="stat-icon bg-purple-500/20 text-purple-400">
+        <div class="stat-icon stat-icon-purple">
           <span class="material-symbols-outlined">history</span>
         </div>
         <div class="stat-content">
@@ -21,33 +21,27 @@
     <div class="layout-grid">
       <!-- Left Column: Activity Logs List -->
       <section class="flex-06 glass-card">
-        <div class="card-header border-b border-purple-900/30 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <h2 class="text-xl font-bold text-white flex items-center gap-2">
-            <span class="material-symbols-outlined text-purple-400">list_alt</span>
+        <div class="card-header flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <h2 class="card-title flex items-center gap-2">
+            <span class="material-symbols-outlined text-purple-600 dark:text-purple-400">list_alt</span>
             My Detailed Activity Logs
           </h2>
         </div>
         
         <!-- Tabs -->
-        <div class="border-b border-purple-900/30 flex">
+        <div class="log-tabs-bar flex">
           <button 
             @click="activeTab = 'main'"
-            class="flex-1 py-4 text-center font-bold text-sm transition-all duration-300 border-b-2"
-            :class="{
-              '!text-white border-purple-400 bg-purple-600/30 shadow-inner shadow-purple-500/30': activeTab === 'main',
-              '!text-slate-400 border-transparent hover:!text-slate-300 hover:bg-white/5': activeTab !== 'main'
-            }"
+            class="log-tab-btn"
+            :class="{ 'active-main': activeTab === 'main' }"
           >
             Main Logs <br>
             <span class="text-xs font-normal opacity-70">(Retained for 1 Year)</span>
           </button>
           <button 
             @click="activeTab = 'operational'"
-            class="flex-1 py-4 text-center font-bold text-sm transition-all duration-300 border-b-2"
-            :class="{
-              '!text-white border-blue-400 bg-blue-600/30 shadow-inner shadow-blue-500/30': activeTab === 'operational',
-              '!text-slate-400 border-transparent hover:!text-slate-300 hover:bg-white/5': activeTab !== 'operational'
-            }"
+            class="log-tab-btn"
+            :class="{ 'active-operational': activeTab === 'operational' }"
           >
             Operational Logs <br>
             <span class="text-xs font-normal opacity-70">(Retained for 90 Days)</span>
@@ -59,7 +53,7 @@
             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
           </div>
           
-          <div v-else-if="allLogs.length === 0" class="text-center py-12 text-slate-400">
+          <div v-else-if="allLogs.length === 0" class="text-center py-12 empty-state-box">
             <span class="material-symbols-outlined text-4xl mb-2 opacity-50">inbox</span>
             <p>You have no activity logs.</p>
           </div>
@@ -71,10 +65,11 @@
               </div>
               <div class="log-details flex-grow">
                 <p class="log-description">
-                  <span class="text-slate-300">You {{ log.description }}</span>
+                  <span class="log-email">You</span> 
+                  <span class="log-action-text"> {{ log.description }}</span>
                 </p>
                 <div class="log-meta flex items-center gap-4 mt-1">
-                  <span class="text-xs text-slate-400 flex items-center gap-1">
+                  <span class="log-time flex items-center gap-1">
                     <span class="material-symbols-outlined text-[14px]">schedule</span>
                     {{ formatDateTime(log.created_at) }}
                   </span>
@@ -88,22 +83,22 @@
       <!-- Right Column: Recent Activities -->
       <section class="flex-04">
         <div class="glass-card h-full">
-          <div class="card-header border-b border-purple-900/30 p-6">
-            <h2 class="text-lg font-bold text-white flex items-center gap-2">
-              <span class="material-symbols-outlined text-pink-400">bolt</span>
+          <div class="card-header">
+            <h2 class="card-title flex items-center gap-2">
+              <span class="material-symbols-outlined text-pink-500">bolt</span>
               My Recent Activity
             </h2>
-            <p class="text-xs text-slate-400 mt-1">Your latest system actions.</p>
+            <p class="card-subtitle text-xs mt-1">Your latest system actions.</p>
           </div>
           
           <div class="p-6">
-            <div class="relative border-l border-slate-700 ml-3 space-y-6">
+            <div class="timeline-container relative space-y-6">
               <div v-for="log in recentLogs.slice(0, 10)" :key="'recent-'+log.id" class="relative pl-6">
-                <div class="absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full bg-slate-800 border-2 border-pink-500"></div>
-                <div class="text-xs text-slate-400 mb-0.5">{{ formatTimeAgo(log.created_at) }}</div>
-                <div class="text-xs text-slate-300">{{ log.action }}</div>
+                <div class="timeline-dot absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full"></div>
+                <div class="timeline-time mb-0.5">{{ formatTimeAgo(log.created_at) }}</div>
+                <div class="timeline-action">{{ log.action }}</div>
               </div>
-              <div v-if="recentLogs.length === 0 && !loading" class="text-slate-400 text-sm pl-6 py-4">
+              <div v-if="recentLogs.length === 0 && !loading" class="empty-state-text text-sm pl-6 py-4">
                 No recent activity.
               </div>
             </div>
@@ -197,16 +192,16 @@ const getActionIcon = (action) => {
 
 const getActionColor = (action) => {
   const map = {
-    'Login': 'bg-green-500/20 text-green-400 border-green-500/30',
-    'Submit Document': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-    'Approve Document': 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-    'Trash Document': 'bg-red-500/20 text-red-400 border-red-500/30',
-    'Cancel Document': 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-    'Send Message': 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
-    'Register User': 'bg-teal-500/20 text-teal-400 border-teal-500/30',
-    'Delete User': 'bg-red-500/20 text-red-400 border-red-500/30'
+    'Login': 'action-green',
+    'Submit Document': 'action-blue',
+    'Approve Document': 'action-emerald',
+    'Trash Document': 'action-red',
+    'Cancel Document': 'action-orange',
+    'Send Message': 'action-indigo',
+    'Register User': 'action-teal',
+    'Delete User': 'action-red'
   };
-  return map[action] || 'bg-slate-700 text-slate-300 border-slate-600';
+  return map[action] || 'action-slate';
 };
 
 onMounted(() => {
@@ -230,28 +225,33 @@ onMounted(() => {
 }
 
 .page-title {
-
-  font-size: 2rem;
-  color: #16213e;
+  font-size: 1.5rem;
   font-weight: 900;
   letter-spacing: -0.025em;
-  margin-bottom: 0.5rem;
+  color: #0f172a;
 }
 
 .page-subtitle {
-  color: #475569;
-  font-size: 0.95rem;
+  font-size: 1rem;
+  color: #64748b;
+  margin-top: 0.25rem;
 }
 
+/* Stat Cards */
 .stat-card {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border: 1px solid rgba(185, 121, 204, 0.15);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 1rem;
   padding: 1.5rem;
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
 }
 
 .stat-icon {
@@ -262,27 +262,33 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
 }
-
 .stat-icon span {
   font-size: 1.75rem;
 }
 
+.stat-icon-purple {
+  background: rgba(147, 51, 234, 0.1);
+  color: #7e22ce;
+  border: 1px solid rgba(147, 51, 234, 0.2);
+}
+
 .stat-label {
-  color: #cbd5e1;
-  font-size: 0.875rem;
+  color: #64748b;
+  font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 0.25rem;
 }
 
 .stat-value {
-  color: white;
-  font-size: 1.75rem;
-  font-weight: 700;
+  color: #0f172a;
+  font-size: 1.875rem;
+  font-weight: 800;
   line-height: 1;
 }
 
+/* Layout */
 .layout-grid {
   display: flex;
   flex-direction: column;
@@ -297,29 +303,78 @@ onMounted(() => {
   .flex-04 { flex: 0.35; }
 }
 
+/* Glass Card */
 .glass-card {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  backdrop-filter: blur(12px);
+  background: #ffffff;
   border-radius: 1.25rem;
-  border: 1px solid rgba(185, 121, 204, 0.15);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
   overflow: hidden;
+  transition: all 0.3s ease;
 }
 
+.card-header {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 1.5rem;
+}
+
+.card-title {
+  color: #0f172a;
+  font-weight: 800;
+  font-size: 1.25rem;
+}
+
+.card-subtitle {
+  color: #64748b;
+}
+
+/* Sub-tabs */
+.log-tabs-bar {
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.log-tab-btn {
+  flex: 1;
+  padding: 1rem;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+  color: #64748b;
+  cursor: pointer;
+}
+.log-tab-btn:hover {
+  background: rgba(0, 0, 0, 0.03);
+  color: #0f172a;
+}
+.log-tab-btn.active-main {
+  color: #7e22ce;
+  border-bottom-color: #7e22ce;
+  background: #ffffff;
+}
+.log-tab-btn.active-operational {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+  background: #ffffff;
+}
+
+/* Log Item */
 .log-item {
   display: flex;
   gap: 1rem;
   padding: 1.25rem;
-  background: rgba(0, 0, 0, 0.2);
+  background: #f8fafc;
   border-radius: 1rem;
-  border: 1px solid rgba(185, 121, 204, 0.1);
+  border: 1px solid #e2e8f0;
   transition: all 0.2s;
 }
-
 .log-item:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(185, 121, 204, 0.2);
+  background: #ffffff;
+  border-color: #cbd5e1;
   transform: translateX(4px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
 .log-icon {
@@ -337,19 +392,292 @@ onMounted(() => {
   font-size: 0.95rem;
   line-height: 1.4;
 }
+.log-email {
+  font-weight: 700;
+  color: #0f172a;
+}
+.log-action-text {
+  color: #334155;
+}
+
+.log-time {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+/* Action Icons Color Schemes */
+.action-green {
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+  border-color: rgba(34, 197, 94, 0.25);
+}
+.action-blue {
+  background: rgba(59, 130, 246, 0.12);
+  color: #2563eb;
+  border-color: rgba(59, 130, 246, 0.25);
+}
+.action-emerald {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border-color: rgba(16, 185, 129, 0.25);
+}
+.action-red {
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+  border-color: rgba(239, 68, 68, 0.25);
+}
+.action-orange {
+  background: rgba(249, 115, 22, 0.12);
+  color: #ea580c;
+  border-color: rgba(249, 115, 22, 0.25);
+}
+.action-indigo {
+  background: rgba(99, 102, 241, 0.12);
+  color: #4f46e5;
+  border-color: rgba(99, 102, 241, 0.25);
+}
+.action-teal {
+  background: rgba(20, 184, 166, 0.12);
+  color: #0d9488;
+  border-color: rgba(20, 184, 166, 0.25);
+}
+.action-slate {
+  background: rgba(100, 116, 139, 0.12);
+  color: #475569;
+  border-color: rgba(100, 116, 139, 0.25);
+}
+
+/* Timeline */
+.timeline-container {
+  border-left: 2px solid #e2e8f0;
+  margin-left: 0.75rem;
+}
+.timeline-dot {
+  background: #ffffff;
+  border: 2px solid #ec4899;
+}
+.timeline-time {
+  color: #64748b;
+  font-size: 0.75rem;
+}
+.timeline-action {
+  color: #0f172a;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.empty-state-text {
+  color: #64748b;
+}
+
+.empty-state-box {
+  color: #64748b;
+}
 
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
+  background: #f1f5f9;
   border-radius: 8px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(185, 121, 204, 0.3);
+  background: #cbd5e1;
   border-radius: 8px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(185, 121, 204, 0.5);
+  background: #94a3b8;
+}
+</style>
+
+<style>
+/* ==========================================================================
+   Dark Mode Overrides for Activity Logs
+   Outer background remains white; ONLY the cards darken!
+   ========================================================================== */
+html.dark .page-title,
+.dark .page-title {
+  color: #0f172a !important;
+}
+
+html.dark .page-subtitle,
+.dark .page-subtitle {
+  color: #64748b !important;
+}
+
+html.dark .stat-card,
+.dark .stat-card {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
+  border-color: rgba(185, 121, 204, 0.25) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25) !important;
+}
+
+html.dark .stat-label,
+.dark .stat-label {
+  color: #cbd5e1 !important;
+}
+
+html.dark .stat-value,
+.dark .stat-value {
+  color: #ffffff !important;
+}
+
+html.dark .stat-icon-purple,
+.dark .stat-icon-purple {
+  background: rgba(168, 85, 247, 0.2) !important;
+  color: #c084fc !important;
+  border-color: rgba(168, 85, 247, 0.3) !important;
+}
+
+html.dark .glass-card,
+.dark .glass-card {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
+  border-color: rgba(185, 121, 204, 0.25) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25) !important;
+}
+
+html.dark .card-header,
+.dark .card-header {
+  border-bottom: 1px solid rgba(185, 121, 204, 0.2) !important;
+  background: rgba(0, 0, 0, 0.2) !important;
+}
+
+html.dark .card-title,
+.dark .card-title {
+  color: #ffffff !important;
+}
+
+html.dark .card-subtitle,
+.dark .card-subtitle {
+  color: #94a3b8 !important;
+}
+
+html.dark .log-tabs-bar,
+.dark .log-tabs-bar {
+  border-bottom: 1px solid rgba(185, 121, 204, 0.2) !important;
+  background: rgba(0, 0, 0, 0.25) !important;
+}
+
+html.dark .log-tab-btn,
+.dark .log-tab-btn {
+  color: #94a3b8 !important;
+}
+html.dark .log-tab-btn:hover,
+.dark .log-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #ffffff !important;
+}
+html.dark .log-tab-btn.active-main,
+.dark .log-tab-btn.active-main {
+  color: #ffffff !important;
+  border-bottom-color: #c084fc !important;
+  background: rgba(168, 85, 247, 0.25) !important;
+}
+html.dark .log-tab-btn.active-operational,
+.dark .log-tab-btn.active-operational {
+  color: #ffffff !important;
+  border-bottom-color: #60a5fa !important;
+  background: rgba(59, 130, 246, 0.25) !important;
+}
+
+html.dark .log-item,
+.dark .log-item {
+  background: rgba(0, 0, 0, 0.25) !important;
+  border-color: rgba(185, 121, 204, 0.15) !important;
+}
+html.dark .log-item:hover,
+.dark .log-item:hover {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border-color: rgba(185, 121, 204, 0.4) !important;
+}
+
+html.dark .log-email,
+.dark .log-email {
+  color: #ffffff !important;
+}
+html.dark .log-action-text,
+.dark .log-action-text {
+  color: #cbd5e1 !important;
+}
+html.dark .log-time,
+.dark .log-time {
+  color: #94a3b8 !important;
+}
+
+html.dark .action-green, .dark .action-green {
+  background: rgba(34, 197, 94, 0.2) !important;
+  color: #4ade80 !important;
+  border-color: rgba(34, 197, 94, 0.4) !important;
+}
+html.dark .action-blue, .dark .action-blue {
+  background: rgba(59, 130, 246, 0.2) !important;
+  color: #60a5fa !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+}
+html.dark .action-emerald, .dark .action-emerald {
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: #34d399 !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+}
+html.dark .action-red, .dark .action-red {
+  background: rgba(239, 68, 68, 0.2) !important;
+  color: #f87171 !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+}
+html.dark .action-orange, .dark .action-orange {
+  background: rgba(249, 115, 22, 0.2) !important;
+  color: #fb923c !important;
+  border-color: rgba(249, 115, 22, 0.4) !important;
+}
+html.dark .action-indigo, .dark .action-indigo {
+  background: rgba(99, 102, 241, 0.2) !important;
+  color: #818cf8 !important;
+  border-color: rgba(99, 102, 241, 0.4) !important;
+}
+html.dark .action-teal, .dark .action-teal {
+  background: rgba(20, 184, 166, 0.2) !important;
+  color: #2dd4bf !important;
+  border-color: rgba(20, 184, 166, 0.4) !important;
+}
+html.dark .action-slate, .dark .action-slate {
+  background: rgba(100, 116, 139, 0.2) !important;
+  color: #94a3b8 !important;
+  border-color: rgba(100, 116, 139, 0.4) !important;
+}
+
+html.dark .timeline-container,
+.dark .timeline-container {
+  border-left-color: rgba(185, 121, 204, 0.3) !important;
+}
+html.dark .timeline-dot,
+.dark .timeline-dot {
+  background: #1a1a2e !important;
+  border-color: #f472b6 !important;
+}
+html.dark .timeline-time,
+.dark .timeline-time {
+  color: #94a3b8 !important;
+}
+html.dark .timeline-action,
+.dark .timeline-action {
+  color: #cbd5e1 !important;
+}
+
+html.dark .empty-state-text,
+.dark .empty-state-text {
+  color: #94a3b8 !important;
+}
+
+html.dark .custom-scrollbar::-webkit-scrollbar-track,
+.dark .custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2) !important;
+}
+html.dark .custom-scrollbar::-webkit-scrollbar-thumb,
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(185, 121, 204, 0.3) !important;
+}
+html.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover,
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(185, 121, 204, 0.5) !important;
 }
 </style>

@@ -66,7 +66,7 @@
                   <div class="input-group">
                     <label class="form-label">Gender Issue / GAD Mandate *</label>
                     <div class="checkbox-group-container custom-input-field" style="min-height: 120px; max-height: 250px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
-                      <label v-for="mandate in GADMandates" :key="mandate.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
+                      <label v-for="mandate in GADMandates" :key="mandate.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
                         <input type="radio" v-model="form.gad_mandate_id" :value="mandate.id" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
                         <span style="font-size: 14px; line-height: 1.4;">{{ mandate.code }} - {{ mandate.title }}</span>
                       </label>
@@ -78,7 +78,7 @@
                   <div class="input-group">
                     <label class="form-label">Cause of Gender Issue *</label>
                     <div class="checkbox-group-container custom-input-field" style="min-height: 120px; max-height: 250px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
-                      <label v-for="issue in genderIssues" :key="issue.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
+                      <label v-for="issue in genderIssues" :key="issue.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
                         <input type="radio" v-model="form.gender_issue_id" :value="issue.id" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
                         <span style="font-size: 14px; line-height: 1.4;">{{ issue.title }}</span>
                       </label>
@@ -96,17 +96,17 @@
                   <div class="input-group">
                     <label class="form-label">Venue Location *</label>
                     <div class="toggle-container" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; min-height: 42px; height: auto; padding: 4px 0;">
-                      <label style="color: #cbd5e1; font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
+                      <label class="location-radio-label" style="font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
                         <input type="radio" :value="true" v-model="form.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Inside BSU
                       </label>
-                      <label style="color: #cbd5e1; font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
+                      <label class="location-radio-label" style="font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
                         <input type="radio" :value="false" v-model="form.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Outside BSU
                       </label>
-                      <label style="color: #cbd5e1; font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
+                      <label class="location-radio-label" style="font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
                         <input type="radio" value="mixed" v-model="form.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Mixed (Inside &amp; Outside)
                       </label>
                     </div>
-                    <div v-if="form.is_inside_bsu === 'mixed'" style="margin-top: 8px; font-size: 12px; color: #94a3b8; padding: 6px 10px; background: rgba(185,121,204,0.07); border-radius: 6px; border: 1px solid rgba(185,121,204,0.2);">
+                    <div v-if="form.is_inside_bsu === 'mixed'" class="mixed-mode-hint" style="margin-top: 8px; font-size: 12px; padding: 6px 10px; border-radius: 6px;">
                       💡 Mixed mode: all venues are shown. Each venue will use its own inside/outside baseline rate automatically.
                     </div>
                   </div>
@@ -187,7 +187,7 @@
                   
 
                   <!-- Staggered Schedules Section -->
-                  <div class="schedules-container" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
+                  <div class="schedules-container">
                     <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
                       <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
                           <label class="form-label !mb-0 flex items-center gap-2" style="white-space: nowrap;">
@@ -195,11 +195,11 @@
                             Activity Schedules *
                           </label>
                           <div class="schedule-type-toggle-container">
-                            <button type="button" @click.prevent="handleScheduleTypeChange('staggered')" class="schedule-type-toggle-btn" :style="{ background: scheduleType === 'staggered' ? 'rgba(185, 121, 204, 0.2)' : 'transparent', color: scheduleType === 'staggered' ? '#e9d5ff' : '#94a3b8' }">Non Consecutive</button>
-                            <button type="button" @click.prevent="handleScheduleTypeChange('continuous')" class="schedule-type-toggle-btn" :style="{ background: scheduleType === 'continuous' ? 'rgba(185, 121, 204, 0.2)' : 'transparent', color: scheduleType === 'continuous' ? '#e9d5ff' : '#94a3b8' }">Consecutive</button>
+                            <button type="button" @click.prevent="handleScheduleTypeChange('staggered')" class="schedule-type-toggle-btn" :style="{ background: scheduleType === 'staggered' ? 'rgba(185, 121, 204, 0.2)' : 'transparent', color: scheduleType === 'staggered' ? '#b979cc' : 'inherit' }">Non Consecutive</button>
+                            <button type="button" @click.prevent="handleScheduleTypeChange('continuous')" class="schedule-type-toggle-btn" :style="{ background: scheduleType === 'continuous' ? 'rgba(185, 121, 204, 0.2)' : 'transparent', color: scheduleType === 'continuous' ? '#b979cc' : 'inherit' }">Consecutive</button>
                           </div>
                       </div>
-                      <button type="button" v-if="scheduleType === 'staggered'" @click.prevent="addSchedule" style="background: rgba(185, 121, 204, 0.2); color: #e9d5ff; border: 1px solid rgba(185, 121, 204, 0.3); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s;">
+                      <button type="button" v-if="scheduleType === 'staggered'" @click.prevent="addSchedule" class="btn-add-other">
                         <span class="material-symbols-outlined" style="font-size: 14px;">add</span> Add Schedule
                       </button>
                     </div>
@@ -210,11 +210,11 @@
                     
                     
                     <!-- Continuous Config UI -->
-                    <div v-if="scheduleType === 'continuous'" class="schedule-row mb-3 p-4 bg-white border border-slate-200 rounded-lg relative" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
+                    <div v-if="scheduleType === 'continuous'" class="schedule-row mb-3 p-4 rounded-lg relative">
                       <div class="schedule-inputs-wrapper" style="margin-bottom: 16px;">
                         <div class="flex-1">
                           <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Start Date</label>
-                          <VueDatePicker dark v-model="continuousConfig.start_date" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
+                          <VueDatePicker :dark="isDarkMode" v-model="continuousConfig.start_date" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
 <template #dp-input="{ value }">
 <input type="text" :value="value ? String(value).replace(',', '').trim().split(' ')[0] : ''" class="custom-input-field dp-custom-transparent !text-xs !p-2" readonly placeholder="Select Date" />
 </template>
@@ -222,7 +222,7 @@
                         </div>
                         <div class="flex-1">
                           <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">End Date</label>
-                          <VueDatePicker dark v-model="continuousConfig.end_date" :min-date="continuousConfig.start_date || minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
+                          <VueDatePicker :dark="isDarkMode" v-model="continuousConfig.end_date" :min-date="continuousConfig.start_date || minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
 <template #dp-input="{ value }">
 <input type="text" :value="value ? String(value).replace(',', '').trim().split(' ')[0] : ''" class="custom-input-field dp-custom-transparent !text-xs !p-2" readonly placeholder="Select Date" />
 </template>
@@ -236,7 +236,7 @@
                               <transition name="fade-pop"><div v-if="helpState.startTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                             </div>
                           </div>
-                          <input type="time" v-model="continuousConfig.start_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="handleTimeChange(continuousConfig)">
+                          <input type="time" v-model="continuousConfig.start_time" min="04:00" max="20:00" required class="custom-input-field time-picker-input" @change="handleTimeChange(continuousConfig)">
                         </div>
                         <div class="flex-1">
                           <div class="label-container" style="margin-bottom: 4px;">
@@ -246,7 +246,7 @@
                               <transition name="fade-pop"><div v-if="helpState.endTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                             </div>
                           </div>
-                          <input type="time" v-model="continuousConfig.end_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="handleTimeChange(continuousConfig)">
+                          <input type="time" v-model="continuousConfig.end_time" min="04:00" max="20:00" required class="custom-input-field time-picker-input" @change="handleTimeChange(continuousConfig)">
                         </div>
                       </div>
 
@@ -257,10 +257,10 @@
                       <span class="material-symbols-outlined" style="font-size: 14px;">info</span>
                       You can customize the Time for specific days (e.g., half-day on the last day) below:
                     </div>
-                    <div v-for="(sch, index) in schedules" :key="index" class="schedule-inputs-wrapper" style="margin-bottom: 16px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); position: relative;">
+                    <div v-for="(sch, index) in schedules" :key="index" class="schedule-inputs-wrapper schedule-card-item" style="position: relative;">
                       <div style="flex: 1; min-width: 130px;">
                         <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 6px; display: block;">Date</label>
-                        <VueDatePicker dark v-model="sch.date" @update:model-value="handleScheduleDateChange($event, index)" :disabled="scheduleType === 'continuous'" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
+                        <VueDatePicker :dark="isDarkMode" v-model="sch.date" @update:model-value="handleScheduleDateChange($event, index)" :disabled="scheduleType === 'continuous'" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
 <template #dp-input="{ value }">
 <input type="text" :value="value ? String(value).replace(',', '').trim().split(' ')[0] : ''" class="custom-input-field dp-custom-transparent !text-xs !p-2" readonly placeholder="Select Date" />
 </template>
@@ -274,7 +274,7 @@
                             <transition name="fade-pop"><div v-if="helpState.startTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                           </div>
                         </div>
-                        <input type="time" v-model="sch.start_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="validateScheduleTime(index)">
+                        <input type="time" v-model="sch.start_time" min="04:00" max="20:00" required class="custom-input-field time-picker-input" @change="validateScheduleTime(index)">
                       </div>
                       <div style="flex: 1; min-width: 130px;">
                         <div class="label-container" style="margin-bottom: 6px;">
@@ -284,14 +284,13 @@
                             <transition name="fade-pop"><div v-if="helpState.endTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                           </div>
                         </div>
-                        <input type="time" v-model="sch.end_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="validateScheduleTime(index)">
+                        <input type="time" v-model="sch.end_time" min="04:00" max="20:00" required class="custom-input-field time-picker-input" @change="validateScheduleTime(index)">
                       </div>
                       <button type="button" v-if="scheduleType === 'staggered' && schedules.length > 1" @click.prevent="removeSchedule(index)" style="background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" title="Remove Schedule">
                         <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
                       </button>
                       
                     </div>
-                    
                     
                   </div>
 
@@ -345,9 +344,9 @@
                     />
                     
                     <!-- Overall Target Participants Banner -->
-                    <div class="grand-total-banner-card" style="background: rgba(30,41,59,0.7); margin-bottom: 12px; border-color: #334155; padding: 12px 20px;">
-                      <div class="grand-total-label-banner" style="color: #94a3b8; font-size: 13px;">Overall Expected Attendance (Auto-calculated)</div>
-                      <div class="grand-total-value-banner" style="color: #cbd5e1; font-size: 16px;">
+                    <div class="attendance-banner-card">
+                      <div class="attendance-banner-label">Overall Expected Attendance (Auto-calculated)</div>
+                      <div class="attendance-banner-value">
                         {{ form.target_participants || 0 }} Pax
                       </div>
                     </div>
@@ -398,6 +397,8 @@ import api from '../../api';
 const router = useRouter();
 const route = useRoute();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
+const isDarkMode = ref(typeof document !== 'undefined' ? document.documentElement.classList.contains('dark') : false);
+let themeObserver = null;
 
 const getTodayDate = () => {
   const d = new Date();
@@ -1553,1221 +1554,18 @@ onMounted(() => {
   fetchHolidays();
   fetchSystemSettings();
   document.addEventListener('click', closeAllHelp);
+  themeObserver = new MutationObserver(() => {
+    isDarkMode.value = document.documentElement.classList.contains('dark');
+  });
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 });
 
 onUnmounted(() => {
   document.removeEventListener('click', closeAllHelp);
+  if (themeObserver) themeObserver.disconnect();
 });
 
 </script>
 
-<style scoped>
-.twg-view-wrapper {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  background: transparent;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-}
+<style scoped src="../../assets/submit-ad-styles.css"></style>
 
-.text-sm { font-size: 14px; }
-.text-3xl { font-size: 26px; }
-
-.form-main-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.main-content-container {
-  max-width: 1280px;
-  margin-left: auto;
-  margin-right: auto;
-  width: 100%;
-}
-
-.form-header {
-  margin-bottom: 32px;
-}
-
-.form-main-title {
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: -0.025em;
-  color: #16213e;
-  letter-spacing: -0.02em;
-}
-
-.form-description {
-  font-size: 14px;
-  color: #64748b;
-  margin-top: 6px;
-}
-
-.form-grid-main {
-  display: grid;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  gap: 30px;
-}
-@media (min-width: 1024px) {
-  .form-grid-main {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.form-column-left, .form-column-right {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.form-column-left {
-  border-right: 1px solid rgba(185, 121, 204, 0.2);
-  padding-right: 20px;
-}
-  
-.form-section-spacing {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.form-sub-grid {
-  display: grid;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  gap: 20px;
-}
-@media (min-width: 768px) {
-  .form-sub-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.form-label {
-  display: block;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #b979cc;
-}
-
-.form-container-box {
-  background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
-  border: 1px solid rgba(185, 121, 204, 0.2);
-  border-radius: 20px;
-  padding: 32px;
-  box-shadow: 0 20px 40px rgba(10, 10, 20, 0.4);
-}
-
-.custom-input-field { width: 100%;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 14px 20px;
-  font-size: 14px;
-  color: #ffffff;
-  transition: all 0.2s ease;
-}
-
-.custom-input-field:focus {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: #b979cc;
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(153, 13, 209, 0.2);
-}
-
-.custom-input-field::placeholder {
-  color: #94a3b8;
-}
-
-.dark-option {
-  background-color: #16213e;
-  color: #ffffff;
-}
-
-.code-icon-calendar::-webkit-calendar-picker-indicator,
-.code-icon-clock::-webkit-calendar-picker-indicator {
-  filter: invert(1);
-  cursor: pointer;
-  opacity: 0.7;
-}
-
-.code-icon-calendar::-webkit-calendar-picker-indicator:hover,
-.code-icon-clock::-webkit-calendar-picker-indicator:hover {
-  opacity: 1;
-}
-
-.budget-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.budget-table-wrapper {
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background-color: rgba(0, 0, 0, 0.2);
-}
-
-.budget-table {
-  width: 100%;
-  text-align: left;
-  border-collapse: collapse;
-}
-
-.budget-table-header {
-  background-color: rgba(255, 255, 255, 0.05);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #b979cc;
-}
-
-.table-header-cell {
-  padding: 10px 16px;
-  font-weight: 600;
-}
-
-.budget-col-total {
-  width: 128px;
-}
-
-.budget-table-body {
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.budget-item-name {
-  padding: 12px 16px;
-  color: #cbd5e1;
-  line-height: 1.25;
-}
-
-.budget-item-input-cell {
-  padding: 8px 16px;
-}
-
-.budget-input-field {
-  background-color: transparent;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  outline: none;
-  width: 100%;
-  color: #ffffff;
-  font-size: 14px;
-  padding-top: 4px;
-  padding-bottom: 4px;
-}
-.budget-input-field:focus {
-  border-color: #b979cc;
-}
-
-.budget-total-field {
-  font-weight: 600;
-}
-
-.budget-table-footer {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-.grand-total-label {
-  padding: 12px 16px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #ffffff;
-  text-align: right;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.grand-total-value {
-  padding: 12px 16px;
-  font-size: 14px;
-  font-weight: 700;
-  color: #b979cc;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.upload-dropzone {
-  border: 2px dashed rgba(185, 121, 204, 0.3);
-  background: rgba(185, 121, 204, 0.02);
-  border-radius: 14px;
-  padding: 30px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.upload-dropzone:hover {
-  border-color: #b979cc;
-  background: rgba(185, 121, 204, 0.06);
-}
-
-.upload-icon {
-  font-size: 26px;
-  margin-bottom: 8px;
-  transition: transform 0.2s ease;
-}
-.upload-dropzone:hover .upload-icon {
-  transform: scale(1.1);
-}
-
-.upload-text {
-  font-size: 14px;
-  font-weight: 600;
-  color: #ffffff;
-  text-align: center;
-  transition: color 0.2s ease;
-}
-.upload-dropzone:hover .upload-text {
-  color: #b979cc;
-}
-
-.upload-hint {
-  font-size: 12px;
-  color: #64748b;
-  margin-top: 4px;
-}
-
-.uploaded-file-display {
-  margin-top: 16px;
-  width: 100%;
-}
-
-.attachment-section-container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 10px;
-}
-
-.attachment-display-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.attachment-preview-column {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 60px;
-  border: 1px dashed rgba(185, 121, 204, 0.15);
-  border-radius: 12px;
-  padding: 12px;
-  background: rgba(185, 121, 204, 0.02);
-}
-
-.no-file-uploaded-text {
-  color: #94a3b8;
-  font-size: 14px;
-  text-align: center;
-}
-
-.uploaded-file-tag {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 8px 14px;
-  border-radius: 8px;
-  color: #cbd5e1;
-  font-size: 12px;
-  width: 100%;
-}
-
-.uploaded-file-name {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.remove-file-btn {
-  color: #f472b6;
-  font-weight: 700;
-  font-size: 14px;
-  margin-left: 8px;
-  flex-shrink: 0;
-}
-.remove-file-btn:hover {
-  color: #f43f5e;
-}
-
-.form-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 24px;
-}
-
-.back-button {
-  padding: 12px 24px;
-  font-size: 14px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #b979cc;
-  border-radius: 12px;
-  transition: all 0.2s ease;
-}
-.back-button:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-.submit-action-btn {
-  background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%);
-  color: #ffffff;
-  padding: 14px 40px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 16px;
-  cursor: pointer;
-  border: none;
-  box-shadow: 0 4px 14px rgba(153, 13, 209, 0.3);
-  transition: all 0.3s ease;
-}
-
-.submit-action-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(153, 13, 209, 0.45);
-  background: linear-gradient(135deg, #b979cc 0%, #990dd1 100%);
-}
-
-.resize-none {
-  resize: none;
-}
-
-.select-arrow-fix {
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b979cc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 20px center;
-  background-size: 16px;
-}
-
-/* GAD Budget Table Inline Styles */
-.budget-sub-controls {
-  margin-top: 8px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  font-size: 11px;
-  color: #94a3b8;
-}
-
-.budget-checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  user-select: none;
-  color: #cbd5e1;
-  font-size: 13px;
-  font-weight: 500;
-  transition: color 0.2s ease;
-}
-
-.budget-checkbox-label:hover {
-  color: #ffffff;
-}
-
-.budget-checkbox {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
-  background-color: rgba(15, 23, 42, 0.3);
-  border: 2px solid rgba(185, 121, 204, 0.4);
-  border-radius: 5px;
-  display: inline-grid;
-  place-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin: 0;
-  position: relative;
-}
-
-.budget-checkbox:hover {
-  border-color: #b979cc;
-  background-color: rgba(185, 121, 204, 0.1);
-  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.2);
-}
-
-.budget-checkbox:checked {
-  background-color: #b979cc;
-  border-color: #b979cc;
-  box-shadow: 0 0 8px rgba(185, 121, 204, 0.4);
-}
-
-.budget-checkbox:checked::before {
-  content: "";
-  width: 10px;
-  height: 10px;
-  background-color: #ffffff;
-  clip-path: polygon(14% 44%, 0 58%, 38% 95%, 100% 23%, 86% 9%, 38% 68%);
-}
-
-.budget-number-input-label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #cbd5e1;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.budget-sub-number-input {
-  background-color: rgba(15, 23, 42, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  padding: 8px 12px;
-  width: 90px;
-  color: #ffffff;
-  font-size: 14px;
-  outline: none;
-  box-sizing: border-box;
-  text-align: center;
-  transition: all 0.2s ease;
-  font-weight: 600;
-}
-
-.budget-sub-number-input:focus {
-  border-color: #b979cc;
-  background-color: rgba(15, 23, 42, 0.5);
-  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.2);
-}
-
-.budget-warning-inline {
-  margin-top: 6px;
-  font-size: 11px;
-  color: #fbbf24;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.budget-error-inline {
-  margin-top: 6px;
-  font-size: 11px;
-  color: #f43f5e;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* Others Breakdown Styles */
-.others-breakdown-container {
-  margin-top: 10px;
-  padding: 12px;
-  background-color: rgba(0, 0, 0, 0.25);
-  border-radius: 10px;
-  border: 1px dashed rgba(185, 121, 204, 0.2);
-}
-
-.others-breakdown-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
-  align-items: center;
-}
-
-.others-input-name {
-  flex: 1;
-  background-color: rgba(26, 26, 46, 0.6);
-  border: 1px solid rgba(185, 121, 204, 0.2);
-  border-radius: 8px;
-  padding: 6px 10px;
-  color: #ffffff;
-  font-size: 12px;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.others-input-amount {
-  width: 110px;
-  background-color: rgba(26, 26, 46, 0.6);
-  border: 1px solid rgba(185, 121, 204, 0.2);
-  border-radius: 8px;
-  padding: 6px 10px;
-  color: #ffffff;
-  font-size: 12px;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.others-input-name:focus,
-.others-input-amount:focus {
-  border-color: #b979cc;
-  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.15);
-}
-
-.btn-remove-other {
-  background: transparent;
-  border: none;
-  color: #f43f5e;
-  cursor: pointer;
-  font-size: 18px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-  transition: color 0.2s;
-}
-
-.btn-remove-other:hover {
-  color: #fda4af;
-}
-
-.btn-add-other {
-  background-color: rgba(185, 121, 204, 0.1);
-  border: 1px solid rgba(185, 121, 204, 0.25);
-  color: #b979cc;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 4px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
-.btn-add-other:hover {
-  background-color: rgba(185, 121, 204, 0.2);
-  transform: translateY(-0.5px);
-}
-
-.resize-none {
-  resize: none;
-}
-
-.select-arrow-fix {
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b979cc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 20px center;
-  background-size: 16px;
-}
-
-.others-total-badge {
-  background-color: rgba(185, 121, 204, 0.15);
-  border: 1px solid rgba(185, 121, 204, 0.3);
-  color: #b979cc;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 13px;
-  display: inline-block;
-}
-
-.budget-groups-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  margin-top: 10px;
-}
-
-.budget-group-card {
-  background: rgba(30, 41, 59, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  padding: 20px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-}
-
-.budget-group-card:hover {
-  border-color: rgba(185, 121, 204, 0.3);
-  background: rgba(30, 41, 59, 0.6);
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-}
-
-.budget-group-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: 12px;
-  margin-bottom: 16px;
-}
-
-.budget-group-icon {
-  font-size: 18px;
-}
-
-.budget-group-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: #b979cc;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.budget-group-content {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.budget-row-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.budget-row-item:last-child {
-  padding-bottom: 0;
-  border-bottom: none;
-}
-
-.budget-item-info {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex-grow: 1;
-}
-
-.budget-item-title {
-  font-weight: 600;
-  color: #f1f5f9;
-  font-size: 14px;
-}
-
-.budget-item-subtext {
-  font-size: 11px;
-  color: #64748b;
-}
-
-.budget-item-value {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 240px;
-  flex-shrink: 0;
-  justify-content: flex-end;
-}
-
-.budget-currency-symbol {
-  color: #64748b;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.budget-card-input {
-  background-color: rgba(15, 23, 42, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  color: #ffffff;
-  font-size: 14px;
-  padding: 8px 12px;
-  width: 100%;
-  text-align: right;
-  transition: all 0.2s ease;
-  font-weight: 600;
-}
-
-.budget-card-input:focus {
-  border-color: #b979cc;
-  background-color: rgba(15, 23, 42, 0.5);
-  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.2);
-  outline: none;
-}
-
-.grand-total-banner-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: linear-gradient(135deg, rgba(185, 121, 204, 0.1) 0%, rgba(153, 13, 209, 0.1) 100%);
-  border: 1px solid rgba(185, 121, 204, 0.3);
-  border-radius: 14px;
-  padding: 20px;
-  margin-top: 20px;
-  box-shadow: 0 4px 15px -3px rgba(185, 121, 204, 0.1);
-}
-
-.grand-total-label-banner {
-  font-size: 13px;
-  font-weight: 700;
-  color: #ffffff;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.grand-total-value-banner {
-  font-size: 20px;
-  font-weight: 800;
-  color: #b979cc;
-  text-shadow: 0 0 10px rgba(185, 121, 204, 0.2);
-}
-
-.label-container {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.info-btn {
-  background: rgba(185, 121, 204, 0.08);
-  border: 1px solid rgba(185, 121, 204, 0.35);
-  color: #b979cc;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  font-size: 10px;
-  font-weight: bold;
-  font-family: serif;
-  line-height: 1;
-  transition: all 0.25s ease;
-}
-
-.info-btn:hover {
-  background: #b979cc;
-  color: #16213e;
-  border-color: #b979cc;
-  transform: scale(1.15);
-  box-shadow: 0 0 8px rgba(185, 121, 204, 0.4);
-}
-
-.info-btn-wrapper {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
-
-.simple-popup {
-  position: absolute;
-  bottom: calc(100% + 10px);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000;
-  background: #1a1a2e;
-  border: 1px solid #b979cc;
-  border-radius: 8px;
-  padding: 10px 14px;
-  color: #ffffff;
-  font-size: 12px;
-  width: 240px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  line-height: 1.45;
-  pointer-events: auto;
-  text-transform: none;
-  white-space: normal;
-}
-
-.simple-popup::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 6px;
-  border-style: solid;
-  border-color: #1a1a2e transparent transparent transparent;
-}
-
-.simple-popup::before {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 7px;
-  border-style: solid;
-  border-color: #b979cc transparent transparent transparent;
-  z-index: -1;
-}
-
-.fade-pop-enter-active,
-.fade-pop-leave-active {
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.fade-pop-enter-from,
-.fade-pop-leave-to {
-  opacity: 0;
-  transform: translate(-50%, 8px) scale(0.95);
-}
-
-.fade-pop-enter-to,
-.fade-pop-leave-from {
-  opacity: 1;
-  transform: translate(-50%, 0) scale(1);
-}
-
-@media (max-width: 768px) {
-  .budget-row-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  .budget-item-value {
-    width: 100%;
-    justify-content: flex-start;
-  }
-  .budget-sub-controls {
-    flex-wrap: wrap;
-  }
-  .grand-total-banner-card {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-}
-@media (max-width: 768px) {
-  .budget-row-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  .budget-item-value {
-    width: 100%;
-    justify-content: flex-start;
-  }
-  .others-breakdown-row {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .others-input-name {
-    width: 100%;
-    flex: none;
-  }
-  .others-input-amount {
-    flex: 1;
-  }
-  .budget-sub-controls {
-    flex-wrap: wrap;
-    width: 100%;
-  }
-  .budget-item-info {
-    width: 100%;
-  }
-  .budget-card-input {
-    width: 100%;
-  }
-}
-
-.schedule-inputs-wrapper {
-  display: flex;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.schedule-inputs-wrapper > * {
-  min-width: 0;
-  width: 100%;
-}
-
-@media (max-width: 1024px) {
-  .schedule-inputs-wrapper {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-.schedule-type-toggle-container {
-  display: flex; 
-  background: rgba(0,0,0,0.3); 
-  border-radius: 8px; 
-  padding: 4px; 
-  border: 1px solid rgba(255,255,255,0.05);
-  gap: 4px;
-}
-
-.schedule-type-toggle-btn {
-  padding: 4px 12px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-  flex: 1;
-  text-align: center;
-}
-
-@media (max-width: 480px) {
-  .schedule-type-toggle-container {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-@media (max-width: 768px) {
-  .grand-total-banner-card {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  .grand-total-value-banner {
-    word-break: break-word;
-    font-size: 18px;
-  }
-}
-
-/* Custom Multi-select Styles */
-.custom-multiselect-container {
-  position: relative;
-  width: 100%;
-}
-
-.multiselect-backdrop {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  z-index: 99;
-}
-
-.multiselect-trigger {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  user-select: none;
-  background-color: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-}
-
-.multiselect-trigger:hover, .multiselect-trigger.is-open {
-  border-color: #b979cc;
-  box-shadow: 0 0 0 3px rgba(185, 121, 204, 0.1);
-}
-
-.placeholder-text {
-  color: #94a3b8;
-}
-
-.selected-text {
-  color: #f8fafc;
-  font-weight: 500;
-}
-
-.dropdown-arrow {
-  color: #94a3b8;
-  font-size: 0.8rem;
-  transition: transform 0.3s ease;
-}
-.multiselect-trigger.is-open .dropdown-arrow {
-  transform: rotate(180deg);
-}
-
-.multiselect-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  margin-top: 0.5rem;
-  background-color: #1e293b;
-  border: 1px solid rgba(185, 121, 204, 0.3);
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  max-height: 250px;
-  overflow-y: auto;
-  z-index: 100;
-  padding: 0.5rem 0;
-}
-
-.multiselect-option {
-  display: flex;
-  align-items: center;
-  padding: 0.6rem 1rem;
-  cursor: pointer;
-  color: #e2e8f0;
-  transition: background-color 0.2s;
-  margin: 0;
-}
-
-.multiselect-option:hover {
-  background-color: rgba(185, 121, 204, 0.15);
-}
-
-.multiselect-checkbox {
-  margin-right: 0.75rem;
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-  accent-color: #b979cc;
-}
-
-.multiselect-divider {
-  height: 1px;
-  background-color: rgba(255, 255, 255, 0.1);
-  margin: 0.5rem 0;
-}
-
-/* Chips Styles */
-.chips-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-}
-
-.venue-chip {
-  display: inline-flex;
-  align-items: center;
-  background: linear-gradient(135deg, rgba(185, 121, 204, 0.2), rgba(185, 121, 204, 0.05));
-  border: 1px solid rgba(185, 121, 204, 0.4);
-  color: #f8fafc;
-  padding: 0.25rem 0.75rem;
-  border-radius: 999px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  backdrop-filter: blur(4px);
-  animation: fadeInChip 0.3s ease-out forwards;
-}
-
-.chip-remove {
-  background: none;
-  border: none;
-  color: #94a3b8;
-  margin-left: 0.5rem;
-  font-size: 1.1rem;
-  line-height: 1;
-  cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s;
-}
-
-.chip-remove:hover {
-  color: #ef4444;
-}
-
-@keyframes fadeInChip {
-  from { opacity: 0; transform: translateY(5px) scale(0.95); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.btn-add-custom-venue {
-  width: 100%;
-  padding: 0.75rem;
-  background: transparent;
-  border: none;
-  color: #b979cc;
-  font-weight: 500;
-  cursor: pointer;
-  text-align: left;
-  transition: background-color 0.2s;
-}
-.btn-add-custom-venue:hover {
-  background-color: rgba(185, 121, 204, 0.1);
-}
-
-.pax-breakdown-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 10px;
-  background: rgba(15, 23, 42, 0.4);
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-.pax-breakdown-item {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.pax-input-group {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.creative-pax-input {
-  width: 65px;
-  padding: 8px;
-  background: #1e293b;
-  border: 1px solid #475569;
-  border-radius: 6px;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 500;
-  text-align: center;
-  transition: all 0.2s ease;
-}
-.creative-pax-input:focus {
-  border-color: #b979cc;
-  background: #2a3b54;
-  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.2);
-  outline: none;
-}
-.pax-label {
-  font-size: 14px;
-  color: #e2e8f0;
-  font-weight: 500;
-}
-.pax-calc-text {
-  font-size: 12px;
-  color: #94a3b8;
-  margin-left: 77px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(0, 0, 0, 0.2);
-  padding: 4px 8px;
-  border-radius: 4px;
-  width: fit-content;
-}
-.pax-calc-formula {
-  color: #cbd5e1;
-}
-.pax-calc-equals {
-  color: #64748b;
-}
-.pax-calc-total {
-  color: #10b981;
-  font-weight: 600;
-  font-size: 13px;
-}
-.budget-group-total {
-  font-weight: 600;
-  color: #10b981;
-  background: rgba(16, 185, 129, 0.1);
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 13px;
-}
-
-/* Universal budget lines */
-.bl-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
-.bl-rate { width: 110px; background: rgba(15, 23, 42, 0.3); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 7px 10px; color: #fff; font-weight: 600; text-align: right; }
-.bl-x { color: #64748b; }
-.bl-mult { display: inline-flex; align-items: center; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(185, 121, 204, 0.3); border-radius: 8px; padding: 2px 2px 2px 4px; }
-.bl-mult input { background: transparent; border: 1px solid transparent; border-radius: 6px; padding: 5px 6px; color: #fff; }
-.bl-q { width: 58px; text-align: center; font-weight: 600; }
-.bl-u { width: 84px; color: #e9d5ff; }
-.bl-rm { background: none; border: 0; color: #64748b; cursor: pointer; font-size: 11px; padding: 4px 6px; }
-.bl-rm:hover { color: #f43f5e; }
-.bl-acts { display: flex; gap: 10px; align-items: center; margin-top: 6px; }
-.bl-clear { background: none; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 6px; color: #94a3b8; font-size: 11px; padding: 2px 8px; cursor: pointer; }
-.bl-clear:hover { color: #fff; border-color: #b979cc; }
-.bl-note { font-size: 11px; color: #64748b; margin-top: 6px; }
-.bl-link { background: none; border: 0; color: #b979cc; cursor: pointer; font-size: 11px; padding: 0; text-decoration: underline; }
-@media (max-width: 640px) { .budget-row-item { flex-direction: column; align-items: stretch !important; } }
-</style>

@@ -61,13 +61,14 @@ onMounted(() => {
 
 .modal-container {
   box-sizing: border-box;
-  background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
-  border: 1px solid rgba(185, 121, 204, 0.2);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 24px;
   padding: 40px;
   width: 100%;
   max-width: 520px;
-  box-shadow: 0 20px 40px rgba(10, 10, 20, 0.5), 0 0 30px rgba(153, 13, 209, 0.05);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 30px rgba(153, 13, 209, 0.05);
+  transition: all 0.3s ease;
 }
 
 @media (max-width: 600px) {
@@ -91,7 +92,7 @@ onMounted(() => {
 .modal-title {
   font-size: 24px;
   font-weight: 800;
-  color: #ffffff;
+  color: #0f172a;
   letter-spacing: -0.03em;
 }
 
@@ -99,16 +100,16 @@ onMounted(() => {
   font-size: 14px;
   font-weight: 700;
   color: #ffffff;
-  background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%);
+  background: linear-gradient(135deg, #7e22ce 0%, #a855f7 100%);
   padding: 4px 12px;
   border-radius: 99px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  box-shadow: 0 2px 8px rgba(153, 13, 209, 0.3);
+  box-shadow: 0 2px 8px rgba(126, 34, 206, 0.25);
 }
 
 .modal-text {
-  color: #94a3b8;
+  color: #64748b;
   margin-bottom: 32px;
   font-size: 16px;
   line-height: 1.6;
@@ -127,8 +128,8 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 20px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 16px;
   text-decoration: none;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -136,10 +137,10 @@ onMounted(() => {
 }
 
 .modal-option:hover {
-  background-color: rgba(185, 121, 204, 0.12);
-  border-color: #b979cc;
+  background-color: #faf5ff;
+  border-color: #7e22ce;
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(153, 13, 209, 0.15);
+  box-shadow: 0 8px 20px rgba(126, 34, 206, 0.12);
 }
 
 .modal-option-content {
@@ -149,20 +150,25 @@ onMounted(() => {
 
 .modal-option-title {
   font-weight: 700;
-  color: #ffffff;
+  color: #0f172a;
   font-size: 16px;
   margin: 0 0 4px 0;
+  transition: color 0.2s ease;
+}
+
+.modal-option:hover .modal-option-title {
+  color: #7e22ce;
 }
 
 .modal-option-desc {
   font-size: 12px;
-  color: #cbd5e1;
+  color: #64748b;
   line-height: 1.4;
   margin: 0;
 }
 
 .modal-option-arrow {
-  color: #94a3b8;
+  color: #7e22ce;
   font-size: 20px;
   font-weight: bold;
   transition: all 0.25s ease;
@@ -170,7 +176,72 @@ onMounted(() => {
 }
 
 .modal-option:hover .modal-option-arrow {
-  color: #ffffff;
+  color: #9333ea;
   transform: translateX(4px);
+}
+
+/* ==========================================================================
+   Dark Mode Overrides
+   ========================================================================== */
+html.dark .modal-container,
+.dark .modal-container {
+  background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+  border-color: rgba(185, 121, 204, 0.2);
+  box-shadow: 0 20px 40px rgba(10, 10, 20, 0.5), 0 0 30px rgba(153, 13, 209, 0.05);
+}
+
+html.dark .modal-title,
+.dark .modal-title {
+  color: #ffffff;
+}
+
+html.dark .title-badge,
+.dark .title-badge {
+  color: #ffffff;
+  background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%);
+  box-shadow: 0 2px 8px rgba(153, 13, 209, 0.3);
+}
+
+html.dark .modal-text,
+.dark .modal-text {
+  color: #94a3b8;
+}
+
+html.dark .modal-option,
+.dark .modal-option {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html.dark .modal-option:hover,
+.dark .modal-option:hover {
+  background-color: rgba(185, 121, 204, 0.12);
+  border-color: #b979cc;
+  box-shadow: 0 8px 20px rgba(153, 13, 209, 0.15);
+}
+
+html.dark .modal-option-title,
+.dark .modal-option-title {
+  color: #ffffff;
+}
+
+html.dark .modal-option:hover .modal-option-title,
+.dark .modal-option:hover .modal-option-title {
+  color: #ffffff;
+}
+
+html.dark .modal-option-desc,
+.dark .modal-option-desc {
+  color: #cbd5e1;
+}
+
+html.dark .modal-option-arrow,
+.dark .modal-option-arrow {
+  color: #94a3b8;
+}
+
+html.dark .modal-option:hover .modal-option-arrow,
+.dark .modal-option:hover .modal-option-arrow {
+  color: #ffffff;
 }
 </style>

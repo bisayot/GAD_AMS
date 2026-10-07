@@ -161,7 +161,7 @@
       <div class="section-inner">
         <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; flex-wrap: wrap; gap: 16px;">
           <div>
-            <p class="section-tag" style="color: #06b6d4;">University Impact</p>
+            <p class="section-tag" style="color: var(--color-primary-text);">University Impact</p>
             <h2 class="section-title" style="margin-bottom: 0; color: #fff;">Gender-Disaggregated Data</h2>
           </div>
           <select v-model="analyticsYear" class="impact-year-select">
@@ -179,7 +179,7 @@
           <!-- Key Metrics -->
           <div class="impact-metrics">
             <div class="metric-card">
-              <div class="metric-icon-wrap" style="background: rgba(153, 13, 209, 0.1); color: #c084fc;">
+              <div class="metric-icon-wrap" style="background: rgba(153, 13, 209, 0.1); color: var(--color-female);">
                 <span class="material-symbols-outlined">groups</span>
               </div>
               <div class="metric-value">{{ displayTotal }}</div>
@@ -187,18 +187,18 @@
             </div>
             
             <div class="metric-card">
-              <div class="metric-icon-wrap" style="background: rgba(6, 182, 212, 0.1); color: #22d3ee;">
+              <div class="metric-icon-wrap" style="background: rgba(6, 182, 212, 0.1); color: var(--color-male);">
                 <span class="material-symbols-outlined">man</span>
               </div>
-              <div class="metric-value" style="color: #22d3ee;">{{ displayMale }}</div>
+              <div class="metric-value" style="color: var(--color-male);">{{ displayMale }}</div>
               <div class="metric-label">Total Male</div>
             </div>
             
             <div class="metric-card">
-              <div class="metric-icon-wrap" style="background: rgba(192, 132, 252, 0.1); color: #c084fc;">
+              <div class="metric-icon-wrap" style="background: rgba(192, 132, 252, 0.1); color: var(--color-female);">
                 <span class="material-symbols-outlined">woman</span>
               </div>
-              <div class="metric-value" style="color: #c084fc;">{{ displayFemale }}</div>
+              <div class="metric-value" style="color: var(--color-female);">{{ displayFemale }}</div>
               <div class="metric-label">Total Female</div>
             </div>
           </div>
@@ -424,8 +424,8 @@ const chartData = computed(() => ({
   labels: ['Male', 'Female'],
   datasets: [
     {
-      backgroundColor: ['#22d3ee', '#c084fc'],
-      hoverBackgroundColor: ['#06b6d4', '#a855f7'],
+      backgroundColor: ['#0891b2', '#9333ea'],
+      hoverBackgroundColor: ['#0e7490', '#7e22ce'],
       borderWidth: 0,
       data: [displayMale.value, displayFemale.value]
     }
@@ -629,9 +629,9 @@ const goals = [
 .splash-title {
   font-size: 48px;
   font-weight: 900;
-  color: #fff;
+  color: #ffffff;
   letter-spacing: 0.05em;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
   text-transform: uppercase;
 }
 .splash-subtitle {
@@ -685,7 +685,7 @@ const goals = [
 .page { background: #f8f6ff; padding-top: 0; }
 .hero {
   position: relative;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: var(--color-background);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -754,8 +754,9 @@ const goals = [
   font-weight: 700;
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: #cbd5e1;
-  border: 1px solid rgba(203, 213, 225, 0.3);
+  color: #006600;
+  background: rgba(0, 102, 0, 0.08);
+  border: 1px solid rgba(0, 102, 0, 0.25);
   padding: 6px 20px;
   border-radius: 9999px;
   margin-bottom: 24px;
@@ -763,7 +764,7 @@ const goals = [
 .hero-title {
   font-size: 56px;
   font-weight: 800;
-  color: #fff;
+  color: #4a0081;
   line-height: 1.15;
   letter-spacing: -0.025em;
   margin-bottom: 18px;
@@ -777,7 +778,7 @@ const goals = [
 }
 .hero-subtitle {
   font-size: 15px;
-  color: #cbd5e1;
+  color: var(--color-on-background);
   max-width: 540px;
   margin: 0 auto 32px;
   line-height: 1.8;
@@ -832,12 +833,11 @@ const goals = [
 }
 
 .vm-section { 
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); 
-  border-top: 1px solid rgba(255, 255, 255, 0.05); 
+  background: var(--color-background); 
 }
-.vm-section .section-title { color: #fff; }
-.vm-section .section-tag { color: #c084fc; }
-.vm-section .goals-label span { color: #c084fc; }
+.vm-section .section-title { color: var(--color-on-background); }
+.vm-section .section-tag { color: var(--color-female); }
+.vm-section .goals-label span { color: var(--color-female); }
 .vm-section .goals-divider { background: rgba(255, 255, 255, 0.1); }
 .vm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 64px; }
 .vm-card {
@@ -845,16 +845,16 @@ const goals = [
   padding: 32px;
 }
 .vm-card.vision {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border: 1px solid rgba(153, 13, 209, 0.3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
 }
 .vm-card.mission {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
 }
-.vm-card.mission .vm-body { color: #cbd5e1; }
-.vm-card.mission .vm-card-label { color: #c084fc; }
-.vm-card.mission .vm-card-label .material-symbols-outlined { color: #c084fc; }
+.vm-card.mission .vm-body { color: var(--color-on-surface); }
+.vm-card.mission .vm-card-label { color: var(--color-primary); }
+.vm-card.mission .vm-card-label .material-symbols-outlined { color: var(--color-primary); }
 .vm-card-label {
   display: flex;
   align-items: center;
@@ -872,13 +872,13 @@ const goals = [
 .vm-quote {
   font-size: 22px;
   font-weight: 600;
-  color: #fff;
+  color: var(--color-on-surface);
   line-height: 1.6;
   font-style: italic;
   border-left: 3px solid #990dd1;
   padding-left: 18px;
 }
-.vm-body { font-size: 18px; color: #1a1a2e; line-height: 1.85; }
+.vm-body { font-size: 18px; color: var(--color-on-surface); line-height: 1.85; }
 
 .goals-label {
   display: flex;
@@ -897,8 +897,8 @@ const goals = [
 .goals-divider { flex: 1; height: 1px; background: #ede9f7; }
 .goals-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .goal-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
   border-radius: 14px;
   padding: 24px;
   display: flex;
@@ -911,7 +911,7 @@ const goals = [
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: var(--color-surface);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -923,9 +923,9 @@ const goals = [
   font-weight: 1000;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #fff;
+  color: var(--color-on-surface);
 }
-.goal-desc { font-size: 15px; color: #cbd5e1; line-height: 1.7; flex-grow: 1; margin-bottom: 14px; }
+.goal-desc { font-size: 15px; color: var(--color-on-surface-variant); line-height: 1.7; flex-grow: 1; margin-bottom: 14px; }
 .objective-list {
   border-top: 1px solid #ede9f7;
   padding-top: 14px;
@@ -944,13 +944,13 @@ const goals = [
   margin-top: 6px;
   flex-shrink: 0;
 }
-.obj-text { font-size: 14px; color: #475569; line-height: 1.6; }
+.obj-text { font-size: 14px; color: var(--color-on-surface); line-height: 1.6; }
 .toggle-btn {
   font-size: 14px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #c084fc;
+  color: var(--color-female);
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(153, 13, 209, 0.4);
   border-radius: 8px;
@@ -968,10 +968,9 @@ const goals = [
 
 /* IMPACT SECTION */
 .impact-section {
-  background: linear-gradient(135deg, #1a1a2e 0%, #0f172a 100%);
+  background: var(--color-background);
   position: relative;
   overflow: hidden;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 .impact-section .section-inner {
   position: relative;
@@ -1027,8 +1026,8 @@ const goals = [
   gap: 20px;
 }
 .metric-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
   border-radius: 16px;
   padding: 24px;
   display: flex;
@@ -1066,7 +1065,7 @@ const goals = [
 .metric-value {
   font-size: 48px;
   font-weight: 800;
-  color: #fff;
+  color: var(--color-on-surface);
   line-height: 1;
   margin-bottom: 8px;
   letter-spacing: -0.02em;
@@ -1085,8 +1084,8 @@ const goals = [
   gap: 24px;
 }
 .impact-chart-card, .impact-top-offices {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
   border-radius: 16px;
   padding: 32px;
   width: 100%;
@@ -1096,7 +1095,7 @@ const goals = [
 .impact-card-title {
   font-size: 18px;
   font-weight: 700;
-  color: #fff;
+  color: var(--color-on-surface);
   margin-bottom: 24px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1125,10 +1124,10 @@ const goals = [
   display: flex;
   align-items: center;
   gap: 16px;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--color-surface-variant);
   padding: 16px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--color-outline-variant);
   transition: transform 0.2s, background 0.2s, border-color 0.2s;
 }
 .top-office-item:hover {
@@ -1150,7 +1149,7 @@ const goals = [
 .office-name {
   font-size: 15px;
   font-weight: 600;
-  color: #e2e8f0;
+  color: var(--color-on-surface);
   margin-bottom: 6px;
   white-space: nowrap;
   overflow: hidden;
@@ -1167,18 +1166,17 @@ const goals = [
   border-radius: 9999px;
   letter-spacing: 0.05em;
 }
-.male-pill { background: rgba(34, 211, 238, 0.1); color: #22d3ee; }
-.female-pill { background: rgba(192, 132, 252, 0.1); color: #c084fc; }
+.male-pill { background: rgba(34, 211, 238, 0.1); color: var(--color-male); }
+.female-pill { background: rgba(192, 132, 252, 0.1); color: var(--color-female); }
 
 .office-total {
   font-size: 24px;
   font-weight: 800;
-  color: #fff;
+  color: var(--color-on-surface);
 }
 
 .about-section {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--color-background);
 }
 .about-grid { display: grid; grid-template-columns: 6fr 5fr; gap: 72px; align-items: center; }
 .about-text { display: flex; flex-direction: column; gap: 0; }
@@ -1187,19 +1185,19 @@ const goals = [
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.35em;
-  color: #c084fc;
+  color: var(--color-female);
   margin-bottom: 12px;
 }
 .about-title {
   font-size: 44px;
   font-weight: 800;
-  color: #fff;
+  color: var(--color-on-background);
   line-height: 1.2;
   letter-spacing: -0.02em;
   margin-bottom: 20px;
 }
-.about-body-lg { font-size: 18px; color: #cbd5e1; line-height: 1.85; margin-bottom: 16px; }
-.about-body { font-size: 16px; color: #94a3b8; line-height: 1.85; margin-bottom: 28px; }
+.about-body-lg { font-size: 18px; color: var(--color-on-background); line-height: 1.85; margin-bottom: 16px; }
+.about-body { font-size: 16px; color: var(--color-on-surface-variant); line-height: 1.85; margin-bottom: 28px; }
 .about-btns { display: flex; gap: 12px; flex-wrap: wrap; }
 .btn-primary {
   padding: 12px 28px;
@@ -1233,7 +1231,7 @@ const goals = [
 .about-img-decor {
   position: absolute;
   inset: -10px;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: var(--color-surface-container);
   border-radius: 20px;
   opacity: 0.08;
   z-index: 0;
@@ -1286,5 +1284,146 @@ const goals = [
   .hero-logo { max-width: 250px; }
   .carousel-card-wrapper { width: 260px; }
   .card-carousel { padding-top: 20px; }
+}
+
+/* ==========================================================================
+   DARK PURPLE MODE FOR HOME PAGE
+   ========================================================================== */
+:global(.dark) .page,
+.dark .page,
+:global(.dark) .hero,
+.dark .hero,
+:global(.dark) .vm-section,
+.dark .vm-section,
+:global(.dark) .impact-section,
+.dark .impact-section,
+:global(.dark) .about-section,
+.dark .about-section {
+  background: #1f0b35 !important;
+}
+
+:global(.dark) .hero-overlay,
+.dark .hero-overlay {
+  background: radial-gradient(ellipse at 50% 10%, rgba(168, 85, 247, 0.3) 0%, transparent 65%) !important;
+}
+
+:global(.dark) .hero-badge,
+.dark .hero-badge {
+  color: #deb7ff !important;
+  border-color: rgba(222, 183, 255, 0.4) !important;
+  background: rgba(222, 183, 255, 0.1) !important;
+}
+
+:global(.dark) .hero-title,
+.dark .hero-title {
+  color: #ffffff !important;
+}
+
+:global(.dark) .hero-subtitle,
+.dark .hero-subtitle {
+  color: #deb7ff !important;
+}
+
+:global(.dark) .btn-hero-outline,
+.dark .btn-hero-outline {
+  color: #f5efff !important;
+  border-color: rgba(222, 183, 255, 0.3) !important;
+}
+
+:global(.dark) .section-title,
+.dark .section-title {
+  color: #f5efff !important;
+}
+
+:global(.dark) .goals-divider,
+.dark .goals-divider {
+  background: #532385 !important;
+}
+
+:global(.dark) .vm-card.vision,
+.dark .vm-card.vision,
+:global(.dark) .vm-card.mission,
+.dark .vm-card.mission,
+:global(.dark) .goal-card,
+.dark .goal-card,
+:global(.dark) .metric-card,
+.dark .metric-card,
+:global(.dark) .impact-chart-card,
+.dark .impact-chart-card,
+:global(.dark) .impact-top-offices,
+.dark .impact-top-offices {
+  background: #2b1147 !important;
+  border-color: #532385 !important;
+}
+
+:global(.dark) .goal-icon-wrap,
+.dark .goal-icon-wrap {
+  background: #39175d !important;
+}
+
+:global(.dark) .goal-title-text,
+.dark .goal-title-text,
+:global(.dark) .vm-quote,
+.dark .vm-quote,
+:global(.dark) .vm-body,
+.dark .vm-body,
+:global(.dark) .obj-text,
+.dark .obj-text,
+:global(.dark) .metric-value,
+.dark .metric-value,
+:global(.dark) .impact-card-title,
+.dark .impact-card-title,
+:global(.dark) .office-name,
+.dark .office-name,
+:global(.dark) .office-total,
+.dark .office-total,
+:global(.dark) .about-title,
+.dark .about-title,
+:global(.dark) .about-body-lg,
+.dark .about-body-lg {
+  color: #f5efff !important;
+}
+
+:global(.dark) .goal-desc,
+.dark .goal-desc,
+:global(.dark) .about-body,
+.dark .about-body {
+  color: #deb7ff !important;
+}
+
+:global(.dark) .objective-list,
+.dark .objective-list {
+  border-top-color: #532385 !important;
+}
+
+:global(.dark) .top-office-item,
+.dark .top-office-item {
+  background: #341555 !important;
+  border-color: #532385 !important;
+}
+
+:global(.dark) .top-office-item:hover,
+.dark .top-office-item:hover {
+  background: #3f1966 !important;
+}
+
+:global(.dark) .impact-year-select,
+.dark .impact-year-select,
+:global(.dark) .impact-year-select option,
+.dark .impact-year-select option {
+  background: #2b1147 !important;
+  color: #f5efff !important;
+  border-color: #532385 !important;
+}
+
+:global(.dark) .btn-outline,
+.dark .btn-outline {
+  color: #f5efff !important;
+  border-color: #532385 !important;
+}
+
+:global(.dark) .about-img,
+.dark .about-img {
+  border-color: #532385 !important;
 }
 </style>

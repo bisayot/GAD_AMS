@@ -9,12 +9,12 @@
     <div v-else class="page-container">
 
       <!-- Rejection/Revision Note Alert -->
-      <div v-if="(existingReport?.modification_remarks)" class="mb-6 p-4 rounded-xl" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);">
+      <div v-if="(existingReport?.modification_remarks)" class="rejection-note-banner">
         <div style="display: flex; align-items: flex-start; gap: 12px;">
-          <span class="material-symbols-outlined" style="color: #f87171; font-size: 24px; margin-top: 2px;">error</span>
+          <span class="material-symbols-outlined" style="color: #ef4444; font-size: 24px; margin-top: 2px;">error</span>
           <div>
-            <h4 style="color: #fca5a5; font-size: 14px; font-weight: bold; margin: 0 0 6px 0; font-family: 'Inter', sans-serif; letter-spacing: 0.5px;">Rejection / Revision Note</h4>
-            <p style="color: #fecaca; font-size: 13px; margin: 0; font-family: 'Inter', sans-serif; line-height: 1.5; white-space: pre-wrap;">{{ existingReport?.modification_remarks }}</p>
+            <h4 class="rejection-note-title">Rejection / Revision Note</h4>
+            <p class="rejection-note-text">{{ existingReport?.modification_remarks }}</p>
           </div>
         </div>
       </div>
@@ -281,18 +281,18 @@
                   <div class="full-width-info">
                     <label class="info-label">Gender Issue / GAD Mandate</label>
                     <div class="checkbox-group-container custom-input-field mt-1" style="max-height: 200px; overflow-y: auto; overflow-x: hidden; padding: 8px; display: flex; flex-direction: column; gap: 8px;">
-                      <label v-for="mandate in GADMandates" :key="mandate.id" class="mandate-checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
+                      <label v-for="mandate in GADMandates" :key="mandate.id" class="mandate-checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
                         <input type="radio" @change="handleMandateChange" v-model="form.gad_mandate_id" :value="mandate.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
-                        <span style="font-size: 13px; color: #fff; line-height: 1.4; word-break: break-word; min-width: 0; flex: 1;">{{ mandate.code }} - {{ mandate.title }}</span>
+                        <span style="font-size: 13px; line-height: 1.4; word-break: break-word; min-width: 0; flex: 1;">{{ mandate.code }} - {{ mandate.title }}</span>
                       </label>
                       </div>
                   </div>
                   <div class="full-width-info">
                     <label class="info-label">Cause of Gender Issue</label>
                     <div class="checkbox-group-container custom-input-field mt-1" style="max-height: 200px; overflow-y: auto; overflow-x: hidden; padding: 8px; display: flex; flex-direction: column; gap: 8px;">
-                      <label v-for="issue in genderIssues" :key="issue.id" class="mandate-checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
+                      <label v-for="issue in genderIssues" :key="issue.id" class="mandate-checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
                         <input type="radio" v-model="form.gender_issue_id" :value="issue.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
-                        <span style="font-size: 13px; color: #fff; line-height: 1.4; word-break: break-word; min-width: 0; flex: 1;">{{ issue.title }}</span>
+                        <span style="font-size: 13px; line-height: 1.4; word-break: break-word; min-width: 0; flex: 1;">{{ issue.title }}</span>
                       </label>
                       <p v-if="!form.gad_mandate_id || form.gad_mandate_id.length === 0" style="color: #94a3b8; font-size: 13px; font-style: italic; margin: 0;">Select a mandate first to see gender issues.</p>
                     </div>
@@ -318,7 +318,7 @@
                     </div>
                   </div>
                   <div style="grid-column: 1 / -1; width: 100%; box-sizing: border-box;">
-<div class="form.schedules-container" style="box-sizing: border-box; width: 100%; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
+<div class="form.schedules-container">
                     <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
                       <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
                           <label class="form-label-ar !mb-0 flex items-center gap-2" style="white-space: nowrap;">
@@ -326,11 +326,11 @@
                             Activity Schedules *
                           </label>
                           <div class="schedule-type-toggle-container">
-                            <button type="button" @click.prevent="handleScheduleTypeChange('staggered')" class="schedule-type-toggle-btn" :style="{ background: scheduleType === 'staggered' ? 'rgba(185, 121, 204, 0.2)' : 'transparent', color: scheduleType === 'staggered' ? '#e9d5ff' : '#94a3b8' }">Non Consecutive</button>
-                            <button type="button" @click.prevent="handleScheduleTypeChange('continuous')" class="schedule-type-toggle-btn" :style="{ background: scheduleType === 'continuous' ? 'rgba(185, 121, 204, 0.2)' : 'transparent', color: scheduleType === 'continuous' ? '#e9d5ff' : '#94a3b8' }">Consecutive</button>
+                            <button type="button" @click.prevent="handleScheduleTypeChange('staggered')" class="schedule-type-toggle-btn" :class="{ 'schedule-toggle-active': scheduleType === 'staggered' }">Non Consecutive</button>
+                            <button type="button" @click.prevent="handleScheduleTypeChange('continuous')" class="schedule-type-toggle-btn" :class="{ 'schedule-toggle-active': scheduleType === 'continuous' }">Consecutive</button>
                           </div>
                       </div>
-                      <button type="button" v-if="scheduleType === 'staggered'" @click.prevent="addSchedule" style="background: rgba(185, 121, 204, 0.2); color: #e9d5ff; border: 1px solid rgba(185, 121, 204, 0.3); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s;">
+                      <button type="button" v-if="scheduleType === 'staggered'" @click.prevent="addSchedule" class="btn-add-schedule">
                         <span class="material-symbols-outlined" style="font-size: 14px;">add</span> Add Schedule
                       </button>
                     </div>
@@ -341,11 +341,11 @@
                     
                     
                     <!-- Continuous Config UI -->
-                    <div v-if="scheduleType === 'continuous'" class="schedule-row mb-3 p-4 bg-white border border-slate-200 rounded-lg relative" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
+                    <div v-if="scheduleType === 'continuous'" class="schedule-row mb-3">
                       <div class="schedule-inputs-wrapper" style="margin-bottom: 16px;">
                         <div class="flex-1">
                           <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Start Date</label>
-                          <VueDatePicker dark v-model="continuousConfig.start_date" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
+                          <VueDatePicker :dark="isDarkMode" v-model="continuousConfig.start_date" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
 <template #dp-input="{ value }">
 <input type="text" :value="value ? String(value).replace(',', '').trim().split(' ')[0] : ''" class="custom-input-field dp-custom-transparent !text-xs !p-2" readonly placeholder="Select Date" />
 </template>
@@ -353,7 +353,7 @@
                         </div>
                         <div class="flex-1">
                           <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">End Date</label>
-                          <VueDatePicker dark v-model="continuousConfig.end_date" :min-date="continuousConfig.start_date || minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
+                          <VueDatePicker :dark="isDarkMode" v-model="continuousConfig.end_date" :min-date="continuousConfig.start_date || minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
 <template #dp-input="{ value }">
 <input type="text" :value="value ? String(value).replace(',', '').trim().split(' ')[0] : ''" class="custom-input-field dp-custom-transparent !text-xs !p-2" readonly placeholder="Select Date" />
 </template>
@@ -367,7 +367,7 @@
                               <transition name="fade-pop"><div v-if="helpState.startTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                             </div>
                           </div>
-                          <input type="time" v-model="continuousConfig.start_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="handleTimeChange(continuousConfig)">
+                          <input type="time" v-model="continuousConfig.start_time" min="04:00" max="20:00" required class="custom-input-field" :style="{ colorScheme: isDarkMode ? 'dark' : 'light' }" style="cursor: pointer;" @change="handleTimeChange(continuousConfig)">
                         </div>
                         <div class="flex-1">
                           <div class="label-container" style="margin-bottom: 4px;">
@@ -377,7 +377,7 @@
                               <transition name="fade-pop"><div v-if="helpState.endTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                             </div>
                           </div>
-                          <input type="time" v-model="continuousConfig.end_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="handleTimeChange(continuousConfig)">
+                          <input type="time" v-model="continuousConfig.end_time" min="04:00" max="20:00" required class="custom-input-field" :style="{ colorScheme: isDarkMode ? 'dark' : 'light' }" style="cursor: pointer;" @change="handleTimeChange(continuousConfig)">
                         </div>
                       </div>
 
@@ -388,10 +388,10 @@
                       <span class="material-symbols-outlined" style="font-size: 14px;">info</span>
                       You can customize the Time and Meals for specific days (e.g., half-day on the last day) below:
                     </div>
-                    <div v-for="(sch, index) in form.schedules" :key="index" style="display: flex; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); position: relative;">
+                    <div v-for="(sch, index) in form.schedules" :key="index" class="schedule-row mb-3 relative flex items-end flex-wrap gap-4">
                       <div style="flex: 1; min-width: 130px;">
                         <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 6px; display: block;">Date</label>
-                        <VueDatePicker dark v-model="sch.date" @update:model-value="handleScheduleDateChange($event, index)" :disabled="scheduleType === 'continuous'" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
+                        <VueDatePicker :dark="isDarkMode" v-model="sch.date" @update:model-value="handleScheduleDateChange($event, index)" :disabled="scheduleType === 'continuous'" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
 <template #dp-input="{ value }">
 <input type="text" :value="value ? String(value).replace(',', '').trim().split(' ')[0] : ''" class="custom-input-field dp-custom-transparent !text-xs !p-2" readonly placeholder="Select Date" />
 </template>
@@ -405,7 +405,7 @@
                             <transition name="fade-pop"><div v-if="helpState.startTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                           </div>
                         </div>
-                        <input type="time" v-model="sch.start_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="validateScheduleTime(index)">
+                        <input type="time" v-model="sch.start_time" min="04:00" max="20:00" required class="custom-input-field" :style="{ colorScheme: isDarkMode ? 'dark' : 'light' }" style="cursor: pointer;" @change="validateScheduleTime(index)">
                       </div>
                       <div style="flex: 1; min-width: 130px;">
                         <div class="label-container" style="margin-bottom: 6px;">
@@ -415,7 +415,7 @@
                             <transition name="fade-pop"><div v-if="helpState.endTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                           </div>
                         </div>
-                        <input type="time" v-model="sch.end_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="validateScheduleTime(index)">
+                        <input type="time" v-model="sch.end_time" min="04:00" max="20:00" required class="custom-input-field" :style="{ colorScheme: isDarkMode ? 'dark' : 'light' }" style="cursor: pointer;" @change="validateScheduleTime(index)">
                       </div>
                       <button type="button" v-if="scheduleType === 'staggered' && form.schedules?.length > 1" @click.prevent="removeSchedule(index)" style="background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" title="Remove Schedule">
                         <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
@@ -474,10 +474,10 @@
                   <div class="full-width-info">
                     <label class="info-label">Venue Location *</label>
                     <div class="toggle-container" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; min-height: 42px; height: auto; padding: 4px 0;">
-                      <label style="color: #cbd5e1; font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
+                      <label class="radio-label">
                         <input type="radio" :value="true" v-model="form.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Inside BSU
                       </label>
-                      <label style="color: #cbd5e1; font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
+                      <label class="radio-label">
                         <input type="radio" :value="false" v-model="form.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Outside BSU
                       </label>
                     </div>
@@ -516,9 +516,9 @@
                     </div>
 
                     <!-- Overall Target Participants Banner -->
-                    <div class="grand-total-banner-card" style="background: rgba(30,41,59,0.7); margin-bottom: 12px; border-color: #334155; padding: 12px 20px;">
-                      <div class="grand-total-label-banner" style="color: #94a3b8; font-size: 13px;">Overall Expected Attendance (Auto-calculated)</div>
-                      <div class="grand-total-value-banner" style="color: #cbd5e1; font-size: 16px;">
+                    <div class="grand-total-banner-card" style="margin-bottom: 12px; padding: 12px 20px;">
+                      <div class="grand-total-label-banner" style="font-size: 13px;">Overall Expected Attendance (Auto-calculated)</div>
+                      <div class="grand-total-value-banner" style="font-size: 16px;">
                         {{ form.target_participants || 0 }} Pax
                       </div>
                     </div>
@@ -564,7 +564,7 @@
                         </tr>
                         <tr>
                           <td colspan="3" style="padding: 12px 16px; border-bottom: none; background: transparent;">
-                            <button type="button" @click="addEvaluationItem" class="btn-add-other" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(255,255,255,0.05); color: #e2e8f0; border: 1px dashed rgba(255,255,255,0.2); padding: 12px; border-radius: 8px; font-weight: 500; cursor: pointer;">
+                            <button type="button" @click="addEvaluationItem" class="btn-add-other" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
                               <span>+</span> Add Evaluation Item
                             </button>
                           </td>
@@ -690,6 +690,8 @@ import BudgetBuilder from '../../components/BudgetBuilder.vue';
 
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 const userRole = user.value?.role || user.value?.user_role || '';
+const isDarkMode = ref(typeof document !== 'undefined' ? document.documentElement.classList.contains('dark') : false);
+let themeObserver = null;
 
 const getPdfViewerUrl = (url) => {
   if (!url) return '';
@@ -2299,7 +2301,12 @@ const fetchBaselineSettings = async () => {
 };
 
 onMounted(async () => {
-    fetchBaselineSettings();
+  themeObserver = new MutationObserver(() => {
+    isDarkMode.value = document.documentElement.classList.contains('dark');
+  });
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+  fetchBaselineSettings();
   if (!user.value.id || !['twg', 'non-twg'].includes(user.value.role)) {
     router.push('/login');
   } else {
@@ -2311,524 +2318,12 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
+  if (themeObserver) themeObserver.disconnect();
   document.removeEventListener('click', closeAllHelp);
 });
 
 </script>
 
-<style scoped>
-* { box-sizing: border-box; }
-.main-viewport { flex: 1; min-height: 100vh; background: transparent; }
-.loading-wrapper { display: flex; justify-content: center; align-items: center; min-height: 400px; }
-.loading-spinner { border: 4px solid rgba(255,255,255,0.1); border-left-color: #b979cc; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+<style scoped src="../../assets/ar-revision-styles.css"></style>
 
-.page-container { min-height: 100vh; padding: 2rem; max-width: 80rem; margin: 0 auto; color: #cbd5e1; }
-.layout-vertical { display: flex; flex-direction: column; gap: 24px; }
-.flex-full { flex: 1; width: 100%; }
-
-.glass-card { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); backdrop-filter: blur(24px); border-radius: 1.5rem; border: 1px solid rgba(185,121,204,0.2); color: #cbd5e1; }
-
-.report-header { padding: 2rem; border-bottom: 1px solid rgba(185,121,204,0.15); background: rgba(0,0,0,0.2); border-radius: 1.5rem 1.5rem 0 0; color: #cbd5e1; }
-.meta-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
-.report-title { font-size: 26px; color: white; line-height: 1.25; margin: 1rem 0; }
-.control-number { font-size: 11px; font-weight: 700; color: #b979cc; text-transform: uppercase; margin-left: 12px; font-family: monospace; }
-
-.status-badge-view { padding: 4px 12px; border-radius: 9999px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; }
-.status-badge-view.pending { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
-.status-badge-view.approved { background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); }
-.status-badge-view.completed { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
-.status-badge-view.cancelled { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
-.status-badge-view.revision { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
-
-.info-grid { display: flex; flex-wrap: wrap; gap: 24px; padding-top: 16px; border-top: 1px solid rgba(185,121,204,0.1); }
-.info-item { display: flex; flex-direction: column; }
-.info-label { font-size: 10px; text-transform: uppercase; color: #cbd5e1; font-weight: 700; margin-bottom: 4px; display: block; }
-.info-value-white { font-size: 14px; font-weight: 600; color: white; }
-.info-value-purple { font-size: 14px; font-weight: 600; color: #b979cc; }
-
-/* Revision remarks banner */
-.revision-remarks-banner { display: flex; align-items: flex-start; gap: 12px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 12px; padding: 14px 18px; }
-.remarks-icon { color: #f87171; font-size: 22px; margin-top: 2px; flex-shrink: 0; }
-.remarks-label { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #f87171; margin-bottom: 4px; }
-.remarks-text { font-size: 14px; color: #fca5a5; line-height: 1.5; }
-
-.report-body { padding: 2rem; }
-
-/* Side by side layout */
-.ar-horizontal-layout { display: flex; flex-direction: column; gap: 24px; }
-@media (min-width: 1280px) {
-  .ar-horizontal-layout { flex-direction: row; align-items: flex-start; }
-  .ar-horizontal-layout > .section-card { flex: 1; min-width: 0; }
-}
-
-.section-card { box-sizing: border-box; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 24px; border: 1px solid rgba(185,121,204,0.15); min-width: 0; max-width: 100%; margin-bottom: 24px; }
-.section-header-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem; }
-.section-title { font-weight: 800; font-size: 13px; text-transform: uppercase; color: #b979cc; }
-.icon-pink { color: #b979cc; }
-
-.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.grid-2 > div { min-width: 0; }
-@media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
-.full-width-info { grid-column: 1 / -1; min-width: 0; }
-.text-sm-light { font-size: 14px; color: #cbd5e1; font-weight: 500; }
-
-/* Mandate badge boxes */
-.mandate-boxes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; }
-.mandate-box { background: rgba(185,121,204,0.15); border: 1px solid rgba(185,121,204,0.3); color: #f1f5f9; padding: 5px 12px; border-radius: 6px; font-size: 12px; }
-
-/* Editable mandate checkboxes */
-.mandate-checkbox-label { display: flex; align-items: center; gap: 6px; cursor: pointer; background: rgba(185,121,204,0.1); border: 1px solid rgba(185,121,204,0.25); padding: 5px 12px; border-radius: 6px; font-size: 12px; color: #f1f5f9; transition: background 0.15s; }
-.mandate-checkbox-label:hover { background: rgba(185,121,204,0.2); }
-.mandate-checkbox { accent-color: #b979cc; }
-
-/* Input fields */
-.custom-input-field { box-sizing: border-box; max-width: 100%; width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px 16px; font-size: 14px; color: #ffffff; transition: all 0.2s ease; }
-.custom-input-field:focus { background: rgba(255,255,255,0.05); border-color: #b979cc; outline: none; box-shadow: 0 0 0 3px rgba(185,121,204,0.15); }
-.custom-input-field::placeholder { color: #64748b; }
-.textarea-no-resize { resize: none; }
-.select-arrow-fix { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23cbd5e1' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
-.dark-option { background: #1e293b; color: #fff; }
-.code-icon-calendar::-webkit-calendar-picker-indicator,
-.code-icon-clock::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; opacity: 0.7; }
-
-/* Tables */
-.table-responsive { border-radius: 12px; border: 1px solid rgba(185,121,204,0.15); background: rgba(0,0,0,0.2); overflow-x: auto; }
-.custom-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 500px; }
-.custom-table th { background: rgba(185,121,204,0.1); color: #b979cc; font-weight: 700; text-transform: uppercase; padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(185,121,204,0.15); }
-.custom-table td { padding: 12px 16px; color: #cbd5e1; border-bottom: 1px solid rgba(185,121,204,0.05); }
-.custom-table tbody tr:last-child td { border-bottom: none; }
-.custom-table tfoot td { border-top: 1px solid rgba(185,121,204,0.2); background: rgba(185,121,204,0.08); padding: 12px 16px; }
-
-/* Docs */
-.doc-item { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid rgba(185,121,204,0.12); overflow-x: auto; }
-.doc-info { display: flex; align-items: center; gap: 10px; }
-.doc-pdf-icon { font-size: 28px; color: #ef4444; }
-.doc-title { font-size: 13px; font-weight: 700; color: white; word-break: break-all; }
-.doc-meta { font-size: 11px; color: #64748b; margin-top: 2px; }
-.doc-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.preview-btn { color: #b979cc; font-size: 11px; padding: 6px 14px; border-radius: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(185,121,204,0.2); font-weight: 700; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
-.preview-btn:hover { border-color: #b979cc; color: white; }
-.download-btn-icon { background: rgba(0,0,0,0.3); border: 1px solid rgba(185,121,204,0.15); color: #cbd5e1; padding: 6px 8px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-.download-btn-icon:hover { border-color: #b979cc; color: white; }
-
-/* File upload zone */
-.doc-upload-area { border: 2px dashed rgba(185,121,204,0.4); border-radius: 12px; padding: 28px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: all 0.2s; background: rgba(185,121,204,0.03); }
-.doc-upload-area:hover { border-color: #b979cc; background: rgba(185,121,204,0.07); }
-.upload-icon { font-size: 36px; color: #b979cc; }
-.upload-text { color: #cbd5e1; font-size: 14px; font-weight: 600; }
-.upload-hint { color: #64748b; font-size: 12px; }
-
-/* Submit */
-.submit-action-btn { display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%); color: #fff; border: none; border-radius: 12px; padding: 14px 24px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; width: 100%; }
-.submit-action-btn:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(153,13,209,0.35); }
-.submit-action-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
-
-/* Assessment sidebar */
-.assessment-card-custom { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 1.5rem; padding: 2rem; border: 1px solid rgba(185,121,204,0.2); }
-.read-only-remarks { width: 100%; border: 1px solid rgba(185,121,204,0.2); border-radius: 12px; padding: 14px 16px; font-size: 13px; background: rgba(0,0,0,0.3); color: #cbd5e1; min-height: 80px; line-height: 1.5; }
-.action-buttons { margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(185,121,204,0.15); display: flex; flex-direction: column; gap: 8px; }
-.btn-back { width: 100%; padding: 12px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #cbd5e1; border-radius: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(185,121,204,0.15); cursor: pointer; transition: all 0.2s; }
-.btn-back:hover { color: white; border-color: #b979cc; }
-
-/* Helpers */
-.mt-1 { margin-top: 4px; }
-.mt-4 { margin-top: 16px; }
-.mb-2 { margin-bottom: 8px; }
-.mb-4 { margin-bottom: 16px; }
-.w-full { width: 100%; }
-.mx-auto { margin-left: auto; margin-right: auto; }
-.text-right { text-align: right; }
-.text-center { text-align: center; }
-.font-bold { font-weight: 700; }
-.text-white { color: white; }
-.text-rose-400 { color: #f472b6; }
-.hover\:text-rose-300:hover { color: #fda4af; }
-.text-blue-400 { color: #60a5fa; }
-.uppercase { text-transform: uppercase; }
-.interpretation-tag-ar { font-weight: 600; }
-.text-emerald-400 { color: #34d399; }
-.text-teal-400 { color: #2dd4bf; }
-.text-cyan-400 { color: #22d3ee; }
-.text-amber-400 { color: #fbbf24; }
-.text-rose-500 { color: #f43f5e; }
-.text-rose-600 { color: #e11d48; }
-.attachments-list { display: flex; flex-direction: column; gap: 8px; }
-
-/* Budget section styles from SubmitARView */
-.budget-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.budget-groups-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  margin-top: 10px;
-}
-.budget-group-card {
-  background: rgba(30, 41, 59, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  padding: 20px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-}
-.budget-group-card:hover {
-  border-color: rgba(185, 121, 204, 0.3);
-  background: rgba(30, 41, 59, 0.6);
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-}
-.budget-group-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: 12px;
-  margin-bottom: 16px;
-}
-.budget-group-icon {
-  font-size: 18px;
-}
-.budget-group-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: #b979cc;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.budget-group-content {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-.budget-row-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-}
-.budget-row-item:last-child {
-  padding-bottom: 0;
-  border-bottom: none;
-}
-.budget-item-info {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex-grow: 1;
-}
-.budget-item-title {
-  font-weight: 600;
-  color: #f1f5f9;
-  font-size: 14px;
-}
-.budget-item-subtext {
-  font-size: 11px;
-  color: #64748b;
-}
-
-.budget-sub-number-input {
-  width: 50px;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: white;
-  border-radius: 4px;
-  padding: 4px;
-  font-size: 11px;
-  text-align: center;
-}
-.budget-sub-number-input:focus {
-  outline: none;
-  border-color: #b979cc;
-}
-
-.budget-item-value {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 240px;
-  flex-shrink: 0;
-  justify-content: flex-end;
-}
-.budget-currency-symbol {
-  color: #64748b;
-  font-size: 14px;
-  font-weight: 600;
-}
-.budget-card-input {
-  background-color: rgba(15, 23, 42, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  color: #ffffff;
-  font-size: 14px;
-  padding: 8px 12px;
-  width: 100%;
-  text-align: right;
-  transition: all 0.2s ease;
-  font-weight: 600;
-}
-.budget-card-input:focus {
-  border-color: #b979cc;
-  background-color: rgba(15, 23, 42, 0.5);
-  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.2);
-  outline: none;
-}
-.grand-total-banner-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: linear-gradient(135deg, rgba(185, 121, 204, 0.1) 0%, rgba(153, 13, 209, 0.1) 100%);
-  border: 1px solid rgba(185, 121, 204, 0.3);
-  border-radius: 14px;
-  padding: 20px;
-  margin-top: 20px;
-  box-shadow: 0 4px 15px -3px rgba(185, 121, 204, 0.1);
-}
-.grand-total-label-banner {
-  font-size: 13px;
-  font-weight: 700;
-  color: #ffffff;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.grand-total-value-banner {
-  font-size: 20px;
-  font-weight: 800;
-  color: #b979cc;
-  text-shadow: 0 0 10px rgba(185, 121, 204, 0.2);
-}
-/* Others breakdown styles */
-.others-section-wrapper {
-  width: 100%;
-}
-.others-breakdown-container {
-  margin-top: 10px;
-  padding: 12px;
-  background-color: rgba(0, 0, 0, 0.25);
-  border-radius: 10px;
-  border: 1px dashed rgba(185, 121, 204, 0.2);
-}
-.others-breakdown-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
-  align-items: center;
-}
-.others-input-name {
-  flex: 1;
-  background-color: rgba(26, 26, 46, 0.6);
-  border: 1px solid rgba(185, 121, 204, 0.2);
-  border-radius: 8px;
-  padding: 6px 10px;
-  color: #ffffff;
-  font-size: 12px;
-  outline: none;
-  box-sizing: border-box;
-}
-.others-input-amount {
-  width: 110px;
-  background-color: rgba(26, 26, 46, 0.6);
-  border: 1px solid rgba(185, 121, 204, 0.2);
-  border-radius: 8px;
-  padding: 6px 10px;
-  color: #ffffff;
-  font-size: 12px;
-  outline: none;
-  box-sizing: border-box;
-}
-.others-input-name:focus,
-.others-input-amount:focus {
-  border-color: #b979cc;
-  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.15);
-}
-.btn-remove-other {
-  background: transparent;
-  border: none;
-  color: #f43f5e;
-  cursor: pointer;
-  font-size: 18px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-  transition: color 0.2s;
-}
-.btn-remove-other:hover {
-  color: #fda4af;
-}
-.btn-add-other {
-  background-color: rgba(185, 121, 204, 0.1);
-  border: 1px solid rgba(185, 121, 204, 0.25);
-  color: #b979cc;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 4px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-.btn-add-other:hover {
-  background-color: rgba(185, 121, 204, 0.2);
-  transform: translateY(-0.5px);
-}
-.others-total-badge {
-  background-color: rgba(185, 121, 204, 0.15);
-  border: 1px solid rgba(185, 121, 204, 0.3);
-  color: #b979cc;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 13px;
-  display: inline-block;
-}
-/* Form label for budget */
-.form-label-ar {
-  display: block;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #b979cc;
-}
-
-.schedule-dropdown summary {
-  cursor: pointer;
-  font-size: 13px;
-  color: #b979cc;
-  outline: none;
-  font-weight: 500;
-  margin-top: 4px;
-}
-.schedule-dropdown summary:hover {
-  text-decoration: underline;
-}
-.schedule-dropdown[open] summary {
-  margin-bottom: 8px;
-}
-.bbudget-selected-item { 
-  font-size: 12px; 
-  color: #b979cc; 
-  background: rgba(185, 121, 204, 0.1); 
-  padding: 2px 8px; 
-  border-radius: 12px; 
-  border: 1px solid rgba(185, 121, 204, 0.2); 
-}
-
-.schedule-inputs-wrapper {
-  display: flex;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.schedule-inputs-wrapper > * {
-  min-width: 0;
-  width: 100%;
-}
-
-@media (max-width: 1024px) {
-  .schedule-inputs-wrapper {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-.schedule-type-toggle-container {
-  display: flex; 
-  background: rgba(0,0,0,0.3); 
-  border-radius: 8px; 
-  padding: 4px; 
-  border: 1px solid rgba(255,255,255,0.05);
-  gap: 4px;
-}
-
-.schedule-type-toggle-btn {
-  padding: 4px 12px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-  flex: 1;
-  text-align: center;
-}
-
-@media (max-width: 480px) {
-  .schedule-type-toggle-container {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-@media (max-width: 768px) {
-  .grand-total-banner-card {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  .grand-total-value-banner {
-    word-break: break-word;
-    font-size: 18px;
-  }
-}
-@media (max-width: 768px) {
-  .budget-row-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  .budget-item-value {
-    width: 100%;
-    justify-content: flex-start;
-  }
-  .budget-sub-controls {
-    flex-wrap: wrap;
-  }
-  .others-breakdown-row {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .others-input-name {
-    width: 100%;
-    flex: none;
-  }
-  .others-input-amount {
-    flex: 1;
-  }
-  .grand-total-banner-card {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  .grand-total-value-banner {
-    word-break: break-word;
-    font-size: 18px;
-  }
-}
-/* Venue Multiselect */
-.venue-multiselect-container { position: relative; width: 100%; font-family: inherit; }
-.venue-multiselect-header { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px 16px; min-height: 48px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.2s ease; }
-.venue-multiselect-header:hover, .venue-multiselect-header:focus { background: rgba(255,255,255,0.05); border-color: #b979cc; box-shadow: 0 0 0 3px rgba(185,121,204,0.15); }
-.venue-placeholder { color: #64748b; font-size: 14px; }
-.venue-chips { display: flex; flex-wrap: wrap; gap: 6px; flex-grow: 1; }
-.venue-chip { background: rgba(185,121,204,0.15); border: 1px solid rgba(185,121,204,0.3); color: #e2e8f0; border-radius: 6px; padding: 4px 8px; font-size: 13px; display: inline-flex; align-items: center; }
-.venue-chip-remove { background: none; border: none; color: #fca5a5; margin-left: 6px; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; padding: 0; width: 16px; height: 16px; border-radius: 50%; transition: color 0.2s; }
-.venue-chip-remove:hover { color: #ef4444; }
-.venue-dropdown-icon { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 5px solid #64748b; margin-left: 10px; }
-.venue-dropdown-menu { position: absolute; top: calc(100% + 4px); left: 0; width: 100%; background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 1000; max-height: 250px; overflow-y: auto; padding: 8px 0; }
-.venue-dropdown-item { padding: 10px 16px; display: flex; align-items: center; cursor: pointer; color: #e2e8f0; font-size: 14px; transition: background 0.15s; }
-.venue-dropdown-item:hover { background: rgba(255,255,255,0.05); }
-.venue-checkbox { margin-right: 12px; accent-color: #b979cc; cursor: pointer; width: 16px; height: 16px; }
-.other-venue-item { border-top: 1px solid rgba(255,255,255,0.05); margin-top: 4px; padding-top: 10px; }
-</style>
 

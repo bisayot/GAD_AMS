@@ -1,6 +1,6 @@
 <template>
   <div class="app-wrapper app" style="background: #ffffff; width: 100%; overflow-x: auto;">
-    <div style="min-width: 1200px; margin: 32px 32px 0 32px; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); background: var(--surface); display: flex; flex-direction: column;">
+    <div class="banner-wrapper">
       <header class="topbar">
         <div class="topbar-brand">
           <span class="topbar-eyebrow">GAD Budget Distribution</span>
@@ -17,245 +17,246 @@
       </header>
     </div>
 
-    <div id="mandate-statistics-section" class="card" style="min-width: 1200px; margin: 24px 32px 32px 32px; padding: 24px; border-top: 1px solid var(--border); border-radius: 16px;">
-      <div style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 24px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-          <h2 style="display: flex; align-items: center; gap: 8px; color: var(--text-primary); font-size: 1.25rem; margin: 0; font-weight: 600;">
+    <div id="mandate-statistics-section" class="card main-card">
+      <div class="card-controls">
+        <div class="card-title-row">
+          <h2 class="card-title">
             GAD Budget Distribution by Mandate
           </h2>
-          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-             <label style="color: var(--text-muted); font-size: 0.85rem;">Filter by Classification:</label>
-             <select v-model="mandateStatsFilter" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: white; padding: 6px 12px; border-radius: 6px; outline: none; font-size: 0.9rem;">
-               <option value="all" style="background: #1e293b; color: #fff;">All Classifications</option>
-               <option value="client" style="background: #1e293b; color: #fff;">Client-Focused</option>
-               <option value="org" style="background: #1e293b; color: #fff;">Organization-Focused</option>
-               <option value="attributed" style="background: #1e293b; color: #fff;">Attributed Program</option>
+          <div class="filter-group">
+             <label class="filter-label">Filter by Classification:</label>
+             <select v-model="mandateStatsFilter" class="filter-select">
+               <option value="all">All Classifications</option>
+               <option value="client">Client-Focused</option>
+               <option value="org">Organization-Focused</option>
+               <option value="attributed">Attributed Program</option>
              </select>
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 200px 1fr; gap: 16px; align-items: stretch;">
-          <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1)); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 12px;">
-            <div style="background: rgba(99, 102, 241, 0.2); width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-              <span class="material-symbols-outlined" style="font-size: 24px; color: #a5b4fc; font-variation-settings: 'FILL' 1;">pie_chart</span>
+        <div class="stats-search-row">
+          <div class="stat-pill">
+            <div class="stat-icon-wrap">
+              <span class="material-symbols-outlined">pie_chart</span>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
-              <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Total Mandates</div>
-              <div style="font-size: 1.6rem; font-weight: 800; color: var(--text-primary); line-height: 1.1;">{{ loadingStats ? '—' : mandateStats.length }}</div>
+            <div class="stat-meta">
+              <div class="stat-title">Total Mandates</div>
+              <div class="stat-count">{{ loadingStats ? '—' : mandateStats.length }}</div>
             </div>
           </div>
 
-          <div style="display: flex; align-items: center; gap: 10px; padding: 0 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 10px; transition: border-color 0.15s, box-shadow 0.15s;" :style="searchQuery ? 'border-color: var(--primary); box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.18);' : ''">
-            <span class="material-symbols-outlined" style="color: var(--text-muted); font-size: 20px; flex-shrink: 0;">search</span>
+          <div class="search-wrap" :class="{ 'search-active': searchQuery }">
+            <span class="material-symbols-outlined search-icon">search</span>
             <input
               v-model="searchQuery"
               type="text"
               placeholder="Search mandate, cause, activity..."
-              style="flex: 1; min-width: 0; padding: 12px 4px; background: transparent; border: none; color: white; border-radius: 0; outline: none; font-size: 0.9rem;"
+              class="search-input"
             />
-            <button v-if="searchQuery" @click="searchQuery = ''" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: var(--text-secondary); cursor: pointer; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; flex-shrink: 0;">Clear</button>
+            <button v-if="searchQuery" @click="searchQuery = ''" class="search-clear-btn">Clear</button>
           </div>
         </div>
       </div>
 
-      <div v-if="loadingStats" style="text-align: center; color: var(--text-muted); padding: 40px;">
+      <div v-if="loadingStats" class="state-message-box">
         Loading statistics...
       </div>
-      <div v-else-if="mandateStats.length === 0" style="text-align: center; color: var(--text-muted); padding: 40px;">
-        <span style="font-size: 2rem; display: block; margin-bottom: 12px;">📭</span>
-        <h3 style="color: var(--text); margin-bottom: 8px;">No Mandate Data Available</h3>
-        <p style="font-size: 0.9rem;">The statistics are generated from your saved GAD Plan.<br>Please go to <router-link to="/staff/plan-and-budget" style="color: #93c5fd; text-decoration: underline;">Plan & Budget</router-link> and click <b>"Save Plan"</b> first to generate statistics.</p>
+      <div v-else-if="mandateStats.length === 0" class="empty-state-card">
+        <span class="empty-icon">📭</span>
+        <h3 class="empty-title">No Mandate Data Available</h3>
+        <p class="empty-desc">The statistics are generated from your saved GAD Plan.<br>Please go to <router-link to="/staff/plan-and-budget" class="plan-link">Plan & Budget</router-link> and click <b>"Save Plan"</b> first to generate statistics.</p>
       </div>
       <div v-else>
-         <div v-if="filteredMandateStats.length === 0" style="text-align: center; color: var(--text-muted); padding: 24px;">
+         <div v-if="filteredMandateStats.length === 0" class="state-message-box">
            <span style="font-size: 1.5rem; display: block; margin-bottom: 8px;">🔍</span>
            No mandates match your search or filter criteria.
          </div>
-         <div v-else style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px;">
-           <div v-for="(stat, idx) in filteredMandateStats" :key="idx" style="background: rgba(0,0,0,0.25); border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';">
+         <div v-else class="mandate-grid">
+           <div v-for="(stat, idx) in filteredMandateStats" :key="idx" class="mandate-card">
              
-             <div style="display: flex; flex-direction: column; gap: 12px; flex: 1;">
-               <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border-left: 3px solid #6366f1;">
-                 <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px; letter-spacing: 0.5px;">Gender Issue / Mandate</div>
-                 <div style="font-size: 0.95rem; color: var(--text-primary); font-weight: 500; line-height: 1.4;">{{ stat.mandate || 'N/A' }}</div>
+             <div class="mandate-info-col">
+               <div class="mandate-block block-mandate">
+                 <div class="block-label">Gender Issue / Mandate</div>
+                 <div class="block-title">{{ stat.mandate || 'N/A' }}</div>
                </div>
                
-               <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border-left: 3px solid #8b5cf6;">
-                 <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px; letter-spacing: 0.5px;">Cause of Gender Issue</div>
-                 <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">{{ stat.cause || 'N/A' }}</div>
+               <div class="mandate-block block-cause">
+                 <div class="block-label">Cause of Gender Issue</div>
+                 <div class="block-desc">{{ stat.cause || 'N/A' }}</div>
                </div>
                
-               <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border-left: 3px solid #ec4899;">
-                 <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px; letter-spacing: 0.5px;">GAD Activity</div>
-                 <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">{{ stat.activity || 'N/A' }}</div>
+               <div class="mandate-block block-activity">
+                 <div class="block-label">GAD Activity</div>
+                 <div class="block-desc">{{ stat.activity || 'N/A' }}</div>
                </div>
              </div>
              
-             <div style="background: rgba(0,0,0,0.15); border-radius: 8px; padding: 16px; border: 1px solid rgba(255,255,255,0.03);">
-               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                 <div style="text-align: center; padding: 8px; background: rgba(255,255,255,0.02); border-radius: 6px;">
-                   <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Approved ADs</div>
-                   <div style="font-size: 1.1rem; color: var(--text-primary); font-weight: 700;">{{ stat.approved_ad_count }}</div>
+             <div class="mandate-budget-box">
+               <div class="approved-counts-row">
+                 <div class="approved-box">
+                   <div class="approved-label">Approved ADs</div>
+                   <div class="approved-val">{{ stat.approved_ad_count }}</div>
                  </div>
-                 <div style="text-align: center; padding: 8px; background: rgba(255,255,255,0.02); border-radius: 6px;">
-                   <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Approved ARs</div>
-                   <div style="font-size: 1.1rem; color: var(--text-primary); font-weight: 700;">{{ stat.approved_ar_count }}</div>
+                 <div class="approved-box">
+                   <div class="approved-label">Approved ARs</div>
+                   <div class="approved-val">{{ stat.approved_ar_count }}</div>
                  </div>
                </div>
                
-               <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.85rem; color: var(--text-secondary);">
-                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                   <span style="font-weight: 500;">Budget:</span>
-                   <span style="color: var(--text-primary); font-family: monospace; font-size: 0.95rem;">₱{{ Number(stat.budget).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
+               <div class="budget-rows-wrap">
+                 <div class="budget-row">
+                   <span class="b-lbl">Budget:</span>
+                   <span class="b-val">₱{{ Number(stat.budget).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
                  </div>
-                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                   <span style="font-weight: 500;">Utilized:</span>
-                   <span style="color: #10b981; font-family: monospace; font-size: 0.95rem;">₱{{ Number(stat.utilized_budget).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
+                 <div class="budget-row">
+                   <span class="b-lbl">Utilized:</span>
+                   <span class="b-val text-green">₱{{ Number(stat.utilized_budget).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
                  </div>
-                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                   <span style="font-weight: 500;">Pending (ADs):</span>
-                   <span style="color: #f59e0b; font-family: monospace; font-size: 0.95rem;">₱{{ Number(stat.pending_budget).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
+                 <div class="budget-row">
+                   <span class="b-lbl">Pending (ADs):</span>
+                   <span class="b-val text-yellow">₱{{ Number(stat.pending_budget).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
                  </div>
-                 <div style="display: flex; justify-content: space-between; align-items: center; font-weight: 700; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.1); margin-top: 4px;">
-                    <span style="text-transform: uppercase; font-size: 0.75rem;">Remaining:</span>
-                    <span :style="{ color: stat.remaining_budget < 0 ? '#ef4444' : '#3b82f6' }" style="font-family: monospace; font-size: 1.05rem;">₱{{ Number(stat.remaining_budget).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
-                  </div>
-                </div>
+                 <div class="budget-row remaining-row">
+                    <span class="b-lbl">Remaining:</span>
+                    <span :class="stat.remaining_budget < 0 ? 'text-red' : 'text-blue'" class="b-val font-mono">₱{{ Number(stat.remaining_budget).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
+                 </div>
+               </div>
 
-                <div v-if="stat.budget_lines && stat.budget_lines.length > 0" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
-                  <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 12px; letter-spacing: 0.5px;">Budget Lines Breakdown</div>
-                  <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <div v-for="bl in stat.budget_lines" :key="bl.id" style="background: rgba(0,0,0,0.2); border-radius: 6px; padding: 10px; border: 1px solid rgba(255,255,255,0.05); font-size: 0.8rem;">
-                       <div style="color: var(--text-primary); font-weight: 600; margin-bottom: 6px;">{{ bl.label || 'Unnamed Line' }}</div>
-                       <div style="display: flex; justify-content: space-between; color: var(--text-secondary); margin-bottom: 2px;">
-                          <span>Original:</span> <span style="font-family: monospace;">₱{{ Number(bl.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
-                       </div>
-                       <div style="display: flex; justify-content: space-between; color: #10b981; margin-bottom: 2px;">
-                          <span>Utilized:</span> <span style="font-family: monospace;">₱{{ Number(bl.utilized_budget || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
-                       </div>
-                       <div style="display: flex; justify-content: space-between; color: #f59e0b;">
-                          <span>Pending (AD):</span> <span style="font-family: monospace;">₱{{ Number(bl.pending_budget || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
-                       </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <button @click="openAllocationModal(stat)" style="width: 100%; padding: 10px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: #93c5fd; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(59, 130, 246, 0.25)'; this.style.color='#bfdbfe';" onmouseout="this.style.background='rgba(59, 130, 246, 0.15)'; this.style.color='#93c5fd';">
-                Manage Allocations
-              </button>
-            </div>
-          </div>
-       </div>
+               <div v-if="stat.budget_lines && stat.budget_lines.length > 0" class="budget-breakdown-section">
+                 <div class="breakdown-title">Budget Lines Breakdown</div>
+                 <div class="breakdown-list">
+                   <div v-for="bl in stat.budget_lines" :key="bl.id" class="breakdown-item">
+                      <div class="bl-label">{{ bl.label || 'Unnamed Line' }}</div>
+                      <div class="bl-row">
+                         <span>Original:</span> <span class="font-mono">₱{{ Number(bl.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
+                      </div>
+                      <div class="bl-row text-green">
+                         <span>Utilized:</span> <span class="font-mono">₱{{ Number(bl.utilized_budget || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
+                      </div>
+                      <div class="bl-row text-yellow">
+                         <span>Pending (AD):</span> <span class="font-mono">₱{{ Number(bl.pending_budget || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
+                      </div>
+                   </div>
+                 </div>
+               </div>
+             </div>
+             
+             <button @click="openAllocationModal(stat)" class="manage-alloc-btn">
+               Manage Allocations
+             </button>
+           </div>
+         </div>
+      </div>
     </div>
 
-    <div v-if="showAllocationModal" class="modal-backdrop" @click.self="closeAllocationModal" style="z-index: 1000; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center;">
-      <div class="card" style="width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; background: #1e293b; padding: 24px; border-radius: 12px; border: 1px solid var(--border);">
-        <h2 style="margin-bottom: 8px; color: var(--text-primary);">Budget Allocations</h2>
-        <p style="color: var(--text-secondary); margin-bottom: 24px; font-size: 0.9rem;">
+    <!-- Allocation Modal -->
+    <div v-if="showAllocationModal" class="modal-backdrop" @click.self="closeAllocationModal">
+      <div class="allocation-modal-card">
+        <h2 class="modal-title">Budget Allocations</h2>
+        <p class="modal-subtitle">
           Assign specific Activity Design and Accomplishment Report budgets to this mandate.
         </p>
 
-        <div v-if="loadingAllocations" style="padding: 20px; text-align: center; color: var(--text-muted);">Loading...</div>
+        <div v-if="loadingAllocations" class="modal-loading-box">Loading...</div>
         <div v-else>
-          <div v-if="currentAllocationStat && currentAllocationStat.budget_lines && currentAllocationStat.budget_lines.length > 0" style="margin-bottom: 24px;">
-             <h3 style="color: var(--text-primary); font-size: 1rem; margin-bottom: 12px;">Planned Budget Lines</h3>
-             <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; border: 1px solid var(--border); border-radius: 8px; overflow: hidden;">
+          <div v-if="currentAllocationStat && currentAllocationStat.budget_lines && currentAllocationStat.budget_lines.length > 0" class="modal-section-mb">
+             <h3 class="modal-subheading">Planned Budget Lines</h3>
+             <table class="modal-table">
                <thead>
-                 <tr style="background: rgba(0,0,0,0.2); text-align: left; color: var(--text-muted);">
-                   <th style="padding: 10px; font-weight: 600;">Budget Line</th>
-                   <th style="padding: 10px; font-weight: 600;">Original Amount</th>
-                   <th style="padding: 10px; font-weight: 600;">Pending (AD)</th>
-                   <th style="padding: 10px; font-weight: 600;">Utilized (AR)</th>
+                 <tr>
+                   <th>Budget Line</th>
+                   <th>Original Amount</th>
+                   <th>Pending (AD)</th>
+                   <th>Utilized (AR)</th>
                  </tr>
                </thead>
                <tbody>
-                 <tr v-for="bl in currentAllocationStat.budget_lines" :key="bl.id" style="border-top: 1px solid rgba(255,255,255,0.05);">
-                   <td style="padding: 10px; color: var(--text-primary);">{{ bl.label || 'Unnamed Line' }}</td>
-                   <td style="padding: 10px; color: var(--text-primary);">₱{{ Number(bl.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</td>
-                   <td style="padding: 10px; color: #f59e0b;">₱{{ Number(bl.pending_budget || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</td>
-                   <td style="padding: 10px; color: #10b981;">₱{{ Number(bl.utilized_budget || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</td>
+                 <tr v-for="bl in currentAllocationStat.budget_lines" :key="bl.id">
+                   <td class="modal-td-bold">{{ bl.label || 'Unnamed Line' }}</td>
+                   <td>₱{{ Number(bl.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</td>
+                   <td class="text-yellow">₱{{ Number(bl.pending_budget || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</td>
+                   <td class="text-green">₱{{ Number(bl.utilized_budget || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</td>
                  </tr>
                </tbody>
              </table>
           </div>
 
-          <div v-if="arVerifiedTotals && arVerifiedTotals.length > 0" style="margin-bottom: 24px; margin-top: 16px;">
-            <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 12px; color: var(--text-primary); border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+          <div v-if="arVerifiedTotals && arVerifiedTotals.length > 0" class="modal-section-mb">
+            <div class="modal-subheading-border">
                Actual Expenditures Breakdown (Verified ARs)
             </div>
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; border: 1px solid var(--border); border-radius: 8px; overflow: hidden;">
+            <table class="modal-table">
                <thead>
-                 <tr style="background: rgba(0,0,0,0.2); text-align: left; color: var(--text-muted);">
-                   <th style="padding: 10px; font-weight: 600;">Expenditure Item</th>
-                   <th style="padding: 10px; font-weight: 600;">Total Cost</th>
+                 <tr>
+                   <th>Expenditure Item</th>
+                   <th>Total Cost</th>
                  </tr>
                </thead>
                <tbody>
-                 <tr v-for="(tv, idx) in arVerifiedTotals" :key="idx" style="border-top: 1px solid rgba(255,255,255,0.05);">
-                    <td style="padding: 10px; color: var(--text-primary);">{{ tv.name }}</td>
-                    <td style="padding: 10px; color: #10b981; font-family: monospace; font-weight: 600;">₱{{ Number(tv.amount).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</td>
+                 <tr v-for="(tv, idx) in arVerifiedTotals" :key="idx">
+                    <td class="modal-td-bold">{{ tv.name }}</td>
+                    <td class="text-green font-mono font-bold">₱{{ Number(tv.amount).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</td>
                  </tr>
                </tbody>
             </table>
           </div>
 
-          <div v-if="allocationsData.length === 0" style="padding: 20px; text-align: center; color: var(--text-muted);">
+          <div v-if="allocationsData.length === 0" class="modal-empty-box">
             No approved Activity Designs or Accomplishment Reports found for this mandate.
           </div>
           <div v-else>
-          <div v-for="doc in allocationsData" :key="doc.type + doc.id" style="margin-bottom: 16px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden;">
-            <div style="background: rgba(0,0,0,0.2); padding: 12px 16px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; cursor: pointer;" @click="doc._expanded = !doc._expanded">
-              <div style="color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
-                 <span :style="{ color: doc.type === 'AR' ? '#10b981' : '#f59e0b' }">[{{ doc.type }}]</span>
-                 {{ doc.title || doc.control_number }}
-                 <button v-if="doc.attachment" @click.stop="openDocumentPreview(doc.attachment, doc.type)" style="background: transparent; border: none; color: #3b82f6; cursor: pointer; text-decoration: underline; font-size: 0.85rem; padding: 0 4px;" title="Preview Document">
-                   Click here to preview document
-                 </button>
+            <div v-for="doc in allocationsData" :key="doc.type + doc.id" class="doc-accordion-box">
+              <div class="doc-header" @click="doc._expanded = !doc._expanded">
+                <div class="doc-title-row">
+                   <span :class="doc.type === 'AR' ? 'badge-ar' : 'badge-ad'">[{{ doc.type }}]</span>
+                   <span class="doc-name">{{ doc.title || doc.control_number }}</span>
+                   <button v-if="doc.attachment" @click.stop="openDocumentPreview(doc.attachment, doc.type)" class="preview-doc-btn" title="Preview Document">
+                     Click here to preview document
+                   </button>
+                </div>
+                <span class="accordion-arrow">{{ doc._expanded ? '▼' : '▶' }}</span>
               </div>
-              <span style="color: var(--text-muted);">{{ doc._expanded ? '▼' : '▶' }}</span>
-            </div>
-            
-            <div v-if="doc._expanded" style="padding: 16px; background: rgba(255,255,255,0.02);">
-              <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-                <thead>
-                  <tr style="border-bottom: 1px solid var(--border); text-align: left; color: var(--text-muted);">
-                    <th style="padding: 8px; font-weight: 600;">Item Name</th>
-                    <th style="padding: 8px; font-weight: 600;">Total Cost</th>
-                    <th style="padding: 8px; font-weight: 600;">Allocated To (Budget Line)</th>
-                    <th style="padding: 8px; font-weight: 600;">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="item in doc.items" :key="item.id" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <td style="padding: 12px 8px; color: var(--text-primary);">{{ item.item_name }} <span v-if="item.sub_item" style="color: var(--text-muted); font-size: 0.8rem;">- {{ item.sub_item }}</span></td>
-                    <td style="padding: 12px 8px; color: var(--text-primary);">₱{{ Number(item.amount).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</td>
-                    <td style="padding: 12px 8px;">
-                      <select v-if="item.amount > 0" v-model="item.gpb_budget_line_id" style="width: 200px; padding: 6px; background: #1e293b; border: 1px solid var(--border); color: #f8fafc; border-radius: 4px; outline: none;" @change="markAllocationsDirty">
-                         <option :value="null">-- Not Allocated --</option>
-                         <option v-for="bl in (currentAllocationStat?.budget_lines || [])" :key="bl.id" :value="bl.id">
-                            {{ bl.label }} (₱{{ Number(bl.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }})
-                         </option>
-                      </select>
-                      <span v-else style="color: var(--text-muted); font-size: 0.8rem;">N/A</span>
-                    </td>
-                    <td style="padding: 12px 8px; font-size: 0.8rem;">
-                       <span v-if="item.amount <= 0" style="color: var(--text-muted);" title="This item has no cost to allocate.">No Cost</span>
-                       <span v-else-if="item.gpb_budget_line_id" style="color: #10b981; font-weight: 600;">Assigned</span>
-                       <span v-else-if="getAllocatedElsewhere(item) >= item.amount" style="color: #ef4444; font-weight: 600;" title="This budget item has been fully assigned to other mandates. It cannot be assigned here unless it is removed from the other mandate first.">🔒 Locked</span>
-                       <span v-else style="color: var(--text-muted);">Unassigned</span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              
+              <div v-if="doc._expanded" class="doc-items-container">
+                <table class="items-table">
+                  <thead>
+                    <tr>
+                      <th>Item Name</th>
+                      <th>Total Cost</th>
+                      <th>Allocated To (Budget Line)</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in doc.items" :key="item.id">
+                      <td>{{ item.item_name }} <span v-if="item.sub_item" class="sub-item-text">- {{ item.sub_item }}</span></td>
+                      <td class="font-mono">₱{{ Number(item.amount).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</td>
+                      <td>
+                        <select v-if="item.amount > 0" v-model="item.gpb_budget_line_id" class="item-alloc-select" @change="markAllocationsDirty">
+                           <option :value="null">-- Not Allocated --</option>
+                           <option v-for="bl in (currentAllocationStat?.budget_lines || [])" :key="bl.id" :value="bl.id">
+                              {{ bl.label }} (₱{{ Number(bl.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }})
+                           </option>
+                        </select>
+                        <span v-else class="text-muted text-xs">N/A</span>
+                      </td>
+                      <td class="text-xs">
+                         <span v-if="item.amount <= 0" class="text-muted" title="This item has no cost to allocate.">No Cost</span>
+                         <span v-else-if="item.gpb_budget_line_id" class="status-assigned">Assigned</span>
+                         <span v-else-if="getAllocatedElsewhere(item) >= item.amount" class="status-locked" title="This budget item has been fully assigned to other mandates. It cannot be assigned here unless it is removed from the other mandate first.">🔒 Locked</span>
+                         <span v-else class="text-muted">Unassigned</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
-        </div>
 
-        <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border); padding-top: 16px;">
-           <button @click="closeAllocationModal" style="padding: 8px 16px; background: transparent; border: 1px solid var(--border); color: var(--text-primary); border-radius: 4px; cursor: pointer;">Cancel</button>
-           <button @click="saveAllocations" :disabled="savingAllocations || !allocationsDirty" :style="{ padding: '8px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: allocationsDirty ? 1 : 0.5 }">
+        <div class="modal-footer">
+           <button @click="closeAllocationModal" class="btn-cancel">Cancel</button>
+           <button @click="saveAllocations" :disabled="savingAllocations || !allocationsDirty" class="btn-save" :style="{ opacity: allocationsDirty ? 1 : 0.5 }">
              {{ savingAllocations ? 'Saving...' : 'Save Allocations' }}
            </button>
         </div>
@@ -267,7 +268,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, nextTick } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import Swal from 'sweetalert2';
 import api from '../../api';
 import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
@@ -453,66 +454,46 @@ export default {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap');
 
-.app-wrapper {
-  --primary:           #c084fc;
-  --primary-dim:       rgba(147, 51, 234, 0.2);
-  --primary-bright:    #d8b4fe;
-  --primary-container: rgba(147, 51, 234, 0.15);
-  --primary-on:        #ffffff;
-
-  --secondary:         #4ade80;
-  --secondary-dim:     #16a34a;
-  --secondary-on:      #052e16;
-
-  --bg:                linear-gradient(135deg, #0f172a, #020617);
-  --surface:           linear-gradient(135deg, #0f172a, #020617);
-  --surface-2:         rgba(0, 0, 0, 0.2);
-  --surface-3:         rgba(0, 0, 0, 0.3);
-  --surface-4:         rgba(147, 51, 234, 0.1);
-
-  --text:              #ffffff;
-  --text-muted:        #cbd5e1;
-  --text-dim:          #94a3b8;
-
-  --border:            rgba(147, 51, 234, 0.15);
-  --border-bright:     rgba(147, 51, 234, 0.3);
-
-  --error:             #ba1a1a;
-  --error-bg:          #ffdad6;
-  --success:           #4ade80;
-  --warn:              #fbbf24;
-
-  --shadow:        0 2px 8px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.35);
-  --shadow-strong: 0 4px 24px rgba(0,0,0,0.7), 0 16px 48px rgba(0,0,0,0.5);
-  --topbar-h:      64px;
-}
-
 *, *::before, *::after { box-sizing: border-box; }
-.app-wrapper { margin: 0; padding: 0; background: var(--bg); }
+
 .app-wrapper {
-  color: var(--text);
+  margin: 0;
+  padding: 0;
+  background: #ffffff;
+  color: #0f172a;
   font-size: 15.5px;
   line-height: 1.6;
   min-height: calc(100vh - 80px);
 }
-.mono { font-family: 'IBM Plex Mono', monospace; }
-h1, h2, h3 {  margin: 0; font-weight: 800; }
-button { font-family: inherit; cursor: pointer; }
-input, textarea, select { font-family: inherit; font-size: inherit; color: #ffffff; background: rgba(0,0,0,0.25);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-input:focus, textarea:focus, select:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.18);
-}
-select option { background: var(--surface-2); color: var(--text); }
+.font-mono { font-family: 'IBM Plex Mono', monospace; }
+.font-bold { font-weight: 700; }
+.text-xs { font-size: 0.75rem; }
+.text-muted { color: #64748b; }
 
-.app { display: flex; flex-direction: column; min-height: calc(100vh - 80px); }
+/* Top Banner */
+.banner-wrapper {
+  min-width: 1200px;
+  margin: 32px 32px 0 32px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
 
-.topbar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; background: linear-gradient(135deg, #0f172a, #020617); border-bottom: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+}
 
 .topbar-brand {
   display: flex;
@@ -520,32 +501,29 @@ select option { background: var(--surface-2); color: var(--text); }
   justify-content: center;
   min-width: 180px;
   margin-right: 6px;
-  border-right: 1px solid var(--border);
+  border-right: 1px solid #e2e8f0;
   padding-right: 18px;
 }
 .topbar-eyebrow {
-  font-size: 9.5px;
-  letter-spacing: 0.18em;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--primary-bright);
+  color: #7e22ce;
   font-weight: 700;
   line-height: 1;
-  margin-bottom: 3px;
+  margin-bottom: 4px;
 }
 .topbar-title {
-  font-size: 14.5px;
+  font-size: 1.125rem;
   font-weight: 800;
-  color: var(--text);
+  color: #0f172a;
   line-height: 1.2;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 400px;
 }
 
 .topbar-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
   flex-shrink: 0;
 }
@@ -554,34 +532,931 @@ select option { background: var(--surface-2); color: var(--text); }
   align-items: center;
   gap: 6px;
   border-radius: 8px;
-  padding: 7px 14px;
-  font-size: 13px;
+  padding: 8px 16px;
+  font-size: 0.8125rem;
   font-weight: 700;
-  border: 1px solid var(--border);
-  transition: all 0.18s;
-  white-space: nowrap;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  transition: all 0.2s;
+  cursor: pointer;
 }
-.topbar-btn.outline {
-  background: transparent;
-  color: var(--text-muted);
+.topbar-btn:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
 }
-.topbar-btn.outline:hover {
-  background: var(--surface-3);
-  border-color: var(--border-bright);
-  color: var(--text);
-}
-.topbar-btn.primary {
-  background: var(--primary-dim);
-  border-color: var(--primary);
-  color: var(--text);
-  box-shadow: 0 2px 8px rgba(168,85,247,0.3);
-}
-.topbar-btn.primary:hover:not(:disabled) {
-  background: var(--primary);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(168,85,247,0.4);
-}
-.topbar-btn.primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.card { background: linear-gradient(135deg, #0f172a, #020617); border: 1px solid var(--border); box-shadow: var(--shadow); }
+/* Main Card */
+.main-card {
+  min-width: 1200px;
+  margin: 24px 32px 32px 32px;
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+}
+
+.card-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.card-title {
+  color: #0f172a;
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.filter-label {
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.filter-select {
+  background: #f8fafc url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%237e22ce' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E") no-repeat right 0.75rem center/1.25rem 1.25rem;
+  appearance: none;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+  padding: 6px 32px 6px 12px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.filter-select:focus {
+  border-color: #9333ea;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.15);
+}
+.filter-select option {
+  background: #ffffff;
+  color: #0f172a;
+}
+
+/* Stats and Search Row */
+.stats-search-row {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 16px;
+  align-items: stretch;
+  margin-bottom: 24px;
+}
+.stat-pill {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.stat-icon-wrap {
+  background: rgba(147, 51, 234, 0.1);
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7e22ce;
+  border: 1px solid rgba(147, 51, 234, 0.2);
+}
+.stat-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.stat-title {
+  font-size: 0.6875rem;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.stat-count {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+.search-wrap.search-active, .search-wrap:focus-within {
+  border-color: #9333ea;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.15);
+}
+.search-icon {
+  color: #64748b;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 12px 0;
+  color: #0f172a;
+  font-size: 0.875rem;
+  outline: none;
+}
+.search-clear-btn {
+  background: #e2e8f0;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.search-clear-btn:hover {
+  background: #cbd5e1;
+  color: #0f172a;
+}
+
+/* State Boxes */
+.state-message-box {
+  text-align: center;
+  color: #64748b;
+  padding: 40px;
+}
+.empty-state-card {
+  text-align: center;
+  color: #64748b;
+  padding: 40px;
+}
+.empty-icon {
+  font-size: 2.25rem;
+  display: block;
+  margin-bottom: 12px;
+}
+.empty-title {
+  color: #0f172a;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+.empty-desc {
+  font-size: 0.9rem;
+}
+.plan-link {
+  color: #7e22ce;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+/* Mandates Grid */
+.mandate-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 20px;
+}
+.mandate-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  transition: all 0.25s ease;
+}
+.mandate-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+  border-color: #cbd5e1;
+}
+
+.mandate-info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+.mandate-block {
+  padding: 12px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+.block-mandate { border-left: 4px solid #6366f1; }
+.block-cause { border-left: 4px solid #8b5cf6; }
+.block-activity { border-left: 4px solid #ec4899; }
+
+.block-label {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 4px;
+  letter-spacing: 0.5px;
+}
+.block-mandate .block-label { color: #6366f1; }
+.block-cause .block-label { color: #8b5cf6; }
+.block-activity .block-label { color: #ec4899; }
+
+.block-title {
+  font-size: 0.9375rem;
+  color: #0f172a;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.block-desc {
+  font-size: 0.85rem;
+  color: #334155;
+  line-height: 1.4;
+}
+
+.mandate-budget-box {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+}
+.approved-counts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.approved-box {
+  text-align: center;
+  padding: 8px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+}
+.approved-label {
+  font-size: 0.6875rem;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.approved-val {
+  font-size: 1.125rem;
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.budget-rows-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+.budget-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.b-lbl {
+  font-weight: 600;
+  color: #475569;
+}
+.b-val {
+  color: #0f172a;
+  font-family: monospace;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.text-green { color: #10b981 !important; }
+.text-yellow { color: #d97706 !important; }
+.text-red { color: #ef4444 !important; }
+.text-blue { color: #2563eb !important; }
+
+.remaining-row {
+  font-weight: 700;
+  padding-top: 8px;
+  border-top: 1px dashed #cbd5e1;
+  margin-top: 4px;
+}
+.remaining-row .b-lbl {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  color: #0f172a;
+}
+.remaining-row .b-val {
+  font-size: 1.05rem;
+}
+
+.budget-breakdown-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+.breakdown-title {
+  font-size: 0.75rem;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+.breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.breakdown-item {
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.8rem;
+}
+.bl-label {
+  color: #0f172a;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.bl-row {
+  display: flex;
+  justify-content: space-between;
+  color: #475569;
+  margin-bottom: 2px;
+}
+
+.manage-alloc-btn {
+  width: 100%;
+  padding: 10px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #2563eb;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.manage-alloc-btn:hover {
+  background: rgba(59, 130, 246, 0.2);
+  color: #1d4ed8;
+}
+
+/* Modal */
+.modal-backdrop {
+  z-index: 1000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.allocation-modal-card {
+  width: 100%;
+  max-width: 840px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #ffffff;
+  padding: 28px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+.modal-title {
+  margin-bottom: 8px;
+  color: #0f172a;
+  font-weight: 800;
+  font-size: 1.35rem;
+}
+.modal-subtitle {
+  color: #64748b;
+  margin-bottom: 24px;
+  font-size: 0.9rem;
+}
+.modal-loading-box {
+  padding: 20px;
+  text-align: center;
+  color: #64748b;
+}
+.modal-section-mb {
+  margin-bottom: 24px;
+}
+.modal-subheading {
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.modal-subheading-border {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+  color: #0f172a;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 8px;
+}
+.modal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.modal-table thead tr {
+  background: #f8fafc;
+  text-align: left;
+  color: #475569;
+}
+.modal-table th {
+  padding: 10px;
+  font-weight: 700;
+}
+.modal-table tbody tr {
+  border-top: 1px solid #e2e8f0;
+}
+.modal-table td {
+  padding: 10px;
+  color: #334155;
+}
+.modal-td-bold {
+  color: #0f172a !important;
+  font-weight: 600;
+}
+.modal-empty-box {
+  padding: 20px;
+  text-align: center;
+  color: #64748b;
+}
+
+.doc-accordion-box {
+  margin-bottom: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.doc-header {
+  background: #f8fafc;
+  padding: 12px 16px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+.doc-title-row {
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.badge-ar { color: #10b981; font-weight: 700; }
+.badge-ad { color: #d97706; font-weight: 700; }
+.doc-name { font-weight: 600; }
+.preview-doc-btn {
+  background: transparent;
+  border: none;
+  color: #2563eb;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 0.85rem;
+  padding: 0 4px;
+}
+.accordion-arrow {
+  color: #64748b;
+  font-size: 0.75rem;
+}
+.doc-items-container {
+  padding: 16px;
+  background: #ffffff;
+}
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.items-table thead tr {
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+  color: #64748b;
+}
+.items-table th {
+  padding: 8px;
+  font-weight: 600;
+}
+.items-table tbody tr {
+  border-bottom: 1px solid #f1f5f9;
+}
+.items-table td {
+  padding: 12px 8px;
+  color: #0f172a;
+}
+.sub-item-text {
+  color: #64748b;
+  font-size: 0.8rem;
+}
+.item-alloc-select {
+  width: 200px;
+  padding: 6px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+  border-radius: 6px;
+  outline: none;
+  font-size: 0.85rem;
+}
+.status-assigned { color: #10b981; font-weight: 600; }
+.status-locked { color: #ef4444; font-weight: 600; }
+
+.modal-footer {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 16px;
+}
+.btn-cancel {
+  padding: 8px 16px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.btn-cancel:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+.btn-save {
+  padding: 8px 18px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.btn-save:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+</style>
+
+<style>
+/* ==========================================================================
+   Dark Mode Overrides for Budget Distribution by Mandate
+   Outer background remains white; ONLY the cards darken!
+   ========================================================================== */
+html.dark .banner-wrapper,
+.dark .banner-wrapper {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
+  border-color: rgba(185, 121, 204, 0.25) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25) !important;
+}
+
+html.dark .topbar,
+.dark .topbar {
+  background: transparent !important;
+  border-bottom-color: rgba(185, 121, 204, 0.2) !important;
+}
+
+html.dark .topbar-brand,
+.dark .topbar-brand {
+  border-right-color: rgba(185, 121, 204, 0.2) !important;
+}
+
+html.dark .topbar-eyebrow,
+.dark .topbar-eyebrow {
+  color: #c084fc !important;
+}
+
+html.dark .topbar-title,
+.dark .topbar-title {
+  color: #ffffff !important;
+}
+
+html.dark .topbar-btn,
+.dark .topbar-btn {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border-color: rgba(185, 121, 204, 0.3) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .topbar-btn:hover,
+.dark .topbar-btn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+}
+
+html.dark .main-card,
+.dark .main-card {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
+  border-color: rgba(185, 121, 204, 0.25) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25) !important;
+}
+
+html.dark .card-title,
+.dark .card-title {
+  color: #ffffff !important;
+}
+
+html.dark .filter-label,
+.dark .filter-label {
+  color: #cbd5e1 !important;
+}
+
+html.dark .filter-select,
+.dark .filter-select {
+  background: rgba(0, 0, 0, 0.4) url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23b979cc' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E") no-repeat right 0.75rem center/1.25rem 1.25rem !important;
+  border-color: rgba(185, 121, 204, 0.4) !important;
+  color: #ffffff !important;
+}
+html.dark .filter-select option,
+.dark .filter-select option {
+  background: #1e293b !important;
+  color: #ffffff !important;
+}
+
+html.dark .stat-pill,
+.dark .stat-pill {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1)) !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+}
+html.dark .stat-icon-wrap,
+.dark .stat-icon-wrap {
+  background: rgba(99, 102, 241, 0.2) !important;
+  color: #a5b4fc !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+}
+html.dark .stat-title,
+.dark .stat-title {
+  color: #cbd5e1 !important;
+}
+html.dark .stat-count,
+.dark .stat-count {
+  color: #ffffff !important;
+}
+
+html.dark .search-wrap,
+.dark .search-wrap {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border-color: rgba(185, 121, 204, 0.3) !important;
+}
+html.dark .search-wrap.search-active,
+.dark .search-wrap.search-active,
+html.dark .search-wrap:focus-within,
+.dark .search-wrap:focus-within {
+  border-color: rgba(185, 121, 204, 0.8) !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+}
+html.dark .search-icon,
+.dark .search-icon {
+  color: #cbd5e1 !important;
+}
+html.dark .search-input,
+.dark .search-input {
+  color: #ffffff !important;
+}
+html.dark .search-clear-btn,
+.dark .search-clear-btn {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #cbd5e1 !important;
+}
+
+html.dark .state-message-box,
+.dark .state-message-box {
+  color: #cbd5e1 !important;
+}
+html.dark .empty-state-card,
+.dark .empty-state-card {
+  color: #cbd5e1 !important;
+}
+html.dark .empty-title,
+.dark .empty-title {
+  color: #ffffff !important;
+}
+html.dark .plan-link,
+.dark .plan-link {
+  color: #c084fc !important;
+}
+
+html.dark .mandate-card,
+.dark .mandate-card {
+  background: rgba(0, 0, 0, 0.25) !important;
+  border-color: rgba(185, 121, 204, 0.2) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2) !important;
+}
+html.dark .mandate-card:hover,
+.dark .mandate-card:hover {
+  border-color: rgba(185, 121, 204, 0.4) !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.dark .mandate-block,
+.dark .mandate-block {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(185, 121, 204, 0.15) !important;
+}
+html.dark .block-title,
+.dark .block-title {
+  color: #ffffff !important;
+}
+html.dark .block-desc,
+.dark .block-desc {
+  color: #cbd5e1 !important;
+}
+
+html.dark .mandate-budget-box,
+.dark .mandate-budget-box {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-color: rgba(185, 121, 204, 0.15) !important;
+}
+html.dark .approved-counts-row,
+.dark .approved-counts-row {
+  border-bottom-color: rgba(185, 121, 204, 0.15) !important;
+}
+html.dark .approved-box,
+.dark .approved-box {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(185, 121, 204, 0.1) !important;
+}
+html.dark .approved-label,
+.dark .approved-label {
+  color: #94a3b8 !important;
+}
+html.dark .approved-val,
+.dark .approved-val {
+  color: #ffffff !important;
+}
+
+html.dark .b-lbl,
+.dark .b-lbl {
+  color: #cbd5e1 !important;
+}
+html.dark .b-val,
+.dark .b-val {
+  color: #ffffff !important;
+}
+html.dark .remaining-row,
+.dark .remaining-row {
+  border-top-color: rgba(185, 121, 204, 0.2) !important;
+}
+html.dark .remaining-row .b-lbl,
+.dark .remaining-row .b-lbl {
+  color: #ffffff !important;
+}
+
+html.dark .budget-breakdown-section,
+.dark .budget-breakdown-section {
+  border-top-color: rgba(185, 121, 204, 0.2) !important;
+}
+html.dark .breakdown-title,
+.dark .breakdown-title {
+  color: #cbd5e1 !important;
+}
+html.dark .breakdown-item,
+.dark .breakdown-item {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border-color: rgba(185, 121, 204, 0.15) !important;
+}
+html.dark .bl-label,
+.dark .bl-label {
+  color: #ffffff !important;
+}
+html.dark .bl-row,
+.dark .bl-row {
+  color: #cbd5e1 !important;
+}
+
+html.dark .manage-alloc-btn,
+.dark .manage-alloc-btn {
+  background: rgba(59, 130, 246, 0.15) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+  color: #93c5fd !important;
+}
+
+/* Modal dark overrides */
+html.dark .allocation-modal-card,
+.dark .allocation-modal-card {
+  background: #1e293b !important;
+  border-color: rgba(185, 121, 204, 0.3) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !important;
+}
+html.dark .modal-title,
+.dark .modal-title {
+  color: #ffffff !important;
+}
+html.dark .modal-subtitle,
+.dark .modal-subtitle {
+  color: #94a3b8 !important;
+}
+html.dark .modal-subheading,
+.dark .modal-subheading,
+html.dark .modal-subheading-border,
+.dark .modal-subheading-border {
+  color: #ffffff !important;
+  border-bottom-color: rgba(185, 121, 204, 0.2) !important;
+}
+html.dark .modal-table,
+.dark .modal-table {
+  border-color: rgba(185, 121, 204, 0.2) !important;
+}
+html.dark .modal-table thead tr,
+.dark .modal-table thead tr {
+  background: rgba(0, 0, 0, 0.25) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .modal-table tbody tr,
+.dark .modal-table tbody tr {
+  border-top-color: rgba(255, 255, 255, 0.05) !important;
+}
+html.dark .modal-table td,
+.dark .modal-table td {
+  color: #cbd5e1 !important;
+}
+html.dark .modal-td-bold,
+.dark .modal-td-bold {
+  color: #ffffff !important;
+}
+
+html.dark .doc-accordion-box,
+.dark .doc-accordion-box {
+  border-color: rgba(185, 121, 204, 0.2) !important;
+}
+html.dark .doc-header,
+.dark .doc-header {
+  background: rgba(0, 0, 0, 0.25) !important;
+}
+html.dark .doc-title-row,
+.dark .doc-title-row {
+  color: #ffffff !important;
+}
+html.dark .doc-items-container,
+.dark .doc-items-container {
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+html.dark .items-table thead tr,
+.dark .items-table thead tr {
+  border-bottom-color: rgba(185, 121, 204, 0.2) !important;
+  color: #94a3b8 !important;
+}
+html.dark .items-table tbody tr,
+.dark .items-table tbody tr {
+  border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+}
+html.dark .items-table td,
+.dark .items-table td {
+  color: #ffffff !important;
+}
+html.dark .sub-item-text,
+.dark .sub-item-text {
+  color: #94a3b8 !important;
+}
+html.dark .item-alloc-select,
+.dark .item-alloc-select {
+  background: #1e293b !important;
+  border-color: rgba(185, 121, 204, 0.3) !important;
+  color: #ffffff !important;
+}
+html.dark .modal-footer,
+.dark .modal-footer {
+  border-top-color: rgba(185, 121, 204, 0.2) !important;
+}
+html.dark .btn-cancel,
+.dark .btn-cancel {
+  background: transparent !important;
+  border-color: rgba(185, 121, 204, 0.3) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .btn-cancel:hover,
+.dark .btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #ffffff !important;
+}
 </style>

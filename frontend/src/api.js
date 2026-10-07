@@ -35,26 +35,31 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('API Error:', error);
-    console.error('Error config:', error.config);
-    console.error('Error response:', error.response);
-    console.error('Error request:', error.request);
-
     if (error.response) {
-      // Server responded with error status
-      console.error('Server error:', error.response.status, error.response.data);
+      // 401 Unauthorized — token missing, invalid, or expired.
+      // Clear local storage and redirect to login automatically.
+      if (error.response.status === 401) {
+        localStorage.removeItem('user');
+        localStorage.removeItem('authToken');
+        // Only redirect if not already on a public page
+        const currentPath = window.location.pathname;
+        const publicPaths = ['/login', '/register', '/forgot-password', '/reset-password', '/', '/about', '/resources', '/gad-corner', '/contact'];
+        const isPublic = publicPaths.some(p => currentPath === p || currentPath.startsWith('/gad-corner'));
+        if (!isPublic) {
+          window.location.href = '/login';
+        }
+        return Promise.reject(error.response.data);
+      }
+
       return Promise.reject(error.response.data);
     } else if (error.request) {
       // Request made but no response
-      console.error('No response received:', error.request);
       return Promise.reject({
         message: 'Please Refresh the page and try again',
         details: error.message,
         url: error.config?.url
       });
     } else {
-      // Error in request setup
-      console.error('Request setup error:', error.message);
       return Promise.reject({
         message: 'Error preparing request',
         details: error.message

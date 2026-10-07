@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
 import fs from 'fs'
+import { fileURLToPath, URL } from 'node:url'
 
 const generateIndexPhpPlugin = () => ({
   name: 'generate-index-php',
@@ -92,6 +93,11 @@ if ($isBot && preg_match('/^\\/gad-corner\\/([0-9]+)/', $_SERVER['REQUEST_URI'],
 
 export default defineConfig({
   plugins: [vue(), generateIndexPhpPlugin()],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url))
+    }
+  },
   optimizeDeps: {
     exclude: ['canvas', 'path2d']
   }

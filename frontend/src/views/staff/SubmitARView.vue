@@ -78,7 +78,7 @@
                   <div class="input-group-ar">
                     <label class="form-label-ar">Gender Issue / GAD Mandate *</label>
                     <div class="checkbox-group-container custom-input-field" style="min-height: 120px; max-height: 250px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
-                      <label v-for="mandate in GADMandates" :key="mandate.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
+                      <label v-for="mandate in GADMandates" :key="mandate.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
                         <input type="radio" @change="handleMandateChange" v-model="form.gad_mandate_id" :value="mandate.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
                         <span style="font-size: 14px; line-height: 1.4;">{{ mandate.code }} - {{ mandate.title }}</span>
                       </label>
@@ -90,7 +90,7 @@
                   <div class="input-group-ar">
                     <label class="form-label-ar">Cause of Gender Issue *</label>
                     <div class="checkbox-group-container custom-input-field" style="min-height: 120px; max-height: 250px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
-                      <label v-for="issue in genderIssues" :key="issue.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: #ffffff;">
+                      <label v-for="issue in genderIssues" :key="issue.id" class="checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
                         <input type="radio" v-model="form.gender_issue_id" :value="issue.id.toString()" style="margin-top: 2px; accent-color: #b979cc; transform: scale(1.1);" />
                         <span style="font-size: 14px; line-height: 1.4;">{{ issue.title }}</span>
                       </label>
@@ -138,7 +138,7 @@
                   </div>
                   
                   <!-- Staggered Schedules Section -->
-                  <div class="schedules-container-ar" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(185, 121, 204, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
+                  <div class="schedules-container-ar">
                     <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
                       <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
                           <label class="form-label-ar !mb-0 flex items-center gap-2" style="white-space: nowrap;">
@@ -146,11 +146,11 @@
                             Activity Schedules *
                           </label>
                           <div class="schedule-type-toggle-container">
-                            <button type="button" @click.prevent="handleScheduleTypeChange('staggered')" class="schedule-type-toggle-btn" :style="{ background: scheduleType === 'staggered' ? 'rgba(185, 121, 204, 0.2)' : 'transparent', color: scheduleType === 'staggered' ? '#e9d5ff' : '#94a3b8' }">Non Consecutive</button>
-                            <button type="button" @click.prevent="handleScheduleTypeChange('continuous')" class="schedule-type-toggle-btn" :style="{ background: scheduleType === 'continuous' ? 'rgba(185, 121, 204, 0.2)' : 'transparent', color: scheduleType === 'continuous' ? '#e9d5ff' : '#94a3b8' }">Consecutive</button>
+                            <button type="button" @click.prevent="handleScheduleTypeChange('staggered')" class="schedule-type-toggle-btn" :style="{ background: scheduleType === 'staggered' ? 'rgba(185, 121, 204, 0.2)' : 'transparent', color: scheduleType === 'staggered' ? '#b979cc' : 'inherit' }">Non Consecutive</button>
+                            <button type="button" @click.prevent="handleScheduleTypeChange('continuous')" class="schedule-type-toggle-btn" :style="{ background: scheduleType === 'continuous' ? 'rgba(185, 121, 204, 0.2)' : 'transparent', color: scheduleType === 'continuous' ? '#b979cc' : 'inherit' }">Consecutive</button>
                           </div>
                       </div>
-                      <button type="button" v-if="scheduleType === 'staggered'" @click.prevent="addSchedule" style="background: rgba(185, 121, 204, 0.2); color: #e9d5ff; border: 1px solid rgba(185, 121, 204, 0.3); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s;">
+                      <button type="button" v-if="scheduleType === 'staggered'" @click.prevent="addSchedule" class="btn-add-other">
                         <span class="material-symbols-outlined" style="font-size: 14px;">add</span> Add Schedule
                       </button>
                     </div>
@@ -161,11 +161,11 @@
                     
                     
                     <!-- Continuous Config UI -->
-                    <div v-if="scheduleType === 'continuous'" class="schedule-row mb-3 p-4 bg-white border border-slate-200 rounded-lg relative" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
+                    <div v-if="scheduleType === 'continuous'" class="schedule-row mb-3 p-4 rounded-lg relative">
                       <div class="schedule-inputs-wrapper" style="margin-bottom: 16px;">
                         <div class="flex-1">
                           <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Start Date</label>
-                          <VueDatePicker dark v-model="continuousConfig.start_date" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
+                          <VueDatePicker :dark="isDarkMode" v-model="continuousConfig.start_date" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
 <template #dp-input="{ value }">
 <input type="text" :value="value ? String(value).replace(',', '').trim().split(' ')[0] : ''" class="custom-input-field dp-custom-transparent !text-xs !p-2" readonly placeholder="Select Date" />
 </template>
@@ -173,7 +173,7 @@
                         </div>
                         <div class="flex-1">
                           <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">End Date</label>
-                          <VueDatePicker dark v-model="continuousConfig.end_date" :min-date="continuousConfig.start_date || minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
+                          <VueDatePicker :dark="isDarkMode" v-model="continuousConfig.end_date" :min-date="continuousConfig.start_date || minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
 <template #dp-input="{ value }">
 <input type="text" :value="value ? String(value).replace(',', '').trim().split(' ')[0] : ''" class="custom-input-field dp-custom-transparent !text-xs !p-2" readonly placeholder="Select Date" />
 </template>
@@ -187,7 +187,7 @@
                               <transition name="fade-pop"><div v-if="helpState.startTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                             </div>
                           </div>
-                          <input type="time" v-model="continuousConfig.start_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="handleTimeChange(continuousConfig)">
+                          <input type="time" v-model="continuousConfig.start_time" min="04:00" max="20:00" required class="custom-input-field time-picker-input" @change="handleTimeChange(continuousConfig)">
                         </div>
                         <div class="flex-1">
                           <div class="label-container" style="margin-bottom: 4px;">
@@ -197,7 +197,7 @@
                               <transition name="fade-pop"><div v-if="helpState.endTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                             </div>
                           </div>
-                          <input type="time" v-model="continuousConfig.end_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="handleTimeChange(continuousConfig)">
+                          <input type="time" v-model="continuousConfig.end_time" min="04:00" max="20:00" required class="custom-input-field time-picker-input" @change="handleTimeChange(continuousConfig)">
                         </div>
                       </div>
 
@@ -208,34 +208,34 @@
                       <span class="material-symbols-outlined" style="font-size: 14px;">info</span>
                       You can customize the Time and Meals for specific days (e.g., half-day on the last day) below:
                     </div>
-                    <div v-for="(sch, index) in form.schedules" :key="index" style="display: flex; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); position: relative;">
+                    <div v-for="(sch, index) in form.schedules" :key="index" class="schedule-inputs-wrapper schedule-card-item relative">
                       <div style="flex: 1; min-width: 130px;">
-                        <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 6px; display: block;">Date</label>
-                        <VueDatePicker dark v-model="sch.date" @update:model-value="handleScheduleDateChange($event, index)" :disabled="scheduleType === 'continuous'" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
+                        <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Date</label>
+                        <VueDatePicker :dark="isDarkMode" v-model="sch.date" @update:model-value="handleScheduleDateChange($event, index)" :disabled="scheduleType === 'continuous'" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
 <template #dp-input="{ value }">
 <input type="text" :value="value ? String(value).replace(',', '').trim().split(' ')[0] : ''" class="custom-input-field dp-custom-transparent !text-xs !p-2" readonly placeholder="Select Date" />
 </template>
 </VueDatePicker>
                       </div>
                       <div style="flex: 1; min-width: 130px;">
-                        <div class="label-container" style="margin-bottom: 6px;">
-                          <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 0;">Start Time</label>
+                        <div class="label-container" style="margin-bottom: 4px;">
+                          <label class="text-[10px] uppercase font-bold text-slate-500 mb-0">Start Time</label>
                           <div class="info-btn-wrapper">
                             <span class="material-symbols-outlined" @click.stop="toggleHelp('startTime')" style="font-size: 14px; cursor: pointer; color: #94a3b8; transition: color 0.2s;" onmouseover="this.style.color='#b979cc'" onmouseout="this.style.color='#94a3b8'">info</span>
                             <transition name="fade-pop"><div v-if="helpState.startTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                           </div>
                         </div>
-                        <input type="time" v-model="sch.start_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="validateScheduleTime(index)">
+                        <input type="time" v-model="sch.start_time" min="04:00" max="20:00" required class="custom-input-field time-picker-input" @change="validateScheduleTime(index)">
                       </div>
                       <div style="flex: 1; min-width: 130px;">
-                        <div class="label-container" style="margin-bottom: 6px;">
-                          <label style="color: #94a3b8; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 0;">End Time</label>
+                        <div class="label-container" style="margin-bottom: 4px;">
+                          <label class="text-[10px] uppercase font-bold text-slate-500 mb-0">End Time</label>
                           <div class="info-btn-wrapper">
                             <span class="material-symbols-outlined" @click.stop="toggleHelp('endTime')" style="font-size: 14px; cursor: pointer; color: #94a3b8; transition: color 0.2s;" onmouseover="this.style.color='#b979cc'" onmouseout="this.style.color='#94a3b8'">info</span>
                             <transition name="fade-pop"><div v-if="helpState.endTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                           </div>
                         </div>
-                        <input type="time" v-model="sch.end_time" min="04:00" max="20:00" required class="custom-input-field" style="color-scheme: dark; cursor: pointer;" @change="validateScheduleTime(index)">
+                        <input type="time" v-model="sch.end_time" min="04:00" max="20:00" required class="custom-input-field time-picker-input" @change="validateScheduleTime(index)">
                       </div>
                       <button type="button" v-if="scheduleType === 'staggered' && form.schedules.length > 1" @click.prevent="removeSchedule(index)" style="background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" title="Remove Schedule">
                         <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
@@ -249,13 +249,13 @@
                   <div class="input-group-ar">
                     <label class="form-label-ar">Venue Location *</label>
                     <div class="toggle-container" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; min-height: 42px; height: auto; padding: 4px 0;">
-                      <label style="color: #cbd5e1; font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
+                      <label class="location-radio-label" style="font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
                         <input type="radio" :value="true" v-model="form.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Inside BSU
                       </label>
-                      <label style="color: #cbd5e1; font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
+                      <label class="location-radio-label" style="font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
                         <input type="radio" :value="false" v-model="form.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Outside BSU
                       </label>
-                      <label style="color: #cbd5e1; font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
+                      <label class="location-radio-label" style="font-size: 14px; cursor: pointer; display: flex; align-items: center; white-space: nowrap;">
                         <input type="radio" value="mixed" v-model="form.is_inside_bsu" style="accent-color: #b979cc; transform: scale(1.1); margin-right: 5px;" /> Mixed (Inside &amp; Outside)
                       </label>
                     </div>
@@ -363,9 +363,9 @@
                     </div>
 
                     <!-- Overall Target Participants Banner -->
-                    <div class="grand-total-banner-card" style="background: rgba(30,41,59,0.7); margin-bottom: 12px; border-color: #334155; padding: 12px 20px;">
-                      <div class="grand-total-label-banner" style="color: #94a3b8; font-size: 13px;">Overall Expected Attendance (Auto-calculated)</div>
-                      <div class="grand-total-value-banner" style="color: #cbd5e1; font-size: 16px;">
+                    <div class="attendance-banner-card mb-3">
+                      <div class="attendance-banner-label">Overall Expected Attendance (Auto-calculated)</div>
+                      <div class="attendance-banner-value">
                         {{ form.target_participants || 0 }} Pax
                       </div>
                     </div>
@@ -450,8 +450,7 @@
                          @click="$refs.fileInput.click()"
                          @dragover.prevent
                          @dragenter.prevent
-                         @drop.prevent="handleDrop"
-                         style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; border: 2px dashed #b979cc; border-radius: 12px; background: rgba(30, 41, 59, 0.4); cursor: pointer; transition: all 0.3s ease; text-align: center;">
+                         @drop.prevent="handleDrop">
                       <input 
                         ref="fileInput" 
                         type="file" 
@@ -460,18 +459,18 @@
                         class="file-input-hidden" 
                         multiple 
                       />
-                      <span class="upload-icon-ar" style="font-size: 48px; margin-bottom: 16px; display: block;">📤</span>
-                      <h4 style="color: #ffffff; font-size: 16px; margin: 0 0 8px 0; font-weight: 600;">Drag & drop your files here</h4>
-                      <p style="color: #94a3b8; font-size: 14px; margin: 0 0 12px 0;">or click to browse from your computer</p>
-                      <span style="background: rgba(185, 121, 204, 0.2); color: #e9d5ff; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;">Max 10MB per file</span>
+                      <span class="upload-icon-ar">📤</span>
+                      <h4 class="upload-zone-title">Drag & drop your files here</h4>
+                      <p class="upload-zone-desc">or click to browse from your computer</p>
+                      <span class="upload-zone-badge">Max 10MB per file</span>
                     </div>
                   </div>
                   <div class="attachment-preview-column-ar">
-                    <div v-if="uploadedFiles.length > 0" class="uploaded-files-container-ar" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
-                      <div v-for="(file, index) in uploadedFiles" :key="index" style="display: flex; flex-direction: column; gap: 10px; background: rgba(30, 41, 59, 0.4); padding: 15px; border-radius: 10px; border: 1px solid rgba(185, 121, 204, 0.2);">
-                        <div class="uploaded-file-tag" style="width: 100%; background: transparent; padding: 0; border: none; flex-direction: column; align-items: flex-start; gap: 8px;">
+                    <div v-if="uploadedFiles.length > 0" class="uploaded-files-container-ar">
+                      <div v-for="(file, index) in uploadedFiles" :key="index" class="uploaded-file-card">
+                        <div class="uploaded-file-tag">
                           <span class="uploaded-file-name" style="word-break: break-all;">📄 {{ file.name }}</span>
-                          <div class="uploaded-file-actions-ar" style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
+                          <div class="uploaded-file-actions-ar">
                             <span class="uploaded-file-size-ar">({{ (file.size / 1024).toFixed(2) }} KB)</span>
                             <button type="button" @click.stop="removeFile(index)" class="remove-file-btn">Remove</button>
                           </div>
@@ -479,7 +478,7 @@
                         
                         <div v-if="file.previewUrl" class="document-previews" style="width: 100%;">
                           <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
-                            <button @click.prevent="expandToNewTab(file.previewUrl)" style="background: rgba(185, 121, 204, 0.1); border: 1px solid rgba(185, 121, 204, 0.3); color: #e9d5ff; padding: 4px 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; font-size: 13px;">
+                            <button @click.prevent="expandToNewTab(file.previewUrl)" class="btn-expand-preview">
                               <span class="material-symbols-outlined" style="font-size: 14px; margin-right: 4px;">open_in_new</span> Expand
                             </button>
                           </div>
@@ -540,6 +539,8 @@ import BudgetBuilder from '../../components/BudgetBuilder.vue';
 const router = useRouter();
 const route = useRoute();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
+const isDarkMode = ref(document.documentElement.classList.contains('dark'));
+let themeObserver = null;
 
 const menuItems = computed(() => {
   if (route.path.includes('/staff')) return staffMenu;
@@ -1945,1248 +1946,17 @@ onMounted(() => {
     fetchVenues();
   }
   document.addEventListener('click', closeAllHelp);
+  themeObserver = new MutationObserver(() => {
+    isDarkMode.value = document.documentElement.classList.contains('dark');
+  });
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 });
 
 onUnmounted(() => {
   document.removeEventListener('click', closeAllHelp);
+  if (themeObserver) themeObserver.disconnect();
 });
 </script>
 
-<style scoped>
-.twg-view-wrapper {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  background: transparent;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-}
-
-.main-content-container-ar {
-  max-width: 1280px;
-  margin-left: auto;
-  margin-right: auto;
-  width: 100%;
-}
-
-.form-header-ar {
-  margin-bottom: 32px;
-}
-
-.form-main-title {
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: -0.025em;
-  color: #16213e;
-  letter-spacing: -0.02em;
-}
-
-.form-description-ar {
-  font-size: 14px;
-  color: #64748b;
-  margin-top: 6px;
-}
-
-.form-container-box {
-  background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
-  border: 1px solid rgba(185, 121, 204, 0.2);
-  border-radius: 20px;
-  padding: 32px;
-  box-shadow: 0 20px 40px rgba(10, 10, 20, 0.4);
-}
-
-.form-main-layout-ar {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.form-grid-main-ar {
-  display: grid;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  gap: 30px;
-}
-@media (min-width: 1024px) {
-  .form-grid-main-ar {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.form-column-left-ar, .form-column-right-ar {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.form-column-left-ar {
-    border-right: 1px solid rgba(185, 121, 204, 0.2);
-    padding-right: 20px;  
-}
-
-.input-group-ar {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.form-label-ar {
-  display: block;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #b979cc;
-}
-
-.custom-input-field { width: 100%;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 14px 20px;
-  font-size: 14px;
-  color: #ffffff;
-  transition: all 0.2s ease;
-}
-
-.custom-input-field:focus {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: #b979cc;
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(153, 13, 209, 0.2);
-}
-
-.custom-input-field::placeholder {
-  color: #94a3b8;
-}
-
-.dark-option {
-  background-color: #16213e;
-  color: #ffffff;
-}
-
-.code-icon-calendar::-webkit-calendar-picker-indicator,
-.code-icon-clock::-webkit-calendar-picker-indicator {
-  filter: invert(1);
-  cursor: pointer;
-  opacity: 0.7;
-}
-
-.code-icon-calendar::-webkit-calendar-picker-indicator:hover,
-.code-icon-clock::-webkit-calendar-picker-indicator:hover {
-  opacity: 1;
-}
-
-.form-sub-grid-ar {
-  display: grid;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  gap: 24px;
-}
-@media (min-width: 768px) {
-  .form-sub-grid-ar {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-.textarea-no-resize {
-  resize: none;
-}
-
-.input-disabled-ar {
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.evaluation-section-ar {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.evaluation-table-wrapper-ar {
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background-color: rgba(0, 0, 0, 0.2);
-  overflow-x: auto;
-}
-
-.evaluation-table-ar {
-  width: 100%;
-  min-width: 500px;
-  text-align: left;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-
-.table-header-cell {
-  padding: 12px 16px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.rating-col-ar {
-  width: 130px;
-  text-align: center;
-}
-
-.interpretation-col-ar {
-  width: 140px;
-}
-
-.evaluation-table-header-ar {
-  background-color: rgba(255, 255, 255, 0.05);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #b979cc;
-}
-
-.evaluation-item-name-ar {
-  padding: 12px 16px;
-  color: #cbd5e1;
-  font-size: 13px;
-  line-height: 1.25;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.evaluation-item-input-cell-ar {
-  padding: 8px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  text-align: center;
-}
-
-.evaluation-input-field-ar {
-  background-color: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  outline: none;
-  width: 80px;
-  color: #ffffff;
-  font-size: 14px;
-  padding: 4px 8px;
-  text-align: center;
-}
-
-.evaluation-input-field-ar:focus {
-  border-color: #b979cc;
-  background: rgba(255, 255, 255, 0.07);
-}
-
-.evaluation-interpretation-cell-ar {
-  padding: 8px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.evaluation-table-footer-ar {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-.total-avg-label-ar {
-  padding: 12px 16px;
-  font-size: 11px;
-  font-weight: 700;
-  color: #ffffff;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.total-avg-value-ar {
-  padding: 12px 16px;
-  font-size: 16px;
-  font-weight: 800;
-  color: #b979cc;
-  text-align: center;
-}
-
-.total-avg-interpretation-ar {
-  padding: 12px 16px;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.interpretation-tag-ar {
-  padding: 2px 0;
-}
-
-.text-emerald-400 { color: #34d399; }
-.text-teal-400 { color: #2dd4bf; }
-.text-cyan-400 { color: #22d3ee; }
-.text-amber-400 { color: #fbbf24; }
-.text-rose-400 { color: #f472b6; }
-.text-rose-500 { color: #f43f5e; }
-.text-rose-600 { color: #e11d48; }
-
-.budget-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.budget-table-wrapper {
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background-color: rgba(0, 0, 0, 0.2);
-}
-
-.budget-table {
-  width: 100%;
-  text-align: left;
-  border-collapse: collapse;
-}
-
-.budget-table-header {
-  background-color: rgba(255, 255, 255, 0.05);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #b979cc;
-}
-
-.table-header-cell {
-  padding: 10px 16px;
-  font-weight: 600;
-}
-
-.budget-col-total {
-  width: 128px;
-}
-
-.budget-table-body {
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.budget-item-name {
-  padding: 12px 16px;
-  color: #cbd5e1;
-  line-height: 1.25;
-}
-
-.budget-item-input-cell {
-  padding: 8px 16px;
-}
-
-.budget-input-field {
-  background-color: transparent;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  outline: none;
-  width: 100%;
-  color: #ffffff;
-  font-size: 14px;
-  padding-top: 4px;
-  padding-bottom: 4px;
-}
-.budget-input-field:focus {
-  border-color: #b979cc;
-}
-
-.budget-total-field {
-  font-weight: 600;
-}
-
-.budget-table-footer {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-.grand-total-label {
-  padding: 12px 16px;
-  font-size: 10px;
-  font-weight: 700;
-  color: #ffffff;
-  text-align: right;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.grand-total-value {
-  padding: 12px 16px;
-  font-size: 14px;
-  font-weight: 700;
-  color: #b979cc;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.file-input-hidden {
-  display: none;
-}
-
-.upload-dropzone-box {
-  border: 2px dashed rgba(185, 121, 204, 0.3);
-  background: rgba(185, 121, 204, 0.02);
-  border-radius: 14px;
-  padding: 30px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.upload-icon-ar {
-  font-size: 26px;
-  margin-bottom: 8px;
-  transition: transform 0.2s ease;
-}
-.upload-dropzone-box:hover .upload-icon-ar {
-  transform: scale(1.1);
-}
-
-.upload-text-ar {
-  font-size: 14px;
-  font-weight: 600;
-  color: #ffffff;
-  text-align: center;
-  transition: color 0.2s ease;
-}
-.upload-dropzone-box:hover .upload-text-ar {
-  color: #b979cc;
-}
-
-.upload-hint-ar {
-  font-size: 14px;
-  color: #64748b;
-  margin-top: 4px;
-}
-
-.uploaded-files-container-ar {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.upload-dropzone-box:hover {
-  border-color: #b979cc;
-  background: rgba(185, 121, 204, 0.06);
-}
-
-.uploaded-file-tag {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 8px 14px;
-  border-radius: 8px;
-  color: #cbd5e1;
-  font-size: 12px;
-  width: 100%;
-}
-
-.uploaded-file-size-ar {
-  font-size: 14px;
-  opacity: 0.6;
-  flex-shrink: 0;
-}
-
-.submit-action-btn {
-  background: linear-gradient(135deg, #990dd1 0%, #b979cc 100%);
-  color: #ffffff;
-  padding: 14px 40px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 16px;
-  cursor: pointer;
-  border: none;
-  box-shadow: 0 4px 14px rgba(153, 13, 209, 0.3);
-  transition: all 0.3s ease;
-}
-
-.submit-action-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(153, 13, 209, 0.45);
-  background: linear-gradient(135deg, #b979cc 0%, #990dd1 100%);
-}
-
-.form-actions-ar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 24px;
-}
-
-.back-button {
-  padding: 12px 24px;
-  font-size: 14px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #b979cc;
-  border-radius: 12px;
-  transition: all 0.2s ease;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-}
-.back-button:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-/* Budget Limit Warning Card */
-.ar-limit-warning-card {
-  display: flex;
-  gap: 16px;
-  background: rgba(244, 63, 94, 0.1);
-  border: 1px solid rgba(244, 63, 94, 0.3);
-  border-radius: 12px;
-  padding: 16px 20px;
-  margin-top: 20px;
-  margin-bottom: 10px;
-  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.15);
-  animation: fadeIn 0.3s ease;
-}
-
-.warning-icon {
-  font-size: 24px;
-  flex-shrink: 0;
-}
-
-.warning-content {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  text-align: left;
-}
-
-.warning-title {
-  font-size: 14px;
-  font-weight: 800;
-  color: #f43f5e;
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.warning-desc {
-  font-size: 13px;
-  color: #cbd5e1;
-  margin: 0;
-  line-height: 1.4;
-}
-
-.warning-instruction {
-  font-size: 12px;
-  color: #fb7185;
-  margin: 0;
-  font-weight: 600;
-}
-
-.btn-disabled {
-  background: #475569 !important;
-  color: #94a3b8 !important;
-  box-shadow: none !important;
-  cursor: not-allowed !important;
-  transform: none !important;
-  opacity: 0.6;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-/* Others Breakdown Styles */
-.others-breakdown-container {
-  margin-top: 10px;
-  padding: 12px;
-  background-color: rgba(0, 0, 0, 0.25);
-  border-radius: 10px;
-  border: 1px dashed rgba(185, 121, 204, 0.2);
-}
-
-.others-breakdown-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
-  align-items: center;
-}
-
-.others-input-name {
-  flex: 1;
-  background-color: rgba(26, 26, 46, 0.6);
-  border: 1px solid rgba(185, 121, 204, 0.2);
-  border-radius: 8px;
-  padding: 6px 10px;
-  color: #ffffff;
-  font-size: 12px;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.others-input-amount {
-  width: 110px;
-  background-color: rgba(26, 26, 46, 0.6);
-  border: 1px solid rgba(185, 121, 204, 0.2);
-  border-radius: 8px;
-  padding: 6px 10px;
-  color: #ffffff;
-  font-size: 12px;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.others-input-name:focus,
-.others-input-amount:focus {
-  border-color: #b979cc;
-  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.15);
-}
-
-.btn-remove-other {
-  background: transparent;
-  border: none;
-  color: #f43f5e;
-  cursor: pointer;
-  font-size: 18px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-  transition: color 0.2s;
-}
-
-.btn-remove-other:hover {
-  color: #fda4af;
-}
-
-.btn-add-other {
-  background-color: rgba(185, 121, 204, 0.1);
-  border: 1px solid rgba(185, 121, 204, 0.25);
-  color: #b979cc;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 4px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
-.btn-add-other:hover {
-  background-color: rgba(185, 121, 204, 0.2);
-  transform: translateY(-0.5px);
-}
-
-.others-total-badge {
-  background-color: rgba(185, 121, 204, 0.15);
-  border: 1px solid rgba(185, 121, 204, 0.3);
-  color: #b979cc;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 13px;
-  display: inline-block;
-}
-
-.budget-groups-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  margin-top: 10px;
-}
-
-.budget-group-card {
-  background: rgba(30, 41, 59, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  padding: 20px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-}
-
-.budget-group-card:hover {
-  border-color: rgba(185, 121, 204, 0.3);
-  background: rgba(30, 41, 59, 0.6);
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-}
-
-.budget-group-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: 12px;
-  margin-bottom: 16px;
-}
-
-.budget-group-icon {
-  font-size: 18px;
-}
-
-.budget-group-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: #b979cc;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.budget-group-content {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.budget-row-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.budget-row-item:last-child {
-  padding-bottom: 0;
-  border-bottom: none;
-}
-
-.budget-group-total {
-  font-weight: 600;
-  color: #10b981;
-  background: rgba(16, 185, 129, 0.1);
-  padding: 4px 10px;
-  border-radius: 6px;
-}
-
-.budget-item-info {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex-grow: 1;
-}
-
-.budget-item-title {
-  font-weight: 600;
-  color: #f1f5f9;
-  font-size: 14px;
-}
-
-.budget-item-subtext {
-  font-size: 11px;
-  color: #64748b;
-}
-
-.budget-item-value {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 240px;
-  flex-shrink: 0;
-  justify-content: flex-end;
-}
-
-.budget-currency-symbol {
-  color: #64748b;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.budget-card-input {
-  background-color: rgba(15, 23, 42, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  color: #ffffff;
-  font-size: 14px;
-  padding: 8px 12px;
-  width: 100%;
-  text-align: right;
-  transition: all 0.2s ease;
-  font-weight: 600;
-}
-
-.budget-card-input:focus {
-  border-color: #b979cc;
-  background-color: rgba(15, 23, 42, 0.5);
-  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.2);
-  outline: none;
-}
-
-.pax-input-group {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.creative-pax-input {
-  width: 65px;
-  padding: 8px;
-  background: #1e293b;
-  border: 1px solid #475569;
-  border-radius: 6px;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 500;
-  text-align: center;
-  transition: all 0.2s ease;
-}
-.creative-pax-input:focus {
-  border-color: #b979cc;
-  background: #2a3b54;
-  box-shadow: 0 0 0 2px rgba(185, 121, 204, 0.2);
-  outline: none;
-}
-.pax-label {
-  font-size: 14px;
-  color: #e2e8f0;
-  font-weight: 500;
-}
-.pax-calc-text {
-  font-size: 12px;
-  color: #94a3b8;
-  margin-left: 77px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(0, 0, 0, 0.2);
-  padding: 4px 8px;
-  border-radius: 4px;
-}
-.pax-breakdown-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 10px;
-}
-.pax-breakdown-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.grand-total-banner-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: linear-gradient(135deg, rgba(185, 121, 204, 0.1) 0%, rgba(153, 13, 209, 0.1) 100%);
-  border: 1px solid rgba(185, 121, 204, 0.3);
-  border-radius: 14px;
-  padding: 20px;
-  margin-top: 20px;
-  box-shadow: 0 4px 15px -3px rgba(185, 121, 204, 0.1);
-}
-
-.grand-total-label-banner {
-  font-size: 13px;
-  font-weight: 700;
-  color: #ffffff;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.grand-total-value-banner {
-  font-size: 20px;
-  font-weight: 800;
-  color: #b979cc;
-  text-shadow: 0 0 10px rgba(185, 121, 204, 0.2);
-}
-
-.label-container {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.info-btn {
-  background: rgba(185, 121, 204, 0.08);
-  border: 1px solid rgba(185, 121, 204, 0.35);
-  color: #b979cc;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  font-size: 10px;
-  font-weight: bold;
-  font-family: serif;
-  line-height: 1;
-  transition: all 0.25s ease;
-}
-
-.info-btn:hover {
-  background: #b979cc;
-  color: #16213e;
-  border-color: #b979cc;
-  transform: scale(1.15);
-  box-shadow: 0 0 8px rgba(185, 121, 204, 0.4);
-}
-
-.info-btn-wrapper {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
-
-.simple-popup {
-  position: absolute;
-  bottom: calc(100% + 10px);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000;
-  background: #1a1a2e;
-  border: 1px solid #b979cc;
-  border-radius: 8px;
-  padding: 10px 14px;
-  color: #ffffff;
-  font-size: 12px;
-  width: 240px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  line-height: 1.45;
-  pointer-events: auto;
-  text-transform: none;
-  white-space: normal;
-}
-
-.simple-popup::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 6px;
-  border-style: solid;
-  border-color: #1a1a2e transparent transparent transparent;
-}
-
-.simple-popup::before {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 7px;
-  border-style: solid;
-  border-color: #b979cc transparent transparent transparent;
-  z-index: -1;
-}
-
-.fade-pop-enter-active,
-.fade-pop-leave-active {
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.fade-pop-enter-from,
-.fade-pop-leave-to {
-  opacity: 0;
-  transform: translate(-50%, 8px) scale(0.95);
-}
-
-.fade-pop-enter-to,
-.fade-pop-leave-from {
-  opacity: 1;
-  transform: translate(-50%, 0) scale(1);
-}
-
-.select-arrow-fix {
-  appearance: none;
-  -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23cbd5e1' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 18px center;
-  padding-right: 56px;
-}
-
-.budget-sub-controls {
-  display: flex;
-  gap: 12px;
-  margin-top: 6px;
-}
-.budget-checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: #cbd5e1;
-  cursor: pointer;
-}
-.budget-checkbox {
-  accent-color: #b979cc;
-  cursor: pointer;
-  width: 14px;
-  height: 14px;
-}
-
-.budget-number-input-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: #cbd5e1;
-}
-.budget-sub-number-input {
-  width: 60px;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: white;
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 13px;
-  text-align: center;
-}
-.budget-sub-number-input:focus {
-  outline: none;
-  border-color: #b979cc;
-}
-
-@media (max-width: 768px) {
-  .budget-row-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  .budget-item-value {
-    width: 100%;
-    justify-content: flex-start;
-  }
-  .budget-sub-controls {
-    flex-wrap: wrap;
-  }
-  .grand-total-banner-card {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-}
-@media (max-width: 768px) {
-  .others-breakdown-row {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .others-input-name {
-    width: 100%;
-    flex: none;
-  }
-  .others-input-amount {
-    flex: 1;
-  }
-  .budget-sub-controls {
-    flex-wrap: wrap;
-    width: 100%;
-  }
-  .budget-item-info {
-    width: 100%;
-  }
-  .budget-card-input {
-    width: 100%;
-  }
-}
-
-.schedule-inputs-wrapper {
-  display: flex;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.schedule-inputs-wrapper > * {
-  min-width: 0;
-  width: 100%;
-}
-
-@media (max-width: 1024px) {
-  .schedule-inputs-wrapper {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-.schedule-type-toggle-container {
-  display: flex; 
-  background: rgba(0,0,0,0.3); 
-  border-radius: 8px; 
-  padding: 4px; 
-  border: 1px solid rgba(255,255,255,0.05);
-  gap: 4px;
-}
-
-.schedule-type-toggle-btn {
-  padding: 4px 12px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-  flex: 1;
-  text-align: center;
-}
-
-@media (max-width: 480px) {
-  .schedule-type-toggle-container {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-@media (max-width: 768px) {
-  .grand-total-banner-card {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  .grand-total-value-banner {
-    word-break: break-word;
-    font-size: 18px;
-  }
-}
-
-/* Custom Multiselect */
-.custom-multiselect-container {
-  position: relative;
-  width: 100%;
-}
-
-.multiselect-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 99;
-}
-
-.multiselect-trigger {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  user-select: none;
-  background-color: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-}
-
-.multiselect-trigger:hover, .multiselect-trigger.is-open {
-  border-color: #b979cc;
-  box-shadow: 0 0 0 3px rgba(185, 121, 204, 0.1);
-}
-
-.placeholder-text {
-  color: #94a3b8;
-}
-
-.selected-text {
-  color: #f8fafc;
-  font-weight: 500;
-}
-
-.dropdown-arrow {
-  color: #94a3b8;
-  font-size: 0.8rem;
-  transition: transform 0.3s ease;
-}
-.multiselect-trigger.is-open .dropdown-arrow {
-  transform: rotate(180deg);
-}
-
-.multiselect-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  margin-top: 0.5rem;
-  background-color: #1e293b;
-  border: 1px solid rgba(185, 121, 204, 0.3);
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  max-height: 250px;
-  overflow-y: auto;
-  z-index: 100;
-  padding: 0.5rem 0;
-}
-
-.multiselect-option {
-  display: flex;
-  align-items: center;
-  padding: 0.6rem 1rem;
-  cursor: pointer;
-  color: #e2e8f0;
-  transition: background-color 0.2s;
-  margin: 0;
-}
-
-.multiselect-option:hover {
-  background-color: rgba(185, 121, 204, 0.15);
-}
-
-.multiselect-checkbox {
-  margin-right: 0.75rem;
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-  accent-color: #b979cc;
-}
-
-.multiselect-divider {
-  height: 1px;
-  background-color: rgba(255, 255, 255, 0.1);
-  margin: 0.5rem 0;
-}
-
-/* Chips Styles */
-.chips-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-}
-
-.venue-chip {
-  display: inline-flex;
-  align-items: center;
-  background: linear-gradient(135deg, rgba(185, 121, 204, 0.2), rgba(185, 121, 204, 0.05));
-  border: 1px solid rgba(185, 121, 204, 0.4);
-  color: #f8fafc;
-  padding: 0.25rem 0.75rem;
-  border-radius: 999px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  backdrop-filter: blur(4px);
-  animation: fadeInChip 0.3s ease-out forwards;
-}
-
-.chip-remove {
-  background: none;
-  border: none;
-  color: #94a3b8;
-  margin-left: 0.5rem;
-  font-size: 1.1rem;
-  line-height: 1;
-  cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s;
-}
-
-.chip-remove:hover {
-  color: #ef4444;
-}
-
-@keyframes fadeInChip {
-  from { opacity: 0; transform: translateY(5px) scale(0.95); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.btn-add-custom-venue {
-  width: 100%;
-  padding: 0.75rem;
-  background: transparent;
-  border: none;
-  color: #b979cc;
-  font-weight: 500;
-  cursor: pointer;
-  text-align: left;
-  transition: background-color 0.2s;
-}
-.btn-add-custom-venue:hover {
-  background-color: rgba(185, 121, 204, 0.1);
-}
-</style>
+<style scoped src="../../assets/submit-ar-styles.css"></style>
 

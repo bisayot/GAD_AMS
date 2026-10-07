@@ -100,9 +100,9 @@
           </section>
 
           <div class="table-container">
-            <div v-if="filters.status !== 'Mod Requests'" style="padding: 1.5rem 1.5rem 1rem 1.5rem; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(185,121,204,0.1);">
-              <h2 style="color: #e2e8f0; font-size: 1.1rem; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">
-                <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem; color: #b979cc;">description</span>
+            <div v-if="filters.status !== 'Mod Requests'" class="table-section-header">
+              <h2 class="table-section-title">
+                <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem; color: var(--color-primary-text);">description</span>
                 Submissions
               </h2>
             </div>
@@ -161,8 +161,8 @@
               </table>
             </div>
 
-            <div v-if="filters.status === 'all' || filters.status === 'Mod Requests'" style="padding: 1.5rem 1.5rem 1rem 1.5rem; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(185,121,204,0.1); border-top: 1px solid rgba(185,121,204,0.1);">
-              <h2 style="color: #e2e8f0; font-size: 1.1rem; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">
+            <div v-if="filters.status === 'all' || filters.status === 'Mod Requests'" class="table-section-header table-section-header-bordered">
+              <h2 class="table-section-title">
                 <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem; color: #fbbf24;">edit_note</span>
                 Modification Requests
               </h2>
@@ -531,12 +531,12 @@ onMounted(() => {
   font-size: 1.5rem;
   font-weight: 900;
   letter-spacing: -0.025em;
-  color: #16213e;
+  color: #0f172a;
 }
 
 .page-subtitle {
   font-size: 1rem;
-  color: #475569;
+  color: #64748b;
   margin-top: 0.25rem;
 }
 
@@ -549,11 +549,11 @@ onMounted(() => {
 .stat-card {
   padding: 1rem;
   border-radius: 1rem;
-  border: 1px solid rgba(185, 121, 204, 0.15);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--color-outline-variant);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
   backdrop-filter: blur(8px);
   transition: all 0.3s;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: var(--color-surface);
 }
 
 .stat-card:hover {
@@ -601,7 +601,7 @@ onMounted(() => {
   font-size: 1.25rem;
   font-weight: 900;
   letter-spacing: -0.025em;
-  color: white;
+  color: var(--color-on-background);
   line-height: 1.25;
   white-space: nowrap;
   overflow: hidden;
@@ -613,7 +613,7 @@ onMounted(() => {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: rgba(203, 213, 225, 0.7);
+  color: var(--color-on-surface-variant);
   margin-top: 0.125rem;
   white-space: nowrap;
   overflow: hidden;
@@ -623,15 +623,15 @@ onMounted(() => {
 .filter-section {
   padding: 1rem;
   border-radius: 1rem;
-  border: 1px solid rgba(185, 121, 204, 0.15);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--color-outline-variant);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
   backdrop-filter: blur(8px);
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: var(--color-surface);
 }
 
 .filter-controls {
@@ -660,11 +660,11 @@ onMounted(() => {
   width: 100%;
   padding: 0.5rem 1rem 0.5rem 2.25rem;
   border-radius: 0.75rem;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(185, 121, 204, 0.2);
+  background: var(--color-surface-variant);
+  border: 1px solid var(--color-outline-variant);
   font-size: 1rem;
   font-weight: 600;
-  color: white;
+  color: var(--color-on-background);
   transition: all 0.3s;
 }
 
@@ -674,7 +674,7 @@ onMounted(() => {
 }
 
 .search-input::placeholder {
-  color: #94a3b8;
+  color: var(--color-on-surface-variant);
 }
 
 .select-wrapper {
@@ -686,11 +686,11 @@ onMounted(() => {
   width: 100%;
   padding: 0.5rem 2rem 0.5rem 0.75rem;
   border-radius: 0.75rem;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(185, 121, 204, 0.2);
+  background: var(--color-surface-variant);
+  border: 1px solid var(--color-outline-variant);
   font-size: 1rem;
   font-weight: 600;
-  color: white;
+  color: var(--color-on-background);
   appearance: none;
   cursor: pointer;
   transition: all 0.3s;
@@ -706,14 +706,14 @@ onMounted(() => {
   right: 16px;
   top: 50%;
   transform: translateY(-50%);
-  color: #b979cc;
+  color: var(--color-on-surface-variant);
   font-size: 0.85rem;
   pointer-events: none;
 }
 
 .filter-select option {
-  background-color: #1a1a2e;
-  color: #ffffff;
+  background-color: var(--color-surface);
+  color: var(--color-on-background);
 }
 
 .per-page-controls {
@@ -724,18 +724,18 @@ onMounted(() => {
 
 .per-page-label {
   font-size: 0.9rem;
-  color: #94a3b8;
+  color: var(--color-on-surface-variant);
   font-weight: 500;
 }
 
 .per-page-select {
   padding: 0.375rem 0.625rem;
   border-radius: 0.5rem;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(185, 121, 204, 0.2);
+  background: var(--color-surface-variant);
+  border: 1px solid var(--color-outline-variant);
   font-size: 1rem;
   font-weight: 700;
-  color: white;
+  color: var(--color-on-background);
   cursor: pointer;
   transition: all 0.3s;
 }
@@ -745,13 +745,39 @@ onMounted(() => {
   border-color: rgba(185, 121, 204, 0.5);
 }
 
+.per-page-select option {
+  background-color: var(--color-surface);
+  color: var(--color-on-background);
+}
+
 .table-container {
   border-radius: 1rem;
-  border: 1px solid rgba(185, 121, 204, 0.15);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--color-outline-variant);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
   overflow: hidden;
   backdrop-filter: blur(8px);
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: var(--color-surface);
+}
+
+.table-section-header {
+  padding: 1.5rem 1.5rem 1rem 1.5rem;
+  background: var(--color-surface-variant);
+  border-bottom: 1px solid var(--color-outline-variant);
+}
+
+.table-section-header-bordered {
+  border-top: 1px solid var(--color-outline-variant);
+}
+
+.table-section-title {
+  color: var(--color-on-background);
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
 }
 
 .table-wrapper {
@@ -766,8 +792,8 @@ onMounted(() => {
 }
 
 .table-header-row {
-  border-bottom: 1px solid rgba(185, 121, 204, 0.1);
-  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-variant);
 }
 
 .table-header-cell {
@@ -776,7 +802,7 @@ onMounted(() => {
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #b979cc;
+  color: var(--color-primary-text);
 }
 
 .table-body {
@@ -787,18 +813,18 @@ onMounted(() => {
   padding: 3rem 1.5rem;
   text-align: center;
   font-size: 1rem;
-  color: #94a3b8;
+  color: var(--color-on-surface-variant);
   font-weight: 500;
 }
 
 .table-row {
   transition: all 0.3s;
-  border-bottom: 1px solid rgba(185, 121, 204, 0.05);
+  border-bottom: 1px solid var(--color-outline-variant);
   cursor: pointer;
 }
 
 .table-row:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(185, 121, 204, 0.08);
 }
 
 .table-cell {
@@ -809,27 +835,29 @@ onMounted(() => {
   font-family: monospace;
   font-size: 1rem;
   font-weight: 700;
-  color: #b979cc;
+  color: var(--color-primary-text);
 }
 
 .title-cell {
-  font-weight: 600;
-  color: #e2e8f0;
+  font-weight: 700;
+  color: var(--color-on-background);
   transition: color 0.3s;
 }
 
 .table-row:hover .title-cell {
-  color: #b979cc;
+  color: var(--color-primary-text);
 }
 
 .office-cell {
-  color: rgba(203, 213, 225, 0.8);
+  color: var(--color-on-surface-variant);
+  font-weight: 500;
 }
 
 .date-cell {
-  color: #94a3b8;
+  color: var(--color-on-surface-variant);
   font-family: monospace;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
 }
 
 .mandate-badge {
@@ -839,9 +867,9 @@ onMounted(() => {
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #cbd5e1;
+  background: var(--color-surface-variant);
+  border: 1px solid var(--color-outline-variant);
+  color: var(--color-on-background);
 }
 
 .status-badge {
@@ -855,33 +883,57 @@ onMounted(() => {
 }
 
 .status-badge-pending {
-  background: rgba(245, 158, 11, 0.2);
+  background: rgba(245, 158, 11, 0.15);
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+:global(.dark) .status-badge-pending {
+  background: rgba(245, 158, 11, 0.25);
   color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  border: 1px solid rgba(245, 158, 11, 0.4);
 }
 
 .status-badge-approved {
-  background: rgba(34, 197, 94, 0.2);
+  background: rgba(34, 197, 94, 0.15);
+  color: #15803d;
+  border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+:global(.dark) .status-badge-approved {
+  background: rgba(34, 197, 94, 0.25);
   color: #4ade80;
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  border: 1px solid rgba(34, 197, 94, 0.4);
 }
 
 .status-badge-revision {
-  background: rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.15);
+  color: #b91c1c;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+:global(.dark) .status-badge-revision {
+  background: rgba(239, 68, 68, 0.25);
   color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid rgba(239, 68, 68, 0.4);
 }
 
 .status-badge-disapproved {
-  background: rgba(220, 38, 38, 0.2);
-  color: #ef4444;
-  border: 1px solid rgba(220, 38, 38, 0.3);
+  background: rgba(220, 38, 38, 0.15);
+  color: #991b1b;
+  border: 1px solid rgba(220, 38, 38, 0.4);
+}
+
+:global(.dark) .status-badge-disapproved {
+  background: rgba(220, 38, 38, 0.25);
+  color: #fca5a5;
+  border: 1px solid rgba(220, 38, 38, 0.4);
 }
 
 .rush-badge {
-  background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.15);
+  color: #b91c1c;
+  border: 1px solid rgba(239, 68, 68, 0.4);
   padding: 0.15rem 0.4rem;
   border-radius: 0.25rem;
   font-size: 0.7rem;
@@ -890,10 +942,15 @@ onMounted(() => {
   letter-spacing: 0.05em;
 }
 
+:global(.dark) .rush-badge {
+  background: rgba(239, 68, 68, 0.25);
+  color: #f87171;
+}
+
 .pagination-container {
   padding: 1rem 1.5rem;
-  border-top: 1px solid rgba(185, 121, 204, 0.1);
-  background: rgba(0, 0, 0, 0.1);
+  border-top: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-variant);
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -903,13 +960,13 @@ onMounted(() => {
 
 .pagination-info {
   font-size: 1rem;
-  color: #94a3b8;
+  color: var(--color-on-surface-variant);
   font-weight: 500;
 }
 
 .pagination-highlight {
   font-weight: 700;
-  color: white;
+  color: var(--color-on-background);
 }
 
 .pagination-controls {
@@ -927,9 +984,9 @@ onMounted(() => {
   justify-content: center;
   font-size: 1rem;
   font-weight: 700;
-  color: white;
-  border: 1px solid rgba(185, 121, 204, 0.1);
-  background: rgba(0, 0, 0, 0.3);
+  color: var(--color-on-background);
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface);
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -939,7 +996,7 @@ onMounted(() => {
 }
 
 .pagination-btn:disabled {
-  opacity: 0.3;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
@@ -954,9 +1011,9 @@ onMounted(() => {
   font-weight: 700;
   transition: all 0.2s;
   cursor: pointer;
-  color: #94a3b8;
-  border: 1px solid rgba(185, 121, 204, 0.1);
-  background: rgba(0, 0, 0, 0.2);
+  color: var(--color-on-surface-variant);
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface);
 }
 
 .pagination-page:hover {

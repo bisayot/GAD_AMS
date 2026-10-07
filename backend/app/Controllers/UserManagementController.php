@@ -14,8 +14,11 @@ class UserManagementController extends ResourceController
 
         $rules = [
             'full_name' => 'required',
-            'email' => 'required|valid_email',
-            'password' => 'required|min_length[6]',
+            'email'     => 'required|valid_email',
+            'password'  => [
+                'label' => 'Password',
+                'rules' => 'required|min_length[8]|regex_match[/[A-Z]/]|regex_match[/[a-z]/]|regex_match[/[0-9]/]|regex_match[/[^A-Za-z0-9]/]'
+            ],
             'user_role' => 'required',
             'office_id' => 'required|numeric'
         ];
@@ -41,14 +44,14 @@ class UserManagementController extends ResourceController
             $counter++;
         }
 
-        $role = 'college'; 
+        $role = 'non-twg'; 
         switch ($data['user_role']) {
             case 'Director': $role = 'admin'; break;
             case 'Staff': $role = 'gad_staff'; break;
-            case 'TWG':
-            case 'Non-TWG':
+            case 'TWG': $role = 'twg'; break;
+            case 'Non-TWG': $role = 'non-twg'; break;
             default:
-                $role = 'college'; break;
+                $role = 'non-twg'; break;
         }
 
         $userData = [
@@ -96,20 +99,22 @@ class UserManagementController extends ResourceController
         $user = $userModel->find($id);
         if (!$user) return $this->failNotFound('User not found');
 
+        // Staff can now modify admin accounts
+
         if ($data['email'] !== $user['email']) {
             if ($userModel->findByIdentity($data['email'])) {
                 return $this->failResourceExists('A user with that email already exists');
             }
         }
 
-        $role = 'college'; 
+        $role = 'non-twg'; 
         switch ($data['user_role']) {
             case 'Director': $role = 'admin'; break;
             case 'Staff': $role = 'gad_staff'; break;
-            case 'TWG':
-            case 'Non-TWG':
+            case 'TWG': $role = 'twg'; break;
+            case 'Non-TWG': $role = 'non-twg'; break;
             default:
-                $role = 'college'; break;
+                $role = 'non-twg'; break;
         }
 
         $updateData = [
@@ -139,11 +144,14 @@ class UserManagementController extends ResourceController
         if (!$id) return $this->fail('User ID required');
         
         $db = \Config\Database::connect();
+        $user = $db->table('users')->where('id', $id)->get()->getRowArray();
+        if (!$user) return $this->failNotFound('User not found');
+
+        $actionUserId = $this->request->getHeaderLine('X-User-Id');
+
         $db->table('users')->where('id', $id)->update(['deleted_at' => date('Y-m-d H:i:s')]);
         
-        $user = $db->table('users')->where('id', $id)->get()->getRowArray();
-        $actionUserId = $this->request->getHeaderLine('X-User-Id');
-        if ($actionUserId && $user) {
+        if ($actionUserId) {
             \App\Models\ActivityLogModel::log($actionUserId, 'Suspend User', 'suspended user account: ' . $user['full_name']);
         }
         
@@ -155,11 +163,14 @@ class UserManagementController extends ResourceController
         if (!$id) return $this->fail('User ID required');
         
         $db = \Config\Database::connect();
+        $user = $db->table('users')->where('id', $id)->get()->getRowArray();
+        if (!$user) return $this->failNotFound('User not found');
+
+        $actionUserId = $this->request->getHeaderLine('X-User-Id');
+
         $db->table('users')->where('id', $id)->update(['deleted_at' => null]);
         
-        $user = $db->table('users')->where('id', $id)->get()->getRowArray();
-        $actionUserId = $this->request->getHeaderLine('X-User-Id');
-        if ($actionUserId && $user) {
+        if ($actionUserId) {
             \App\Models\ActivityLogModel::log($actionUserId, 'Restore User', 'restored user account: ' . $user['full_name']);
         }
         
@@ -171,7 +182,11 @@ class UserManagementController extends ResourceController
         if (!$id) return $this->fail('User ID required');
         
         $db = \Config\Database::connect();
-        
+        $user = $db->table('users')->where('id', $id)->get()->getRowArray();
+        if (!$user) return $this->failNotFound('User not found');
+
+        $actionUserId = $this->request->getHeaderLine('X-User-Id');
+
         // Remove login credentials to prevent access but keep the ID and name for data integrity
         $db->table('users')->where('id', $id)->update([
             'email' => null,
@@ -181,9 +196,7 @@ class UserManagementController extends ResourceController
             'deleted_at' => date('Y-m-d H:i:s')
         ]);
         
-        $user = $db->table('users')->where('id', $id)->get()->getRowArray();
-        $actionUserId = $this->request->getHeaderLine('X-User-Id');
-        if ($actionUserId && $user) {
+        if ($actionUserId) {
             \App\Models\ActivityLogModel::log($actionUserId, 'Delete User Credentials', 'permanently deleted credentials for user: ' . $user['full_name']);
         }
         
@@ -248,8 +261,15 @@ class UserManagementController extends ResourceController
             if (!password_verify($data['current_password'], $user['password'])) {
                 return $this->respond(['success' => false, 'message' => 'Incorrect current password']);
             }
-            if (strlen($data['new_password']) < 6) {
-                return $this->respond(['success' => false, 'message' => 'New password must be at least 6 characters']);
+            // Enforce the same strong password policy as registration
+            $passRules = [
+                'new_password' => [
+                    'label' => 'New Password',
+                    'rules' => 'required|min_length[8]|regex_match[/[A-Z]/]|regex_match[/[a-z]/]|regex_match[/[0-9]/]|regex_match[/[^A-Za-z0-9]/]'
+                ]
+            ];
+            if (!$this->validateData($data, $passRules)) {
+                return $this->respond(['success' => false, 'message' => implode(' ', $this->validator->getErrors())]);
             }
             $userModel->update($userId, ['password' => password_hash($data['new_password'], PASSWORD_DEFAULT)]);
             \App\Models\ActivityLogModel::log($userId, 'Update Profile', 'updated their password');
