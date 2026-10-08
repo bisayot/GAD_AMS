@@ -46,6 +46,10 @@ Options -MultiViews
 
 RewriteEngine On
 
+# Redirect www to non-www
+RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+
 # 1. API Routing: Route /api/* to CodeIgniter (prevent infinite loops)
 RewriteCond %{REQUEST_URI} ^/api/
 RewriteCond %{REQUEST_URI} !^/api/index\.php
