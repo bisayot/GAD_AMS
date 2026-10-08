@@ -39,7 +39,7 @@
               <div class="group cursor-pointer bg-white rounded-2xl border border-slate-100 hover:shadow-2xl hover:border-purple-300 transition-all duration-300 overflow-hidden flex flex-col h-full text-left transform hover:-translate-y-2">
                 <div class="relative h-48 w-full bg-slate-50 overflow-hidden shrink-0">
                   <template v-if="parseImages(item.image_path).length > 0">
-                    <img :src="`${apiBaseUrl}files/news-iec/${parseImages(item.image_path)[0]}`" 
+                    <img alt="Bulletin image" :src="`${apiBaseUrl}files/news-iec/${parseImages(item.image_path)[0]}`" 
                          class="absolute inset-0 object-cover w-full h-full group-hover:scale-105 transition-transform duration-700 ease-out" />
                   </template>
                   <div v-else class="w-full h-full flex items-center justify-center bg-slate-100">
@@ -69,7 +69,7 @@
               <div class="group cursor-pointer bg-white rounded-2xl border border-slate-100 hover:shadow-2xl hover:border-purple-300 transition-all duration-300 overflow-hidden flex flex-col h-full text-left transform hover:-translate-y-2">
                 <div class="relative h-48 w-full bg-slate-50 overflow-hidden shrink-0">
                   <template v-if="parseImages(item.image_path).length > 0">
-                    <img :src="`${apiBaseUrl}files/news-iec/${parseImages(item.image_path)[0]}`" 
+                    <img alt="Bulletin image" :src="`${apiBaseUrl}files/news-iec/${parseImages(item.image_path)[0]}`" 
                          class="absolute inset-0 object-cover w-full h-full group-hover:scale-105 transition-transform duration-700 ease-out" />
                   </template>
                   <div v-else class="w-full h-full flex items-center justify-center bg-slate-100">
@@ -164,7 +164,7 @@
             <p class="section-tag" style="color: var(--color-primary-text);">University Impact</p>
             <h2 class="section-title" style="margin-bottom: 0;">Gender-Disaggregated Data</h2>
           </div>
-          <select v-model="analyticsYear" class="impact-year-select">
+          <select aria-label="Analytics Year" v-model="analyticsYear" class="impact-year-select">
             <option v-for="year in availableYears" :key="year" :value="year">{{ year }}</option>
           </select>
         </div>

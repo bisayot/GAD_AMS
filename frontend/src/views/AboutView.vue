@@ -3,7 +3,7 @@
     <!-- Hero Section -->
       <section class="relative h-[614px] flex items-center overflow-hidden">
         <div class="absolute inset-0 z-0">
-          <img class="w-full h-full object-cover" src="/images/img_1.jpg"/>
+          <img alt="About GAD-AMS" class="w-full h-full object-cover" src="/images/img_1.jpg"/>
           <div class="absolute inset-0 bg-gradient-to-r from-primary/90 to-transparent"></div>
         </div>
         <div class="relative z-10 px-12 max-w-4xl mx-auto md:mx-0">
@@ -38,7 +38,7 @@
           <!-- Mission Image Block (Asymmetric offset) -->
           <div class="md:col-span-7 mt-12 md:mt-0">
             <div class="relative">
-              <img class="rounded-xl shadow-2xl w-full h-[500px] object-cover" src="/images/img_2.jpg"/>
+              <img alt="Team members" class="rounded-xl shadow-2xl w-full h-[500px] object-cover" src="/images/img_2.jpg"/>
               <div class="absolute -bottom-12 -left-12 p-10 bg-surface-container-lowest shadow-xl rounded-xl max-w-md hidden lg:block border border-outline-variant/10">
                 <div class="font-label font-bold uppercase tracking-widest text-xs text-secondary mb-4">Our Mission</div>
                 <p class="text-on-surface font-body text-lg leading-relaxed">

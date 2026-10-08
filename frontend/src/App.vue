@@ -1,7 +1,9 @@
 <template>
   <div id="app" class="min-h-screen flex flex-col">
     <Navbar v-if="!isDashboard" />
-    <router-view class="flex-grow" />
+    <main class="flex-grow flex flex-col">
+      <router-view class="flex-grow" />
+    </main>
     <Footer v-if="!isDashboard" />
     <BackToTop />
     <FloatingFeedback />

@@ -59,7 +59,7 @@
       <div v-if="parsedImages.length > 0" class="px-6 mb-12">
         <!-- Image -->
         <div class="bg-slate-100 rounded-xl overflow-hidden w-full flex items-center justify-center min-h-[300px]">
-          <img :src="`${apiBaseUrl}files/news-iec/${parsedImages[currentImageIndex]}`" 
+          <img alt="Post media" :src="`${apiBaseUrl}files/news-iec/${parsedImages[currentImageIndex]}`" 
                class="w-full max-h-[80vh] object-contain transition-all duration-300" />
         </div>
 
@@ -122,7 +122,7 @@
             <router-link :to="`/gad-corner/${item.id}`" v-for="item in newsPosts" :key="item.id"
               class="group bg-white rounded-3xl border border-slate-100 shadow-lg hover:shadow-xl hover:-translate-y-1 overflow-hidden transition-all duration-300 flex flex-col shrink-0 w-72">
               <div v-if="parseImages(item.image_path).length > 0" class="h-44 overflow-hidden bg-slate-100">
-                <img :src="`${apiBaseUrl}files/news-iec/${parseImages(item.image_path)[0]}`" class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
+                <img alt="Related post" :src="`${apiBaseUrl}files/news-iec/${parseImages(item.image_path)[0]}`" class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
               </div>
               <div v-else class="h-24 bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
                 <span class="material-symbols-outlined text-4xl text-blue-300">newspaper</span>
@@ -161,7 +161,7 @@
             <router-link :to="`/gad-corner/${item.id}`" v-for="item in iecPosts" :key="item.id"
               class="group bg-white rounded-3xl border border-slate-100 shadow-lg hover:shadow-xl hover:-translate-y-1 overflow-hidden transition-all duration-300 flex flex-col shrink-0 w-72">
               <div v-if="parseImages(item.image_path).length > 0" class="h-44 overflow-hidden bg-slate-100">
-                <img :src="`${apiBaseUrl}files/news-iec/${parseImages(item.image_path)[0]}`" class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
+                <img alt="Related post" :src="`${apiBaseUrl}files/news-iec/${parseImages(item.image_path)[0]}`" class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
               </div>
               <div v-else class="h-24 bg-gradient-to-br from-emerald-50 to-emerald-100 flex items-center justify-center">
                 <span class="material-symbols-outlined text-4xl text-emerald-300">campaign</span>
@@ -200,7 +200,7 @@
             <router-link :to="`/gad-corner/${item.id}`" v-for="item in announcementPosts" :key="item.id"
               class="group bg-white rounded-3xl border border-slate-100 shadow-lg hover:shadow-xl hover:-translate-y-1 overflow-hidden transition-all duration-300 flex flex-col shrink-0 w-72">
               <div v-if="parseImages(item.image_path).length > 0" class="h-44 overflow-hidden bg-slate-100">
-                <img :src="`${apiBaseUrl}files/news-iec/${parseImages(item.image_path)[0]}`" class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
+                <img alt="Related post" :src="`${apiBaseUrl}files/news-iec/${parseImages(item.image_path)[0]}`" class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
               </div>
               <div v-else class="h-24 bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center">
                 <span class="material-symbols-outlined text-4xl text-orange-300">notifications</span>

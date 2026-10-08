@@ -23,7 +23,7 @@
           </div>
           <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
             <div class="relative w-full sm:w-48 shrink-0">
-              <select v-model="filterNewsCategory" class="w-full appearance-none bg-surface-container border border-outline-variant rounded-xl px-4 py-3 pr-10 text-on-surface focus:ring-2 focus:ring-purple-500 outline-none cursor-pointer">
+              <select aria-label="Filter News Category" v-model="filterNewsCategory" class="w-full appearance-none bg-surface-container border border-outline-variant rounded-xl px-4 py-3 pr-10 text-on-surface focus:ring-2 focus:ring-purple-500 outline-none cursor-pointer">
                 <option value="All" class="bg-surface">All Categories</option>
                 <option value="News" class="bg-surface">News</option>
                 <option value="IEC" class="bg-surface">IEC Materials</option>
@@ -54,7 +54,7 @@
             <div v-for="item in filteredNewsIecItems" :key="item.id" @click="openNewsModal(item)" class="group cursor-pointer bg-white rounded-2xl border border-slate-100 hover:shadow-xl hover:border-slate-200 transition-all duration-300 overflow-hidden flex flex-col h-full">
               <div class="relative h-64 w-full bg-slate-50 overflow-hidden shrink-0">
                 <template v-if="parseImages(item.image_path).length > 0">
-                  <img v-for="(img, idx) in parseImages(item.image_path)" :key="idx" 
+                  <img alt="Post thumbnail" v-for="(img, idx) in parseImages(item.image_path)" :key="idx" 
                        :src="`${apiBaseUrl}files/news-iec/${img}`" 
                        class="absolute inset-0 object-cover w-full h-full group-hover:scale-105 transition-transform duration-700 ease-out"
                        :class="{'opacity-100 z-10': idx === (globalTick % parseImages(item.image_path).length), 'opacity-0 z-0': idx !== (globalTick % parseImages(item.image_path).length)}" />

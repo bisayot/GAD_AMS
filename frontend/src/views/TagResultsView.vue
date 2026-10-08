@@ -36,7 +36,7 @@
         <div class="grid md:grid-cols-2 gap-8">
           <router-link :to="`/gad-corner/${item.id}`" v-for="item in filteredItems" :key="item.id" class="group bg-white rounded-3xl border border-slate-100 shadow-lg hover:shadow-xl hover:-translate-y-1 overflow-hidden transition-all duration-300 flex flex-col">
             <div v-if="parseImages(item.image_path).length > 0" class="h-48 overflow-hidden bg-slate-100">
-              <img :src="`${apiBaseUrl}files/news-iec/${parseImages(item.image_path)[0]}`" class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
+              <img alt="Result image" :src="`${apiBaseUrl}files/news-iec/${parseImages(item.image_path)[0]}`" class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
             </div>
             <div class="p-6 md:p-8 flex flex-col flex-grow">
               <div class="flex gap-2 mb-4">

@@ -63,7 +63,7 @@
               <!-- Small Previews inside the form -->
               <div v-if="previewImageUrls.length > 0" class="preview-images-container flex flex-wrap gap-4 mt-3 p-4 rounded-xl">
                 <div v-for="(url, idx) in previewImageUrls" :key="idx" class="preview-image-item relative w-20 h-20 rounded-lg overflow-hidden group shadow-md">
-                  <img :src="url" class="object-cover w-full h-full" />
+                  <img alt="Preview thumbnail" :src="url" class="object-cover w-full h-full" />
                   <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <button @click.prevent="removeImage(idx)" class="text-red-400 hover:text-red-300 bg-white/10 p-1.5 rounded-full backdrop-blur-md shadow-sm">
                       <span class="material-symbols-outlined text-sm">delete</span>
@@ -146,7 +146,7 @@
 
               <!-- Image Carousel -->
               <div class="relative min-h-[300px] w-full bg-slate-100 dark:bg-slate-800 rounded-xl overflow-hidden mb-12 flex items-center justify-center">
-                <img v-if="previewImageUrls.length > 0" :src="previewImageUrls[currentPreviewIndex]" class="w-full max-h-[80vh] object-contain transition-all duration-300" />
+                <img alt="Full preview" v-if="previewImageUrls.length > 0" :src="previewImageUrls[currentPreviewIndex]" class="w-full max-h-[80vh] object-contain transition-all duration-300" />
                 <div v-else class="w-full h-full flex items-center justify-center bg-slate-200 dark:bg-slate-700">
                   <span class="material-symbols-outlined text-6xl text-slate-400">newspaper</span>
                 </div>

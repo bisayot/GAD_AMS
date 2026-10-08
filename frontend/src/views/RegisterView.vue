@@ -36,7 +36,7 @@
 
             <div class="flex flex-col gap-2">
               <label class="text-xs uppercase tracking-widest font-label font-bold text-on-surface-variant">Role <span class="text-red-400">*</span></label>
-              <select v-model="form.user_role" class="w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-3 text-on-surface focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all">
+              <select aria-label="User Role" v-model="form.user_role" class="w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-3 text-on-surface focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all">
                 <option value="Non-TWG" class="bg-surface text-on-surface">Proponents</option>
                 <option value="TWG" class="bg-surface text-on-surface">TWG</option>
               </select>
