@@ -673,7 +673,7 @@ const expandedRows = ref([]);
 // Direct document navigation
 const navigateToDoc = (type, id) => {
   if (!id) return;
-  const role = (user.value.role || user.value.user_role || 'admin').toLowerCase();
+  const role = (user.value.role || user.value.user_role || 'staff').toLowerCase();
   const baseRole = (role === 'admin') ? 'admin' : ((role === 'college' || role === 'twg' || role === 'non-twg') ? 'college' : 'staff');
   if (type === 'AD') {
     router.push(`/${baseRole}/ad-view/${id}`);
@@ -960,7 +960,7 @@ const fetchBudgetData = async () => {
     }
 
     const [monitoringRes, summaryRes] = await Promise.all([
-      api.get('staff/budget-monitoring', { params }),
+      api.get('college/budget-monitoring', { params }),
       api.get('budget/summary', { params })
     ]);
 
@@ -1000,7 +1000,7 @@ const exportToExcel = () => {
 
   const fiscalYearLabel = selectedFiscalYear.value === 'all' ? 'ALL YEARS' : selectedFiscalYear.value;
   const currentDate = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-  const userName = user.value.name || user.value.full_name || 'Administrator';
+  const userName = user.value.name || user.value.full_name || 'GAD Staff';
 
   // 1. Header Title Banner (Rows 0 - 3)
   rows.push(['BENGUET STATE UNIVERSITY', '', '', '', '', '', '', '', '', '', '', '', '']);
@@ -1469,7 +1469,7 @@ const exportToExcel = () => {
 
 onMounted(() => {
   const role = (user.value.role || user.value.user_role || '').toLowerCase();
-  if (!user.value.id || !['gad_staff', 'staff', 'admin', 'director'].some(r => role.includes(r))) { 
+  if (!user.value.id || !['twg', 'non-twg', 'college', 'gad_staff', 'staff', 'admin', 'director'].some(r => role.includes(r))) { 
     router.push('/login'); 
   } else { 
     fetchBudgetData(); 
@@ -3154,7 +3154,7 @@ onMounted(() => {
 
 <style>
 /* ==========================================================================
-   Dark Mode Overrides for Budget Monitoring (Admin)
+   Dark Mode Overrides for Budget Monitoring (Staff)
    Uses unscoped rules matching html.dark and .dark to guarantee 100% precision
    ========================================================================== */
 html.dark .main-content,

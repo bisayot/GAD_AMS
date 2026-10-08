@@ -27,7 +27,7 @@
       </div>
       <div class="flex flex-col overflow-hidden">
         <div class="text-sm font-bold text-white truncate leading-tight">{{ user.full_name || user.name || user.username || 'User Name' }}</div>
-        <div class="text-[10px] font-black tracking-widest text-[#c084fc] uppercase mt-1">{{ user.user_role || user.role || 'Role' }}</div>
+        <div class="text-[10px] font-black tracking-widest text-[#c084fc] uppercase mt-1">{{ displayedUserRole }}</div>
       </div>
     </div>
 
@@ -113,6 +113,15 @@ const props = defineProps({
 const userInitial = computed(() => {
   const name = props.user?.full_name || props.user?.name || props.user?.username || 'U';
   return name.charAt(0).toUpperCase();
+});
+
+const displayedUserRole = computed(() => {
+  const r = (props.user?.user_role || props.user?.role || '').toLowerCase().replace('_', '-');
+  if (r === 'non-twg') return 'Proponent';
+  if (r === 'twg') return 'TWG';
+  if (r.includes('admin') || r.includes('director')) return 'Director';
+  if (r.includes('staff')) return 'GAD Staff';
+  return props.user?.user_role || props.user?.role || 'Role';
 });
 
 const avatarStyle = computed(() => {

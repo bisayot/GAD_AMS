@@ -495,20 +495,10 @@ const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
 
 const fetchAccomplishmentReports = async () => {
   try {
-    const [res1, res2] = await Promise.all([
-      api.get('activity-reports').catch(() => ({ data: { success: false } })),
-      api.get('archives').catch(() => ({ data: { success: false } }))
-    ]);
-    
-    let combined = [];
-    if (res1.data && res1.data.success) {
-      combined = [...combined, ...res1.data.data.filter(r => r.status === 'Verified').map(r => ({ ...r, is_archived: 0 }))];
+    const res = await api.get('verified-reports');
+    if (res.data && res.data.success) {
+      verifiedReports.value = res.data.data.sort((a, b) => new Date(b.date) - new Date(a.date));
     }
-    if (res2.data && res2.data.success) {
-      combined = [...combined, ...res2.data.data.filter(r => r.type === 'report').map(r => ({ ...r, is_archived: 1 }))];
-    }
-    
-    verifiedReports.value = combined.sort((a, b) => new Date(b.date) - new Date(a.date));
   } catch (err) {
     console.error('Failed to fetch accomplishment reports:', err);
   } finally {
@@ -709,51 +699,56 @@ onUnmounted(() => {
 }
 
 /* ==========================================================================
-   DARK PURPLE MODE FOR GAD CORNER PAGE
+   DARK CHARCOAL MODE FOR GAD CORNER PAGE
    ========================================================================== */
 :global(.dark) .gad-corner,
 .dark .gad-corner {
-  background-color: #1f0b35 !important;
-  color: #f5efff !important;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
+  color: #f8fafc !important;
 }
 
 :global(.dark) .gad-corner section {
-  background-color: #1f0b35 !important;
+  background: transparent !important;
 }
 
 :global(.dark) .gad-corner .bg-surface,
 .dark .gad-corner .bg-surface {
-  background-color: #2b1147 !important;
-  border-color: #532385 !important;
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
 }
 
 :global(.dark) .gad-corner .bg-surface-variant,
 .dark .gad-corner .bg-surface-variant {
-  background-color: #38165c !important;
-  color: #f5efff !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
 }
 
 :global(.dark) .gad-corner .bg-surface-container,
 .dark .gad-corner .bg-surface-container {
-  background-color: #2b1147 !important;
-  border-color: #532385 !important;
-  color: #f5efff !important;
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
 }
 
 :global(.dark) .gad-corner .text-on-background,
 .dark .gad-corner .text-on-background,
 :global(.dark) .gad-corner .text-on-surface,
 .dark .gad-corner .text-on-surface {
-  color: #f5efff !important;
+  color: #f8fafc !important;
 }
 
 :global(.dark) .gad-corner .text-on-surface-variant,
 .dark .gad-corner .text-on-surface-variant {
-  color: #deb7ff !important;
+  color: #94a3b8 !important;
 }
 
 :global(.dark) .gad-corner .border-outline-variant,
 .dark .gad-corner .border-outline-variant {
-  border-color: #532385 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+:global(.dark) .gad-corner select option {
+  background-color: #1a1a2e !important;
+  color: #f8fafc !important;
 }
 </style>

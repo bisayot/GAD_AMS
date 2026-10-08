@@ -41,7 +41,7 @@
               <option value="">All Roles</option>
               <option value="gad_staff">GAD Staff</option>
               <option value="twg">TWG</option>
-              <option value="non_twg">Non-TWG</option>
+              <option value="non_twg">Proponents</option>
             </select>
             
             <div class="relative flex-grow" v-if="roleFilter === 'twg' || roleFilter === 'non_twg'">
@@ -211,6 +211,8 @@ const uniqueActiveUsers = computed(() => {
 
 const formatRole = (role) => {
   if (!role) return 'Unknown';
+  const r = role.toLowerCase().replace('_', '-');
+  if (r === 'non-twg') return 'Proponent';
   if (role === 'admin') return 'Admin';
   if (role === 'director') return 'Director';
   if (role === 'gad_staff') return 'Staff';

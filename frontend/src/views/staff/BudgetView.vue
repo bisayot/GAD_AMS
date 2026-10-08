@@ -11,7 +11,7 @@
               <span>Financial Monitoring & Audit Trail</span>
             </div>
             <h1 class="page-title">Budget Utilization Monitoring</h1>
-            <p class="page-subtitle">Track mandate allocations, pending approved commitments (ADs), actual disbursed expenditures (ARs), and comprehensive document audit trails.</p>
+            <p class="page-subtitle">Track mandate allocations, pending approved commitments (ADs), actual utilized expenditures (ARs), and comprehensive document audit trails.</p>
           </div>
           <div class="header-actions">
             <!-- Fiscal Year Switcher -->
@@ -88,11 +88,11 @@
             <div class="stat-icon-wrapper green">
               <span class="material-symbols-outlined">trending_up</span>
             </div>
-            <span class="stat-badge badge-high">Disbursed</span>
+            <span class="stat-badge badge-high">Utilized</span>
           </div>
           <div class="stat-content">
             <h3 class="stat-value mono">₱{{ formatNum(actualCost) }}</h3>
-            <p class="stat-label">Actual Cost (Disbursed)</p>
+            <p class="stat-label">Actual Cost (Utilized)</p>
             <div class="stat-sub-info">
               <span>Verified AR Expenditures</span>
             </div>
@@ -111,7 +111,7 @@
           <div class="stat-content">
             <div class="flex items-baseline justify-between">
               <h3 class="stat-value mono">{{ overallUtilizationRate }}%</h3>
-              <span class="text-xs text-purple-300 font-medium">% Utilization</span>
+              <span class="text-xs font-medium text-purple-700 dark:text-purple-300">% Utilization</span>
             </div>
             <!-- Utilization Gauge Mini Progress Bar -->
             <div class="util-gauge-track">
@@ -122,7 +122,7 @@
             </div>
             <div class="stat-sub-info mt-1.5 flex justify-between">
               <span>Remaining Balance:</span>
-              <span class="font-bold mono" :class="(totalGadBudget - actualCost - proposedBudget) < 0 ? 'text-red-400' : 'text-slate-200'">{{ (totalGadBudget - actualCost - proposedBudget) < 0 ? '-' : '' }}₱{{ formatNum(Math.abs(totalGadBudget - actualCost - proposedBudget)) }}</span>
+              <span class="font-bold mono" :class="(totalGadBudget - actualCost - proposedBudget) < 0 ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-slate-200'">{{ (totalGadBudget - actualCost - proposedBudget) < 0 ? '-' : '' }}₱{{ formatNum(Math.abs(totalGadBudget - actualCost - proposedBudget)) }}</span>
             </div>
           </div>
         </div>
@@ -132,10 +132,10 @@
       <div v-if="showAnalytics" class="analytics-container">
         <div class="analytics-header">
           <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-purple-400 text-xl">insights</span>
+            <span class="material-symbols-outlined text-purple-600 dark:text-purple-400 text-xl">insights</span>
             <h3 class="analytics-title">Expenditure Burn-Rate & Allocation Distribution</h3>
           </div>
-          <span class="text-xs text-slate-400">Live breakdown of filtered mandates for {{ selectedFiscalYear === 'all' ? 'All Fiscal Years' : 'FY ' + selectedFiscalYear }}</span>
+          <span class="text-xs text-slate-500 dark:text-slate-400">Live breakdown of filtered mandates for {{ selectedFiscalYear === 'all' ? 'All Fiscal Years' : 'FY ' + selectedFiscalYear }}</span>
         </div>
 
         <div class="analytics-grid">
@@ -143,7 +143,7 @@
           <div class="chart-card">
             <div class="chart-card-header">
               <h4 class="chart-card-title">Quarterly Expenditure Burn-Rate</h4>
-              <p class="text-[11px] text-slate-400 m-0">Actual Disbursed Cost (ARs) grouped by quarter</p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 m-0">Actual Utilized Cost (ARs) grouped by quarter</p>
             </div>
             
             <div class="quarterly-bars-container">
@@ -163,7 +163,7 @@
           <div class="chart-card">
             <div class="chart-card-header">
               <h4 class="chart-card-title">Allocation & Spending by Classification</h4>
-              <p class="text-[11px] text-slate-400 m-0">Client-Focused vs. Org-Focused vs. Attributed</p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 m-0">Client-Focused vs. Org-Focused vs. Attributed</p>
             </div>
 
             <div class="classification-breakdown-list">
@@ -171,18 +171,18 @@
                 <div class="class-stat-meta">
                   <span class="classification-pill" :class="c.pillClass">{{ c.label }}</span>
                   <div class="class-amounts mono">
-                    <span class="text-emerald-400 font-bold">₱{{ formatCompactNum(c.disbursed) }}</span>
-                    <span class="text-slate-400">/ ₱{{ formatCompactNum(c.allocated) }}</span>
+                    <span class="text-emerald-600 dark:text-emerald-400 font-bold">₱{{ formatCompactNum(c.disbursed) }}</span>
+                    <span class="text-slate-500 dark:text-slate-400">/ ₱{{ formatCompactNum(c.allocated) }}</span>
                   </div>
                 </div>
                 <div class="class-progress-track">
-                  <div class="class-progress-disbursed" :style="{ width: c.disbursedPct + '%' }" :title="`Disbursed: ${c.disbursedPct.toFixed(1)}%`"></div>
+                  <div class="class-progress-disbursed" :style="{ width: c.disbursedPct + '%' }" :title="`Utilized: ${c.disbursedPct.toFixed(1)}%`"></div>
                   <div class="class-progress-committed" :style="{ width: c.committedPct + '%' }" :title="`Committed: ${c.committedPct.toFixed(1)}%`"></div>
                 </div>
-                <div class="class-stat-footer text-[11px] text-slate-400 flex justify-between">
-                  <span>{{ c.disbursedPct.toFixed(1) }}% Disbursed</span>
+                <div class="class-stat-footer text-[11px] text-slate-500 dark:text-slate-400 flex justify-between">
+                  <span>{{ c.disbursedPct.toFixed(1) }}% Utilized</span>
                   <span>{{ c.mandateCount }} Mandates</span>
-                  <span class="text-purple-300 font-semibold">₱{{ formatCompactNum(c.remaining) }} Left</span>
+                  <span class="text-purple-700 dark:text-purple-300 font-semibold">₱{{ formatCompactNum(c.remaining) }} Left</span>
                 </div>
               </div>
             </div>
@@ -246,7 +246,7 @@
         </div>
 
         <div class="results-count">
-          Showing <b class="text-purple-300">{{ filteredRows.length }}</b> of {{ budgetRows.length }} Mandates
+          Showing <b class="text-purple-700 dark:text-purple-300">{{ filteredRows.length }}</b> of {{ budgetRows.length }} Mandates
         </div>
       </div>
 
@@ -271,8 +271,8 @@
               <tr v-if="loading && budgetRows.length === 0">
                 <td colspan="9" class="empty-state">
                   <div class="flex flex-col items-center justify-center gap-2 py-8">
-                    <span class="material-symbols-outlined text-4xl spin text-purple-400">sync</span>
-                    <span class="text-slate-400 font-medium">Loading budget utilization & audit trail...</span>
+                    <span class="material-symbols-outlined text-4xl spin text-purple-600 dark:text-purple-400">sync</span>
+                    <span class="text-slate-600 dark:text-slate-400 font-medium">Loading budget utilization & audit trail...</span>
                   </div>
                 </td>
               </tr>
@@ -280,9 +280,9 @@
               <tr v-else-if="filteredRows.length === 0">
                 <td colspan="9" class="empty-state">
                   <div class="flex flex-col items-center justify-center gap-2 py-8">
-                    <span class="material-symbols-outlined text-4xl text-slate-500">search_off</span>
-                    <span class="text-slate-300 font-semibold text-lg">No budget records found</span>
-                    <span class="text-slate-400 text-sm">Try adjusting your search keywords or filter dropdowns.</span>
+                    <span class="material-symbols-outlined text-4xl text-slate-400 dark:text-slate-500">search_off</span>
+                    <span class="text-slate-800 dark:text-slate-300 font-semibold text-lg">No budget records found</span>
+                    <span class="text-slate-500 dark:text-slate-400 text-sm">Try adjusting your search keywords or filter dropdowns.</span>
                     <button @click="resetFilters" class="btn-clear-empty mt-2">Clear Filters</button>
                   </div>
                 </td>
@@ -333,10 +333,10 @@
 
                   <!-- Pending (ADs) -->
                   <td class="table-cell cell-pending text-right">
-                    <div class="cell-value mono" :class="{ 'text-amber-400 font-semibold': row.pending_approved > 0 }">
+                    <div class="cell-value mono" :class="{ 'text-amber-600 dark:text-amber-400 font-semibold': row.pending_approved > 0 }">
                       ₱{{ formatNum(row.pending_approved) }}
                     </div>
-                    <div v-if="row.pending_ads && row.pending_ads.length > 0" class="sub-badge text-amber-300/80">
+                    <div v-if="row.pending_ads && row.pending_ads.length > 0" class="sub-badge text-amber-700 dark:text-amber-300/80">
                       {{ row.pending_ads.length }} approved {{ row.pending_ads.length === 1 ? 'AD' : 'ADs' }}
                     </div>
                   </td>
@@ -345,50 +345,50 @@
                   <td class="table-cell cell-remaining text-right">
                     <div class="cell-value mono font-bold" :class="getRemainingClass(row.remaining)">
                       <span v-if="row.remaining < 0">-</span>₱{{ formatNum(Math.abs(row.remaining)) }}
-                      <span v-if="row.remaining < 0" class="text-[10px] font-bold text-red-400 ml-1 uppercase tracking-wide">Excess</span>
+                      <span v-if="row.remaining < 0" class="text-[10px] font-bold text-red-600 dark:text-red-400 ml-1 uppercase tracking-wide">Excess</span>
                     </div>
 
                     <!-- Segmented Utilization Progress Bar -->
-                    <div class="segmented-progress-container mt-1.5" :title="`Disbursed: ₱${formatNum(row.actual_cost)} (${getSegmentPercentages(row).disbursed.toFixed(1)}%) | Committed: ₱${formatNum(row.pending_approved)} (${getSegmentPercentages(row).committed.toFixed(1)}%) | Remaining: ₱${formatNum(row.remaining)} (${getSegmentPercentages(row).remaining.toFixed(1)}%)`">
+                    <div class="segmented-progress-container mt-1.5" :title="`Utilized: ₱${formatNum(row.actual_cost)} (${getSegmentPercentages(row).disbursed.toFixed(1)}%) | Committed: ₱${formatNum(row.pending_approved)} (${getSegmentPercentages(row).committed.toFixed(1)}%) | Remaining: ₱${formatNum(row.remaining)} (${getSegmentPercentages(row).remaining.toFixed(1)}%)`">
                       <div class="segmented-bar">
                         <div 
                           v-if="getSegmentPercentages(row).disbursed > 0" 
                           class="segment segment-disbursed" 
-                          :style="{ width: Math.min(getSegmentPercentages(row).disbursed, 100) + '%' }"
+                          :style="{ width: getSegmentPercentages(row).disbursedBarWidth + '%' }"
                         ></div>
                         <div 
                           v-if="getSegmentPercentages(row).committed > 0" 
                           class="segment segment-committed" 
-                          :style="{ width: Math.min(getSegmentPercentages(row).committed, 100 - Math.min(getSegmentPercentages(row).disbursed, 100)) + '%' }"
+                          :style="{ width: getSegmentPercentages(row).committedBarWidth + '%' }"
                         ></div>
                         <div 
                           v-if="getSegmentPercentages(row).remaining > 0" 
                           class="segment segment-remaining" 
-                          :style="{ width: getSegmentPercentages(row).remaining + '%' }"
+                          :style="{ width: getSegmentPercentages(row).remainingBarWidth + '%' }"
                         ></div>
                         <!-- Overflow / Excess indicator strip -->
                         <div
                           v-if="row.remaining < 0"
                           class="segment segment-excess"
-                          :style="{ width: Math.min(getSegmentPercentages(row).excess, 100) + '%' }"
+                          :style="{ width: getSegmentPercentages(row).excessBarWidth + '%' }"
                           title="Overspent — Actual exceeds allocated budget"
                         ></div>
                       </div>
                       <div class="segmented-legend">
-                        <span class="text-emerald-400">{{ getSegmentPercentages(row).disbursed.toFixed(0) }}% spent</span>
-                        <span v-if="getSegmentPercentages(row).committed > 0" class="text-amber-400">{{ getSegmentPercentages(row).committed.toFixed(0) }}% pending</span>
-                        <span v-if="row.remaining >= 0" class="text-slate-400">{{ getSegmentPercentages(row).remaining.toFixed(0) }}% left</span>
-                        <span v-else class="text-red-400 font-bold">+{{ getSegmentPercentages(row).excess.toFixed(0) }}% over</span>
+                        <span class="text-emerald-600 dark:text-emerald-400">{{ getSegmentPercentages(row).disbursed.toFixed(0) }}% spent</span>
+                        <span v-if="getSegmentPercentages(row).committed > 0" class="text-amber-600 dark:text-amber-400">{{ getSegmentPercentages(row).committed.toFixed(0) }}% pending</span>
+                        <span v-if="row.remaining >= 0" class="text-slate-500 dark:text-slate-400">{{ getSegmentPercentages(row).remaining.toFixed(0) }}% left</span>
+                        <span v-else class="text-red-600 dark:text-red-400 font-bold">+{{ getSegmentPercentages(row).excess.toFixed(0) }}% over</span>
                       </div>
                     </div>
                   </td>
 
-                  <!-- Actual Cost / Disbursed -->
+                  <!-- Actual Cost / Utilized -->
                   <td class="table-cell cell-actual-cost text-right">
-                    <div class="cell-value mono font-semibold" :class="{ 'text-emerald-400': row.actual_cost > 0 }">
+                    <div class="cell-value mono font-semibold" :class="{ 'text-emerald-600 dark:text-emerald-400': row.actual_cost > 0 }">
                       ₱{{ formatNum(row.actual_cost) }}
                     </div>
-                    <div v-if="row.completed_ars && row.completed_ars.length > 0" class="sub-badge text-emerald-300/80">
+                    <div v-if="row.completed_ars && row.completed_ars.length > 0" class="sub-badge text-emerald-700 dark:text-emerald-300/80">
                       {{ row.completed_ars.length }} verified {{ row.completed_ars.length === 1 ? 'AR' : 'ARs' }}
                     </div>
                   </td>
@@ -420,25 +420,25 @@
                         </div>
                         <div class="drawer-financial-summary mono">
                           <span class="summary-item">
-                            <span class="text-slate-400">Allocated:</span>
-                            <span class="text-purple-300 font-bold">₱{{ formatNum(row.allocated) }}</span>
+                            <span class="text-slate-500 dark:text-slate-400">Allocated:</span>
+                            <span class="text-purple-700 dark:text-purple-300 font-bold">₱{{ formatNum(row.allocated) }}</span>
                           </span>
                           <span class="summary-sep">|</span>
                           <span class="summary-item">
-                            <span class="text-slate-400">Disbursed (AR):</span>
-                            <span class="text-emerald-400 font-bold">₱{{ formatNum(row.actual_cost) }}</span>
+                            <span class="text-slate-500 dark:text-slate-400">Utilized (AR):</span>
+                            <span class="text-emerald-600 dark:text-emerald-400 font-bold">₱{{ formatNum(row.actual_cost) }}</span>
                           </span>
                           <span class="summary-sep">|</span>
                           <span class="summary-item">
-                            <span class="text-slate-400">Committed (AD):</span>
-                            <span class="text-amber-400 font-bold">₱{{ formatNum(row.pending_approved) }}</span>
+                            <span class="text-slate-500 dark:text-slate-400">Committed (AD):</span>
+                            <span class="text-amber-600 dark:text-amber-400 font-bold">₱{{ formatNum(row.pending_approved) }}</span>
                           </span>
                           <span class="summary-sep">|</span>
                           <span class="summary-item">
-                            <span class="text-slate-400">Remaining Balance:</span>
+                            <span class="text-slate-500 dark:text-slate-400">Remaining Balance:</span>
                             <span class="font-bold" :class="getRemainingClass(row.remaining)">
                               <span v-if="row.remaining < 0">-</span>₱{{ formatNum(Math.abs(row.remaining)) }}
-                              <span v-if="row.remaining < 0" class="text-[10px] font-bold text-red-400 ml-1 uppercase tracking-wide">Excess</span>
+                              <span v-if="row.remaining < 0" class="text-[10px] font-bold text-red-600 dark:text-red-400 ml-1 uppercase tracking-wide">Excess</span>
                             </span>
                           </span>
                         </div>
@@ -446,27 +446,75 @@
 
                       <!-- Drawer Visual Progress Bar -->
                       <div class="drawer-progress-wrapper">
-                        <div class="segmented-bar drawer-bar">
+                        <!-- Overspent Alert strip if remaining < 0 -->
+                        <div v-if="row.remaining < 0" class="drawer-overspent-banner">
+                          <div class="flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[16px] text-red-500 animate-pulse">warning</span>
+                            <span><strong>OVER BUDGET:</strong> Mandate expenditures exceed allocation by ₱{{ formatNum(Math.abs(row.remaining)) }} (+{{ getSegmentPercentages(row).excess.toFixed(1) }}% over budget)</span>
+                          </div>
+                          <span class="drawer-excess-tag">Excess Overspent</span>
+                        </div>
+
+                        <div class="segmented-bar drawer-bar" :class="{ 'has-excess': row.remaining < 0 }">
                           <div 
                             v-if="getSegmentPercentages(row).disbursed > 0" 
                             class="segment segment-disbursed" 
-                            :style="{ width: getSegmentPercentages(row).disbursed + '%' }"
+                            :style="{ width: getSegmentPercentages(row).disbursedBarWidth + '%' }"
                           >
-                            <span v-if="getSegmentPercentages(row).disbursed >= 10" class="segment-label">{{ getSegmentPercentages(row).disbursed.toFixed(1) }}% Disbursed (₱{{ formatNum(row.actual_cost) }})</span>
+                            <span v-if="getSegmentPercentages(row).disbursedBarWidth >= 12" class="segment-label">
+                              {{ getSegmentPercentages(row).disbursed.toFixed(1) }}% Utilized (₱{{ formatNum(row.actual_cost) }})
+                            </span>
                           </div>
                           <div 
                             v-if="getSegmentPercentages(row).committed > 0" 
                             class="segment segment-committed" 
-                            :style="{ width: getSegmentPercentages(row).committed + '%' }"
+                            :style="{ width: getSegmentPercentages(row).committedBarWidth + '%' }"
                           >
-                            <span v-if="getSegmentPercentages(row).committed >= 10" class="segment-label">{{ getSegmentPercentages(row).committed.toFixed(1) }}% Committed (₱{{ formatNum(row.pending_approved) }})</span>
+                            <span v-if="getSegmentPercentages(row).committedBarWidth >= 8" class="segment-label">
+                              {{ getSegmentPercentages(row).committed.toFixed(1) }}% Committed (₱{{ formatNum(row.pending_approved) }})
+                            </span>
                           </div>
                           <div 
                             v-if="getSegmentPercentages(row).remaining > 0" 
                             class="segment segment-remaining" 
-                            :style="{ width: getSegmentPercentages(row).remaining + '%' }"
+                            :style="{ width: getSegmentPercentages(row).remainingBarWidth + '%' }"
                           >
-                            <span v-if="getSegmentPercentages(row).remaining >= 10" class="segment-label">{{ getSegmentPercentages(row).remaining.toFixed(1) }}% Remaining (₱{{ formatNum(row.remaining) }})</span>
+                            <span v-if="getSegmentPercentages(row).remainingBarWidth >= 10" class="segment-label">
+                              {{ getSegmentPercentages(row).remaining.toFixed(1) }}% Remaining (₱{{ formatNum(row.remaining) }})
+                            </span>
+                          </div>
+                          <div 
+                            v-if="row.remaining < 0" 
+                            class="segment segment-excess" 
+                            :style="{ width: getSegmentPercentages(row).excessBarWidth + '%' }"
+                          >
+                            <span v-if="getSegmentPercentages(row).excessBarWidth >= 12" class="segment-label font-bold">
+                              +{{ getSegmentPercentages(row).excess.toFixed(1) }}% Excess (-₱{{ formatNum(Math.abs(row.remaining)) }})
+                            </span>
+                          </div>
+                        </div>
+
+                        <!-- Drawer Progress Bar Legend -->
+                        <div class="drawer-progress-legend">
+                          <div class="flex items-center gap-3">
+                            <span class="legend-item text-emerald-600 dark:text-emerald-400">
+                              <span class="legend-dot bg-emerald-500"></span>
+                              <span>Utilized (ARs): <strong>{{ getSegmentPercentages(row).disbursed.toFixed(1) }}%</strong> (₱{{ formatNum(row.actual_cost) }})</span>
+                            </span>
+                            <span v-if="row.pending_approved > 0" class="legend-item text-amber-600 dark:text-amber-400">
+                              <span class="legend-dot bg-amber-500"></span>
+                              <span>Committed (ADs): <strong>{{ getSegmentPercentages(row).committed.toFixed(1) }}%</strong> (₱{{ formatNum(row.pending_approved) }})</span>
+                            </span>
+                          </div>
+                          <div>
+                            <span v-if="row.remaining >= 0" class="legend-item text-slate-500 dark:text-slate-400">
+                              <span class="legend-dot bg-slate-400"></span>
+                              <span>Remaining: <strong>{{ getSegmentPercentages(row).remaining.toFixed(1) }}%</strong> (₱{{ formatNum(row.remaining) }})</span>
+                            </span>
+                            <span v-else class="legend-item text-red-600 dark:text-red-400 font-bold">
+                              <span class="legend-dot bg-red-500 animate-pulse"></span>
+                              <span>Over Budget: <strong>+{{ getSegmentPercentages(row).excess.toFixed(1) }}%</strong> (-₱{{ formatNum(Math.abs(row.remaining)) }})</span>
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -478,7 +526,7 @@
                         <div class="audit-panel ad-panel">
                           <div class="panel-header">
                             <div class="flex items-center gap-2">
-                              <span class="material-symbols-outlined text-amber-400 text-[18px]">pending_actions</span>
+                              <span class="material-symbols-outlined text-amber-500 dark:text-amber-400 text-[18px]">pending_actions</span>
                               <h4 class="panel-title">Approved Activity Designs (Committed Pending)</h4>
                             </div>
                             <span class="panel-badge-count amber">
@@ -487,17 +535,17 @@
                           </div>
 
                           <div v-if="!row.pending_ads || row.pending_ads.length === 0" class="panel-empty">
-                            <span class="material-symbols-outlined text-slate-500 text-3xl">task_alt</span>
+                            <span class="material-symbols-outlined text-slate-400 dark:text-slate-500 text-3xl">task_alt</span>
                             <p>No pending Activity Designs awaiting accomplishment for this mandate.</p>
                           </div>
 
                           <div v-else class="doc-list">
                             <div v-for="ad in row.pending_ads" :key="'ad-' + ad.id" class="doc-card">
                               <div class="doc-card-top">
-                                <span class="doc-control-badge text-amber-300 bg-amber-900/30 border border-amber-500/30">
+                                <span class="doc-control-badge text-amber-800 bg-amber-100 border border-amber-300 dark:text-amber-300 dark:bg-amber-900/30 dark:border-amber-500/30">
                                   {{ ad.control_number || ('AD-' + ad.id) }}
                                 </span>
-                                <span class="doc-amount mono font-bold text-amber-400">
+                                <span class="doc-amount mono font-bold text-amber-600 dark:text-amber-400">
                                   ₱{{ formatNum(ad.amount) }}
                                 </span>
                               </div>
@@ -526,30 +574,30 @@
                           </div>
                         </div>
 
-                        <!-- Panel 2: Disbursed Actual Accomplishment Reports -->
+                        <!-- Panel 2: Utilized Actual Accomplishment Reports -->
                         <div class="audit-panel ar-panel">
                           <div class="panel-header">
                             <div class="flex items-center gap-2">
-                              <span class="material-symbols-outlined text-emerald-400 text-[18px]">verified</span>
-                              <h4 class="panel-title">Completed Accomplishment Reports (Disbursed Actuals)</h4>
+                              <span class="material-symbols-outlined text-emerald-500 dark:text-emerald-400 text-[18px]">verified</span>
+                              <h4 class="panel-title">Completed Accomplishment Reports (Utilized Actuals)</h4>
                             </div>
                             <span class="panel-badge-count green">
-                              {{ (row.completed_ars || []).length }} Disbursed
+                              {{ (row.completed_ars || []).length }} Utilized
                             </span>
                           </div>
 
                           <div v-if="!row.completed_ars || row.completed_ars.length === 0" class="panel-empty">
-                            <span class="material-symbols-outlined text-slate-500 text-3xl">hourglass_empty</span>
+                            <span class="material-symbols-outlined text-slate-400 dark:text-slate-500 text-3xl">hourglass_empty</span>
                             <p>No verified Accomplishment Reports recorded yet for this mandate.</p>
                           </div>
 
                           <div v-else class="doc-list">
                             <div v-for="ar in row.completed_ars" :key="'ar-' + ar.id" class="doc-card">
                               <div class="doc-card-top">
-                                <span class="doc-control-badge text-emerald-300 bg-emerald-900/30 border border-emerald-500/30">
+                                <span class="doc-control-badge text-emerald-800 bg-emerald-100 border border-emerald-300 dark:text-emerald-300 dark:bg-emerald-900/30 dark:border-emerald-500/30">
                                   {{ ar.control_number || ('AR-' + ar.id) }}
                                 </span>
-                                <span class="doc-amount mono font-bold text-emerald-400">
+                                <span class="doc-amount mono font-bold text-emerald-600 dark:text-emerald-400">
                                   ₱{{ formatNum(ar.amount) }}
                                 </span>
                               </div>
@@ -681,23 +729,59 @@ const getSegmentPercentages = (row) => {
   const committed = Number(row.pending_approved) || 0;
 
   if (allocated <= 0) {
-    return { disbursed: 100, committed: 0, remaining: 0, excess: 0 };
+    return { 
+      disbursed: disbursed > 0 ? 100 : 0, 
+      committed: committed > 0 ? 100 : 0, 
+      remaining: 0, 
+      excess: disbursed + committed > 0 ? 100 : 0,
+      disbursedBarWidth: disbursed > 0 ? 100 : 0,
+      committedBarWidth: 0,
+      remainingBarWidth: 0,
+      excessBarWidth: 0
+    };
   }
 
+  // True percentage rates relative to the allocated budget:
+  const disbursedPct = (disbursed / allocated) * 100;
+  const committedPct = (committed / allocated) * 100;
   const total = disbursed + committed;
 
   if (total <= allocated) {
     // Normal case: within budget
-    const disbursedPct = (disbursed / allocated) * 100;
-    const committedPct = (committed / allocated) * 100;
     const remainingPct = Math.max(0, 100 - disbursedPct - committedPct);
-    return { disbursed: disbursedPct, committed: committedPct, remaining: remainingPct, excess: 0 };
+    return { 
+      disbursed: disbursedPct, 
+      committed: committedPct, 
+      remaining: remainingPct, 
+      excess: 0,
+      disbursedBarWidth: disbursedPct,
+      committedBarWidth: committedPct,
+      remainingBarWidth: remainingPct,
+      excessBarWidth: 0
+    };
   } else {
-    // Overspent: show full bar as disbursed/committed, with excess indicator
-    const disbursedPct = Math.min(100, (disbursed / total) * 100);
-    const committedPct = Math.min(100 - disbursedPct, (committed / total) * 100);
-    const excessPct = ((total - allocated) / allocated) * 100; // % over budget
-    return { disbursed: disbursedPct, committed: committedPct, remaining: 0, excess: excessPct };
+    // Overspent: actual cost and/or commitments exceed allocated budget
+    const excessPct = ((total - allocated) / allocated) * 100;
+
+    // Visual bar proportions within 100%:
+    // Allocate proportional visual width to disbursed, committed, and excess
+    // so both the utilized amount and the excess are clearly visible and legible:
+    const excessShare = ((total - allocated) / total) * 100;
+    const excessBarWidth = Math.min(50, Math.max(25, excessShare));
+    const availableBarWidth = 100 - excessBarWidth;
+    const disbursedBarWidth = total > 0 ? (availableBarWidth * (disbursed / total)) : availableBarWidth;
+    const committedBarWidth = total > 0 ? (availableBarWidth * (committed / total)) : 0;
+
+    return { 
+      disbursed: disbursedPct, // True utilization rate vs allocated (e.g. 626.1%)
+      committed: committedPct, // True commitment rate vs allocated (e.g. 1.1%)
+      remaining: 0, 
+      excess: excessPct,       // True excess rate vs allocated (e.g. 527.2%)
+      disbursedBarWidth,
+      committedBarWidth,
+      remainingBarWidth: 0,
+      excessBarWidth
+    };
   }
 };
 
@@ -930,7 +1014,7 @@ const exportToExcel = () => {
   rows.push([
     'TOTAL GAD ALLOCATED BUDGET', '', '',
     'PROPOSED BUDGET (COMMITTED ADs)', '', '',
-    'ACTUAL DISBURSED COST (ARs)', '', '',
+    'ACTUAL UTILIZED COST (ARs)', '', '',
     'REMAINING AVAILABLE BALANCE', '', '', ''
   ]);
   rows.push([
@@ -1400,10 +1484,177 @@ onMounted(() => {
   font-family: 'IBM Plex Mono', monospace;
 }
 
+/* ==========================================================================
+   Design Tokens & Color Modes (Light Mode Default, Dark Mode Supported)
+   ========================================================================== */
 .main-content {
   padding: 0;
   flex-grow: 1;
-  color: #cbd5e1;
+
+  /* --- LIGHT MODE (Default) TOKENS --- */
+  --bg-page: transparent;
+  --text-main: #334155;
+  --text-heading: #0f172a;
+  --text-sub: #475569;
+  --text-muted: #64748b;
+
+  /* Cards & Containers */
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --card-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+  --card-hover-border: #c084fc;
+  --card-hover-shadow: 0 12px 24px -4px rgba(147, 51, 234, 0.12), 0 4px 8px -2px rgba(0, 0, 0, 0.04);
+
+  /* Buttons & Switches */
+  --btn-bg: #ffffff;
+  --btn-border: #cbd5e1;
+  --btn-text: #1e293b;
+  --btn-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+
+  /* Filter Toolbar & Controls */
+  --filter-bg: #ffffff;
+  --filter-border: #e2e8f0;
+  --filter-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.04);
+  --input-bg: #f8fafc;
+  --input-border: #cbd5e1;
+  --input-text: #0f172a;
+  --input-placeholder: #94a3b8;
+  --input-focus-border: #9333ea;
+  --input-focus-shadow: 0 0 0 3px rgba(147, 51, 234, 0.12);
+
+  /* Table Elements */
+  --table-bg: #ffffff;
+  --table-border: #e2e8f0;
+  --table-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.04);
+  --table-header-bg: #f8fafc;
+  --table-header-text: #6b21a8;
+  --table-header-border: #e2e8f0;
+  --table-row-bg: #ffffff;
+  --table-row-border: #f1f5f9;
+  --table-row-hover: #faf5ff;
+  --table-expanded-bg: #fdf4ff;
+  --table-expanded-border: #f0abfc;
+
+  /* Drawer & Audit Trail */
+  --drawer-bg: #f8fafc;
+  --drawer-border: #e2e8f0;
+  --drawer-strip-bg: #ffffff;
+  --drawer-strip-border: #e2e8f0;
+  --drawer-strip-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --drawer-title: #0f172a;
+  --drawer-summary-label: #64748b;
+  --drawer-panel-bg: #ffffff;
+  --drawer-panel-border: #e2e8f0;
+  --drawer-panel-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  --drawer-doc-bg: #f8fafc;
+  --drawer-doc-border: #e2e8f0;
+  --drawer-doc-hover-bg: #ffffff;
+  --drawer-doc-hover-border: #c084fc;
+  --drawer-doc-hover-shadow: 0 4px 12px rgba(147, 51, 234, 0.08);
+  --drawer-doc-title: #1e293b;
+  --drawer-doc-meta: #64748b;
+  --drawer-doc-border-top: #f1f5f9;
+
+  /* Visual Analytics */
+  --analytics-bg: #ffffff;
+  --analytics-border: #e2e8f0;
+  --analytics-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.05);
+  --analytics-title: #0f172a;
+  --analytics-header-border: #e2e8f0;
+  --chart-card-bg: #f8fafc;
+  --chart-card-border: #e2e8f0;
+  --chart-card-title: #0f172a;
+
+  /* Gauge & Tracks */
+  --track-bg: #e2e8f0;
+  --track-border: rgba(0, 0, 0, 0.06);
+  --segment-rem-bg: #f3e8ff;
+  --segment-rem-border: #e9d5ff;
+
+  color: var(--text-main);
+}
+
+/* --- DARK MODE OVERRIDES --- */
+:global(.dark) .main-content,
+:global(html.dark) .main-content {
+  --bg-page: transparent;
+  --text-main: #f1f5f9;
+  --text-heading: #ffffff;
+  --text-sub: #e2e8f0;
+  --text-muted: #cbd5e1;
+
+  /* Cards & Containers */
+  --card-bg: linear-gradient(135deg, #13111f 0%, #1e1b2e 100%);
+  --card-border: rgba(192, 132, 252, 0.15);
+  --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25);
+  --card-hover-border: rgba(192, 132, 252, 0.35);
+  --card-hover-shadow: 0 14px 20px -3px rgba(0, 0, 0, 0.35);
+
+  /* Buttons & Switches */
+  --btn-bg: #1e1b2e;
+  --btn-border: rgba(192, 132, 252, 0.25);
+  --btn-text: #f1f5f9;
+  --btn-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+
+  /* Filter Toolbar & Controls */
+  --filter-bg: #141120;
+  --filter-border: rgba(192, 132, 252, 0.15);
+  --filter-shadow: none;
+  --input-bg: #1e1b2e;
+  --input-border: rgba(192, 132, 252, 0.2);
+  --input-text: #ffffff;
+  --input-placeholder: #94a3b8;
+  --input-focus-border: #c084fc;
+  --input-focus-shadow: 0 0 0 2px rgba(192, 132, 252, 0.2);
+
+  /* Table Elements */
+  --table-bg: #141120;
+  --table-border: rgba(192, 132, 252, 0.15);
+  --table-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+  --table-header-bg: #1a1628;
+  --table-header-text: #e9d5ff;
+  --table-header-border: rgba(192, 132, 252, 0.15);
+  --table-row-bg: transparent;
+  --table-row-border: rgba(192, 132, 252, 0.08);
+  --table-row-hover: rgba(192, 132, 252, 0.05);
+  --table-expanded-bg: rgba(192, 132, 252, 0.08);
+  --table-expanded-border: rgba(192, 132, 252, 0.25);
+
+  /* Drawer & Audit Trail */
+  --drawer-bg: #0d0a17;
+  --drawer-border: rgba(192, 132, 252, 0.2);
+  --drawer-strip-bg: #1a1628;
+  --drawer-strip-border: rgba(192, 132, 252, 0.2);
+  --drawer-strip-shadow: none;
+  --drawer-title: #ffffff;
+  --drawer-summary-label: #cbd5e1;
+  --drawer-panel-bg: #141120;
+  --drawer-panel-border: rgba(255, 255, 255, 0.08);
+  --drawer-panel-shadow: none;
+  --drawer-doc-bg: #1b172a;
+  --drawer-doc-border: rgba(255, 255, 255, 0.06);
+  --drawer-doc-hover-bg: #201b33;
+  --drawer-doc-hover-border: rgba(192, 132, 252, 0.3);
+  --drawer-doc-hover-shadow: none;
+  --drawer-doc-title: #ffffff;
+  --drawer-doc-meta: #cbd5e1;
+  --drawer-doc-border-top: rgba(255, 255, 255, 0.04);
+
+  /* Visual Analytics */
+  --analytics-bg: #141120;
+  --analytics-border: rgba(192, 132, 252, 0.2);
+  --analytics-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+  --analytics-title: #ffffff;
+  --analytics-header-border: rgba(192, 132, 252, 0.15);
+  --chart-card-bg: #1a1628;
+  --chart-card-border: rgba(192, 132, 252, 0.12);
+  --chart-card-title: #f1f5f9;
+
+  /* Gauge & Tracks */
+  --track-bg: rgba(255, 255, 255, 0.08);
+  --track-border: rgba(0, 0, 0, 0.4);
+  --segment-rem-bg: rgba(147, 51, 234, 0.25);
+  --segment-rem-border: rgba(255, 255, 255, 0.1);
 }
 
 .content-wrapper {
@@ -1429,8 +1680,8 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(147, 51, 234, 0.1);
-  border: 1px solid rgba(147, 51, 234, 0.3);
+  background: rgba(147, 51, 234, 0.08);
+  border: 1px solid rgba(147, 51, 234, 0.25);
   color: #7e22ce;
   padding: 5px 12px;
   border-radius: 999px;
@@ -1440,18 +1691,23 @@ onMounted(() => {
   letter-spacing: 0.05em;
   margin-bottom: 8px;
 }
+:global(.dark) .header-badge {
+  background: rgba(147, 51, 234, 0.1);
+  border-color: rgba(147, 51, 234, 0.3);
+  color: #7e22ce;
+}
 
 .page-title {
   font-size: 1.85rem;
   font-weight: 900;
   letter-spacing: -0.025em;
-  color: #0f172a; /* Deep crisp slate for light page background */
+  color: #0f172a;
   margin: 0 0 0.5rem 0;
 }
 
 .page-subtitle {
   font-size: 1rem;
-  color: #475569; /* Slate 600 for high legibility */
+  color: #475569;
   margin: 0;
   line-height: 1.5;
   max-width: 820px;
@@ -1468,17 +1724,20 @@ onMounted(() => {
   position: relative;
   display: inline-flex;
   align-items: center;
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-border);
   border-radius: 8px;
   padding: 0 10px 0 32px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--btn-shadow);
   transition: all 0.2s ease;
 }
 
 .fy-switcher-wrapper:hover {
   border-color: #9333ea;
   box-shadow: 0 2px 6px rgba(147, 51, 234, 0.15);
+}
+:global(.dark) .fy-switcher-wrapper:hover {
+  border-color: #c084fc;
 }
 
 .fy-icon {
@@ -1488,11 +1747,14 @@ onMounted(() => {
   color: #7e22ce;
   pointer-events: none;
 }
+:global(.dark) .fy-icon {
+  color: #c084fc;
+}
 
 .fy-select {
   background: transparent;
   border: none;
-  color: #1e293b;
+  color: var(--btn-text);
   font-size: 13px;
   font-weight: 600;
   padding: 8px 12px 8px 0;
@@ -1501,19 +1763,28 @@ onMounted(() => {
   appearance: auto;
 }
 
+.fy-select option {
+  background: #ffffff;
+  color: #0f172a;
+}
+:global(.dark) .fy-select option {
+  background: #1e1b2e;
+  color: #f8fafc;
+}
+
 .btn-refresh, .btn-toggle-all, .btn-export-excel, .btn-analytics {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  color: #1e293b;
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-border);
+  color: var(--btn-text);
   padding: 8px 14px;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--btn-shadow);
   transition: all 0.2s ease;
 }
 
@@ -1523,6 +1794,12 @@ onMounted(() => {
   color: #7e22ce;
   box-shadow: 0 2px 6px rgba(147, 51, 234, 0.15);
 }
+:global(.dark) .btn-refresh:hover,
+:global(.dark) .btn-toggle-all:hover {
+  background: #252038;
+  border-color: #c084fc;
+  color: #e9d5ff;
+}
 
 .btn-export-excel:hover {
   background: #f0fdf4;
@@ -1530,12 +1807,23 @@ onMounted(() => {
   color: #047857;
   box-shadow: 0 2px 6px rgba(16, 185, 129, 0.15);
 }
+:global(.dark) .btn-export-excel:hover {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: #10b981;
+  color: #34d399;
+}
 
 .btn-analytics:hover, .btn-analytics.active {
   background: #f8fafc;
   border-color: #6366f1;
   color: #4338ca;
   box-shadow: 0 2px 6px rgba(99, 102, 241, 0.15);
+}
+:global(.dark) .btn-analytics:hover,
+:global(.dark) .btn-analytics.active {
+  background: #252038;
+  border-color: #818cf8;
+  color: #c7d2fe;
 }
 
 .spin {
@@ -1568,16 +1856,16 @@ onMounted(() => {
 .stat-card {
   padding: 1.25rem;
   border-radius: 1rem;
-  border: 1px solid rgba(192, 132, 252, 0.15);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25);
-  background: linear-gradient(135deg, #13111f 0%, #1e1b2e 100%);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  background: var(--card-bg);
   transition: all 0.3s;
 }
 
 .stat-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(192, 132, 252, 0.35);
-  box-shadow: 0 14px 20px -3px rgba(0, 0, 0, 0.35);
+  border-color: var(--card-hover-border);
+  box-shadow: var(--card-hover-shadow);
 }
 
 .stat-card-header {
@@ -1597,24 +1885,44 @@ onMounted(() => {
 }
 
 .badge-high {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+:global(.dark) .badge-high {
   background: rgba(16, 185, 129, 0.2);
   color: #34d399;
   border: 1px solid rgba(16, 185, 129, 0.4);
 }
 
 .badge-med {
+  background: #faf5ff;
+  color: #7e22ce;
+  border: 1px solid #e9d5ff;
+}
+:global(.dark) .badge-med {
   background: rgba(192, 132, 252, 0.2);
   color: #d8b4fe;
   border: 1px solid rgba(192, 132, 252, 0.4);
 }
 
 .badge-warning {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+:global(.dark) .badge-warning {
   background: rgba(245, 158, 11, 0.2);
   color: #fbbf24;
   border: 1px solid rgba(245, 158, 11, 0.4);
 }
 
 .badge-normal {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+:global(.dark) .badge-normal {
   background: rgba(148, 163, 184, 0.15);
   color: #cbd5e1;
   border: 1px solid rgba(148, 163, 184, 0.25);
@@ -1631,15 +1939,22 @@ onMounted(() => {
   margin-bottom: 0.5rem;
 }
 
-.stat-icon-wrapper.blue { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
-.stat-icon-wrapper.green { background: rgba(16, 185, 129, 0.15); color: #34d399; }
-.stat-icon-wrapper.amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
-.stat-icon-wrapper.purple { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+.stat-icon-wrapper.blue { background: #eff6ff; color: #2563eb; }
+:global(.dark) .stat-icon-wrapper.blue { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+
+.stat-icon-wrapper.green { background: #ecfdf5; color: #059669; }
+:global(.dark) .stat-icon-wrapper.green { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+
+.stat-icon-wrapper.amber { background: #fffbeb; color: #d97706; }
+:global(.dark) .stat-icon-wrapper.amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+
+.stat-icon-wrapper.purple { background: #faf5ff; color: #9333ea; }
+:global(.dark) .stat-icon-wrapper.purple { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
 
 .stat-value {
   font-size: 1.35rem;
   font-weight: 800;
-  color: #ffffff;
+  color: var(--text-heading);
   line-height: 1.2;
   margin: 0;
 }
@@ -1649,20 +1964,20 @@ onMounted(() => {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #94a3b8;
+  color: var(--text-muted);
   margin-top: 0.35rem;
 }
 
 .stat-sub-info {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--text-muted);
   margin-top: 0.35rem;
 }
 
 .util-gauge-track {
   width: 100%;
   height: 7px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--track-bg);
   border-radius: 999px;
   overflow: hidden;
   margin-top: 8px;
@@ -1677,11 +1992,11 @@ onMounted(() => {
 
 /* Visual Analytics Container */
 .analytics-container {
-  background: #141120;
-  border: 1px solid rgba(192, 132, 252, 0.2);
+  background: var(--analytics-bg);
+  border: 1px solid var(--analytics-border);
   border-radius: 14px;
   padding: 1.25rem 1.5rem;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--analytics-shadow);
   animation: fadeIn 0.3s ease;
 }
 
@@ -1696,7 +2011,7 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 1rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(192, 132, 252, 0.15);
+  border-bottom: 1px solid var(--analytics-header-border);
   flex-wrap: wrap;
   gap: 8px;
 }
@@ -1704,7 +2019,7 @@ onMounted(() => {
 .analytics-title {
   font-size: 1rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--analytics-title);
   margin: 0;
 }
 
@@ -1721,8 +2036,8 @@ onMounted(() => {
 }
 
 .chart-card {
-  background: #1a1628;
-  border: 1px solid rgba(192, 132, 252, 0.12);
+  background: var(--chart-card-bg);
+  border: 1px solid var(--chart-card-border);
   border-radius: 12px;
   padding: 1.25rem;
 }
@@ -1734,7 +2049,7 @@ onMounted(() => {
 .chart-card-title {
   font-size: 0.95rem;
   font-weight: 700;
-  color: #f1f5f9;
+  color: var(--chart-card-title);
   margin: 0 0 2px 0;
 }
 
@@ -1745,7 +2060,10 @@ onMounted(() => {
   justify-content: space-around;
   height: 160px;
   padding-top: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #cbd5e1;
+}
+:global(.dark) .quarterly-bars-container {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
 .quarter-col {
@@ -1788,15 +2106,18 @@ onMounted(() => {
 .quarter-label {
   font-size: 11px;
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--text-muted);
   margin-top: 8px;
   white-space: nowrap;
 }
 
 .quarter-subval {
   font-size: 10px;
-  color: #34d399;
+  color: #059669;
   font-weight: 700;
+}
+:global(.dark) .quarter-subval {
+  color: #34d399;
 }
 
 /* Classification Breakdown List */
@@ -1828,7 +2149,7 @@ onMounted(() => {
   display: flex;
   width: 100%;
   height: 8px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--track-bg);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -1851,10 +2172,11 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  background: #141120;
-  border: 1px solid rgba(192, 132, 252, 0.15);
+  background: var(--filter-bg);
+  border: 1px solid var(--filter-border);
   border-radius: 12px;
   padding: 12px 16px;
+  box-shadow: var(--filter-shadow);
   flex-wrap: wrap;
 }
 
@@ -1869,26 +2191,34 @@ onMounted(() => {
 .search-icon {
   position: absolute;
   left: 12px;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 20px;
   pointer-events: none;
 }
 
 .search-input {
   width: 100%;
-  background: #1e1b2e;
-  border: 1px solid rgba(192, 132, 252, 0.2);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: 8px;
-  color: #ffffff;
+  color: var(--input-text);
   font-size: 13px;
   padding: 8px 36px 8px 38px;
   outline: none;
   transition: all 0.2s;
 }
 
+.search-input::placeholder {
+  color: var(--input-placeholder);
+}
+
 .search-input:focus {
-  border-color: #c084fc;
-  box-shadow: 0 0 0 2px rgba(192, 132, 252, 0.2);
+  border-color: var(--input-focus-border);
+  box-shadow: var(--input-focus-shadow);
+  background: #ffffff;
+}
+:global(.dark) .search-input:focus {
+  background: #1e1b2e;
 }
 
 .clear-search {
@@ -1896,13 +2226,13 @@ onMounted(() => {
   right: 10px;
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: var(--text-muted);
   cursor: pointer;
   display: flex;
   align-items: center;
 }
 
-.clear-search:hover { color: #ffffff; }
+.clear-search:hover { color: var(--text-heading); }
 
 .filter-group {
   display: flex;
@@ -1912,10 +2242,10 @@ onMounted(() => {
 }
 
 .filter-select {
-  background: #1e1b2e;
-  border: 1px solid rgba(192, 132, 252, 0.2);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: 8px;
-  color: #e2e8f0;
+  color: var(--input-text);
   font-size: 13px;
   padding: 8px 12px;
   outline: none;
@@ -1924,41 +2254,65 @@ onMounted(() => {
 }
 
 .filter-select:focus {
-  border-color: #c084fc;
+  border-color: var(--input-focus-border);
+  background: #ffffff;
+}
+:global(.dark) .filter-select:focus {
+  background: #1e1b2e;
+}
+
+.filter-select option {
+  background: #ffffff;
+  color: #0f172a;
+}
+:global(.dark) .filter-select option {
+  background: #1e1b2e;
+  color: #f8fafc;
 }
 
 .btn-reset-filters {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #fca5a5;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
   padding: 7px 10px;
   border-radius: 8px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s;
 }
 
 .btn-reset-filters:hover {
+  background: #fecaca;
+  color: #b91c1c;
+}
+
+:global(.dark) .btn-reset-filters {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+:global(.dark) .btn-reset-filters:hover {
   background: rgba(239, 68, 68, 0.25);
   color: #ffffff;
 }
 
 .results-count {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--text-muted);
   white-space: nowrap;
 }
 
 /* Data Table */
 .table-container {
   border-radius: 14px;
-  border: 1px solid rgba(192, 132, 252, 0.15);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--table-border);
+  box-shadow: var(--table-shadow);
   overflow: hidden;
-  background: #141120;
+  background: var(--table-bg);
 }
 
 .table-wrapper {
@@ -1983,8 +2337,8 @@ onMounted(() => {
 .col-actions { width: 110px; text-align: center; }
 
 .table-header-row {
-  border-bottom: 1px solid rgba(192, 132, 252, 0.15);
-  background: #1a1628;
+  border-bottom: 1px solid var(--table-header-border);
+  background: var(--table-header-bg);
 }
 
 .table-header-cell {
@@ -1993,21 +2347,22 @@ onMounted(() => {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #c084fc;
+  color: var(--table-header-text);
 }
 
 .table-row {
-  border-bottom: 1px solid rgba(192, 132, 252, 0.08);
+  border-bottom: 1px solid var(--table-row-border);
+  background: var(--table-row-bg);
   transition: background 0.15s ease;
 }
 
 .table-row:hover {
-  background: rgba(192, 132, 252, 0.05);
+  background: var(--table-row-hover);
 }
 
 .expanded-row-parent {
-  background: rgba(192, 132, 252, 0.08) !important;
-  border-bottom: 1px solid rgba(192, 132, 252, 0.25);
+  background: var(--table-expanded-bg) !important;
+  border-bottom: 1px solid var(--table-expanded-border);
 }
 
 .table-cell {
@@ -2018,17 +2373,20 @@ onMounted(() => {
 
 .expand-icon {
   font-size: 20px;
-  color: #94a3b8;
+  color: var(--text-muted);
   transition: transform 0.2s ease, color 0.2s ease;
 }
 
 .expand-icon.rotated {
   transform: rotate(90deg);
+  color: #7e22ce;
+}
+:global(.dark) .expand-icon.rotated {
   color: #c084fc;
 }
 
 .cell-number {
-  color: #94a3b8;
+  color: var(--text-muted);
   font-weight: 600;
 }
 
@@ -2042,43 +2400,70 @@ onMounted(() => {
 }
 
 .pill-client {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+:global(.dark) .pill-client {
   background: rgba(59, 130, 246, 0.2);
   color: #93c5fd;
   border: 1px solid rgba(59, 130, 246, 0.35);
 }
 
 .pill-org {
+  background: #faf5ff;
+  color: #7e22ce;
+  border: 1px solid #e9d5ff;
+}
+:global(.dark) .pill-org {
   background: rgba(168, 85, 247, 0.2);
   color: #d8b4fe;
   border: 1px solid rgba(168, 85, 247, 0.35);
 }
 
 .pill-attributed {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+:global(.dark) .pill-attributed {
   background: rgba(245, 158, 11, 0.2);
   color: #fde68a;
   border: 1px solid rgba(245, 158, 11, 0.35);
 }
 
 .pill-general {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+:global(.dark) .pill-general {
   background: rgba(148, 163, 184, 0.15);
   color: #cbd5e1;
+  border: none;
 }
 
 .unit-code {
   font-size: 10px;
   font-family: 'IBM Plex Mono', monospace;
-  background: rgba(0, 0, 0, 0.4);
-  color: #cbd5e1;
+  background: #f1f5f9;
+  color: #475569;
   padding: 2px 6px;
   border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+:global(.dark) .unit-code {
+  background: rgba(0, 0, 0, 0.4);
+  color: #cbd5e1;
+  border: none;
 }
 
 .office-pill {
   font-size: 10px;
   font-weight: 600;
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #6ee7b7;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #047857;
   padding: 2px 6px;
   border-radius: 4px;
   max-width: 140px;
@@ -2086,23 +2471,29 @@ onMounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+:global(.dark) .office-pill {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #6ee7b7;
+}
 
 .unit-name {
   font-size: 12.5px;
-  color: #e2e8f0;
-  font-weight: 500;
+  color: var(--text-heading);
+  font-weight: 600;
   line-height: 1.4;
 }
 
 .activity-text {
   font-size: 12.5px;
-  color: #cbd5e1;
+  color: var(--text-main);
   line-height: 1.4;
   font-weight: 500;
 }
 
 .cell-value {
   font-size: 13.5px;
+  color: var(--text-heading);
 }
 
 .sub-badge {
@@ -2111,18 +2502,37 @@ onMounted(() => {
 }
 
 .remaining-healthy {
+  color: #059669;
+  font-weight: 700;
+}
+:global(.dark) .remaining-healthy {
   color: #34d399;
 }
 
 .remaining-warning {
+  color: #d97706;
+  font-weight: 700;
+}
+:global(.dark) .remaining-warning {
   color: #fbbf24;
 }
 
 .remaining-critical {
+  color: #dc2626;
+  font-weight: 700;
+}
+:global(.dark) .remaining-critical {
   color: #f87171;
 }
 
-
+.remaining-excess {
+  color: #b91c1c;
+  font-weight: 800;
+}
+:global(.dark) .remaining-excess {
+  color: #ef4444;
+  text-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+}
 
 /* Segmented Progress Bars */
 .segmented-progress-container {
@@ -2136,8 +2546,8 @@ onMounted(() => {
   height: 6px;
   border-radius: 999px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+  background: var(--track-bg);
+  box-shadow: inset 0 1px 2px var(--track-border);
 }
 
 .segment {
@@ -2155,8 +2565,8 @@ onMounted(() => {
 }
 
 .segment-remaining {
-  background: rgba(147, 51, 234, 0.25);
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--segment-rem-bg);
+  border-left: 1px solid var(--segment-rem-border);
 }
 
 .segment-excess {
@@ -2170,11 +2580,6 @@ onMounted(() => {
   50% { opacity: 0.6; }
 }
 
-.remaining-excess {
-  color: #ef4444;
-  text-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
-}
-
 .segmented-legend {
   display: flex;
   justify-content: space-between;
@@ -2182,6 +2587,7 @@ onMounted(() => {
   font-size: 9.5px;
   font-family: 'IBM Plex Mono', monospace;
   margin-top: 3px;
+  color: var(--text-muted);
 }
 
 /* Drawer Progress Bar */
@@ -2193,7 +2599,7 @@ onMounted(() => {
 .drawer-bar {
   height: 18px;
   border-radius: 6px;
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--track-bg);
 }
 
 .drawer-bar .segment {
@@ -2212,13 +2618,69 @@ onMounted(() => {
   padding: 0 4px;
 }
 
+/* Drawer Overspent Banner */
+.drawer-overspent-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-family: 'IBM Plex Mono', monospace;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #dc2626;
+}
+
+:global(.dark) .drawer-overspent-banner {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+.drawer-excess-tag {
+  background: #dc2626;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.drawer-progress-legend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+  padding: 0 2px;
+  font-size: 11px;
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--text-muted);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
 .btn-audit-toggle {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: rgba(192, 132, 252, 0.1);
-  border: 1px solid rgba(192, 132, 252, 0.25);
-  color: #d8b4fe;
+  background: #faf5ff;
+  border: 1px solid #d8b4fe;
+  color: #7e22ce;
   padding: 5px 9px;
   border-radius: 6px;
   font-size: 11.5px;
@@ -2228,14 +2690,14 @@ onMounted(() => {
 }
 
 .btn-audit-toggle:hover, .btn-audit-toggle.active {
-  background: #c084fc;
-  color: #0f172a;
-  border-color: #c084fc;
+  background: #7e22ce;
+  color: #ffffff;
+  border-color: #7e22ce;
 }
 
 .audit-counter {
-  background: rgba(0, 0, 0, 0.35);
-  color: #ffffff;
+  background: #f3e8ff;
+  color: #6b21a8;
   padding: 1px 5px;
   border-radius: 10px;
   font-size: 10px;
@@ -2243,14 +2705,37 @@ onMounted(() => {
 }
 
 .btn-audit-toggle.active .audit-counter {
+  background: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+:global(.dark) .btn-audit-toggle {
+  background: rgba(192, 132, 252, 0.1);
+  border: 1px solid rgba(192, 132, 252, 0.25);
+  color: #d8b4fe;
+}
+
+:global(.dark) .btn-audit-toggle:hover,
+:global(.dark) .btn-audit-toggle.active {
+  background: #c084fc;
+  color: #0f172a;
+  border-color: #c084fc;
+}
+
+:global(.dark) .audit-counter {
+  background: rgba(0, 0, 0, 0.35);
+  color: #ffffff;
+}
+
+:global(.dark) .btn-audit-toggle.active .audit-counter {
   background: #0f172a;
   color: #c084fc;
 }
 
 /* Collapsible Audit Drawer */
 .audit-drawer-row {
-  background: #0d0a17;
-  border-bottom: 2px solid rgba(192, 132, 252, 0.2);
+  background: var(--drawer-bg);
+  border-bottom: 2px solid var(--drawer-border);
 }
 
 .audit-drawer-cell {
@@ -2268,12 +2753,13 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #1a1628;
-  border: 1px solid rgba(192, 132, 252, 0.2);
+  background: var(--drawer-strip-bg);
+  border: 1px solid var(--drawer-strip-border);
   border-radius: 10px;
   padding: 10px 14px;
   flex-wrap: wrap;
   gap: 10px;
+  box-shadow: var(--drawer-strip-shadow);
 }
 
 .drawer-info {
@@ -2295,7 +2781,7 @@ onMounted(() => {
 .drawer-mandate-title {
   font-size: 13px;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--drawer-title);
 }
 
 .drawer-financial-summary {
@@ -2307,6 +2793,9 @@ onMounted(() => {
 }
 
 .summary-sep {
+  color: rgba(0, 0, 0, 0.15);
+}
+:global(.dark) .summary-sep {
   color: rgba(255, 255, 255, 0.15);
 }
 
@@ -2329,20 +2818,27 @@ onMounted(() => {
 }
 
 .audit-panel {
-  background: #141120;
+  background: var(--drawer-panel-bg);
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--drawer-panel-border);
   padding: 14px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  box-shadow: var(--drawer-panel-shadow);
 }
 
 .audit-panel.ad-panel {
+  border-color: #fde68a;
+}
+:global(.dark) .audit-panel.ad-panel {
   border-color: rgba(245, 158, 11, 0.25);
 }
 
 .audit-panel.ar-panel {
+  border-color: #a7f3d0;
+}
+:global(.dark) .audit-panel.ar-panel {
   border-color: rgba(16, 185, 129, 0.25);
 }
 
@@ -2351,13 +2847,13 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--table-row-border);
 }
 
 .panel-title {
   font-size: 12.5px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--drawer-title);
   margin: 0;
 }
 
@@ -2369,12 +2865,22 @@ onMounted(() => {
 }
 
 .panel-badge-count.amber {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+:global(.dark) .panel-badge-count.amber {
   background: rgba(245, 158, 11, 0.15);
   color: #fbbf24;
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 .panel-badge-count.green {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+:global(.dark) .panel-badge-count.green {
   background: rgba(16, 185, 129, 0.15);
   color: #34d399;
   border: 1px solid rgba(16, 185, 129, 0.3);
@@ -2387,7 +2893,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   text-align: center;
-  color: #64748b;
+  color: var(--text-muted);
   gap: 8px;
   font-size: 12px;
 }
@@ -2402,8 +2908,8 @@ onMounted(() => {
 }
 
 .doc-card {
-  background: #1b172a;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--drawer-doc-bg);
+  border: 1px solid var(--drawer-doc-border);
   border-radius: 8px;
   padding: 10px 12px;
   display: flex;
@@ -2413,8 +2919,9 @@ onMounted(() => {
 }
 
 .doc-card:hover {
-  border-color: rgba(192, 132, 252, 0.3);
-  background: #201b33;
+  border-color: var(--drawer-doc-hover-border);
+  background: var(--drawer-doc-hover-bg);
+  box-shadow: var(--drawer-doc-hover-shadow);
 }
 
 .doc-card-top {
@@ -2437,7 +2944,7 @@ onMounted(() => {
 
 .doc-title {
   font-size: 12.5px;
-  color: #e2e8f0;
+  color: var(--drawer-doc-title);
   font-weight: 500;
   line-height: 1.35;
 }
@@ -2448,7 +2955,7 @@ onMounted(() => {
   justify-content: space-between;
   margin-top: 4px;
   padding-top: 6px;
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  border-top: 1px solid var(--drawer-doc-border-top);
 }
 
 .doc-meta {
@@ -2456,7 +2963,7 @@ onMounted(() => {
   align-items: center;
   gap: 10px;
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--drawer-doc-meta);
 }
 
 .meta-item {
@@ -2469,9 +2976,9 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: rgba(192, 132, 252, 0.15);
-  border: 1px solid rgba(192, 132, 252, 0.3);
-  color: #d8b4fe;
+  background: #faf5ff;
+  border: 1px solid #e9d5ff;
+  color: #7e22ce;
   padding: 3px 8px;
   border-radius: 5px;
   font-size: 11px;
@@ -2481,22 +2988,46 @@ onMounted(() => {
 }
 
 .btn-preview-doc:hover {
+  background: #7e22ce;
+  color: #ffffff;
+}
+
+:global(.dark) .btn-preview-doc {
+  background: rgba(192, 132, 252, 0.15);
+  border: 1px solid rgba(192, 132, 252, 0.3);
+  color: #d8b4fe;
+}
+
+:global(.dark) .btn-preview-doc:hover {
   background: #c084fc;
   color: #0f172a;
 }
 
 .btn-clear-empty {
-  background: #1e1b2e;
-  border: 1px solid rgba(192, 132, 252, 0.3);
-  color: #d8b4fe;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
   padding: 6px 14px;
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s;
 }
 
 .btn-clear-empty:hover {
+  background: #f8fafc;
+  border-color: #9333ea;
+  color: #7e22ce;
+}
+
+:global(.dark) .btn-clear-empty {
+  background: #1e1b2e;
+  border: 1px solid rgba(192, 132, 252, 0.3);
+  color: #d8b4fe;
+}
+
+:global(.dark) .btn-clear-empty:hover {
   background: rgba(192, 132, 252, 0.2);
 }
 
@@ -2618,5 +3149,348 @@ onMounted(() => {
   .chart-card-title {
     color: #0f172a !important;
   }
+}
+</style>
+
+<style>
+/* ==========================================================================
+   Dark Mode Overrides for Budget Monitoring (Staff)
+   Uses unscoped rules matching html.dark and .dark to guarantee 100% precision
+   ========================================================================== */
+html.dark .main-content,
+.dark .main-content {
+  color: #f1f5f9 !important;
+}
+
+html.dark .page-title,
+.dark .page-title {
+  color: #0f172a !important;
+}
+
+html.dark .page-subtitle,
+.dark .page-subtitle {
+  color: #475569 !important;
+  opacity: 1 !important;
+}
+
+html.dark .header-badge,
+.dark .header-badge {
+  background: rgba(147, 51, 234, 0.1) !important;
+  border-color: rgba(147, 51, 234, 0.3) !important;
+  color: #7e22ce !important;
+}
+
+html.dark .fy-switcher-wrapper,
+.dark .fy-switcher-wrapper,
+html.dark .btn-refresh,
+.dark .btn-refresh,
+html.dark .btn-toggle-all,
+.dark .btn-toggle-all,
+html.dark .btn-export-excel,
+.dark .btn-export-excel,
+html.dark .btn-analytics,
+.dark .btn-analytics {
+  background: #1e1b2e !important;
+  border-color: rgba(192, 132, 252, 0.25) !important;
+  color: #ffffff !important;
+}
+
+html.dark .fy-select,
+.dark .fy-select {
+  color: #ffffff !important;
+}
+
+html.dark .fy-icon,
+.dark .fy-icon {
+  color: #d8b4fe !important;
+}
+
+html.dark .stat-card,
+.dark .stat-card {
+  background: linear-gradient(135deg, #13111f 0%, #1e1b2e 100%) !important;
+  border: 1px solid rgba(192, 132, 252, 0.15) !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25) !important;
+}
+
+html.dark .stat-value,
+.dark .stat-value {
+  color: #ffffff !important;
+}
+
+html.dark .stat-label,
+.dark .stat-label {
+  color: #e2e8f0 !important;
+  opacity: 1 !important;
+}
+
+html.dark .stat-sub-info,
+html.dark .stat-sub-info span,
+.dark .stat-sub-info,
+.dark .stat-sub-info span {
+  color: #cbd5e1 !important;
+  opacity: 1 !important;
+}
+
+html.dark .filter-toolbar,
+.dark .filter-toolbar {
+  background: #141120 !important;
+  border: 1px solid rgba(192, 132, 252, 0.15) !important;
+  box-shadow: none !important;
+}
+
+html.dark .search-icon,
+.dark .search-icon {
+  color: #cbd5e1 !important;
+}
+
+html.dark .search-input,
+.dark .search-input {
+  background: #1e1b2e !important;
+  border: 1px solid rgba(192, 132, 252, 0.2) !important;
+  color: #ffffff !important;
+}
+
+html.dark .search-input::placeholder,
+.dark .search-input::placeholder {
+  color: #94a3b8 !important;
+  opacity: 0.9 !important;
+}
+
+html.dark .filter-select,
+.dark .filter-select {
+  background: #1e1b2e !important;
+  border: 1px solid rgba(192, 132, 252, 0.2) !important;
+  color: #f8fafc !important;
+}
+
+html.dark .filter-select option,
+.dark .filter-select option {
+  background: #1e1b2e !important;
+  color: #ffffff !important;
+}
+
+html.dark .results-count,
+.dark .results-count {
+  color: #e2e8f0 !important;
+}
+
+html.dark .results-count strong,
+.dark .results-count strong {
+  color: #ffffff !important;
+}
+
+html.dark .table-container,
+.dark .table-container {
+  background: #141120 !important;
+  border: 1px solid rgba(192, 132, 252, 0.15) !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.dark .table-header-row,
+.dark .table-header-row {
+  background: #1a1628 !important;
+  border-bottom: 1px solid rgba(192, 132, 252, 0.15) !important;
+}
+
+html.dark .table-header-cell,
+.dark .table-header-cell {
+  color: #e9d5ff !important;
+  opacity: 1 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+html.dark .table-row,
+.dark .table-row {
+  border-bottom: 1px solid rgba(192, 132, 252, 0.08) !important;
+  background: transparent !important;
+}
+
+html.dark .table-row:hover,
+.dark .table-row:hover {
+  background: rgba(192, 132, 252, 0.05) !important;
+}
+
+html.dark .expanded-row-parent,
+.dark .expanded-row-parent {
+  background: rgba(192, 132, 252, 0.08) !important;
+  border-bottom: 1px solid rgba(192, 132, 252, 0.25) !important;
+}
+
+html.dark .cell-number,
+.dark .cell-number {
+  color: #cbd5e1 !important;
+  opacity: 1 !important;
+}
+
+html.dark .unit-name,
+.dark .unit-name {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+html.dark .unit-code,
+.dark .unit-code {
+  color: #e2e8f0 !important;
+}
+
+html.dark .activity-text,
+.dark .activity-text {
+  color: #f1f5f9 !important;
+  opacity: 0.95 !important;
+}
+
+html.dark .cell-value,
+.dark .cell-value {
+  color: #ffffff !important;
+}
+
+html.dark .segmented-legend,
+.dark .segmented-legend {
+  color: #cbd5e1 !important;
+  opacity: 1 !important;
+}
+
+html.dark .expand-icon,
+.dark .expand-icon {
+  color: #cbd5e1 !important;
+}
+
+html.dark .expand-icon.rotated,
+.dark .expand-icon.rotated {
+  color: #d8b4fe !important;
+}
+
+html.dark .analytics-container,
+.dark .analytics-container {
+  background: #141120 !important;
+  border: 1px solid rgba(192, 132, 252, 0.2) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.dark .analytics-title,
+.dark .analytics-title {
+  color: #ffffff !important;
+}
+
+html.dark .analytics-header span,
+.dark .analytics-header span {
+  color: #cbd5e1 !important;
+}
+
+html.dark .chart-card,
+.dark .chart-card {
+  background: #1a1628 !important;
+  border: 1px solid rgba(192, 132, 252, 0.12) !important;
+}
+
+html.dark .chart-card-title,
+.dark .chart-card-title {
+  color: #ffffff !important;
+}
+
+html.dark .quarter-label,
+.dark .quarter-label {
+  color: #e2e8f0 !important;
+  opacity: 1 !important;
+}
+
+html.dark .class-amounts,
+.dark .class-amounts {
+  color: #e2e8f0 !important;
+}
+
+html.dark .audit-drawer-row,
+.dark .audit-drawer-row {
+  background: #0d0a17 !important;
+  border-bottom: 2px solid rgba(192, 132, 252, 0.2) !important;
+}
+
+html.dark .drawer-header-strip,
+.dark .drawer-header-strip {
+  background: #1a1628 !important;
+  border: 1px solid rgba(192, 132, 252, 0.2) !important;
+}
+
+html.dark .drawer-mandate-title,
+.dark .drawer-mandate-title {
+  color: #ffffff !important;
+}
+
+html.dark .drawer-financial-summary,
+.dark .drawer-financial-summary {
+  color: #e2e8f0 !important;
+}
+
+html.dark .summary-item,
+.dark .summary-item {
+  color: #f1f5f9 !important;
+}
+
+html.dark .summary-sep,
+.dark .summary-sep {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+html.dark .audit-panel,
+.dark .audit-panel {
+  background: #141120 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark .panel-title,
+.dark .panel-title {
+  color: #ffffff !important;
+}
+
+html.dark .panel-empty,
+.dark .panel-empty {
+  color: #cbd5e1 !important;
+}
+
+html.dark .doc-card,
+.dark .doc-card {
+  background: #1b172a !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+html.dark .doc-card:hover,
+.dark .doc-card:hover {
+  background: #201b33 !important;
+  border-color: rgba(192, 132, 252, 0.3) !important;
+}
+
+html.dark .doc-title,
+.dark .doc-title {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+html.dark .doc-meta,
+.dark .doc-meta {
+  color: #cbd5e1 !important;
+  opacity: 1 !important;
+}
+
+html.dark .meta-item,
+.dark .meta-item {
+  color: #cbd5e1 !important;
+}
+
+html.dark .btn-preview-doc,
+.dark .btn-preview-doc {
+  color: #e9d5ff !important;
+}
+
+html.dark .btn-clear-empty,
+.dark .btn-clear-empty {
+  background: #1e1b2e !important;
+  border: 1px solid rgba(192, 132, 252, 0.3) !important;
+  color: #e9d5ff !important;
+}
+
+html.dark .btn-clear-empty:hover,
+.dark .btn-clear-empty:hover {
+  background: rgba(192, 132, 252, 0.2) !important;
+  color: #ffffff !important;
 }
 </style>

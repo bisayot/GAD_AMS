@@ -349,7 +349,7 @@ const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 const roles = [
   { value: 'Director', label: 'Director' },
   { value: 'TWG', label: 'TWG' },
-  { value: 'Non-TWG', label: 'Non-TWG' }
+  { value: 'Non-TWG', label: 'Proponents' }
 ];
 const isTWG = ref(false);
 const hasAnnouncementFeature = ref(true);

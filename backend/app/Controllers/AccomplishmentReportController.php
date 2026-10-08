@@ -585,6 +585,25 @@ class AccomplishmentReportController extends BaseController
         ]);
     }
 
+    public function getVerifiedReports()
+    {
+        $db = \Config\Database::connect();
+
+        $reports = $db->table('accomplishment_report as ar')
+            ->select('ar.id, ar.status, ar.control_number as control, ar.activity_title as title, DATE(COALESCE(ar.start_date, ar.created_at)) as date, ar.created_at, office_units.office_name as office, ar.attachment, ar.is_archived')
+            ->join('users', 'users.id = ar.user_id', 'left')
+            ->join('office_units', 'office_units.office_id = users.office_id', 'left')
+            ->where('ar.status', 'Verified')
+            ->where('ar.deleted_at', null)
+            ->orderBy('ar.start_date', 'DESC')
+            ->get()->getResultArray();
+
+        return $this->response->setJSON([
+            'success' => true,
+            'data'    => $reports
+        ]);
+    }
+
     public function updateReport($id)
     {
         $model = new AccomplishmentReportModel();

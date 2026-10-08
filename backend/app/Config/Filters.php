@@ -135,7 +135,6 @@ class Filters extends BaseFilters
             'before' => [
                 'api/users*',
                 'api/offices*',
-                'api/add_office',
                 'api/activity-logs',
                 'api/submit-activity-design',
                 'api/activity-designs*',
@@ -175,16 +174,10 @@ class Filters extends BaseFilters
                 'api/archive-design*',
                 'api/archive-report*',
                 'api/documents*',
-                'api/files/drafts*',
-                'api/files/archived*',
                 'api/files/overwrite*',
-                'api/analytics*',
-                'api/annual-reports*',
-                'api/holidays*',
                 'api/venues*',
                 'api/contact-inquiries*',
                 'api/storage*',
-                'api/news-iec*',
             ]
         ],
 
@@ -213,13 +206,9 @@ class Filters extends BaseFilters
                 'api/admin/twg-submissions',
                 // Contact inquiries
                 'api/contact-inquiries*',
-                // News & IEC publishing
-                'api/news-iec*',
                 // Archiving
                 'api/archive-design*',
                 'api/archive-report*',
-                // Annual reports
-                'api/annual-reports/archive',
                 // Budget management
                 'api/staff/budget-monitoring*',
                 'api/budget/gad-plan',
@@ -227,7 +216,6 @@ class Filters extends BaseFilters
                 'api/mandates',
                 'api/gender-issues*',
                 // Campus Resources
-                'api/holidays*',
                 'api/venues*',
                 // User account control (staff cannot affect admin accounts - logic in controller)
                 'api/users/suspend*',

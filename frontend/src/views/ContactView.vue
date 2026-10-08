@@ -352,66 +352,66 @@ const submitForm = async () => {
 }
 
 /* ==========================================================================
-   DARK PURPLE MODE FOR CONTACT PAGE
+   DARK CHARCOAL MODE FOR CONTACT PAGE
    ========================================================================== */
 :global(.dark) .contact-page,
 .dark .contact-page {
-  background-color: #1f0b35 !important;
-  color: #f5efff !important;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
+  color: #f8fafc !important;
 }
 
 :global(.dark) .contact-page .bg-surface,
 .dark .contact-page .bg-surface {
-  background-color: #2b1147 !important;
-  border-color: #532385 !important;
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
 }
 
 :global(.dark) .contact-page .bg-surface-variant,
 .dark .contact-page .bg-surface-variant {
-  background-color: #38165c !important;
-  color: #f5efff !important;
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  color: #f8fafc !important;
 }
 
 :global(.dark) .contact-page .bg-primary-container,
 .dark .contact-page .bg-primary-container {
-  background-color: #38165c !important;
+  background-color: rgba(192, 132, 252, 0.12) !important;
 }
 
 :global(.dark) .contact-page .text-primary,
 .dark .contact-page .text-primary {
-  color: #deb7ff !important;
+  color: #c084fc !important;
 }
 
 :global(.dark) .contact-page .text-on-background,
 .dark .contact-page .text-on-background,
 :global(.dark) .contact-page .text-on-surface,
 .dark .contact-page .text-on-surface {
-  color: #f5efff !important;
+  color: #f8fafc !important;
 }
 
 :global(.dark) .contact-page .text-on-surface-variant,
 .dark .contact-page .text-on-surface-variant {
-  color: #deb7ff !important;
+  color: #94a3b8 !important;
 }
 
 :global(.dark) .contact-page .border-outline-variant,
 .dark .contact-page .border-outline-variant {
-  border-color: #532385 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 :global(.dark) .contact-page input,
 .dark .contact-page input,
 :global(.dark) .contact-page textarea,
 .dark .contact-page textarea {
-  background-color: #38165c !important;
-  color: #f5efff !important;
-  border: 1px solid #532385 !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
 :global(.dark) .contact-page input::placeholder,
 .dark .contact-page input::placeholder,
 :global(.dark) .contact-page textarea::placeholder,
 .dark .contact-page textarea::placeholder {
-  color: #b592db !important;
+  color: #64748b !important;
 }
 </style>

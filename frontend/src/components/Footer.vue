@@ -39,6 +39,9 @@
             <router-link to="/#platform-background" class="text-left text-on-surface-variant footer-link-hover transition-all font-medium break-words">
               Platform Background
             </router-link>
+            <a href="https://onboard.bsugad.com" target="_blank" rel="noopener noreferrer" class="text-left text-on-surface-variant footer-link-hover transition-all font-medium break-words">
+              Onboarding Page
+            </a>
           </nav>
         </div>
 
@@ -157,48 +160,48 @@ const showTermsModal = ref(false);
 }
 
 /* ==========================================================================
-   DARK PURPLE MODE FOR FOOTER
+   DARK CHARCOAL MODE FOR FOOTER
    ========================================================================== */
 :global(.dark) footer,
 .dark footer {
-  background-color: #1a082e !important;
-  border-top-color: #532385 !important;
-  color: #f5efff !important;
+  background-color: #12121e !important;
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
 }
 
 :global(.dark) footer .border-outline-variant,
 .dark footer .border-outline-variant {
-  border-color: #532385 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
 }
 
 :global(.dark) footer .text-on-surface,
 .dark footer .text-on-surface {
-  color: #f5efff !important;
+  color: #f8fafc !important;
 }
 
 :global(.dark) footer .text-on-surface-variant,
 .dark footer .text-on-surface-variant {
-  color: #deb7ff !important;
+  color: #94a3b8 !important;
 }
 
 :global(.dark) footer .text-primary,
 .dark footer .text-primary {
-  color: #deb7ff !important;
+  color: #c084fc !important;
 }
 
 :global(.dark) footer .border-primary,
 .dark footer .border-primary {
-  border-color: #deb7ff !important;
+  border-color: #c084fc !important;
 }
 
 :global(.dark) footer .bg-surface-container-high,
 .dark footer .bg-surface-container-high {
-  background-color: #2b1147 !important;
-  border-color: #532385 !important;
+  background-color: #1a1a2e !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 :global(.dark) footer .bg-surface-variant,
 .dark footer .bg-surface-variant {
-  background-color: #240e3b !important;
+  background-color: #1a1a2e !important;
 }
 </style>

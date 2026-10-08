@@ -162,7 +162,7 @@
         <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; flex-wrap: wrap; gap: 16px;">
           <div>
             <p class="section-tag" style="color: var(--color-primary-text);">University Impact</p>
-            <h2 class="section-title" style="margin-bottom: 0; color: #fff;">Gender-Disaggregated Data</h2>
+            <h2 class="section-title" style="margin-bottom: 0;">Gender-Disaggregated Data</h2>
           </div>
           <select v-model="analyticsYear" class="impact-year-select">
             <option v-for="year in availableYears" :key="year" :value="year">{{ year }}</option>
@@ -826,7 +826,7 @@ const goals = [
 .section-title {
   font-size: 44px;
   font-weight: 800;
-  color: #1a1a2e;
+  color: var(--color-on-background);
   letter-spacing: -0.02em;
   line-height: 1.2;
   margin-bottom: 40px;
@@ -977,25 +977,25 @@ const goals = [
   z-index: 2;
 }
 .impact-year-select {
-  background: rgba(15, 23, 42, 0.8);
-  color: #fff;
-  border: 1px solid rgba(153, 13, 209, 0.4);
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+  border: 1px solid var(--color-outline-variant);
   border-radius: 8px;
   padding: 8px 32px 8px 16px;
   font-size: 15px;
   font-weight: 600;
   outline: none;
   cursor: pointer;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%239333ea%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 10px auto;
 }
 .impact-year-select option {
-  background: #1e293b;
-  color: white;
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
 }
 .impact-loading {
   display: flex;
@@ -1287,7 +1287,7 @@ const goals = [
 }
 
 /* ==========================================================================
-   DARK PURPLE MODE FOR HOME PAGE
+   DARK CHARCOAL MODE FOR HOME PAGE
    ========================================================================== */
 :global(.dark) .page,
 .dark .page,
@@ -1295,23 +1295,26 @@ const goals = [
 .dark .hero,
 :global(.dark) .vm-section,
 .dark .vm-section,
-:global(.dark) .impact-section,
-.dark .impact-section,
 :global(.dark) .about-section,
 .dark .about-section {
-  background: #1f0b35 !important;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
+}
+
+:global(.dark) .impact-section,
+.dark .impact-section {
+  background: linear-gradient(135deg, #1a1a2e 0%, #0f172a 100%) !important;
 }
 
 :global(.dark) .hero-overlay,
 .dark .hero-overlay {
-  background: radial-gradient(ellipse at 50% 10%, rgba(168, 85, 247, 0.3) 0%, transparent 65%) !important;
+  background: radial-gradient(ellipse at 50% 15%, rgba(120, 119, 198, 0.15) 0%, transparent 70%) !important;
 }
 
 :global(.dark) .hero-badge,
 .dark .hero-badge {
-  color: #deb7ff !important;
-  border-color: rgba(222, 183, 255, 0.4) !important;
-  background: rgba(222, 183, 255, 0.1) !important;
+  color: #c084fc !important;
+  border-color: rgba(192, 132, 252, 0.35) !important;
+  background: rgba(192, 132, 252, 0.1) !important;
 }
 
 :global(.dark) .hero-title,
@@ -1321,23 +1324,23 @@ const goals = [
 
 :global(.dark) .hero-subtitle,
 .dark .hero-subtitle {
-  color: #deb7ff !important;
+  color: #cbd5e1 !important;
 }
 
 :global(.dark) .btn-hero-outline,
 .dark .btn-hero-outline {
-  color: #f5efff !important;
-  border-color: rgba(222, 183, 255, 0.3) !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
 :global(.dark) .section-title,
 .dark .section-title {
-  color: #f5efff !important;
+  color: #ffffff !important;
 }
 
 :global(.dark) .goals-divider,
 .dark .goals-divider {
-  background: #532385 !important;
+  background: rgba(255, 255, 255, 0.1) !important;
 }
 
 :global(.dark) .vm-card.vision,
@@ -1352,13 +1355,13 @@ const goals = [
 .dark .impact-chart-card,
 :global(.dark) .impact-top-offices,
 .dark .impact-top-offices {
-  background: #2b1147 !important;
-  border-color: #532385 !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
 }
 
 :global(.dark) .goal-icon-wrap,
 .dark .goal-icon-wrap {
-  background: #39175d !important;
+  background: rgba(255, 255, 255, 0.05) !important;
 }
 
 :global(.dark) .goal-title-text,
@@ -1381,49 +1384,53 @@ const goals = [
 .dark .about-title,
 :global(.dark) .about-body-lg,
 .dark .about-body-lg {
-  color: #f5efff !important;
+  color: #f8fafc !important;
 }
 
 :global(.dark) .goal-desc,
 .dark .goal-desc,
 :global(.dark) .about-body,
 .dark .about-body {
-  color: #deb7ff !important;
+  color: #94a3b8 !important;
 }
 
 :global(.dark) .objective-list,
 .dark .objective-list {
-  border-top-color: #532385 !important;
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
 }
 
 :global(.dark) .top-office-item,
 .dark .top-office-item {
-  background: #341555 !important;
-  border-color: #532385 !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.05) !important;
 }
 
 :global(.dark) .top-office-item:hover,
 .dark .top-office-item:hover {
-  background: #3f1966 !important;
+  background: rgba(255, 255, 255, 0.07) !important;
 }
 
 :global(.dark) .impact-year-select,
 .dark .impact-year-select,
 :global(.dark) .impact-year-select option,
 .dark .impact-year-select option {
-  background: #2b1147 !important;
-  color: #f5efff !important;
-  border-color: #532385 !important;
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 10px auto !important;
 }
 
 :global(.dark) .btn-outline,
 .dark .btn-outline {
-  color: #f5efff !important;
-  border-color: #532385 !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
 :global(.dark) .about-img,
 .dark .about-img {
-  border-color: #532385 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
 }
 </style>

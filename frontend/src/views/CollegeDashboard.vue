@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-slate-50 flex flex-col overflow-x-clip w-full" :style="($route.path.includes('/plan-and-budget') || $route.path.includes('/budget-distribution')) ? 'overflow-x: auto;' : 'overflow-x: clip; max-width: 100%;'">
+  <div class="min-h-screen bg-slate-50 flex flex-col overflow-x-clip w-full" :style="($route.path.includes('/plan-and-budget') || $route.path.includes('/budget-distribution') || $route.path.includes('/budget')) ? 'overflow-x: auto;' : 'overflow-x: clip; max-width: 100%;'">
     <!-- Top Navbar for Desktop/Tablet -->
     <DashboardNavbar 
       :menuItems="collegeMenu"
@@ -13,14 +13,14 @@
       <DashboardSidebar
         :isOpen="isSidebarOpen"
         @close="isSidebarOpen = false"
-        roleLabel="TWG/Non-TWG"
+        roleLabel="TWG/Proponents"
         :menuItems="collegeMenu"
         :user="user"
         @logout="handleLogout"
       />
     </div>
 
-    <main :class="['flex-grow w-full min-w-0 overflow-x-hidden', ($route.path.includes('/plan-and-budget') || $route.path.includes('/budget-distribution')) ? 'p-0' : 'p-4 md:p-10']" :style="($route.path.includes('/plan-and-budget') || $route.path.includes('/budget-distribution')) ? 'overflow-x: auto;' : ''">
+    <main :class="['flex-grow w-full min-w-0 overflow-x-hidden', ($route.path.includes('/plan-and-budget') || $route.path.includes('/budget-distribution') || $route.path.includes('/budget')) ? 'p-0' : 'p-4 md:p-10']" :style="($route.path.includes('/plan-and-budget') || $route.path.includes('/budget-distribution') || $route.path.includes('/budget')) ? 'overflow-x: auto;' : ''">
       <router-view />
     </main>
   </div>
@@ -64,7 +64,8 @@ const collegeMenu = ref([
     label: 'Plan & Budget', icon: 'gavel',
     children: [
       { label: 'Plan and Budget', icon: 'gavel', href: '/college/plan-and-budget' },
-      { label: 'Budget Distribution by Mandate', icon: 'pie_chart', href: '/college/budget-distribution' }
+      { label: 'Budget Distribution by Mandate', icon: 'pie_chart', href: '/college/budget-distribution' },
+      { label: 'Budget Monitoring', icon: 'payments', href: '/college/budget' }
     ]
   },
   { label: 'Activity Logs', icon: 'history', href: '/college/activity-logs' }

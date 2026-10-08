@@ -47,6 +47,7 @@ class StaffOrAdminFilter implements FilterInterface
             // - plan (used by read-only college GAD plan view)
             if ($method === 'GET') {
                 if (
+                    str_contains($uriPath, 'news-iec') ||
                     str_contains($uriPath, 'holidays') ||
                     str_contains($uriPath, 'venues') ||
                     str_contains($uriPath, 'settings') ||

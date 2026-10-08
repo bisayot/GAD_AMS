@@ -1,11 +1,11 @@
 <template>
-  <nav class="dashboard-navbar">
+  <nav class="dashboard-navbar" :class="{ 'dark-theme': currentTheme === 'dark' }">
     <div class="navbar-inner">
       <!-- Left: Brand -->
       <div class="navbar-brand flex items-center">
         <!-- Mobile Menu Toggle (Left side for mobile) -->
-        <button class="xl:hidden mr-3 p-1 flex items-center !text-white active:scale-95 transition-transform" @click.stop.prevent="$emit('toggle-mobile-menu')" style="touch-action: manipulation;">
-          <span class="material-symbols-outlined text-3xl font-bold !text-white pointer-events-none">menu</span>
+        <button class="xl:hidden mr-3 p-1 flex items-center text-slate-700 dark:!text-white active:scale-95 transition-transform" @click.stop.prevent="$emit('toggle-mobile-menu')" style="touch-action: manipulation;">
+          <span class="material-symbols-outlined text-3xl font-bold text-slate-700 dark:!text-white pointer-events-none">menu</span>
         </button>
 
         <router-link to="/" class="brand-container flex-shrink-0">
@@ -106,7 +106,7 @@
                   <div class="text-[13px] text-slate-600 dark:text-purple-200/70 font-medium truncate mb-2 mt-0.5">{{ user?.email || 'user@bsu.edu.ph' }}</div>
                   <div :class="['inline-flex items-center gap-1.5 border rounded-full px-3 py-1 w-fit shadow-sm', roleStyle.bgClass, roleStyle.borderClass]">
                     <span :class="['material-symbols-outlined text-[14px]', roleStyle.textClass]">{{ roleStyle.icon }}</span>
-                    <span :class="['text-[10px] font-black tracking-[0.05em] uppercase leading-none mt-[1px]', roleStyle.textClass]">{{ user?.user_role || user?.role || 'Role' }}</span>
+                    <span :class="['text-[10px] font-black tracking-[0.05em] uppercase leading-none mt-[1px]', roleStyle.textClass]">{{ displayedUserRole }}</span>
                   </div>
                 </div>
               </div>
@@ -190,8 +190,17 @@ const userInitial = computed(() => {
   return name.charAt(0).toUpperCase();
 });
 
+const displayedUserRole = computed(() => {
+  const r = (props.user?.user_role || props.user?.role || '').toLowerCase().replace('_', '-');
+  if (r === 'non-twg') return 'Proponent';
+  if (r === 'twg') return 'TWG';
+  if (r.includes('admin') || r.includes('director')) return 'Director';
+  if (r.includes('staff')) return 'GAD Staff';
+  return props.user?.user_role || props.user?.role || 'Role';
+});
+
 const roleStyle = computed(() => {
-  const role = (props.user?.user_role || props.user?.role || '').toLowerCase();
+  const role = (props.user?.user_role || props.user?.role || '').toLowerCase().replace('_', '-');
   
   if (role.includes('admin') || role.includes('director')) {
     return {
@@ -307,10 +316,11 @@ onUnmounted(() => {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: #240b3b !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-  border-bottom: 1px solid rgba(192, 132, 252, 0.3);
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid #e2e8f0;
   font-family: system-ui, -apple-system, sans-serif;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .navbar-inner {
@@ -350,14 +360,14 @@ onUnmounted(() => {
 .brand-subtitle {
   font-size: 9px;
   font-weight: 700;
-  color: var(--color-on-background);
+  color: #64748b;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 .brand-title {
   font-size: 18px;
   font-weight: 900;
-  color: var(--color-primary);
+  color: #7e22ce;
   letter-spacing: -0.02em;
 }
 
@@ -379,7 +389,7 @@ onUnmounted(() => {
   gap: 6px;
   background: transparent;
   border: none;
-  color: var(--color-on-surface-variant);
+  color: #475569;
   font-size: 13px;
   font-weight: 600;
   padding: 6px 12px;
@@ -391,26 +401,26 @@ onUnmounted(() => {
 }
 
 .nav-item:hover {
-  background: rgba(168, 85, 247, 0.1);
-  color: var(--color-on-background);
+  background: rgba(147, 51, 234, 0.08);
+  color: #7e22ce;
 }
 
 .nav-item.active {
-  background: rgba(168, 85, 247, 0.15);
-  color: var(--color-on-background);
+  background: rgba(147, 51, 234, 0.12);
+  color: #7e22ce;
   position: relative;
 }
 
 .nav-item.active::after {
   content: '';
   position: absolute;
-  bottom: -4px; /* Moved higher to sit right under the nav item */
+  bottom: -4px;
   left: 10%;
   width: 80%;
   height: 3px;
-  background: linear-gradient(90deg, #c026d3, #ec4899);
+  background: linear-gradient(90deg, #9333ea, #c026d3);
   border-radius: 3px 3px 0 0;
-  box-shadow: 0 -2px 10px rgba(236, 72, 153, 0.4);
+  box-shadow: 0 -2px 8px rgba(147, 51, 234, 0.3);
 }
 
 .nav-icon {
@@ -423,11 +433,11 @@ onUnmounted(() => {
   top: calc(100% + 4px);
   left: 0;
   min-width: 240px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-outline-variant);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 8px 0;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
   z-index: 100;
 }
 
@@ -447,17 +457,12 @@ onUnmounted(() => {
   letter-spacing: 0.1em;
 }
 
-html.dark .dropdown-header,
-.dark .dropdown-header {
-  color: #c084fc;
-}
-
 .dropdown-item {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 10px 16px;
-  color: var(--color-on-surface-variant);
+  color: #475569;
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
@@ -470,25 +475,23 @@ html.dark .dropdown-header,
 }
 
 .dropdown-item:hover, .dropdown-item.active {
-  background: rgba(168, 85, 247, 0.1);
-  color: var(--color-on-background);
+  background: rgba(147, 51, 234, 0.08);
+  color: #7e22ce;
 }
 
 .dropdown-item.logout {
-  color: #f87171;
+  color: #ef4444;
 }
 
 .dropdown-item.logout:hover {
-  background: rgba(248, 113, 113, 0.1);
+  background: rgba(239, 68, 68, 0.08);
 }
 
 .dropdown-divider {
   height: 1px;
-  background: var(--color-outline-variant);
+  background: #e2e8f0;
   margin: 8px 0;
 }
-
-/* Profile dropdown is styled entirely with Tailwind utilities in the template */
 
 /* Right Actions Styles */
 .navbar-right {
@@ -504,18 +507,19 @@ html.dark .dropdown-header,
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-surface-variant);
-  border: 1px solid var(--color-outline-variant);
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
   border-radius: 50%;
-  color: var(--color-on-surface-variant);
+  color: #475569;
   text-decoration: none;
   transition: all 0.2s;
   cursor: pointer;
 }
 
 .action-btn:hover {
-  background: rgba(168, 85, 247, 0.1);
-  color: var(--color-on-background);
+  background: rgba(147, 51, 234, 0.08);
+  color: #7e22ce;
+  border-color: rgba(147, 51, 234, 0.3);
 }
 
 .badge {
@@ -530,25 +534,26 @@ html.dark .dropdown-header,
   border-radius: 10px;
   min-width: 16px;
   text-align: center;
-  border: 2px solid var(--color-surface);
+  border: 2px solid #ffffff;
 }
 
 .action-btn-wrapper :deep(.action-btn) {
-  /* Ensure NotificationDropdown action button inherits same styles */
   width: 40px;
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-surface-variant);
-  border: 1px solid var(--color-outline-variant);
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
   border-radius: 50%;
-  color: var(--color-on-surface-variant);
+  color: #475569;
   cursor: pointer;
+  transition: all 0.2s;
 }
 .action-btn-wrapper :deep(.action-btn:hover) {
-  background: rgba(168, 85, 247, 0.1);
-  color: var(--color-on-background);
+  background: rgba(147, 51, 234, 0.08);
+  color: #7e22ce;
+  border-color: rgba(147, 51, 234, 0.3);
 }
 .action-btn-wrapper :deep(.notification-badge) {
   position: absolute;
@@ -562,7 +567,7 @@ html.dark .dropdown-header,
   border-radius: 10px;
   min-width: 16px;
   text-align: center;
-  border: 2px solid var(--color-surface);
+  border: 2px solid #ffffff;
 }
 
 .profile-btn {
@@ -637,93 +642,112 @@ html.dark .dropdown-header,
     right: -4px;
   }
 }
+</style>
 
-/* Dark Mode Topbar (remains rich dark purple #240b3b) */
-:global(.dark) .dashboard-navbar,
-:global(html.dark) .dashboard-navbar {
+<style>
+/* ==========================================================================
+   Dark Mode Topbar for Logged-in Users (Rich Dark Purple)
+   ========================================================================== */
+.dark .dashboard-navbar,
+html.dark .dashboard-navbar,
+.dashboard-navbar.dark-theme {
   background: #240b3b !important;
   border-bottom: 1px solid rgba(192, 132, 252, 0.3) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
 }
 
-:global(.dark) .brand-title,
-:global(html.dark) .brand-title,
-.brand-title {
+.dark .dashboard-navbar .brand-title,
+html.dark .dashboard-navbar .brand-title,
+.dashboard-navbar.dark-theme .brand-title {
   color: #ffffff !important;
 }
 
-:global(.dark) .brand-subtitle,
-:global(html.dark) .brand-subtitle,
-.brand-subtitle {
+.dark .dashboard-navbar .brand-subtitle,
+html.dark .dashboard-navbar .brand-subtitle,
+.dashboard-navbar.dark-theme .brand-subtitle {
   color: #d8b4fe !important;
 }
 
-:global(.dark) .nav-item,
-:global(html.dark) .nav-item,
-.nav-item {
+.dark .dashboard-navbar .nav-item,
+html.dark .dashboard-navbar .nav-item,
+.dashboard-navbar.dark-theme .nav-item {
   color: #e9d5ff !important;
 }
 
-:global(.dark) .nav-item:hover,
-:global(html.dark) .nav-item:hover,
-.nav-item:hover {
+.dark .dashboard-navbar .nav-item:hover,
+html.dark .dashboard-navbar .nav-item:hover,
+.dashboard-navbar.dark-theme .nav-item:hover {
   background: rgba(192, 132, 252, 0.2) !important;
   color: #ffffff !important;
 }
 
-:global(.dark) .nav-item.active,
-:global(html.dark) .nav-item.active,
-.nav-item.active {
+.dark .dashboard-navbar .nav-item.active,
+html.dark .dashboard-navbar .nav-item.active,
+.dashboard-navbar.dark-theme .nav-item.active {
   background: rgba(192, 132, 252, 0.25) !important;
   color: #ffffff !important;
 }
 
-:global(.dark) .dropdown-menu,
-:global(html.dark) .dropdown-menu,
-.dropdown-menu {
+.dark .dashboard-navbar .dropdown-menu,
+html.dark .dashboard-navbar .dropdown-menu,
+.dashboard-navbar.dark-theme .dropdown-menu {
   background: #31104e !important;
   border-color: rgba(192, 132, 252, 0.3) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
 }
 
-:global(.dark) .dropdown-item,
-:global(html.dark) .dropdown-item,
-.dropdown-item {
+.dark .dashboard-navbar .dropdown-header,
+html.dark .dashboard-navbar .dropdown-header,
+.dashboard-navbar.dark-theme .dropdown-header {
+  color: #c084fc !important;
+}
+
+.dark .dashboard-navbar .dropdown-item,
+html.dark .dashboard-navbar .dropdown-item,
+.dashboard-navbar.dark-theme .dropdown-item {
   color: #e9d5ff !important;
 }
 
-:global(.dark) .dropdown-item:hover,
-:global(html.dark) .dropdown-item:hover,
-.dropdown-item:hover {
+.dark .dashboard-navbar .dropdown-item:hover,
+html.dark .dashboard-navbar .dropdown-item:hover,
+.dashboard-navbar.dark-theme .dropdown-item:hover {
   background: rgba(192, 132, 252, 0.2) !important;
   color: #ffffff !important;
 }
 
-:global(.dark) .action-btn,
-:global(html.dark) .action-btn,
-:global(.dark) .action-btn-wrapper .action-btn,
-:global(html.dark) .action-btn-wrapper .action-btn,
-.action-btn,
-.action-btn-wrapper :deep(.action-btn) {
+.dark .dashboard-navbar .dropdown-divider,
+html.dark .dashboard-navbar .dropdown-divider,
+.dashboard-navbar.dark-theme .dropdown-divider {
+  background: rgba(192, 132, 252, 0.2) !important;
+}
+
+.dark .dashboard-navbar .action-btn,
+html.dark .dashboard-navbar .action-btn,
+.dashboard-navbar.dark-theme .action-btn,
+.dark .dashboard-navbar .action-btn-wrapper .action-btn,
+html.dark .dashboard-navbar .action-btn-wrapper .action-btn,
+.dashboard-navbar.dark-theme .action-btn-wrapper .action-btn {
   background: rgba(255, 255, 255, 0.1) !important;
   border-color: rgba(192, 132, 252, 0.3) !important;
   color: #f3e8ff !important;
 }
 
-:global(.dark) .action-btn:hover,
-:global(html.dark) .action-btn:hover,
-:global(.dark) .action-btn-wrapper .action-btn:hover,
-:global(html.dark) .action-btn-wrapper .action-btn:hover,
-.action-btn:hover,
-.action-btn-wrapper :deep(.action-btn:hover) {
+.dark .dashboard-navbar .action-btn:hover,
+html.dark .dashboard-navbar .action-btn:hover,
+.dashboard-navbar.dark-theme .action-btn:hover,
+.dark .dashboard-navbar .action-btn-wrapper .action-btn:hover,
+html.dark .dashboard-navbar .action-btn-wrapper .action-btn:hover,
+.dashboard-navbar.dark-theme .action-btn-wrapper .action-btn:hover {
   background: rgba(192, 132, 252, 0.25) !important;
   color: #ffffff !important;
 }
 
-:global(.dark) .badge,
-:global(html.dark) .badge,
-:global(.dark) .action-btn-wrapper .notification-badge,
-:global(html.dark) .action-btn-wrapper .notification-badge,
-.badge,
-.action-btn-wrapper :deep(.notification-badge) {
+.dark .dashboard-navbar .badge,
+html.dark .dashboard-navbar .badge,
+.dashboard-navbar.dark-theme .badge,
+.dark .dashboard-navbar .action-btn-wrapper .notification-badge,
+html.dark .dashboard-navbar .action-btn-wrapper .notification-badge,
+.dashboard-navbar.dark-theme .action-btn-wrapper .notification-badge {
   border-color: #240b3b !important;
 }
 </style>

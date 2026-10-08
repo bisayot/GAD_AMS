@@ -92,7 +92,7 @@
               <h3 class="subsection-title">1. Submitted List</h3>
               <p class="subsection-text">From the top navigation bar, navigate to <em>Documents > Submitted List</em> to open the submission tracking interface.</p>
               <ul class="styled-list">
-                <li><strong>Summary Metrics:</strong> At the top of the page, view real-time overview cards displaying the total counts for TWG, Non-TWG, Activity Designs, and Accomplishment Reports.</li>
+                <li><strong>Summary Metrics:</strong> At the top of the page, view real-time overview cards displaying the total counts for TWG, Proponents, Activity Designs, and Accomplishment Reports.</li>
                 <li><strong>Submitted List Details:</strong> The table displays total submissions across all users, showing the count of users from each college, office, or unit along with their respective user roles.</li>
                 <li><strong>Filter and Search Options:</strong> Use the filter bar to sort records by status, form type, or office, or search directly by title or control number.</li>
               </ul>
@@ -174,7 +174,7 @@
           <div id="communications" class="manual-section">
             <h2 class="section-title">7. Communications</h2>
             <ul class="styled-list">
-              <li><strong>Messages:</strong> Use this feature to message staff, TWG, or non-TWG members, or to broadcast announcements.</li>
+              <li><strong>Messages:</strong> Use this feature to message staff, TWG, or Proponents, or to broadcast announcements.</li>
               <li><strong>Inquiries:</strong> Use this to reply to inquiries coming from outside users.</li>
             </ul>
           </div>

@@ -994,7 +994,7 @@ const deleteItem = (id) => {
    ========================================================================== */
 :global(.dark) .page-title,
 .dark .page-title {
-  background: linear-gradient(135deg, #deb7ff 0%, #c084fc 100%);
+  background: linear-gradient(135deg, #6b21a8 0%, #9333ea 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -1002,7 +1002,7 @@ const deleteItem = (id) => {
 
 :global(.dark) .page-subtitle,
 .dark .page-subtitle {
-  color: #cbd5e1;
+  color: #475569;
 }
 
 :global(.dark) .form-container,

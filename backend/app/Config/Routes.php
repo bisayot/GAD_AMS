@@ -183,6 +183,9 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     $routes->options('activity-reports', 'AccomplishmentReportController::index');
     $routes->get('activity-reports', 'AccomplishmentReportController::index');
 
+    $routes->options('verified-reports', 'AuthController::handleOptions');
+    $routes->get('verified-reports', 'AccomplishmentReportController::getVerifiedReports');
+
     $routes->options('activity-report/(:num)', 'AccomplishmentReportController::show/$1');
     $routes->get('activity-report/(:num)', 'AccomplishmentReportController::show/$1');
 
@@ -218,7 +221,7 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     $routes->options('analytics/participants/(:num)', 'AuthController::handleOptions');
     $routes->get('analytics/participants/(:num)', 'AnalyticsController::getParticipants/$1');
     $routes->options('analytics/participants/user/(:num)/(:num)', 'AuthController::handleOptions');
-    $routes->get('analytics/participants/user/(:num)/(:num)', 'AnalyticsController::getParticipantsByUser/$1/$2');
+    $routes->get('analytics/participants/user/(:num)/(:num)', 'AnalyticsController::getParticipantsByUser/$1/$2', ['filter' => 'jwtAuth']);
 
     // ----------------------------------------------------------------
     // ADMIN TRACKING ROUTES (new)
@@ -318,6 +321,8 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     // Office Budget Utilization and Realignment Monitoring
     $routes->options('staff/budget-monitoring', 'BudgetController::optionsHandler');
     $routes->get('staff/budget-monitoring', 'BudgetController::getOfficeUtilization');
+    $routes->options('college/budget-monitoring', 'BudgetController::optionsHandler');
+    $routes->get('college/budget-monitoring', 'BudgetController::getOfficeUtilization');
     
     $routes->options('staff/budget-monitoring/update', 'BudgetController::optionsHandler');
     $routes->post('staff/budget-monitoring/update', 'BudgetController::updateOfficeBudget');
@@ -400,10 +405,10 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     // ----------------------------------------------------------------
     $routes->options('news-iec', 'AuthController::handleOptions');
     $routes->get('news-iec', 'NewsIecController::index');
-    $routes->post('news-iec', 'NewsIecController::create');
+    $routes->post('news-iec', 'NewsIecController::create', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
     $routes->options('news-iec/(:num)', 'AuthController::handleOptions');
     $routes->get('news-iec/(:num)', 'NewsIecController::show/$1');
-    $routes->delete('news-iec/(:num)', 'NewsIecController::delete/$1');
+    $routes->delete('news-iec/(:num)', 'NewsIecController::delete/$1', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
 });
 
 $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
@@ -419,7 +424,7 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
 
     // Annual Report Archives
     $routes->options('annual-reports/archive', 'AuthController::handleOptions');
-    $routes->post('annual-reports/archive', 'AnnualReportArchiveController::archive');
+    $routes->post('annual-reports/archive', 'AnnualReportArchiveController::archive', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
     $routes->get('annual-reports/archive', 'AnnualReportArchiveController::index');
     $routes->options('annual-reports/archive/(:num)', 'AuthController::handleOptions');
     $routes->get('annual-reports/archive/(:num)', 'AnnualReportArchiveController::show/$1');
@@ -430,16 +435,16 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
         $routes->get('/', 'HolidayController::index');
 
         $routes->options('create', 'AuthController::handleOptions');
-        $routes->post('create', 'HolidayController::create');
+        $routes->post('create', 'HolidayController::create', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
 
         $routes->options('update/(:num)', 'AuthController::handleOptions');
-        $routes->put('update/(:num)', 'HolidayController::update/$1');
+        $routes->put('update/(:num)', 'HolidayController::update/$1', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
 
         $routes->options('delete/(:num)', 'AuthController::handleOptions');
-        $routes->delete('delete/(:num)', 'HolidayController::delete/$1');
+        $routes->delete('delete/(:num)', 'HolidayController::delete/$1', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
 
         $routes->options('sync', 'AuthController::handleOptions');
-        $routes->post('sync', 'HolidayController::sync');
+        $routes->post('sync', 'HolidayController::sync', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
     });
 
     // Venues Management
