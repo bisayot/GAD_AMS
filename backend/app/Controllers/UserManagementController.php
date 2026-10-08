@@ -206,7 +206,8 @@ class UserManagementController extends ResourceController
 
     public function getProfile()
     {
-        $userId = $this->request->getHeaderLine('X-User-Id');
+        $payload = $this->request->jwtPayload ?? null;
+        $userId = $payload['sub'] ?? ($payload['id'] ?? $this->request->getHeaderLine('X-User-Id'));
         if (!$userId) return $this->failUnauthorized('Not logged in');
 
         $userModel = new \App\Models\UserModel();
@@ -226,7 +227,8 @@ class UserManagementController extends ResourceController
 
     public function updateProfile()
     {
-        $userId = $this->request->getHeaderLine('X-User-Id');
+        $payload = $this->request->jwtPayload ?? null;
+        $userId = $payload['sub'] ?? ($payload['id'] ?? $this->request->getHeaderLine('X-User-Id'));
         if (!$userId) return $this->failUnauthorized('Not logged in');
 
         $data = $this->request->getJSON(true) ?: $this->request->getPost();

@@ -1486,11 +1486,18 @@ button { font-family: inherit; cursor: pointer; }
   margin: 32px 32px 0 32px;
   border-radius: 16px;
   overflow: hidden;
-  border: 1px solid var(--border);
-  box-shadow: var(--gpb-shadow);
+  border: 2px solid #eab308;
+  box-shadow: var(--gpb-shadow), 0 0 15px rgba(234, 179, 8, 0.2);
   background: var(--surface);
   display: flex;
   flex-direction: column;
+}
+:global(html.dark) .gpb-container,
+:global(.dark) .gpb-container,
+:global(html.dark .gpb-container),
+:global(.dark .gpb-container) {
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--gpb-shadow) !important;
 }
 
 input, textarea, select {
@@ -1910,8 +1917,8 @@ select option { background: #ffffff; color: #0f172a; }
 .empty-note strong { color: var(--card-text-muted); font-style: normal; }
 
 .card {
-  box-shadow: var(--card-shadow);
-  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow), 0 0 10px rgba(234, 179, 8, 0.15);
+  border: 2px solid #eab308;
   border-radius: 1rem;
   break-inside: avoid;
   margin-bottom: 1rem;
@@ -1919,14 +1926,29 @@ select option { background: #ffffff; color: #0f172a; }
   color: var(--card-text);
   transition: all 0.2s ease;
 }
-.card:hover { border-color: var(--card-border-hover); }
+.card:hover { border-color: #ca8a04; }
 .card.expanded {
   border-color: #9333ea;
   box-shadow: 0 0 0 1px rgba(147, 51, 234, 0.25), var(--card-shadow);
 }
+:global(html.dark) .card,
+:global(.dark) .card,
+:global(html.dark .card),
+:global(.dark .card) {
+  border: 1px solid var(--card-border) !important;
+  box-shadow: var(--card-shadow) !important;
+}
+:global(html.dark) .card:hover,
+:global(.dark) .card:hover,
+:global(html.dark .card:hover),
+:global(.dark .card:hover) {
+  border-color: var(--card-border-hover) !important;
+}
 :global(html.dark) .card.expanded,
-:global(.dark) .card.expanded {
-  border-color: #c084fc;
+:global(.dark) .card.expanded,
+:global(html.dark .card.expanded),
+:global(.dark .card.expanded) {
+  border-color: #c084fc !important;
 }
 .card.is-new {
   border-color: var(--secondary-dim);

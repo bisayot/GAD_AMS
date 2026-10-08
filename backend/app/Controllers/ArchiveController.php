@@ -12,9 +12,10 @@ class ArchiveController extends Controller
     public function index()
     {
         $db = \Config\Database::connect();
-        $authHeader = $this->request->getHeaderLine('Authorization');
-        $userId = $this->request->getGet('user_id');
-        $role = $this->request->getGet('role');
+        $payload = $this->request->jwtPayload ?? null;
+        $userRole = $payload['role'] ?? ($this->request->getGet('role') ?? '');
+        $userId = $payload['sub'] ?? ($payload['id'] ?? $this->request->getGet('user_id'));
+        $isStaffOrAdmin = in_array($userRole, ['admin', 'gad_staff', 'staff', 'superadmin'], true);
 
         $designsQuery = $db->table('activity_design as aad')
             ->select('aad.*, aad.act_design_id as original_id, \'design\' as type, aad.activity_title as title, aad.form_type as form_label, users.username as office, aad.start_date as date, COALESCE(aad.archived_at, aad.end_date) as dateRaw')
@@ -29,7 +30,7 @@ class ArchiveController extends Controller
             ->where('aar.is_archived', 1)
             ->where('aar.deleted_at IS NULL', null, false);
 
-        if ($role && $role !== 'admin' && $role !== 'gad_staff') {
+        if (!$isStaffOrAdmin) {
             $designsQuery->where('aad.user_id', $userId);
             $reportsQuery->where('aar.user_id', $userId);
         }

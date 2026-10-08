@@ -195,11 +195,10 @@ class Filters extends BaseFilters
         // ----------------------------------------------------------------
         'staffOrAdmin' => [
             'before' => [
-                // View / manage users (staff has limited rights; suspend is admin-only below)
-                'api/users',
+                // Manage users (the read-only directory endpoint is available to
+                // authenticated messaging users; mutations remain restricted)
                 'api/users/create',
                 'api/users/update*',
-                'api/users/profile*',
                 // Document approval / revision workflow
                 'api/approve-design*',
                 'api/disapprove-design*',
@@ -212,8 +211,6 @@ class Filters extends BaseFilters
                 'api/activity-designs',
                 'api/activity-reports',
                 'api/admin/twg-submissions',
-                // Auditing
-                'api/activity-logs',
                 // Contact inquiries
                 'api/contact-inquiries*',
                 // News & IEC publishing
@@ -221,7 +218,6 @@ class Filters extends BaseFilters
                 // Archiving
                 'api/archive-design*',
                 'api/archive-report*',
-                'api/archives',
                 // Annual reports
                 'api/annual-reports/archive',
                 // Budget management
@@ -242,7 +238,6 @@ class Filters extends BaseFilters
                 // Plan & budget configuration
                 'api/plan',
                 'api/plan/mandate-allocations',
-                'api/plan/mandate-statistics',
                 // GPB import (destructive)
                 'api/gpb/import',
             ]

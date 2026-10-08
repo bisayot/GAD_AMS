@@ -39,8 +39,22 @@ class ActivityLogController extends ResourceController
             $builder->where('users.role !=', 'admin');
         }
 
-        if ($userId) {
-            $builder->where('activity_logs.user_id', $userId);
+        $payload = $this->request->jwtPayload ?? null;
+        $userRole = $payload['role'] ?? '';
+        $isStaffOrAdmin = in_array($userRole, ['admin', 'gad_staff', 'staff', 'superadmin'], true);
+
+        // TWG / Non-TWG users may only view their own activity logs
+        if (!$isStaffOrAdmin) {
+            $currentUserId = $payload['sub'] ?? ($payload['id'] ?? null);
+            if ($currentUserId) {
+                $builder->where('activity_logs.user_id', $currentUserId);
+            } elseif ($userId) {
+                $builder->where('activity_logs.user_id', $userId);
+            }
+        } else {
+            if ($userId) {
+                $builder->where('activity_logs.user_id', $userId);
+            }
         }
 
         $logs = $builder->get()->getResultArray();

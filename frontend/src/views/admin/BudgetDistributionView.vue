@@ -233,19 +233,38 @@
                           </select>
                           <div v-if="item.gpb_budget_line_id" style="display: flex; align-items: center; gap: 4px;">
                             <span class="text-xs text-muted">₱</span>
-                            <input type="number" v-model.number="item.allocated_to_current" class="item-alloc-select" style="padding: 4px 8px;" @input="markAllocationsDirty" :max="item.amount - getAllocatedElsewhere(item)" min="0" step="0.01" placeholder="Amount">
+                            <input type="number" v-model.number="item.allocated_to_current" class="item-alloc-select" style="padding: 4px 8px;" @input="validateAllocation(item)" :max="item.amount - getAllocatedElsewhere(item)" min="0" step="0.01" placeholder="Amount">
                           </div>
                         </div>
                         <span v-else class="text-muted text-xs">N/A</span>
                       </td>
                       <td class="text-xs">
                          <span v-if="item.amount <= 0" class="text-muted" title="This item has no cost to allocate.">No Cost</span>
-                         <span v-else-if="item.gpb_budget_line_id">
-                            <span class="status-assigned">Assigned</span>
-                            <div class="text-muted mt-1" style="font-size: 0.7rem;">(Max allowed: ₱{{ Number(item.amount - getAllocatedElsewhere(item)).toLocaleString('en-US', {minimumFractionDigits: 2}) }})</div>
-                         </span>
-                         <span v-else-if="getAllocatedElsewhere(item) >= item.amount" class="status-locked" title="This budget item has been fully assigned to other mandates. It cannot be assigned here unless it is removed from the other mandate first.">🔒 Locked</span>
-                         <span v-else class="text-muted">Unassigned</span>
+                         <div v-else>
+                             <div v-if="item.gpb_budget_line_id">
+                                <span class="status-assigned">Assigned</span>
+                             </div>
+                             <div v-else-if="getAllocatedElsewhere(item) >= item.amount" class="status-locked" title="This budget item has been fully assigned to other mandates. It cannot be assigned here unless it is removed from the other mandate first.">
+                                🔒 Locked
+                             </div>
+                             <div v-else>
+                                <span class="text-muted">Unassigned</span>
+                             </div>
+                             
+                             <div class="text-muted mt-1" style="font-size: 0.7rem;">
+                                 (Max allowed: ₱{{ Number(item.amount - getAllocatedElsewhere(item)).toLocaleString('en-US', {minimumFractionDigits: 2}) }})
+                             </div>
+
+                             <div v-if="item.allocations && item.allocations.filter(a => !(currentAllocationStat?.gpb_ids || []).includes(parseInt(a.mandate_id))).length > 0" class="mt-2" style="font-size: 0.7rem; border-top: 1px dashed var(--border-color, #cbd5e1); padding-top: 4px;">
+                                 <strong style="opacity: 0.8;">Allocated Elsewhere:</strong>
+                                 <div v-for="al in item.allocations.filter(a => !(currentAllocationStat?.gpb_ids || []).includes(parseInt(a.mandate_id)))" :key="al.id" style="margin-top: 4px; padding-left: 6px; border-left: 2px solid var(--border-color, #94a3b8);">
+                                     <div style="font-weight: 600; opacity: 0.9;">{{ al.mandate_name }}</div>
+                                     <div v-if="al.cause_name" style="opacity: 0.75; font-style: italic; margin-bottom: 2px;">{{ al.cause_name }}</div>
+                                     <div v-if="al.activity_name" style="opacity: 0.75; margin-bottom: 2px;">• {{ al.activity_name }}</div>
+                                     <div style="color: #10b981; font-family: monospace; font-weight: 600;">₱{{ Number(al.allocated_amount).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</div>
+                                 </div>
+                             </div>
+                         </div>
                       </td>
                     </tr>
                   </tbody>
@@ -378,7 +397,34 @@ export default {
        }, 0);
     };
 
+    const validateAllocation = (item) => {
+       markAllocationsDirty();
+       const maxAllowed = item.amount - getAllocatedElsewhere(item);
+       if (item.allocated_to_current > maxAllowed) {
+           Swal.fire({
+               icon: 'warning',
+               title: 'Exceeds Maximum Allowed',
+               text: `The allocated amount cannot exceed the total cost of ₱${Number(maxAllowed).toLocaleString('en-US', {minimumFractionDigits: 2})}.`,
+               confirmButtonText: 'OK'
+           });
+           item.allocated_to_current = maxAllowed;
+       }
+    };
+
     const saveAllocations = async () => {
+       // Validate all items before saving to ensure no limits are bypassed
+       for (const doc of allocationsData.value) {
+           for (const item of doc.items) {
+               if (item.gpb_budget_line_id) {
+                   const maxAllowed = item.amount - getAllocatedElsewhere(item);
+                   if (item.allocated_to_current > maxAllowed) {
+                       Swal.fire('Validation Error', `Allocated amount for "${item.item_name}" exceeds the maximum allowed (₱${Number(maxAllowed).toLocaleString('en-US', {minimumFractionDigits: 2})}).`, 'error');
+                       return;
+                   }
+               }
+           }
+       }
+
        savingAllocations.value = true;
        
        const flatAllocs = [];
@@ -450,7 +496,7 @@ export default {
       fetchMandateStats,
       showAllocationModal, loadingAllocations, savingAllocations, allocationsData, currentAllocationStat,
       allocationsDirty, openAllocationModal, closeAllocationModal, markAllocationsDirty,
-      getAllocatedElsewhere, saveAllocations, arVerifiedTotals,
+      getAllocatedElsewhere, validateAllocation, saveAllocations, arVerifiedTotals,
       isPdfModalOpen, pdfFileUrl, openDocumentPreview, closePdfModal
     };
   }

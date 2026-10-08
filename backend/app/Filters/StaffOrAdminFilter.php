@@ -37,6 +37,27 @@ class StaffOrAdminFilter implements FilterInterface
         }
 
         if (!in_array($payload['role'] ?? '', self::ALLOWED_ROLES, true)) {
+            $method = strtoupper($request->getMethod());
+            $uriPath = method_exists($request, 'getPath') ? $request->getPath() : trim($request->getUri()->getPath(), '/');
+
+            // Allow read-only (GET) requests for system resources used globally:
+            // - holidays (used by datepickers across all roles)
+            // - venues (used by proposal forms across all roles)
+            // - settings (used by proposal forms for baseline amounts and submission limits)
+            // - plan (used by read-only college GAD plan view)
+            if ($method === 'GET') {
+                if (
+                    str_contains($uriPath, 'holidays') ||
+                    str_contains($uriPath, 'venues') ||
+                    str_contains($uriPath, 'settings') ||
+                    str_ends_with($uriPath, 'plan') ||
+                    $uriPath === 'api/plan' ||
+                    $uriPath === 'plan'
+                ) {
+                    return null;
+                }
+            }
+
             return service('response')
                 ->setStatusCode(403)
                 ->setJSON(['status' => 403, 'message' => 'Forbidden: Staff or Administrator access required.']);

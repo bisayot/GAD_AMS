@@ -142,6 +142,11 @@ class PlanController extends ResourceController
 
     public function savePlan()
     {
+        $payload = $this->request->jwtPayload ?? null;
+        if ($payload && !in_array($payload['role'] ?? '', ['admin', 'gad_staff', 'staff', 'superadmin'], true)) {
+            return $this->failForbidden('Staff or Administrator access required to save plan.');
+        }
+
         $db = \Config\Database::connect();
         $input = $this->request->getJSON(true);
 
@@ -450,6 +455,24 @@ class PlanController extends ResourceController
                         ->where('item_type', 'AR')
                         ->where('budget_item_id', $item['id'])
                         ->get()->getResultArray();
+                    
+                    foreach ($allocations as &$al) {
+                        $gpbItem = $db->table('gpb_items')
+                            ->select('mandate, cause, activity')
+                            ->where('id', $al['mandate_id'])
+                            ->get()->getRowArray();
+                        if ($gpbItem) {
+                            $mName = trim($gpbItem['mandate']);
+                            $al['mandate_name'] = $mName ? $mName : ($gpbItem['activity'] ?: 'Attributed Program');
+                            $al['cause_name'] = trim($gpbItem['cause']);
+                            $al['activity_name'] = trim($gpbItem['activity']);
+                        } else {
+                            $al['mandate_name'] = 'Unknown Mandate';
+                            $al['cause_name'] = '';
+                            $al['activity_name'] = '';
+                        }
+                    }
+                    
                     $item['allocations'] = $allocations;
                     
                     $allocatedToCurrent = 0;
