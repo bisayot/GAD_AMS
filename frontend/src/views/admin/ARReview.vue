@@ -459,8 +459,18 @@
             <h4>{{ report.activity_title }}</h4>
           </div>
 
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label>Quick Select Issues (Optional)</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; max-height: 200px; overflow-y: auto; padding-right: 8px;">
+              <label v-for="(issue, idx) in revisionIssueOptions" :key="idx" style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #cbd5e1; cursor: pointer;">
+                <input type="checkbox" :value="issue" v-model="selectedRevisionIssues" style="accent-color: #9333ea; width: 16px; height: 16px;">
+                {{ issue }}
+              </label>
+            </div>
+          </div>
+
           <div class="form-group">
-            <label>Revision Remarks / Comments or <span style="font-weight: bold; color: #b979cc;">You can also put your remarks/comments in the <a :href="getPdfjsUrl()" target="_blank" style="color: #007bff; text-decoration: underline; cursor: pointer;">pdf</a> file itself before sending revision</span></label>
+            <label>Additional Remarks / Comments or <span style="font-weight: bold; color: #b979cc;">You can also put your remarks/comments in the <a :href="getPdfjsUrl()" target="_blank" style="color: #007bff; text-decoration: underline; cursor: pointer;">pdf</a> file itself before sending revision</span></label>
             <textarea 
               v-model="revisionRemarks"
               class="modal-textarea"
@@ -550,6 +560,21 @@ const assessmentRemarks = ref('');
 const showRevisionModal = ref(false);
 const revisionRemarks = ref('');
 const revisionDeadline = ref('');
+
+const revisionIssueOptions = [
+  'Undefined Beneficiaries',
+  'Missing Documents',
+  'Over-Ceiling Costs',
+  'Non-Compliant Rates',
+  'Expense Misclassification',
+  'COA/PCW Disallowed Items',
+  'Not in Approved GPB',
+  'Gender-Washing',
+  'Stereotyping & Vague Objectives',
+  'Gender Perspective',
+  'Budget'
+];
+const selectedRevisionIssues = ref([]);
 
 const isLateSubmission = computed(() => {
   if (!report.value || !report.value.date || !report.value.activity_design || !report.value.activity_design.accomplishment_deadline) {
@@ -747,9 +772,19 @@ const handleApprove = async () => {
 };
 
 const handleSendRevision = async () => {
-  if (!revisionRemarks.value || !revisionDeadline.value) {
-    Swal.fire({ icon: 'warning', title: 'Missing Info', text: 'Please provide both remarks and a deadline.', confirmButtonColor: '#b979cc' });
+  if (selectedRevisionIssues.value.length === 0 && !revisionRemarks.value) {
+    Swal.fire({ icon: 'warning', title: 'Missing Info', text: 'Please select an issue or provide feedback in the remarks.', confirmButtonColor: '#b979cc' });
     return;
+  }
+  if (!revisionDeadline.value) {
+    Swal.fire({ icon: 'warning', title: 'Missing Info', text: 'Please provide a deadline.', confirmButtonColor: '#b979cc' });
+    return;
+  }
+
+  let finalRemarks = revisionRemarks.value;
+  if (selectedRevisionIssues.value.length > 0) {
+    const issuesText = "- " + selectedRevisionIssues.value.join('\n- ');
+    finalRemarks = finalRemarks ? (issuesText + "\n\nAdditional Notes:\n" + finalRemarks) : issuesText;
   }
 
   Swal.fire({
@@ -765,7 +800,7 @@ const handleSendRevision = async () => {
   try {
     const id = report.value.id || report.value.acc_report_id;
     const response = await api.post(`revision-report/${id}`, {
-      remarks: revisionRemarks.value,
+      remarks: finalRemarks,
       deadline: revisionDeadline.value
     });
     

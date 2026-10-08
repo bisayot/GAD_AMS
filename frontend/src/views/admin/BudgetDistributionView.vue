@@ -7,6 +7,7 @@
           <h1 class="topbar-title">Budget Distribution by Mandate</h1>
         </div>
         <div class="topbar-actions">
+
           <router-link to="/admin/budget">
             <button class="topbar-btn outline">📊 Budget Monitoring</button>
           </router-link>
@@ -223,17 +224,26 @@
                       <td>{{ item.item_name }} <span v-if="item.sub_item" class="sub-item-text">- {{ item.sub_item }}</span></td>
                       <td class="font-mono">₱{{ Number(item.amount).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</td>
                       <td>
-                        <select v-if="item.amount > 0" v-model="item.gpb_budget_line_id" class="item-alloc-select" @change="markAllocationsDirty">
-                           <option :value="null">-- Not Allocated --</option>
-                           <option v-for="bl in (currentAllocationStat?.budget_lines || [])" :key="bl.id" :value="bl.id">
-                              {{ bl.label }} (₱{{ Number(bl.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }})
-                           </option>
-                        </select>
+                        <div v-if="item.amount > 0" style="display: flex; flex-direction: column; gap: 8px;">
+                          <select v-model="item.gpb_budget_line_id" class="item-alloc-select" @change="markAllocationsDirty">
+                             <option :value="null">-- Not Allocated --</option>
+                             <option v-for="bl in (currentAllocationStat?.budget_lines || [])" :key="bl.id" :value="bl.id">
+                                {{ bl.label }} (₱{{ Number(bl.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2}) }})
+                             </option>
+                          </select>
+                          <div v-if="item.gpb_budget_line_id" style="display: flex; align-items: center; gap: 4px;">
+                            <span class="text-xs text-muted">₱</span>
+                            <input type="number" v-model.number="item.allocated_to_current" class="item-alloc-select" style="padding: 4px 8px;" @input="markAllocationsDirty" :max="item.amount - getAllocatedElsewhere(item)" min="0" step="0.01" placeholder="Amount">
+                          </div>
+                        </div>
                         <span v-else class="text-muted text-xs">N/A</span>
                       </td>
                       <td class="text-xs">
                          <span v-if="item.amount <= 0" class="text-muted" title="This item has no cost to allocate.">No Cost</span>
-                         <span v-else-if="item.gpb_budget_line_id" class="status-assigned">Assigned</span>
+                         <span v-else-if="item.gpb_budget_line_id">
+                            <span class="status-assigned">Assigned</span>
+                            <div class="text-muted mt-1" style="font-size: 0.7rem;">(Max allowed: ₱{{ Number(item.amount - getAllocatedElsewhere(item)).toLocaleString('en-US', {minimumFractionDigits: 2}) }})</div>
+                         </span>
                          <span v-else-if="getAllocatedElsewhere(item) >= item.amount" class="status-locked" title="This budget item has been fully assigned to other mandates. It cannot be assigned here unless it is removed from the other mandate first.">🔒 Locked</span>
                          <span v-else class="text-muted">Unassigned</span>
                       </td>
@@ -255,6 +265,8 @@
     </div>
 
     <PdfPreviewModal :isOpen="isPdfModalOpen" :fileUrl="pdfFileUrl" @close="closePdfModal" />
+
+
   </div>
 </template>
 
@@ -271,6 +283,9 @@ export default {
     const mandateStats = ref([]);
     const mandateStatsFilter = ref('all');
     const searchQuery = ref('');
+
+
+
     const filteredMandateStats = computed(() => {
       let list = mandateStats.value;
       if (mandateStatsFilter.value !== 'all') {
@@ -373,7 +388,7 @@ export default {
                let gpbLineId = item.gpb_budget_line_id;
                
                if (gpbLineId) {
-                   val = parseFloat(item.amount) || 0;
+                   val = parseFloat(item.allocated_to_current) || 0;
                }
 
                flatAllocs.push({

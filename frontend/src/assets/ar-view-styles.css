@@ -1643,6 +1643,9 @@ html.dark .budget-status-text,
   width: 90%;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
 }
 
 html.dark .revision-modal-content,
@@ -1656,6 +1659,7 @@ html.dark .revision-modal-content,
   background: linear-gradient(135deg, #7e22ce 0%, #9333ea 100%);
   padding: 24px 28px;
   color: white;
+  flex-shrink: 0;
 }
 
 .revision-modal-header h3 {
@@ -1669,6 +1673,7 @@ html.dark .revision-modal-content,
 
 .revision-modal-body {
   padding: 28px;
+  overflow-y: auto;
 }
 
 .revision-modal-footer {
