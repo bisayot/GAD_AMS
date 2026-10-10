@@ -11,7 +11,7 @@
             <span class="material-symbols-outlined text-purple-400 text-3xl">account_balance</span>
           </div>
           <h1 class="font-headline text-3xl font-extrabold tracking-tight mb-2 auth-title">Welcome Back</h1>
-          <p class="text-sm max-w-xs mx-auto auth-subtitle">Log in to the Benguet State University Gender and Development Office Portal</p>
+          <p class="text-sm max-w-xs mx-auto auth-subtitle">Log In to the GAD-AMS Portal.</p>
         </div>
 
         <!-- Login Card -->
@@ -19,8 +19,9 @@
           <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-blue-500"></div>
           
           <form @submit.prevent="handleLogin" class="space-y-6">
-            <div v-if="error" class="rounded-md bg-red-900/50 border border-red-500/50 text-red-200 px-3 py-2 text-sm mb-3">
-              {{ error }}
+            <div v-if="error" class="rounded-lg bg-red-50 dark:bg-red-950/60 border border-red-300 dark:border-red-800 text-red-900 dark:text-red-200 px-3.5 py-2.5 text-sm mb-3 flex items-start gap-2 font-medium shadow-sm">
+              <span class="material-symbols-outlined text-red-700 dark:text-red-400 text-base shrink-0 mt-0.5">error</span>
+              <span>{{ error }}</span>
             </div>
             <div v-if="successMsg" class="rounded-md bg-emerald-900/50 border border-emerald-500/50 text-emerald-200 px-3 py-2 text-sm mb-3 text-center">
               {{ successMsg }}

@@ -179,7 +179,6 @@ class Filters extends BaseFilters
                 'api/contact-inquiries*',
                 'api/storage*',
                 'api/add_office',
-                'api/holidays*',
             ]
         ],
 
@@ -222,7 +221,6 @@ class Filters extends BaseFilters
                 // Campus Resources (venues, offices, holidays)
                 'api/venues*',
                 'api/offices*',
-                'api/holidays*',
                 // System-wide settings
                 'api/settings*',
                 // Plan & budget configuration

@@ -19,7 +19,10 @@
       <div class="auth-card rounded-2xl p-8 md:p-12 shadow-2xl border relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-blue-500"></div>
         <form @submit.prevent="handleRegister" class="space-y-8">
-          <div v-if="error" class="rounded-md bg-red-900/50 border border-red-500/50 text-red-200 px-4 py-3 text-sm">{{ error }}</div>
+          <div v-if="error" class="rounded-lg bg-red-50 dark:bg-red-950/60 border border-red-300 dark:border-red-800 text-red-900 dark:text-red-200 px-4 py-3 text-sm flex items-start gap-2.5 font-medium shadow-sm">
+            <span class="material-symbols-outlined text-red-700 dark:text-red-400 text-base shrink-0 mt-0.5">error</span>
+            <span>{{ error }}</span>
+          </div>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div class="flex flex-col gap-2">
@@ -201,11 +204,11 @@
                   </div>
 
                   <!-- Smart Validation: Abbreviation Pattern Warning -->
-                  <div v-else-if="officeCheckResult.isAbbreviation" class="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-xs flex items-start gap-2 animate-fade-in">
-                    <span class="material-symbols-outlined text-red-500 text-base shrink-0 mt-0.5">error</span>
+                  <div v-else-if="officeCheckResult.isAbbreviation" class="p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-300 dark:border-red-800/50 text-xs flex items-start gap-2 animate-fade-in shadow-sm">
+                    <span class="material-symbols-outlined text-red-700 dark:text-red-400 text-base shrink-0 mt-0.5">error</span>
                     <div>
-                      <div class="font-bold text-red-700 dark:text-red-400">Please Do Not Use Abbreviations</div>
-                      <p class="text-on-surface-variant mt-0.5 leading-relaxed">
+                      <div class="font-bold text-red-900 dark:text-red-300">Please Do Not Use Abbreviations</div>
+                      <p class="text-red-950 dark:text-on-surface-variant mt-0.5 leading-relaxed">
                         "{{ newOfficeName }}" looks like an abbreviation or acronym. Please type the full, formal name (e.g. <em>College of Agriculture</em> instead of <em>CA</em>).
                       </p>
                     </div>

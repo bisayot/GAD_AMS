@@ -159,7 +159,7 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string|null
      */
-    public $frameSrc;
+    public $frameSrc = ['self', 'https://challenges.cloudflare.com', 'https://maps.google.com', 'https://www.google.com'];
 
     /**
      * Restricts the origins allowed to deliver video and audio.
