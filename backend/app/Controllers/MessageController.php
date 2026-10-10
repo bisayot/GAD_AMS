@@ -254,6 +254,13 @@ class MessageController extends ResourceController
             return $this->response->setJSON(['success' => false, 'message' => 'User ID required'])->setStatusCode(400);
         }
 
+        $payload = $this->request->jwtPayload ?? null;
+        $authUserId = $payload['sub'] ?? null;
+        $role = strtolower($payload['role'] ?? '');
+        if ($authUserId && (int)$authUserId !== (int)$userId && !in_array($role, ['admin', 'superadmin'], true)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Forbidden: Cannot access messages of another user.'])->setStatusCode(403);
+        }
+
         // Fetch messages where recipient_id = $userId, grouped by thread
         $db = \Config\Database::connect();
         $sql = "
@@ -308,6 +315,13 @@ class MessageController extends ResourceController
     {
         if (!$userId) {
             return $this->response->setJSON(['success' => false, 'message' => 'User ID required'])->setStatusCode(400);
+        }
+
+        $payload = $this->request->jwtPayload ?? null;
+        $authUserId = $payload['sub'] ?? null;
+        $role = strtolower($payload['role'] ?? '');
+        if ($authUserId && (int)$authUserId !== (int)$userId && !in_array($role, ['admin', 'superadmin'], true)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Forbidden: Cannot access messages of another user.'])->setStatusCode(403);
         }
 
         // Fetch messages where sender_id = $userId, grouped by thread
@@ -371,6 +385,13 @@ class MessageController extends ResourceController
     {
         if (!$userId) {
             return $this->response->setJSON(['success' => false, 'message' => 'User ID required'])->setStatusCode(400);
+        }
+
+        $payload = $this->request->jwtPayload ?? null;
+        $authUserId = $payload['sub'] ?? null;
+        $role = strtolower($payload['role'] ?? '');
+        if ($authUserId && (int)$authUserId !== (int)$userId && !in_array($role, ['admin', 'superadmin'], true)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Forbidden: Cannot access messages of another user.'])->setStatusCode(403);
         }
 
         $db = \Config\Database::connect();

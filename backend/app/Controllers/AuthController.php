@@ -39,7 +39,7 @@ class AuthController extends ResourceController
         $user = $userModel->findByIdentity($identity);
 
         if (!$user) {
-            return $this->failUnauthorized("User not found for identity: $identity");
+            return $this->failUnauthorized("Invalid username/email or password.");
         }
 
         if (!empty($user['deleted_at'])) {
@@ -47,11 +47,7 @@ class AuthController extends ResourceController
         }
 
         if (!password_verify($password, $user['password'])) {
-            // Debug: Check if it's a legacy MD5 or something (unlikely but let's check)
-            if (md5($password) === $user['password']) {
-                 return $this->failUnauthorized('Legacy MD5 password detected. Please reset your password.');
-            }
-            return $this->failUnauthorized("Password verification failed for user: " . $user['username']);
+            return $this->failUnauthorized("Invalid username/email or password.");
         }
 
         $userModel->update($user['id'], ['last_login' => date('Y-m-d H:i:s')]);
@@ -69,6 +65,13 @@ class AuthController extends ResourceController
             }
         }
 
+        // Fetch profile and office information
+        $db = \Config\Database::connect();
+        $profile = $db->tableExists('user_profiles') 
+            ? ($db->table('user_profiles')->where('user_id', $user['id'])->get()->getRowArray() ?: [])
+            : [];
+        $office = $user['office_id'] ? $db->table('office_units')->where('office_id', $user['office_id'])->get()->getRowArray() : null;
+
         // Generate a signed JWT — this is the real auth token the frontend will
         // attach to every subsequent request via Authorization: Bearer <token>
         $token = JwtHelper::generate([
@@ -82,13 +85,25 @@ class AuthController extends ResourceController
             'message' => 'Login successful',
             'token'   => $token,
             'user'    => [
-                'id'        => $user['id'],
-                'username'  => $user['username'],
-                'email'     => $user['email'] ?? '',
-                'role'      => $user['role'],
-                'user_role' => $userRole,
-                'full_name' => $user['full_name'],
-                'office_id' => $user['office_id']
+                'id'              => $user['id'],
+                'username'        => $user['username'],
+                'email'           => $user['email'] ?? '',
+                'role'            => $user['role'],
+                'user_role'       => $userRole,
+                'full_name'       => $user['full_name'],
+                'office_id'       => $user['office_id'],
+                'office_name'     => $office['office_name'] ?? '',
+                'location'        => $office['location'] ?? 'La Trinidad Campus',
+                'office_acronym'  => $office['office_acronym'] ?? '',
+                'first_name'      => $profile['first_name'] ?? $user['first_name'] ?? '',
+                'middle_name'     => $profile['middle_name'] ?? $user['middle_name'] ?? '',
+                'last_name'       => $profile['last_name'] ?? $user['last_name'] ?? '',
+                'sex'             => $profile['sex'] ?? '',
+                'profile_picture' => $profile['profile_picture'] ?? '',
+                'position'        => $profile['position'] ?? '',
+                'department'      => $profile['department'] ?? '',
+                'student_id'      => $profile['student_id'] ?? $user['student_id'] ?? '',
+                'year_level'      => $profile['year_level'] ?? $user['year_level'] ?? ''
             ]
         ]);
     }
@@ -169,6 +184,11 @@ class AuthController extends ResourceController
             $officeNameDisplay = $officeRow ? $officeRow['office_name'] : 'Unknown Office';
         }
 
+        $studentId = ($role === 'non-twg') ? ($data['university_id'] ?? $data['student_id'] ?? null) : null;
+        $yearLevel = ($role === 'non-twg') ? ($data['year_level'] ?? null) : null;
+        $departmentName = $data['department_name'] ?? null;
+        $position = !empty($data['position']) ? trim($data['position']) : null;
+
         $userData = [
             'username' => $username,
             'email' => $email,
@@ -179,12 +199,30 @@ class AuthController extends ResourceController
             'middle_name' => $data['middle_name'] ?? null,
             'last_name' => $data['last_name'] ?? '',
             'profile_role' => $data['user_role'] ?? 'Non-TWG',
-            'student_id' => $data['university_id'] ?? null,
+            'student_id' => $studentId,
+            'year_level' => $yearLevel,
             'office_id' => $officeId
         ];
 
         if ($userModel->insert($userData)) {
             $newUserId = $userModel->insertID();
+
+            // Create 1-to-1 Profile if user_profiles table exists
+            if ($db->tableExists('user_profiles')) {
+                $db->table('user_profiles')->insert([
+                    'user_id' => $newUserId,
+                    'first_name' => $data['first_name'] ?? '',
+                    'middle_name' => $data['middle_name'] ?? null,
+                    'last_name' => $data['last_name'] ?? '',
+                    'sex' => $data['sex'] ?? null,
+                    'position' => $position,
+                    'department' => $departmentName,
+                    'student_id' => $studentId,
+                    'year_level' => $yearLevel,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s')
+                ]);
+            }
 
             $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $newUserId;
             \App\Models\ActivityLogModel::log($actionUserId, 'Register User', 'registered a new user: ' . $data['fullname']);
@@ -404,11 +442,13 @@ class AuthController extends ResourceController
     public function getOffices() {
         $db = \Config\Database::connect();
         // The frontend expects unit_id and unit_name, but our DB has office_id and office_name
-        $offices = $db->table('office_units')->get()->getResultArray();
+        $offices = $db->table('office_units')->orderBy('office_name', 'ASC')->get()->getResultArray();
         $mappedOffices = array_map(function($o) {
             return [
                 'unit_id' => $o['office_id'],
-                'unit_name' => $o['office_name']
+                'unit_name' => $o['office_name'],
+                'location' => $o['location'] ?? 'La Trinidad Campus',
+                'office_acronym' => $o['office_acronym'] ?? ''
             ];
         }, $offices);
         return $this->respond($mappedOffices);
@@ -422,6 +462,7 @@ class AuthController extends ResourceController
         $cleanName = trim($data['unit_name']);
         $cleanName = preg_replace('/\s+/', ' ', $cleanName);
         $cleanName = ucwords(strtolower($cleanName));
+        $location = !empty($data['location']) ? trim($data['location']) : 'La Trinidad Campus';
 
         // Check if the cleaned name already exists to prevent duplication
         $existing = $db->table('office_units')->where('office_name', $cleanName)->get()->getRowArray();
@@ -429,19 +470,29 @@ class AuthController extends ResourceController
             return $this->respondCreated(['new_id' => $existing['office_id']]);
         }
 
-        $db->table('office_units')->insert(['office_name' => $cleanName]);
+        $db->table('office_units')->insert([
+            'office_name' => $cleanName,
+            'location' => $location
+        ]);
         return $this->respondCreated(['new_id' => $db->insertID()]);
     }
 
     public function getAllUsers() {
         $db = \Config\Database::connect();
-        $users = $db->table('users')
-            ->select('users.id, users.email, users.full_name, users.role, users.office_id, users.deleted_at, users.created_at, users.last_login, users.profile_role as user_role, office_units.office_name')
+        $builder = $db->table('users')
+            ->select('users.id, users.email, users.full_name, users.role, users.office_id, users.deleted_at, users.created_at, users.last_login, users.profile_role as user_role, office_units.office_name, office_units.location as campus_location')
             ->select('(SELECT COUNT(*) FROM activity_design WHERE activity_design.user_id = users.id) as ad_count')
             ->select('(SELECT COUNT(*) FROM accomplishment_report WHERE accomplishment_report.user_id = users.id) as ar_count')
-            ->join('office_units', 'office_units.office_id = users.office_id', 'left')
-            ->get()
-            ->getResultArray();
+            ->join('office_units', 'office_units.office_id = users.office_id', 'left');
+
+        if ($db->tableExists('user_profiles')) {
+            $builder->select('user_profiles.position, user_profiles.department, user_profiles.sex, COALESCE(user_profiles.student_id, users.student_id) as student_id, COALESCE(user_profiles.year_level, users.year_level) as year_level')
+                ->join('user_profiles', 'user_profiles.user_id = users.id', 'left');
+        } else {
+            $builder->select('NULL as position, NULL as department, NULL as sex, users.student_id, users.year_level');
+        }
+
+        $users = $builder->get()->getResultArray();
         return $this->respond($users);
     }
 

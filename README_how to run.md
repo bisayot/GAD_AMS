@@ -4,7 +4,7 @@ b. git clone https://github.com/bisayot/GAD_AMS.git && cd GAD_AMS
 c. code .
 
 2. download env files:
-https://drive.google.com/drive/folders/1qK-gau7YYfpKPmIiTFYEXiIDM2VEQtwt?usp=sharing
+ada samet ijay gc jay gdrive
 
 3. copy the files in there respective folders base on the names frontend for frontend backend for backend
 

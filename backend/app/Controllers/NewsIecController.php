@@ -44,15 +44,22 @@ class NewsIecController extends ResourceController
         $imagePaths = [];
         $files = $this->request->getFileMultiple('images');
         if ($files) {
+            $allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+            $allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+            $uploadPath = FCPATH . 'uploads/news_iec';
+            if (!is_dir($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+
             foreach ($files as $file) {
                 if ($file->isValid() && !$file->hasMoved()) {
-                    $newName = $file->getRandomName();
-                    $uploadPath = WRITEPATH . 'uploads/newsiec images';
-                    if (!is_dir($uploadPath)) {
-                        mkdir($uploadPath, 0777, true);
+                    $mime = $file->getMimeType();
+                    $ext = strtolower($file->guessExtension() ?: $file->getExtension());
+                    if (in_array($mime, $allowedMimes) && in_array($ext, $allowedExts)) {
+                        $newName = $file->getRandomName();
+                        $file->move($uploadPath, $newName);
+                        $imagePaths[] = $newName;
                     }
-                    $file->move($uploadPath, $newName);
-                    $imagePaths[] = $newName;
                 }
             }
         }
@@ -85,11 +92,14 @@ class NewsIecController extends ResourceController
         if (!empty($item['image_path'])) {
             $images = json_decode($item['image_path'], true);
             if (is_array($images)) {
-                $uploadPath = WRITEPATH . 'uploads/newsiec images/';
                 foreach ($images as $filename) {
-                    $filepath = $uploadPath . $filename;
-                    if (is_file($filepath)) {
-                        unlink($filepath);
+                    $publicFile = FCPATH . 'uploads/news_iec/' . $filename;
+                    if (is_file($publicFile)) {
+                        unlink($publicFile);
+                    }
+                    $writableFile = WRITEPATH . 'uploads/newsiec images/' . $filename;
+                    if (is_file($writableFile)) {
+                        unlink($writableFile);
                     }
                 }
             }

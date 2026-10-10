@@ -512,6 +512,23 @@ See https://github.com/adobe-type-tools/cmap-resources
         const role = urlParams.get('role');
         const fileUrl = urlParams.get('file');
 
+        // Listen for raw PDF data from parent frame (crucial for mobile devices where blob URLs inside iframes are blocked by Chrome)
+        window.addEventListener('message', async (event) => {
+          if (event.data && event.data.type === 'LOAD_PDF_DATA' && event.data.bytes) {
+            try {
+              const checkApp = setInterval(async () => {
+                if (window.PDFViewerApplication && window.PDFViewerApplication.initialized) {
+                  clearInterval(checkApp);
+                  const uint8Array = new Uint8Array(event.data.bytes);
+                  await window.PDFViewerApplication.open({ data: uint8Array });
+                }
+              }, 100);
+            } catch (err) {
+              console.error('Failed to load PDF data from postMessage:', err);
+            }
+          }
+        });
+
         // Hide editor toolbar for non-Admins
         if (!role || role.toLowerCase() !== 'admin') {
           const style = document.createElement('style');
@@ -576,8 +593,15 @@ See https://github.com/adobe-type-tools/cmap-resources
                   const oldTitle = document.title;
                   document.title = "Saving...";
 
+                  const token = localStorage.getItem('authToken') || (window.parent && window.parent.localStorage ? window.parent.localStorage.getItem('authToken') : null);
+                  const fetchHeaders = {};
+                  if (token) {
+                    fetchHeaders['Authorization'] = 'Bearer ' + token;
+                  }
+
                   const response = await fetch(overwriteUrl, {
                     method: 'POST',
+                    headers: fetchHeaders,
                     body: formData
                   });
                   

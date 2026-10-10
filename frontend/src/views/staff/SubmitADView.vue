@@ -236,7 +236,13 @@
                               <transition name="fade-pop"><div v-if="helpState.startTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                             </div>
                           </div>
-                          <input type="time" v-model="continuousConfig.start_time" min="04:00" max="20:00" required class="custom-input-field time-picker-input" @change="handleTimeChange(continuousConfig)">
+                          <AppTimePicker 
+                            v-model="continuousConfig.start_time" 
+                            min="04:00" 
+                            max="20:00" 
+                            required 
+                            @change="handleTimeChange(continuousConfig)" 
+                          />
                         </div>
                         <div class="flex-1">
                           <div class="label-container" style="margin-bottom: 4px;">
@@ -246,7 +252,13 @@
                               <transition name="fade-pop"><div v-if="helpState.endTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                             </div>
                           </div>
-                          <input type="time" v-model="continuousConfig.end_time" min="04:00" max="20:00" required class="custom-input-field time-picker-input" @change="handleTimeChange(continuousConfig)">
+                          <AppTimePicker 
+                            v-model="continuousConfig.end_time" 
+                            min="04:00" 
+                            max="20:00" 
+                            required 
+                            @change="handleTimeChange(continuousConfig)" 
+                          />
                         </div>
                       </div>
 
@@ -274,7 +286,13 @@
                             <transition name="fade-pop"><div v-if="helpState.startTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                           </div>
                         </div>
-                        <input type="time" v-model="sch.start_time" min="04:00" max="20:00" required class="custom-input-field time-picker-input" @change="validateScheduleTime(index)">
+                        <AppTimePicker 
+                          v-model="sch.start_time" 
+                          min="04:00" 
+                          max="20:00" 
+                          required 
+                          @change="validateScheduleTime(index)" 
+                        />
                       </div>
                       <div style="flex: 1; min-width: 130px;">
                         <div class="label-container" style="margin-bottom: 6px;">
@@ -284,7 +302,13 @@
                             <transition name="fade-pop"><div v-if="helpState.endTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                           </div>
                         </div>
-                        <input type="time" v-model="sch.end_time" min="04:00" max="20:00" required class="custom-input-field time-picker-input" @change="validateScheduleTime(index)">
+                        <AppTimePicker 
+                          v-model="sch.end_time" 
+                          min="04:00" 
+                          max="20:00" 
+                          required 
+                          @change="validateScheduleTime(index)" 
+                        />
                       </div>
                       <button type="button" v-if="scheduleType === 'staggered' && schedules.length > 1" @click.prevent="removeSchedule(index)" style="background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" title="Remove Schedule">
                         <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
@@ -320,7 +344,7 @@
                                 <span class="material-symbols-outlined" style="font-size: 14px; margin-right: 4px;">open_in_new</span> Expand
                               </button>
                             </div>
-                            <iframe :src="getPdfViewerUrl(designFile.previewUrl)" width="100%" height="400px" style="border: 1px solid #b979cc; border-radius: 8px;"></iframe>
+                            <iframe ref="pdfIframeRef" :src="getPdfViewerUrl(designFile.previewUrl)" width="100%" height="400px" style="border: 1px solid #b979cc; border-radius: 8px;" @load="postPdfToIframe"></iframe>
                           </div>
                         </div>
                         <p v-else class="no-file-uploaded-text">No file uploaded yet.</p>
@@ -392,6 +416,7 @@ import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import Swal from 'sweetalert2';
 import BudgetBuilder from '../../components/BudgetBuilder.vue';
+import AppTimePicker from '../../components/AppTimePicker.vue';
 import api from '../../api';
 
 const router = useRouter();
@@ -773,6 +798,16 @@ const expandToNewTab = (url) => {
 
 const designFile = ref(null);
 
+const pdfIframeRef = ref(null);
+const postPdfToIframe = () => {
+  if (pdfIframeRef.value?.contentWindow && designFile.value?.rawBytes) {
+    pdfIframeRef.value.contentWindow.postMessage({
+      type: 'LOAD_PDF_DATA',
+      bytes: designFile.value.rawBytes
+    }, '*');
+  }
+};
+
 const handleFileUpload = (event) => {
   if (event.target.files.length > 0) {
     const file = event.target.files[0];
@@ -801,6 +836,14 @@ const handleFileUpload = (event) => {
 
     designFile.value = file;
     file.previewUrl = URL.createObjectURL(file);
+
+    // Read raw ArrayBuffer for mobile devices to bypass cross-frame blob isolation
+    const reader = new FileReader();
+    reader.onload = () => {
+      file.rawBytes = reader.result;
+      postPdfToIframe();
+    };
+    reader.readAsArrayBuffer(file);
   }
 };
 

@@ -94,24 +94,6 @@
             </p>
           </div>
         </div>
-
-        <!-- Supporting Information -->
-        <div class="mt-12 grid grid-cols-2 gap-4">
-          <div class="rounded-xl p-4 flex items-start gap-3 border border-outline-variant bg-surface-container backdrop-blur-sm">
-            <span class="material-symbols-outlined text-blue-400 text-xl">verified_user</span>
-            <div>
-              <h4 class="font-headline font-bold text-xs text-on-background">Secure Access</h4>
-              <p class="text-[10px] text-on-surface-variant leading-relaxed">Encrypted authentication for BSU personnel and students.</p>
-            </div>
-          </div>
-          <div class="rounded-xl p-4 flex items-start gap-3 border border-outline-variant bg-surface-container backdrop-blur-sm">
-            <span class="material-symbols-outlined text-blue-400 text-xl">help_center</span>
-            <div>
-              <h4 class="font-headline font-bold text-xs text-on-background">Need Help?</h4>
-              <p class="text-[10px] text-on-surface-variant leading-relaxed">Contact the ICT Support Desk for login issues.</p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </template>
@@ -256,27 +238,27 @@ const handleLogin = async () => {
   box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.1);
 }
 
-/* Dark mode - Rich deep dark purple with elevated card */
+/* Dark mode - Sleek charcoal with elevated card */
 :global(.dark) .login-page,
 .dark .login-page {
-  background-color: #120722 !important;
-  color: #f5efff !important;
+  background-color: #121316 !important;
+  color: #f3f4f6 !important;
 }
 
 :global(.dark) .auth-bg-blob-1,
 .dark .auth-bg-blob-1 {
-  background-color: rgba(168, 85, 247, 0.18) !important;
+  background-color: rgba(99, 102, 241, 0.12) !important;
 }
 
 :global(.dark) .auth-bg-blob-2,
 .dark .auth-bg-blob-2 {
-  background-color: rgba(107, 33, 168, 0.22) !important;
+  background-color: rgba(168, 85, 247, 0.12) !important;
 }
 
 :global(.dark) .auth-icon-wrap,
 .dark .auth-icon-wrap {
-  background-color: #2b1147 !important;
-  border-color: #532385 !important;
+  background-color: #242730 !important;
+  border-color: #383d49 !important;
 }
 
 :global(.dark) .auth-title,
@@ -286,57 +268,57 @@ const handleLogin = async () => {
 
 :global(.dark) .auth-subtitle,
 .dark .auth-subtitle {
-  color: #deb7ff !important;
+  color: #9ca3af !important;
 }
 
 :global(.dark) .auth-card,
 .dark .auth-card {
-  background-color: #210c3b !important;
-  border-color: #532385 !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(168, 85, 247, 0.2) !important;
+  background-color: #1e2026 !important;
+  border-color: #2f333d !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.07) !important;
 }
 
 :global(.dark) .login-page input,
 .dark .login-page input {
-  background-color: #2e1250 !important;
-  border-color: #532385 !important;
-  color: #f5efff !important;
+  background-color: #16181d !important;
+  border-color: #2f333d !important;
+  color: #f3f4f6 !important;
 }
 
 :global(.dark) .login-page input:focus,
 .dark .login-page input:focus {
-  background-color: #381660 !important;
-  border-color: #c084fc !important;
+  background-color: #1a1c22 !important;
+  border-color: #a855f7 !important;
 }
 
 :global(.dark) .login-page input::placeholder,
 .dark .login-page input::placeholder {
-  color: #a88bc4 !important;
+  color: #6b7280 !important;
 }
 
 :global(.dark) .login-page label,
 .dark .login-page label {
-  color: #deb7ff !important;
+  color: #d1d5db !important;
 }
 
 :global(.dark) .login-page .border-outline-variant,
 .dark .login-page .border-outline-variant {
-  border-color: #532385 !important;
+  border-color: #2f333d !important;
 }
 
 :global(.dark) .login-page .text-on-surface-variant,
 .dark .login-page .text-on-surface-variant {
-  color: #deb7ff !important;
+  color: #9ca3af !important;
 }
 
 :global(.dark) .login-page .bg-surface-variant,
 .dark .login-page .bg-surface-variant {
-  background-color: #2e1250 !important;
+  background-color: #242730 !important;
 }
 
 :global(.dark) .login-page .bg-surface-container,
 .dark .login-page .bg-surface-container {
-  background-color: #2e1250 !important;
-  border-color: #532385 !important;
+  background-color: #16181d !important;
+  border-color: #2f333d !important;
 }
 </style>

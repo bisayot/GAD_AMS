@@ -67,7 +67,15 @@
                 <div class="user-info">
                   <div class="user-name">{{ user.full_name || 'N/A' }}</div>
                   <div class="user-meta">{{ user.email }}</div>
-                  <div class="user-office mt-1">{{ user.office_name || 'No Office' }}</div>
+                  <div class="user-office mt-1">
+                    {{ user.office_name || 'No Office' }}
+                    <span v-if="user.department" class="text-xs opacity-75 font-normal"> • {{ user.department }}</span>
+                  </div>
+                  <div v-if="user.position || user.student_id || user.sex" class="flex flex-wrap items-center gap-1.5 mt-1">
+                    <span v-if="user.position" class="badge-role-tag">{{ user.position }}</span>
+                    <span v-if="user.student_id" class="badge-id-tag">ID: {{ user.student_id }}</span>
+                    <span v-if="user.sex" class="badge-id-tag">{{ user.sex }}</span>
+                  </div>
                   <div class="user-meta mt-2 flex flex-wrap items-center gap-2">
                     <span class="user-login flex items-center gap-1"><span class="material-symbols-outlined text-xs" style="font-size: 14px;">login</span> Last login: {{ formatLastLogin(user.last_login) }}</span>
                   </div>
@@ -122,7 +130,16 @@
                     <div class="user-info">
                       <div class="user-name">{{ user.full_name || 'N/A' }}</div>
                       <div class="user-meta">{{ user.email }}</div>
-                      <div class="user-office mt-1">{{ user.office_name || 'No Office' }}</div>
+                      <div class="user-office mt-1">
+                        {{ user.office_name || 'No Office' }}
+                        <span v-if="user.department" class="text-xs opacity-75 font-normal"> • {{ user.department }}</span>
+                      </div>
+                      <div v-if="user.position || user.student_id || user.year_level || user.sex" class="flex flex-wrap items-center gap-1.5 mt-1">
+                        <span v-if="user.position" class="badge-role-tag">{{ user.position }}</span>
+                        <span v-if="user.student_id" class="badge-id-tag">ID: {{ user.student_id }}</span>
+                        <span v-if="user.year_level" class="badge-id-tag">{{ user.year_level }}</span>
+                        <span v-if="user.sex" class="badge-id-tag">{{ user.sex }}</span>
+                      </div>
                       <div class="user-meta mt-2 flex flex-wrap items-center gap-3">
                         <span class="user-days flex items-center gap-1"><span class="material-symbols-outlined text-xs" style="font-size: 14px;">calendar_today</span> {{ daysOnSystem(user.created_at) }} days on system</span>
                         <span class="user-login flex items-center gap-1"><span class="material-symbols-outlined text-xs" style="font-size: 14px;">login</span> Last login: {{ formatLastLogin(user.last_login) }}</span>
@@ -153,7 +170,16 @@
                     <div class="user-info">
                       <div class="user-name">{{ user.full_name || 'N/A' }}</div>
                       <div class="user-meta">{{ user.email }}</div>
-                      <div class="user-office mt-1">{{ user.office_name || 'No Office' }}</div>
+                      <div class="user-office mt-1">
+                        {{ user.office_name || 'No Office' }}
+                        <span v-if="user.department" class="text-xs opacity-75 font-normal"> • {{ user.department }}</span>
+                      </div>
+                      <div v-if="user.position || user.student_id || user.year_level || user.sex" class="flex flex-wrap items-center gap-1.5 mt-1">
+                        <span v-if="user.position" class="badge-role-tag">{{ user.position }}</span>
+                        <span v-if="user.student_id" class="badge-id-tag">ID: {{ user.student_id }}</span>
+                        <span v-if="user.year_level" class="badge-id-tag">{{ user.year_level }}</span>
+                        <span v-if="user.sex" class="badge-id-tag">{{ user.sex }}</span>
+                      </div>
                       <div class="user-meta mt-2 flex flex-wrap items-center gap-3">
                         <span class="user-days flex items-center gap-1"><span class="material-symbols-outlined text-xs" style="font-size: 14px;">calendar_today</span> {{ daysOnSystem(user.created_at) }} days on system</span>
                         <span class="user-login flex items-center gap-1"><span class="material-symbols-outlined text-xs" style="font-size: 14px;">login</span> Last login: {{ formatLastLogin(user.last_login) }}</span>
@@ -237,42 +263,114 @@
         </div>
         <div class="modal-body p-6">
           <form @submit.prevent="submitForm" class="flex flex-col gap-4">
-            <div class="form-group">
-              <label class="form-label">Full Name</label>
-              <input type="text" v-model="form.full_name" required class="form-input" placeholder="Enter full name" />
+            <!-- Account & Role Information -->
+            <div class="border-b border-slate-100 dark:border-white/10 pb-4">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 mb-3 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-sm">manage_accounts</span>
+                Account & Credentials
+              </h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="form-group">
+                  <label class="form-label">Full Name <span class="text-red-500">*</span></label>
+                  <input type="text" v-model="form.full_name" required class="form-input" placeholder="Enter full name" />
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">Email <span class="text-red-500">*</span></label>
+                  <input type="email" v-model="form.email" required class="form-input" placeholder="Enter email address" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Password</label>
+                  <input type="password" v-model="form.password" :required="!isEdit" class="form-input" :placeholder="isEdit ? 'Leave blank to keep current' : 'Enter password'" minlength="6" />
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">Role <span class="text-red-500">*</span></label>
+                  <select v-model="form.user_role" required class="form-input">
+                    <option value="Non-TWG">Proponent</option>
+                    <option value="TWG">TWG</option>
+                    <option value="Staff">Staff</option>
+                    <option value="Director">Director (Admin)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Affiliation & Designation -->
+            <div class="border-b border-slate-100 dark:border-white/10 pb-4">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 mb-3 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-sm">domain</span>
+                Affiliation & Designation
+              </h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="form-group">
+                  <label class="form-label">Campus Location</label>
+                  <select v-model="form.campus_location" class="form-input">
+                    <option value="La Trinidad Campus">La Trinidad Campus</option>
+                    <option value="Buguias Campus">Buguias Campus</option>
+                    <option value="Bokod Campus">Bokod Campus</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">College / Office <span class="text-red-500">*</span></label>
+                  <select v-model="form.office_id" required class="form-input">
+                    <option value="" disabled>Select Office</option>
+                    <option v-for="office in filteredOfficesForForm" :key="office.unit_id" :value="office.unit_id">
+                      {{ office.unit_name }}{{ office.office_acronym ? ' (' + office.office_acronym + ')' : '' }}
+                    </option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Department</label>
+                  <input type="text" v-model="form.department" class="form-input" placeholder="e.g. Dept. of Computer Science" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Position / Title</label>
+                  <input type="text" v-model="form.position" class="form-input" placeholder="e.g. Instructor, Admin Staff" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Additional Identification Details -->
+            <div>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 mb-3 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-sm">badge</span>
+                Identification & Personal Details
+              </h3>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="form-group">
+                  <label class="form-label">Student / Employee ID</label>
+                  <input type="text" v-model="form.student_id" class="form-input" placeholder="e.g. 2022-12345" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Year Level (Students)</label>
+                  <select v-model="form.year_level" class="form-input">
+                    <option value="">None / Staff / Faculty</option>
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                    <option value="3rd Year">3rd Year</option>
+                    <option value="4th Year">4th Year</option>
+                    <option value="Graduate">Graduate Student</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Sex</label>
+                  <select v-model="form.sex" class="form-input">
+                    <option value="">Prefer not to say</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                  </select>
+                </div>
+              </div>
             </div>
             
-            <div class="form-group">
-              <label class="form-label">Email</label>
-              <input type="email" v-model="form.email" required class="form-input" placeholder="Enter email address" />
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label">Password</label>
-              <input type="password" v-model="form.password" :required="!isEdit" class="form-input" :placeholder="isEdit ? 'Leave blank to keep current' : 'Enter password'" minlength="6" />
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label">Role</label>
-              <select v-model="form.user_role" required class="form-input">
-                <option value="Non-TWG">Proponent</option>
-                <option value="TWG">TWG</option>
-                <option value="Staff">Staff</option>
-                <option value="Director">Director (Admin)</option>
-              </select>
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label">Office Unit</label>
-              <select v-model="form.office_id" required class="form-input">
-                <option value="" disabled>Select Office</option>
-                <option v-for="office in offices" :key="office.unit_id" :value="office.unit_id">
-                  {{ office.unit_name }}
-                </option>
-              </select>
-            </div>
-            
-            <div class="modal-actions mt-4 flex justify-end gap-3">
+            <div class="modal-actions mt-4 flex justify-end gap-3 pt-3 border-t border-slate-100 dark:border-white/10">
               <button type="button" @click="closeModal" class="btn-secondary">Cancel</button>
               <button type="submit" class="btn-primary" :disabled="isSubmitting">
                 {{ isSubmitting ? 'Saving...' : (isEdit ? 'Update User' : 'Create User') }}
@@ -344,7 +442,19 @@ const form = ref({
   email: '',
   password: '',
   user_role: 'Non-TWG',
-  office_id: ''
+  office_id: '',
+  campus_location: 'La Trinidad Campus',
+  position: '',
+  department: '',
+  student_id: '',
+  year_level: '',
+  sex: ''
+});
+
+const filteredOfficesForForm = computed(() => {
+  if (!form.value.campus_location) return offices.value;
+  const filtered = offices.value.filter(o => o.location === form.value.campus_location);
+  return filtered.length > 0 ? filtered : offices.value;
 });
 
 const openModal = (user = null) => {
@@ -356,7 +466,13 @@ const openModal = (user = null) => {
       email: user.email || '',
       password: '',
       user_role: user.user_role || 'Non-TWG',
-      office_id: user.office_id || ''
+      office_id: user.office_id || '',
+      campus_location: user.campus_location || 'La Trinidad Campus',
+      position: user.position || '',
+      department: user.department || '',
+      student_id: user.student_id || '',
+      year_level: user.year_level || '',
+      sex: user.sex || ''
     };
   } else {
     isEdit.value = false;
@@ -366,7 +482,13 @@ const openModal = (user = null) => {
       email: '',
       password: '',
       user_role: 'Non-TWG',
-      office_id: ''
+      office_id: '',
+      campus_location: 'La Trinidad Campus',
+      position: '',
+      department: '',
+      student_id: '',
+      year_level: '',
+      sex: ''
     };
   }
   showModal.value = true;
@@ -855,6 +977,44 @@ onMounted(() => {
   font-weight: 500;
 }
 
+.badge-role-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.4rem;
+  border-radius: 0.375rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: rgba(126, 34, 206, 0.08);
+  color: #7e22ce;
+  border: 1px solid rgba(126, 34, 206, 0.2);
+}
+
+.badge-id-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.4rem;
+  border-radius: 0.375rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+html.dark .badge-role-tag,
+.dark .badge-role-tag {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc;
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+html.dark .badge-id-tag,
+.dark .badge-id-tag {
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
 /* Sub-sections */
 .sub-section-title {
   font-size: 1.125rem;
@@ -1038,7 +1198,7 @@ onMounted(() => {
 
 .modal-container {
   width: 100%;
-  max-width: 500px;
+  max-width: 640px;
   max-height: 90vh;
   overflow-y: auto;
   background: #ffffff;

@@ -192,7 +192,13 @@
                               <transition name="fade-pop"><div v-if="helpState.startTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                             </div>
                           </div>
-                          <input type="time" v-model="continuousConfig.start_time" min="04:00" max="20:00" required class="custom-input-field time-picker-input" @change="handleTimeChange(continuousConfig)">
+                          <AppTimePicker 
+                            v-model="continuousConfig.start_time" 
+                            min="04:00" 
+                            max="20:00" 
+                            required 
+                            @change="handleTimeChange(continuousConfig)" 
+                          />
                         </div>
                         <div class="flex-1">
                           <div class="label-container" style="margin-bottom: 4px;">
@@ -202,7 +208,13 @@
                               <transition name="fade-pop"><div v-if="helpState.endTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                             </div>
                           </div>
-                          <input type="time" v-model="continuousConfig.end_time" min="04:00" max="20:00" required class="custom-input-field time-picker-input" @change="handleTimeChange(continuousConfig)">
+                          <AppTimePicker 
+                            v-model="continuousConfig.end_time" 
+                            min="04:00" 
+                            max="20:00" 
+                            required 
+                            @change="handleTimeChange(continuousConfig)" 
+                          />
                         </div>
                       </div>
 
@@ -230,7 +242,13 @@
                             <transition name="fade-pop"><div v-if="helpState.startTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                           </div>
                         </div>
-                        <input type="time" v-model="sch.start_time" min="04:00" max="20:00" required class="custom-input-field time-picker-input" @change="validateScheduleTime(index)">
+                        <AppTimePicker 
+                          v-model="sch.start_time" 
+                          min="04:00" 
+                          max="20:00" 
+                          required 
+                          @change="validateScheduleTime(index)" 
+                        />
                       </div>
                       <div style="flex: 1; min-width: 130px;">
                         <div class="label-container" style="margin-bottom: 4px;">
@@ -240,7 +258,13 @@
                             <transition name="fade-pop"><div v-if="helpState.endTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                           </div>
                         </div>
-                        <input type="time" v-model="sch.end_time" min="04:00" max="20:00" required class="custom-input-field time-picker-input" @change="validateScheduleTime(index)">
+                        <AppTimePicker 
+                          v-model="sch.end_time" 
+                          min="04:00" 
+                          max="20:00" 
+                          required 
+                          @change="validateScheduleTime(index)" 
+                        />
                       </div>
                       <button type="button" v-if="scheduleType === 'staggered' && form.schedules.length > 1" @click.prevent="removeSchedule(index)" style="background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" title="Remove Schedule">
                         <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
@@ -543,6 +567,7 @@ import { useRouter, useRoute } from 'vue-router';
 import Swal from 'sweetalert2';
 import api from '../../api';
 import BudgetBuilder from '../../components/BudgetBuilder.vue';
+import AppTimePicker from '../../components/AppTimePicker.vue';
 
 const router = useRouter();
 const route = useRoute();

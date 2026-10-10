@@ -47,6 +47,13 @@ class AccomplishmentReportController extends BaseController
             if ($files) {
                 foreach ($files as $file) {
                     if ($file->isValid() && !$file->hasMoved()) {
+                        $ext = strtolower($file->guessExtension() ?: $file->getClientExtension());
+                        if ($file->getMimeType() !== 'application/pdf' && $ext !== 'pdf') {
+                            return $this->response->setJSON([
+                                'success' => false,
+                                'message' => 'All attachments must be PDF files.'
+                            ])->setStatusCode(422);
+                        }
                         $fileNames[] = FileStorage::saveToDrafts($file);
                     }
                 }
@@ -71,7 +78,7 @@ class AccomplishmentReportController extends BaseController
                 "male"           => $this->request->getPost("male"),
                 "female"         => $this->request->getPost("female"),
                 "rating"         => $this->request->getPost("rating"),
-                "user_id"        => $this->request->getPost("user_id"),
+                "user_id"        => ($this->request->jwtPayload['sub'] ?? null) ?: $this->request->getPost("user_id"),
                 "attachment"     => json_encode($fileNames),
                 "status"         => "Pending",
             ];
@@ -359,8 +366,18 @@ class AccomplishmentReportController extends BaseController
                 $flatBudget = [];
                 foreach ($budgetItems as $item) {
                     $name = $item['item_name'];
-                    if (isset($budgetMap[$name])) {
-                        $flatBudget[$budgetMap[$name]] = $item['amount'];
+                    $amt = (float)($item['amount'] ?? 0);
+                    if (in_array($name, ['Breakfast', 'Lunch', 'Dinner'])) {
+                        $flatBudget['meals_total'] = ($flatBudget['meals_total'] ?? 0) + $amt;
+                        if ($name === 'Breakfast') $flatBudget['breakfast_selected'] = 1;
+                        if ($name === 'Lunch') $flatBudget['lunch_selected'] = 1;
+                        if ($name === 'Dinner') $flatBudget['dinner_selected'] = 1;
+                    } elseif (in_array($name, ['AM Snack', 'PM Snack'])) {
+                        $flatBudget['snacks_total'] = ($flatBudget['snacks_total'] ?? 0) + $amt;
+                        if ($name === 'AM Snack') $flatBudget['am_snack_selected'] = 1;
+                        if ($name === 'PM Snack') $flatBudget['pm_snack_selected'] = 1;
+                    } elseif (isset($budgetMap[$name])) {
+                        $flatBudget[$budgetMap[$name]] = ($flatBudget[$budgetMap[$name]] ?? 0) + $amt;
                         if ($budgetMap[$name] === 'professional_fee_honoria') {
                             $flatBudget['pf_pax'] = $item['pax'];
                         }
@@ -381,11 +398,11 @@ class AccomplishmentReportController extends BaseController
                             $flatBudget['others_total'] = 0;
                             $flatBudget['materials_others_breakdown'] = [];
                         }
-                        $flatBudget['others_total'] += $item['amount'];
+                        $flatBudget['others_total'] += $amt;
                         if (!empty($item['sub_item'])) {
                             $flatBudget['materials_others_breakdown'][] = [
                                 'name' => $item['sub_item'],
-                                'amount' => $item['amount']
+                                'amount' => $amt
                             ];
                         }
                     }
@@ -483,8 +500,18 @@ class AccomplishmentReportController extends BaseController
                         $adFlatBudget = [];
                         foreach ($adBudgetItems as $item) {
                             $name = $item['item_name'];
-                            if (isset($budgetMap[$name])) {
-                                $adFlatBudget[$budgetMap[$name]] = $item['amount'];
+                            $amt = (float)($item['amount'] ?? 0);
+                            if (in_array($name, ['Breakfast', 'Lunch', 'Dinner'])) {
+                                $adFlatBudget['meals_total'] = ($adFlatBudget['meals_total'] ?? 0) + $amt;
+                                if ($name === 'Breakfast') $adFlatBudget['breakfast_selected'] = 1;
+                                if ($name === 'Lunch') $adFlatBudget['lunch_selected'] = 1;
+                                if ($name === 'Dinner') $adFlatBudget['dinner_selected'] = 1;
+                            } elseif (in_array($name, ['AM Snack', 'PM Snack'])) {
+                                $adFlatBudget['snacks_total'] = ($adFlatBudget['snacks_total'] ?? 0) + $amt;
+                                if ($name === 'AM Snack') $adFlatBudget['am_snack_selected'] = 1;
+                                if ($name === 'PM Snack') $adFlatBudget['pm_snack_selected'] = 1;
+                            } elseif (isset($budgetMap[$name])) {
+                                $adFlatBudget[$budgetMap[$name]] = ($adFlatBudget[$budgetMap[$name]] ?? 0) + $amt;
                                 if ($budgetMap[$name] === 'professional_fee_honoria') {
                                     $adFlatBudget['pf_pax'] = $item['pax'];
                                 }
@@ -505,15 +532,16 @@ class AccomplishmentReportController extends BaseController
                                     $adFlatBudget['others_total'] = 0;
                                     $adFlatBudget['materials_others_breakdown'] = [];
                                 }
-                                $adFlatBudget['others_total'] += $item['amount'];
+                                $adFlatBudget['others_total'] += $amt;
                                 if (!empty($item['sub_item'])) {
                                     $adFlatBudget['materials_others_breakdown'][] = [
                                         'name' => $item['sub_item'],
-                                        'amount' => $item['amount']
+                                        'amount' => $amt
                                     ];
                                 }
                             }
                         }
+                        $adFlatBudget['proposed_budget'] = $ad['proposed_budget'] ?? null;
                         if (isset($adFlatBudget['materials_others_breakdown']) && is_array($adFlatBudget['materials_others_breakdown'])) {
                             $adFlatBudget['materials_others_breakdown'] = json_encode($adFlatBudget['materials_others_breakdown']);
                         }

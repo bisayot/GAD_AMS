@@ -178,6 +178,7 @@ class Filters extends BaseFilters
                 'api/venues*',
                 'api/contact-inquiries*',
                 'api/storage*',
+                'api/add_office',
             ]
         ],
 
@@ -217,10 +218,6 @@ class Filters extends BaseFilters
                 'api/gender-issues*',
                 // Campus Resources
                 'api/venues*',
-                // User account control (staff cannot affect admin accounts - logic in controller)
-                'api/users/suspend*',
-                'api/users/restore*',
-                'api/users/delete*',
                 // System-wide settings
                 'api/settings*',
                 // Plan & budget configuration
@@ -238,8 +235,38 @@ class Filters extends BaseFilters
         // ----------------------------------------------------------------
         'adminOnly' => [
             'before' => [
+                'api/users/suspend*',
+                'api/users/restore*',
+                'api/users/delete*',
                 'api/dummy-admin-route',
             ]
         ],
     ];
+
+    /**
+     * Constructor automatically expands all route rules to match BOTH
+     * 'api/...' (used in local development) and '...' (used in production
+     * on Hostinger where the route group has an empty prefix).
+     */
+    public function __construct()
+    {
+        parent::__construct();
+
+        foreach ($this->filters as $filterName => &$config) {
+            if (isset($config['before']) && is_array($config['before'])) {
+                $expanded = [];
+                foreach ($config['before'] as $route) {
+                    $expanded[] = $route;
+                    if (str_starts_with($route, 'api/')) {
+                        $expanded[] = substr($route, 4); // Add route without 'api/'
+                    } else {
+                        $expanded[] = 'api/' . ltrim($route, '/'); // Add route with 'api/'
+                    }
+                }
+                $config['before'] = array_values(array_unique($expanded));
+            }
+        }
+        unset($config);
+    }
 }
+

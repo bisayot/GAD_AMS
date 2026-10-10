@@ -57,7 +57,17 @@
             </div>
             <div class="info-item">
               <span class="info-label">Submitted By</span>
-              <span class="info-value-purple">{{ design.submitter_name || '' }}</span>
+              <button 
+                v-if="design.user_id" 
+                type="button" 
+                @click="openProponentModal(design.user_id)" 
+                class="info-value-purple proponent-btn inline-flex items-center gap-1.5 hover:underline cursor-pointer group text-left transition-colors"
+                :title="'View ' + (design.submitter_name || 'proponent') + '\'s profile'"
+              >
+                <span>{{ design.submitter_name || '---' }}</span>
+                <span class="material-symbols-outlined text-[15px] opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">open_in_new</span>
+              </button>
+              <span v-else class="info-value-purple">{{ design.submitter_name || '---' }}</span>
             </div>
             <div class="info-item">
               <span class="info-label">Office / Unit</span>
@@ -489,6 +499,13 @@
 
     <!-- PDF Preview Modal -->
     <PdfPreviewModal :isOpen="isPdfModalOpen" :fileUrl="pdfFileUrl" @close="closePdfModal" />
+
+    <!-- Proponent Profile Modal -->
+    <ProponentProfileModal 
+      :isOpen="showProponentModal" 
+      :userId="selectedProponentId" 
+      @close="showProponentModal = false" 
+    />
   </main>
     </div>
   </div>
@@ -499,12 +516,23 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import api from '../../api';
+import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
+import ProponentProfileModal from '../../components/ProponentProfileModal.vue';
 import { useHolidays } from '../../utils/useHolidays';
 
 const { getWorkingDaysDiff, addWorkingDays, isDisabledDate } = useHolidays();
 
 const isDarkMode = ref(document.documentElement.classList.contains('dark'));
 let themeObserver = null;
+
+const showProponentModal = ref(false);
+const selectedProponentId = ref(null);
+
+const openProponentModal = (userId) => {
+  if (!userId) return;
+  selectedProponentId.value = userId;
+  showProponentModal.value = true;
+};
 
 const parseAttachments = (attachmentString) => {
   if (!attachmentString) return [];
@@ -525,8 +553,6 @@ const parseAttachments = (attachmentString) => {
     return [attachmentString];
   }
 };
-
-import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -1313,9 +1339,20 @@ const formatCurrency = (amount) => {
   return parseFloat(amount).toLocaleString(undefined, { minimumFractionDigits: 2 });
 };
 
+const escapeHtml = (text) => {
+  if (!text) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
+
 const formatBudgetName = (name) => {
   if (!name) return '';
-  return name.replace(/(\(.*?\))/g, '<span class="budget-item-subtext">$1</span>');
+  const safe = escapeHtml(name);
+  return safe.replace(/(\(.*?\))/g, '<span class="budget-item-subtext">$1</span>');
 };
 
 const isPdfModalOpen = ref(false);

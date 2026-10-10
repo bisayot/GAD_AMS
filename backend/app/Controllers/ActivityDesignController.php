@@ -141,7 +141,7 @@ class ActivityDesignController extends BaseController
                 "target_participants"        => $this->request->getPost("target_participants"),
                 "proposed_budget"            => $this->request->getPost("proposed_budget"),
                 "schedule_type"              => $this->request->getPost("schedule_type"),
-                "user_id"                    => $this->request->getPost("user_id"),
+                "user_id"                    => ($this->request->jwtPayload['sub'] ?? null) ?: $this->request->getPost("user_id"),
                 "attachment"                 => $fileName,
                 "status"                     => "Pending",
             ];
@@ -367,15 +367,24 @@ class ActivityDesignController extends BaseController
             ];
             foreach ($budgetItems as $item) {
                 $name = $item['item_name'];
-                if (isset($budgetMap[$name])) {
-                    $design[$budgetMap[$name]] = $item['amount'];
-                      if ($budgetMap[$name] === 'professional_fee_honoria') {
-                          $design['pf_pax'] = $item['pax'];
-                      }
-                      if ($budgetMap[$name] === 'tokens') {
-                          $design['tokens_pax'] = $item['pax'];
-                      }
-                    
+                $amt = (float)($item['amount'] ?? 0);
+                if (in_array($name, ['Breakfast', 'Lunch', 'Dinner'])) {
+                    $design['meals_total'] = ($design['meals_total'] ?? 0) + $amt;
+                    if ($name === 'Breakfast') $design['breakfast_selected'] = 1;
+                    if ($name === 'Lunch') $design['lunch_selected'] = 1;
+                    if ($name === 'Dinner') $design['dinner_selected'] = 1;
+                } elseif (in_array($name, ['AM Snack', 'PM Snack'])) {
+                    $design['snacks_total'] = ($design['snacks_total'] ?? 0) + $amt;
+                    if ($name === 'AM Snack') $design['am_snack_selected'] = 1;
+                    if ($name === 'PM Snack') $design['pm_snack_selected'] = 1;
+                } elseif (isset($budgetMap[$name])) {
+                    $design[$budgetMap[$name]] = ($design[$budgetMap[$name]] ?? 0) + $amt;
+                    if ($budgetMap[$name] === 'professional_fee_honoria') {
+                        $design['pf_pax'] = $item['pax'];
+                    }
+                    if ($budgetMap[$name] === 'tokens') {
+                        $design['tokens_pax'] = $item['pax'];
+                    }
                     if ($name === 'Meals' && !empty($item['sub_item'])) {
                         $design['breakfast_selected'] = strpos(strtolower($item['sub_item']), 'breakfast') !== false ? 1 : 0;
                         $design['lunch_selected'] = strpos(strtolower($item['sub_item']), 'lunch') !== false ? 1 : 0;
@@ -390,11 +399,11 @@ class ActivityDesignController extends BaseController
                         $design['others_total'] = 0;
                         $design['materials_others_breakdown'] = [];
                     }
-                    $design['others_total'] += $item['amount'];
+                    $design['others_total'] += $amt;
                     if (!empty($item['sub_item'])) {
                         $design['materials_others_breakdown'][] = [
                             'name' => $item['sub_item'],
-                            'amount' => $item['amount']
+                            'amount' => $amt
                         ];
                     }
                 }

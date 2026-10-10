@@ -101,9 +101,20 @@ const formatCurrency = (val) => {
   return Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
+const escapeHtml = (text) => {
+  if (!text) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
+
 const formatBudgetName = (name) => {
   if (!name) return '';
-  return name.replace(/(\([^)]+\))/g, '<span style="color: #94a3b8; font-size: 11px; margin-left: 6px;">$1</span>');
+  const safe = escapeHtml(name);
+  return safe.replace(/(\([^)]+\))/g, '<span style="color: #94a3b8; font-size: 11px; margin-left: 6px;">$1</span>');
 };
 
 const parsedBudget = computed(() => {

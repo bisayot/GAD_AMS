@@ -31,11 +31,15 @@ class FileController extends BaseController
 
     public function serveNewsIec(string $filename)
     {
-        $directory = WRITEPATH . 'uploads' . DIRECTORY_SEPARATOR . 'newsiec images';
         $filename = basename($filename);
-        $filepath = $directory . DIRECTORY_SEPARATOR . $filename;
+        $publicPath = FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'news_iec' . DIRECTORY_SEPARATOR . $filename;
+        $writablePath = WRITEPATH . 'uploads' . DIRECTORY_SEPARATOR . 'newsiec images' . DIRECTORY_SEPARATOR . $filename;
 
-        if (!file_exists($filepath)) {
+        if (file_exists($publicPath)) {
+            $filepath = $publicPath;
+        } elseif (file_exists($writablePath)) {
+            $filepath = $writablePath;
+        } else {
             return $this->response
                 ->setStatusCode(404)
                 ->setJSON(['success' => false, 'message' => 'File not found']);
@@ -93,6 +97,35 @@ class FileController extends BaseController
 
     public function overwrite(string $folder, string $filename)
     {
+        $payload = $this->request->jwtPayload ?? null;
+        $role = strtolower($payload['role'] ?? '');
+        $userId = $payload['sub'] ?? null;
+
+        // Ensure user is authenticated
+        if (!$userId) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Unauthorized: Please log in to overwrite files'
+            ])->setStatusCode(401);
+        }
+
+        // Whitelist allowed folders
+        $cleanFolder = strtolower(basename($folder));
+        if (!in_array($cleanFolder, ['drafts', 'archived'], true)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Invalid folder specified'
+            ])->setStatusCode(400);
+        }
+
+        // Only GAD Staff and Admin can overwrite archived official documents
+        if ($cleanFolder === 'archived' && !in_array($role, ['admin', 'gad_staff', 'staff', 'superadmin'], true)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Forbidden: Only GAD Staff and Administrators can modify archived documents'
+            ])->setStatusCode(403);
+        }
+
         $file = $this->request->getFile('pdf_file');
 
         if (!$file || !$file->isValid()) {
@@ -113,13 +146,13 @@ class FileController extends BaseController
         // Sanitize filename to prevent directory traversal
         $cleanName = basename($filename);
 
-        $success = FileStorage::overwrite($folder, $cleanName, $file->getTempName(), $file->getMimeType());
+        $success = FileStorage::overwrite($cleanFolder, $cleanName, $file->getTempName(), $file->getMimeType());
 
         if ($success) {
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'File overwritten successfully',
-                'url' => ($folder === 'drafts') ? FileStorage::getCloudDraftUrl($cleanName) : FileStorage::getCloudArchivedUrl($cleanName)
+                'url' => ($cleanFolder === 'drafts') ? FileStorage::getCloudDraftUrl($cleanName) : FileStorage::getCloudArchivedUrl($cleanName)
             ]);
         }
 

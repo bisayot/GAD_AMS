@@ -1,33 +1,34 @@
 <template>
   <aside 
     :class="[
-      'w-64 bg-[#1a1a2e] text-white fixed h-full flex flex-col p-6 shadow-xl z-50 transition-transform duration-300 top-0 left-0',
+      'w-64 fixed h-full flex flex-col p-6 shadow-xl z-50 transition-transform duration-300 top-0 left-0 bg-white dark:bg-[#1a1a2e] text-slate-800 dark:text-white',
       isOpen ? 'translate-x-0' : '-translate-x-full'
     ]"
   >
-    <div class="flex items-center justify-between mb-6 flex-shrink-0 border-b border-white/10 pb-4">
+    <div class="flex items-center justify-between mb-6 flex-shrink-0 border-b border-slate-200 dark:border-white/10 pb-4">
       <div class="flex items-center gap-3">
         <div class="flex items-center">
           <img src="/images/bsulogo.webp" alt="BSU Logo" class="h-9 w-auto object-contain" />
           <img src="/images/gad_logo_enhanced.png" alt="GAD Logo" class="h-10 w-auto object-contain -ml-2 z-10" />
         </div>
         <div class="flex flex-col justify-center leading-none">
-          <span class="text-xl font-black text-white tracking-tight">GAD-AMS</span>
+          <span class="text-xl font-black text-slate-900 dark:text-white tracking-tight">GAD-AMS</span>
         </div>
       </div>
-      <button @click="$emit('close')" class="text-white hover:text-slate-300 p-1 transition-colors">
+      <button @click="$emit('close')" class="text-slate-500 hover:text-slate-700 dark:text-white dark:hover:text-slate-300 p-1 transition-colors">
         <span class="material-symbols-outlined font-bold text-2xl">close</span>
       </button>
     </div>
 
     <!-- User Profile Card (Mobile Only) -->
-    <div v-if="user && user.id" class="bg-[#24133d] rounded-2xl p-4 flex items-center gap-3 mb-2 border border-[#371f5c] flex-shrink-0">
-      <div :class="['w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg', avatarStyle]">
-        <span class="text-lg font-bold text-white">{{ userInitial }}</span>
+    <div v-if="user && user.id" class="bg-slate-50 dark:bg-[#24133d] rounded-2xl p-4 flex items-center gap-3 mb-2 border border-slate-200 dark:border-[#371f5c] flex-shrink-0">
+      <div :class="['w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg overflow-hidden', avatarStyle]">
+        <img v-if="user?.profile_picture" :src="getAvatarUrl(user.profile_picture)" alt="Avatar" class="w-full h-full object-cover rounded-full" />
+        <span v-else class="text-lg font-bold text-white">{{ userInitial }}</span>
       </div>
       <div class="flex flex-col overflow-hidden">
-        <div class="text-sm font-bold text-white truncate leading-tight">{{ user.full_name || user.name || user.username || 'User Name' }}</div>
-        <div class="text-[10px] font-black tracking-widest text-[#c084fc] uppercase mt-1">{{ displayedUserRole }}</div>
+        <div class="text-sm font-bold text-slate-900 dark:text-white truncate leading-tight">{{ user.full_name || user.name || user.username || 'User Name' }}</div>
+        <div class="text-[10px] font-black tracking-widest text-purple-600 dark:text-[#c084fc] uppercase mt-1">{{ displayedUserRole }}</div>
       </div>
     </div>
 
@@ -39,7 +40,7 @@
           :to="item.href"
           @click="$emit('close')"
           class="flex items-center justify-between p-3 rounded-xl transition-all duration-200"
-          :class="$route.path === item.href ? 'bg-primary/20 text-white font-bold' : 'text-slate-400 hover:bg-white/5 hover:text-white'"
+          :class="$route.path === item.href ? 'bg-purple-100 dark:bg-primary/20 text-purple-700 dark:text-white font-bold' : 'text-slate-600 hover:bg-purple-50 hover:text-purple-700 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white'"
         >
           <div class="flex items-center gap-3">
             <span class="material-symbols-outlined text-xl">{{ item.icon }}</span>
@@ -53,7 +54,7 @@
           <button 
             @click="toggleExpand(item.label)"
             class="flex items-center justify-between p-3 rounded-xl transition-all duration-200 w-full text-left"
-            :class="isChildActive(item) ? 'bg-primary/10 text-white font-bold' : 'text-slate-400 hover:bg-white/5 hover:text-white'"
+            :class="isChildActive(item) ? 'bg-purple-50 dark:bg-primary/10 text-purple-700 dark:text-white font-bold' : 'text-slate-600 hover:bg-purple-50 hover:text-purple-700 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white'"
           >
             <div class="flex items-center gap-3">
               <span class="material-symbols-outlined text-xl">{{ item.icon }}</span>
@@ -73,7 +74,7 @@
               :to="child.href"
               @click="$emit('close')"
               class="flex items-center justify-between pl-10 pr-3 py-3 rounded-xl transition-all duration-200"
-              :class="$route.path === child.href ? 'bg-primary/20 text-white font-bold' : 'text-slate-400 hover:bg-white/5 hover:text-white'"
+              :class="$route.path === child.href ? 'bg-purple-100 dark:bg-primary/20 text-purple-700 dark:text-white font-bold' : 'text-slate-600 hover:bg-purple-50 hover:text-purple-700 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white'"
             >
               <div class="flex items-center gap-3">
                 <span class="material-symbols-outlined text-xl">{{ child.icon }}</span>
@@ -86,12 +87,12 @@
       </template>
     </nav>
 
-    <div class="mt-auto pt-6 border-t border-white/10 flex flex-col gap-1">
-      <router-link :to="settingsPath" class="flex items-center gap-3 p-3 text-slate-400 hover:text-white transition-colors w-full text-left rounded-xl hover:bg-white/5" :class="$route.path.includes('/settings') ? 'bg-primary/20 text-white font-bold' : ''">
+    <div class="mt-auto pt-6 border-t border-slate-200 dark:border-white/10 flex flex-col gap-1">
+      <router-link :to="settingsPath" class="flex items-center gap-3 p-3 text-slate-600 hover:text-purple-700 dark:text-slate-400 dark:hover:text-white transition-colors w-full text-left rounded-xl hover:bg-purple-50 dark:hover:bg-white/5" :class="$route.path.includes('/settings') ? 'bg-purple-100 text-purple-700 dark:bg-primary/20 dark:text-white font-bold' : ''">
         <span class="material-symbols-outlined text-xl">settings</span>
         <span class="text-sm font-bold">Settings</span>
       </router-link>
-      <button @click="$emit('logout')" class="flex items-center gap-3 p-3 text-slate-400 hover:text-red-400 transition-colors w-full text-left rounded-xl hover:bg-white/5">
+      <button @click="$emit('logout')" class="flex items-center gap-3 p-3 text-slate-600 hover:text-red-500 dark:text-slate-400 dark:hover:text-red-400 transition-colors w-full text-left rounded-xl hover:bg-red-50 dark:hover:bg-white/5">
         <span class="material-symbols-outlined text-xl">logout</span>
         <span class="text-sm font-bold">Sign Out</span>
       </button>
@@ -131,6 +132,13 @@ const avatarStyle = computed(() => {
   if (role.includes('twg')) return 'bg-gradient-to-br from-blue-400 to-indigo-600 shadow-blue-500/20';
   return 'bg-gradient-to-br from-slate-400 to-slate-600 shadow-slate-500/20';
 });
+
+const getAvatarUrl = (path) => {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  const base = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/').replace(/\/api\/?$/, '');
+  return `${base.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
+};
 
 defineEmits(['logout', 'close']);
 

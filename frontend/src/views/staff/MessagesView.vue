@@ -339,6 +339,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import Swal from 'sweetalert2';
 import api from '../../api';
 import CommunicationsHeader from '../../components/CommunicationsHeader.vue';
 

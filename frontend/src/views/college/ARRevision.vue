@@ -188,7 +188,7 @@
                   </div>
                   <div>
                     <label class="info-label">Proposed Budget</label>
-                    <p class="text-sm-light mt-1">PHP {{ Number(aDBudget?.grand_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</p>
+                    <p class="text-sm-light mt-1">PHP {{ Number(aDBudget?.grand_total || existingReport.activity_design?.proposed_budget || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</p>
                   </div>
                   <div>
                     <label class="info-label">Assessment Date</label>
@@ -343,7 +343,7 @@
                     <!-- Continuous Config UI -->
                     <div v-if="scheduleType === 'continuous'" class="schedule-row mb-3">
                       <div class="schedule-inputs-wrapper" style="margin-bottom: 16px;">
-                        <div class="flex-1">
+                        <div class="flex-1" style="min-width: 130px;">
                           <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Start Date</label>
                           <VueDatePicker :dark="isDarkMode" v-model="continuousConfig.start_date" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
 <template #dp-input="{ value }">
@@ -351,7 +351,7 @@
 </template>
 </VueDatePicker>
                         </div>
-                        <div class="flex-1">
+                        <div class="flex-1" style="min-width: 130px;">
                           <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">End Date</label>
                           <VueDatePicker :dark="isDarkMode" v-model="continuousConfig.end_date" :min-date="continuousConfig.start_date || minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
 <template #dp-input="{ value }">
@@ -359,7 +359,7 @@
 </template>
 </VueDatePicker>
                         </div>
-                        <div class="flex-1">
+                        <div class="flex-1" style="min-width: 130px;">
                           <div class="label-container" style="margin-bottom: 4px;">
                             <label class="text-[10px] uppercase font-bold text-slate-500 mb-0">Time From</label>
                             <div class="info-btn-wrapper">
@@ -367,9 +367,15 @@
                               <transition name="fade-pop"><div v-if="helpState.startTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                             </div>
                           </div>
-                          <input type="time" v-model="continuousConfig.start_time" min="04:00" max="20:00" required class="custom-input-field" :style="{ colorScheme: isDarkMode ? 'dark' : 'light' }" style="cursor: pointer;" @change="handleTimeChange(continuousConfig)">
+                          <AppTimePicker 
+                            v-model="continuousConfig.start_time" 
+                            min="04:00" 
+                            max="20:00" 
+                            required 
+                            @change="handleTimeChange(continuousConfig)" 
+                          />
                         </div>
-                        <div class="flex-1">
+                        <div class="flex-1" style="min-width: 130px;">
                           <div class="label-container" style="margin-bottom: 4px;">
                             <label class="text-[10px] uppercase font-bold text-slate-500 mb-0">Time To</label>
                             <div class="info-btn-wrapper">
@@ -377,7 +383,13 @@
                               <transition name="fade-pop"><div v-if="helpState.endTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                             </div>
                           </div>
-                          <input type="time" v-model="continuousConfig.end_time" min="04:00" max="20:00" required class="custom-input-field" :style="{ colorScheme: isDarkMode ? 'dark' : 'light' }" style="cursor: pointer;" @change="handleTimeChange(continuousConfig)">
+                          <AppTimePicker 
+                            v-model="continuousConfig.end_time" 
+                            min="04:00" 
+                            max="20:00" 
+                            required 
+                            @change="handleTimeChange(continuousConfig)" 
+                          />
                         </div>
                       </div>
 
@@ -405,7 +417,13 @@
                             <transition name="fade-pop"><div v-if="helpState.startTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                           </div>
                         </div>
-                        <input type="time" v-model="sch.start_time" min="04:00" max="20:00" required class="custom-input-field" :style="{ colorScheme: isDarkMode ? 'dark' : 'light' }" style="cursor: pointer;" @change="validateScheduleTime(index)">
+                        <AppTimePicker 
+                          v-model="sch.start_time" 
+                          min="04:00" 
+                          max="20:00" 
+                          required 
+                          @change="validateScheduleTime(index)" 
+                        />
                       </div>
                       <div style="flex: 1; min-width: 130px;">
                         <div class="label-container" style="margin-bottom: 6px;">
@@ -415,7 +433,13 @@
                             <transition name="fade-pop"><div v-if="helpState.endTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                           </div>
                         </div>
-                        <input type="time" v-model="sch.end_time" min="04:00" max="20:00" required class="custom-input-field" :style="{ colorScheme: isDarkMode ? 'dark' : 'light' }" style="cursor: pointer;" @change="validateScheduleTime(index)">
+                        <AppTimePicker 
+                          v-model="sch.end_time" 
+                          min="04:00" 
+                          max="20:00" 
+                          required 
+                          @change="validateScheduleTime(index)" 
+                        />
                       </div>
                       <button type="button" v-if="scheduleType === 'staggered' && form.schedules?.length > 1" @click.prevent="removeSchedule(index)" style="background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" title="Remove Schedule">
                         <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
@@ -687,6 +711,7 @@ import { useRouter, useRoute } from 'vue-router';
 import Swal from 'sweetalert2';
 import api from '../../api';
 import BudgetBuilder from '../../components/BudgetBuilder.vue';
+import AppTimePicker from '../../components/AppTimePicker.vue';
 
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 const userRole = user.value?.role || user.value?.user_role || '';
@@ -1992,18 +2017,32 @@ const computedEndDate = computed(() => {
 });
 
 const aDBudget = computed(() => {
-  if (!existingReport.value?.activity_design || !existingReport.value.activity_design.budget_items || existingReport.value.activity_design.budget_items.length === 0) return null;
-  const b = existingReport.value.activity_design.budget_items[0];
+  if (!existingReport.value?.activity_design) return null;
+  const ad = existingReport.value.activity_design;
+  const b = (ad.budget_items && ad.budget_items[0]) || {};
   let ob = [];
   if (b.materials_others_breakdown) { try { ob = JSON.parse(b.materials_others_breakdown); } catch(e){} }
   const mealsT = Number(b.meals_total) || 0;
   const snacksT = Number(b.snacks_total) || 0;
   const combined = Number(b.meals_and_snacks) || 0;
   const othersTotal = Number(b.others_total) || ob.reduce((s, o) => s + Number(o.amount || 0), 0);
-  const grandTotal = (mealsT === 0 && snacksT === 0 && combined > 0 ? combined : mealsT) + snacksT +
+  let flatGrandTotal = (mealsT === 0 && snacksT === 0 && combined > 0 ? combined : mealsT) + snacksT +
     Number(b.function_room_venue || 0) + Number(b.accommodation || 0) + Number(b.equipment_rental || 0) +
     Number(b.transportation || 0) + Number(b.professional_fee_honoria || 0) + Number(b.tokens || 0) +
     Number(b.materials_and_supplies || 0) + othersTotal;
+
+  let rawTotal = 0;
+  const rawList = Array.isArray(ad.budget_items_raw) && ad.budget_items_raw.length > 0
+    ? ad.budget_items_raw
+    : (Array.isArray(ad.budget_items) ? ad.budget_items : []);
+  if (rawList.length > 0 && rawList.some(i => i.amount !== undefined)) {
+    rawTotal = rawList.reduce((s, i) => s + (Number(i.amount) || 0), 0);
+  }
+
+  const grandTotal = rawTotal > 0
+    ? rawTotal
+    : (flatGrandTotal > 0 ? flatGrandTotal : (Number(ad.proposed_budget) || 0));
+
   return {
     ...b,
     grand_total: grandTotal

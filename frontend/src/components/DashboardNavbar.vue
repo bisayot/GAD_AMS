@@ -4,7 +4,7 @@
       <!-- Left: Brand -->
       <div class="navbar-brand flex items-center">
         <!-- Mobile Menu Toggle (Left side for mobile) -->
-        <button class="xl:hidden mr-3 p-1 flex items-center text-slate-700 dark:!text-white active:scale-95 transition-transform" @click.stop.prevent="$emit('toggle-mobile-menu')" style="touch-action: manipulation;">
+        <button class="xl:hidden mr-1 sm:mr-3 p-1 flex items-center text-slate-700 dark:!text-white active:scale-95 transition-transform" @click.stop.prevent="$emit('toggle-mobile-menu')" style="touch-action: manipulation;">
           <span class="material-symbols-outlined text-3xl font-bold text-slate-700 dark:!text-white pointer-events-none">menu</span>
         </button>
 
@@ -15,7 +15,7 @@
           </div>
           <div class="brand-text flex flex-col justify-center leading-tight">
             <span class="brand-subtitle hidden xl:block">BENGUET STATE UNIVERSITY</span>
-            <span class="brand-title">GAD-AMS</span>
+            <span class="brand-title hidden sm:block">GAD-AMS</span>
           </div>
         </router-link>
       </div>
@@ -91,15 +91,17 @@
 
         <!-- User Profile Dropdown -->
         <div class="relative profile-wrapper" ref="profileDropdownRef">
-          <button class="profile-btn" @click="isProfileOpen = !isProfileOpen" :title="user?.name || 'User'">
-            <span class="user-initial">{{ userInitial }}</span>
+          <button class="profile-btn overflow-hidden" @click="isProfileOpen = !isProfileOpen" :title="user?.full_name || user?.name || user?.username || 'User'">
+            <img v-if="user?.profile_picture" :src="getAvatarUrl(user.profile_picture)" alt="Avatar" class="w-full h-full object-cover rounded-full" />
+            <span v-else class="user-initial">{{ userInitial }}</span>
           </button>
           
           <transition name="dropdown">
             <div v-if="isProfileOpen" class="dropdown-menu profile-menu !p-2.5 !bg-white/98 dark:!bg-[#13111f]/95 backdrop-blur-xl !border !border-slate-200 dark:!border-purple-500/20 !rounded-2xl shadow-xl dark:shadow-2xl">
               <div class="bg-slate-50 dark:bg-slate-800/60 rounded-[14px] p-3.5 flex items-center gap-3.5 mb-2 border border-slate-200/90 dark:border-white/10 shadow-sm">
-                <div :class="['w-[52px] h-[52px] rounded-full flex items-center justify-center flex-shrink-0 shadow-lg', avatarStyle]">
-                  <span class="text-xl font-bold text-white">{{ userInitial }}</span>
+                <div :class="['w-[52px] h-[52px] rounded-full flex items-center justify-center flex-shrink-0 shadow-lg overflow-hidden', avatarStyle]">
+                  <img v-if="user?.profile_picture" :src="getAvatarUrl(user.profile_picture)" alt="Avatar" class="w-full h-full object-cover" />
+                  <span v-else class="text-xl font-bold text-white">{{ userInitial }}</span>
                 </div>
                 <div class="flex flex-col overflow-hidden">
                   <div class="text-[15px] font-bold text-slate-900 dark:text-white truncate leading-tight">{{ user?.full_name || user?.name || user?.username || 'User Name' }}</div>
@@ -184,6 +186,13 @@ const messagesLink = computed(() => `${baseRoute.value}/messages`);
 const settingsLink = computed(() => `${baseRoute.value}/settings`);
 const manualLink = computed(() => `${baseRoute.value}/user-manual`);
 const privacyLink = computed(() => `${baseRoute.value}/data-privacy-policy`);
+
+const getAvatarUrl = (path) => {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  const base = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/').replace(/\/api\/?$/, '');
+  return `${base.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
+};
 
 const userInitial = computed(() => {
   const name = props.user?.full_name || props.user?.name || props.user?.username || 'U';
@@ -634,7 +643,10 @@ onUnmounted(() => {
     height: 30px;
   }
   .brand-title {
-    font-size: 14px;
+    display: none;
+  }
+  .brand-container {
+    gap: 4px;
   }
   .badge, .action-btn-wrapper :deep(.notification-badge) {
     transform: scale(0.85);

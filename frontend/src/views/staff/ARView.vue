@@ -36,7 +36,17 @@
             <div class="info-grid">
               <div class="info-item">
                 <span class="info-label">Submitted By</span>
-                <span class="info-value-purple">{{ report.submitter_name || '' }}</span>
+                <button 
+                  v-if="report.user_id" 
+                  type="button" 
+                  @click="openProponentModal(report.user_id)" 
+                  class="info-value-purple proponent-btn inline-flex items-center gap-1.5 hover:underline cursor-pointer group text-left transition-colors"
+                  :title="'View ' + (report.submitter_name || 'proponent') + '\'s profile'"
+                >
+                  <span>{{ report.submitter_name || '---' }}</span>
+                  <span class="material-symbols-outlined text-[15px] opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">open_in_new</span>
+                </button>
+                <span v-else class="info-value-purple">{{ report.submitter_name || '---' }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">Office</span>
@@ -160,7 +170,7 @@
                 </div>
                 <div>
                   <label class="info-label">Proposed Budget</label>
-                  <p class="text-sm-light mt-1">PHP {{ Number(aDBudget?.grand_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</p>
+                  <p class="text-sm-light mt-1">PHP {{ Number(aDBudget?.grand_total || report.activity_design?.proposed_budget || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</p>
                 </div>
                 <div>
                   <label class="info-label">Assessment Date</label>
@@ -416,6 +426,13 @@
 
     <!-- PDF Preview Modal -->
     <PdfPreviewModal :isOpen="isPdfModalOpen" :fileUrl="pdfFileUrl" @close="closePdfModal" />
+
+    <!-- Proponent Profile Modal -->
+    <ProponentProfileModal 
+      :isOpen="showProponentModal" 
+      :userId="selectedProponentId" 
+      @close="showProponentModal = false" 
+    />
   </main>
     </div>
   </div>
@@ -425,9 +442,22 @@
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '../../api';
+import Swal from 'sweetalert2';
+import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
+import ProponentProfileModal from '../../components/ProponentProfileModal.vue';
+import ActivityDesignBudget from '../../components/ActivityDesignBudget.vue';
 
 const isDarkMode = ref(document.documentElement.classList.contains('dark'));
 let themeObserver = null;
+
+const showProponentModal = ref(false);
+const selectedProponentId = ref(null);
+
+const openProponentModal = (userId) => {
+  if (!userId) return;
+  selectedProponentId.value = userId;
+  showProponentModal.value = true;
+};
 
 const parseAttachments = (attachmentString) => {
   if (!attachmentString) return [];
@@ -448,11 +478,6 @@ const parseAttachments = (attachmentString) => {
     return [attachmentString];
   }
 };
-
-import Swal from 'sweetalert2';
-import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
-import ActivityDesignBudget from '../../components/ActivityDesignBudget.vue';
-
 
 const route = useRoute();
 const router = useRouter();
@@ -573,18 +598,32 @@ const closePdfModal = () => {
 
 
 const aDBudget = computed(() => {
-  if (!report.value.activity_design || !report.value.activity_design.budget_items || report.value.activity_design.budget_items.length === 0) return null;
-  const b = report.value.activity_design.budget_items[0];
+  if (!report.value.activity_design) return null;
+  const ad = report.value.activity_design;
+  const b = (ad.budget_items && ad.budget_items[0]) || {};
   let ob = [];
   if (b.materials_others_breakdown) { try { ob = JSON.parse(b.materials_others_breakdown); } catch(e){} }
   const mealsT = Number(b.meals_total) || 0;
   const snacksT = Number(b.snacks_total) || 0;
   const combined = Number(b.meals_and_snacks) || 0;
   const othersTotal = Number(b.others_total) || ob.reduce((s, o) => s + Number(o.amount || 0), 0);
-  const grandTotal = (mealsT === 0 && snacksT === 0 && combined > 0 ? combined : mealsT) + snacksT +
+  let flatGrandTotal = (mealsT === 0 && snacksT === 0 && combined > 0 ? combined : mealsT) + snacksT +
     Number(b.function_room_venue || 0) + Number(b.accommodation || 0) + Number(b.equipment_rental || 0) +
     Number(b.transportation || 0) + Number(b.professional_fee_honoria || 0) + Number(b.tokens || 0) +
     Number(b.materials_and_supplies || 0) + othersTotal;
+
+  let rawTotal = 0;
+  const rawList = Array.isArray(ad.budget_items_raw) && ad.budget_items_raw.length > 0
+    ? ad.budget_items_raw
+    : (Array.isArray(ad.budget_items) ? ad.budget_items : []);
+  if (rawList.length > 0 && rawList.some(i => i.amount !== undefined)) {
+    rawTotal = rawList.reduce((s, i) => s + (Number(i.amount) || 0), 0);
+  }
+
+  const grandTotal = rawTotal > 0
+    ? rawTotal
+    : (flatGrandTotal > 0 ? flatGrandTotal : (Number(ad.proposed_budget) || 0));
+
   return {
     meals_total: (mealsT === 0 && snacksT === 0 && combined > 0) ? combined : mealsT,
     snacks_total: snacksT,
@@ -609,18 +648,31 @@ const aDBudget = computed(() => {
 });
 
 const aRBudget = computed(() => {
-  if (!report.value.budget_items || report.value.budget_items.length === 0) return null;
-  const b = report.value.budget_items[0];
+  if (!report.value) return null;
+  let rawExpendituresTotal = 0;
+  const rawList = Array.isArray(report.value.budget_expenditures_raw) && report.value.budget_expenditures_raw.length > 0
+    ? report.value.budget_expenditures_raw
+    : (Array.isArray(report.value.budget_items) ? report.value.budget_items : []);
+  if (rawList.length > 0 && rawList.some(i => i.amount !== undefined)) {
+    rawExpendituresTotal = rawList.reduce((s, i) => s + (Number(i.amount) || 0), 0);
+  }
+
+  const b = (report.value.budget_items && report.value.budget_items[0]) || {};
   let ob = [];
   if (b.materials_others_breakdown) { try { ob = JSON.parse(b.materials_others_breakdown); } catch(e){} }
   const mealsT = Number(b.meals_total) || 0;
   const snacksT = Number(b.snacks_total) || 0;
   const combined = Number(b.meals_and_snacks) || 0;
   const othersTotal = Number(b.others_total) || ob.reduce((s, o) => s + Number(o.amount || 0), 0);
-  const grandTotal = (mealsT === 0 && snacksT === 0 && combined > 0 ? combined : mealsT) + snacksT +
+  let flatGrandTotal = (mealsT === 0 && snacksT === 0 && combined > 0 ? combined : mealsT) + snacksT +
     Number(b.function_room_venue || 0) + Number(b.accommodation || 0) + Number(b.equipment_rental || 0) +
     Number(b.transportation || 0) + Number(b.professional_fee_honoria || 0) + Number(b.tokens || 0) +
     Number(b.materials_and_supplies || 0) + othersTotal;
+
+  const grandTotal = rawExpendituresTotal > 0
+    ? rawExpendituresTotal
+    : (flatGrandTotal > 0 ? flatGrandTotal : (Number(report.value.actual_cost) || 0));
+
   return {
     meals_total: (mealsT === 0 && snacksT === 0 && combined > 0) ? combined : mealsT,
     snacks_total: snacksT,

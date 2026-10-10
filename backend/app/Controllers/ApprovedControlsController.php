@@ -112,8 +112,18 @@ class ApprovedControlsController extends Controller
                 
                 foreach ($allBudgetItems[$id] as $item) {
                     $name = $item['item_name'];
-                    if (isset($budgetMap[$name])) {
-                        $control[$budgetMap[$name]] = $item['amount'];
+                    $amt = (float)($item['amount'] ?? 0);
+                    if (in_array($name, ['Breakfast', 'Lunch', 'Dinner'])) {
+                        $control['meals_total'] = ($control['meals_total'] ?? 0) + $amt;
+                        if ($name === 'Breakfast') $control['breakfast_selected'] = 1;
+                        if ($name === 'Lunch') $control['lunch_selected'] = 1;
+                        if ($name === 'Dinner') $control['dinner_selected'] = 1;
+                    } elseif (in_array($name, ['AM Snack', 'PM Snack'])) {
+                        $control['snacks_total'] = ($control['snacks_total'] ?? 0) + $amt;
+                        if ($name === 'AM Snack') $control['am_snack_selected'] = 1;
+                        if ($name === 'PM Snack') $control['pm_snack_selected'] = 1;
+                    } elseif (isset($budgetMap[$name])) {
+                        $control[$budgetMap[$name]] = ($control[$budgetMap[$name]] ?? 0) + $amt;
                         if ($budgetMap[$name] === 'professional_fee_honoria') {
                             $control['pf_pax'] = $item['pax'];
                         }
@@ -131,11 +141,11 @@ class ApprovedControlsController extends Controller
                             $control['pm_snack_selected'] = strpos(strtolower($item['sub_item']), 'pm') !== false ? 1 : 0;
                         }
                     } elseif ($name === 'Others') {
-                        $control['others_total'] += $item['amount'];
+                        $control['others_total'] += $amt;
                         if (!empty($item['sub_item'])) {
                             $control['materials_others_breakdown'][] = [
                                 'name' => $item['sub_item'],
-                                'amount' => $item['amount']
+                                'amount' => $amt
                             ];
                         }
                     }

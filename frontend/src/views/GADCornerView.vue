@@ -463,15 +463,26 @@ const filterGroup = (reports, query) => {
   );
 };
 
+const escapeHtml = (text) => {
+  if (!text) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
+
 const linkify = (text) => {
   if (!text) return '';
+  const safeText = escapeHtml(text);
   const urlRegex = /(https?:\/\/[^\s]+|(?:www\.)?[a-zA-Z0-9-]+\.(?:com|org|net|edu|gov|ph|io|co|info|me)(?:\/[^\s]*)?)/ig;
-  return text.replace(urlRegex, function(url) {
+  return safeText.replace(urlRegex, function(url) {
     let href = url;
     if (!/^https?:\/\//i.test(href)) {
       href = 'https://' + href;
     }
-    return `<a href="${href}" target="_blank" class="text-blue-400 hover:underline break-all">${url}</a>`;
+    return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline break-all">${url}</a>`;
   });
 };
 
@@ -589,7 +600,7 @@ const viewPdf = (report) => {
                 </div>
                 <div class="flex-grow min-w-0 flex flex-col">
                   <span class="font-headline font-bold text-slate-800 text-sm group-hover:text-purple-700 transition-colors">Attachment ${idx + 1}</span>
-                  <span class="truncate text-xs text-slate-400 font-label mt-0.5">${att}</span>
+                  <span class="truncate text-xs text-slate-400 font-label mt-0.5">${escapeHtml(att)}</span>
                 </div>
                 <div class="w-8 h-8 rounded-full bg-white shadow-sm border border-slate-100 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                   <span class="material-symbols-outlined text-sm text-purple-600">visibility</span>

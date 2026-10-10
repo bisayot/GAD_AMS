@@ -358,15 +358,26 @@ const parseImages = (val) => {
   return [val];
 };
 
+const escapeHtml = (text) => {
+  if (!text) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
+
 const linkify = (text) => {
   if (!text) return '';
+  const safeText = escapeHtml(text);
   const urlRegex = /(https?:\/\/[^\s]+|(?:www\.)?[a-zA-Z0-9-]+\.(?:com|org|net|edu|gov|ph|io|co|info|me)(?:\/[^\s]*)?)/ig;
-  return text.replace(urlRegex, function(url) {
+  return safeText.replace(urlRegex, function(url) {
     let href = url;
     if (!/^https?:\/\//i.test(href)) {
       href = 'https://' + href;
     }
-    return `<a href="${href}" target="_blank" class="text-blue-400 hover:underline break-all">${url}</a>`;
+    return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline break-all">${url}</a>`;
   });
 };
 

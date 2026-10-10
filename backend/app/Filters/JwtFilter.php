@@ -26,14 +26,19 @@ class JwtFilter implements FilterInterface
         }
 
         $authHeader = $request->getHeaderLine('Authorization');
+        $token = null;
 
-        if (empty($authHeader) || !str_starts_with($authHeader, 'Bearer ')) {
+        if (!empty($authHeader) && str_starts_with($authHeader, 'Bearer ')) {
+            $token = substr($authHeader, 7); // strip "Bearer "
+        } elseif (!empty($request->getGet('token'))) {
+            $token = $request->getGet('token');
+        }
+
+        if (empty($token)) {
             return service('response')
                 ->setStatusCode(401)
                 ->setJSON(['status' => 401, 'message' => 'Unauthorized: No token provided.']);
         }
-
-        $token = substr($authHeader, 7); // strip "Bearer "
         $payload = JwtHelper::verify($token);
 
         if ($payload === null) {

@@ -1,0 +1,417 @@
+<!-- ========================================================================= -->
+<!-- GAD-AMS SCHEDULED MAINTENANCE NOTICE (TEMPORARY MODAL SNIPPET)            -->
+<!-- Date: October 10, 2026 | Time: 5:00 PM - 6:00 PM                          -->
+<!--                                                                           -->
+<!-- HOW TO USE:                                                               -->
+<!-- Copy and paste the entire block below right before the closing </body>    -->
+<!-- tag in your Hostinger dist/index.php (or dist/index.html).                -->
+<!-- When maintenance is over, simply delete or comment out this block.        -->
+<!-- ========================================================================= -->
+
+<!-- BEGIN MAINTENANCE NOTICE MODAL -->
+<div id="gad-maintenance-notice-root">
+  <style>
+    #gad-maintenance-notice-root {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      box-sizing: border-box;
+    }
+    #gad-maintenance-notice-root * {
+      box-sizing: border-box;
+    }
+    .gad-maint-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.72);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 999998;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease-out;
+    }
+    .gad-maint-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .gad-maint-card {
+      position: relative;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(245, 158, 11, 0.15);
+      border-radius: 20px;
+      max-width: 520px;
+      width: 100%;
+      overflow: hidden;
+      transform: scale(0.95) translateY(10px);
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .gad-maint-backdrop.active .gad-maint-card {
+      transform: scale(1) translateY(0);
+    }
+    .gad-maint-header {
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fde68a 100%);
+      padding: 1.5rem 1.75rem 1.25rem;
+      border-bottom: 1px solid #fcd34d;
+      position: relative;
+    }
+    .gad-maint-header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    .gad-maint-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: #b45309;
+      color: #ffffff;
+      box-shadow: 0 2px 4px rgba(180, 83, 9, 0.2);
+    }
+    .gad-maint-badge .gad-pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #fef08a;
+      box-shadow: 0 0 0 0 rgba(254, 240, 138, 0.7);
+      animation: gadMaintPulse 1.8s infinite;
+    }
+    @keyframes gadMaintPulse {
+      0% { box-shadow: 0 0 0 0 rgba(254, 240, 138, 0.8); }
+      70% { box-shadow: 0 0 0 6px rgba(254, 240, 138, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(254, 240, 138, 0); }
+    }
+    .gad-maint-close-btn {
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(217, 119, 6, 0.3);
+      color: #78350f;
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      line-height: 1;
+      transition: all 0.15s ease;
+    }
+    .gad-maint-close-btn:hover {
+      background: #ffffff;
+      color: #000000;
+      transform: scale(1.05);
+    }
+    .gad-maint-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+    .gad-maint-icon {
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      border-radius: 12px;
+      background: #ffffff;
+      box-shadow: 0 4px 6px -1px rgba(217, 119, 6, 0.15);
+      border: 1px solid #fde68a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+    .gad-maint-title {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #78350f;
+      letter-spacing: -0.01em;
+      line-height: 1.25;
+    }
+    .gad-maint-subtitle {
+      margin: 0.2rem 0 0;
+      font-size: 0.85rem;
+      color: #92400e;
+      font-weight: 500;
+    }
+    .gad-maint-body {
+      padding: 1.5rem 1.75rem;
+      color: #334155;
+    }
+    .gad-maint-schedule-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 1rem 1.15rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    @media (max-width: 480px) {
+      .gad-maint-schedule-box {
+        grid-template-columns: 1fr;
+      }
+    }
+    .gad-maint-schedule-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+    .gad-maint-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+    }
+    .gad-maint-value {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .gad-maint-message-box {
+      background: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      padding: 0.85rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.25rem;
+    }
+    .gad-maint-message-box p {
+      margin: 0;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      color: #78350f;
+    }
+    .gad-maint-message-box strong {
+      color: #b45309;
+    }
+    .gad-maint-bullets {
+      margin: 0 0 1.25rem;
+      padding: 0 0 0 1.25rem;
+      font-size: 0.85rem;
+      color: #475569;
+      line-height: 1.55;
+    }
+    .gad-maint-bullets li {
+      margin-bottom: 0.4rem;
+    }
+    .gad-maint-bullets li:last-child {
+      margin-bottom: 0;
+    }
+    .gad-maint-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+    .gad-maint-btn-primary {
+      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+      color: #ffffff;
+      border: none;
+      padding: 0.7rem 1.4rem;
+      font-size: 0.88rem;
+      font-weight: 700;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(180, 83, 9, 0.25);
+      transition: all 0.15s ease;
+      width: 100%;
+    }
+    .gad-maint-btn-primary:hover {
+      background: linear-gradient(135deg, #b45309 0%, #92400e 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 14px rgba(180, 83, 9, 0.35);
+    }
+    .gad-maint-btn-primary:active {
+      transform: translateY(0);
+    }
+
+    /* Small Floating Reopen Badge */
+    .gad-maint-floating-pill {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 999990;
+      background: #78350f;
+      color: #fef3c7;
+      border: 1px solid #fde68a;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      border-radius: 9999px;
+      padding: 0.5rem 1rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+    }
+    .gad-maint-floating-pill.visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+    .gad-maint-floating-pill:hover {
+      transform: translateY(-2px);
+      background: #92400e;
+      color: #ffffff;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+    }
+  </style>
+
+  <!-- Modal Backdrop & Dialog -->
+  <div class="gad-maint-backdrop active" id="gadMaintModalBackdrop">
+    <div class="gad-maint-card" role="dialog" aria-modal="true" aria-labelledby="gadMaintTitle">
+      <div class="gad-maint-header">
+        <div class="gad-maint-header-top">
+          <span class="gad-maint-badge">
+            <span class="gad-pulse-dot"></span>
+            <span id="gadMaintStatusText">System Advisory</span>
+          </span>
+          <button type="button" class="gad-maint-close-btn" id="gadMaintCloseBtn" title="Close Notice" aria-label="Close Notice">✕</button>
+        </div>
+        <div class="gad-maint-title-wrap">
+          <div class="gad-maint-icon">⚠️</div>
+          <div>
+            <h2 class="gad-maint-title" id="gadMaintTitle">Scheduled Maintenance</h2>
+            <p class="gad-maint-subtitle">GAD Activity Management System (GAD-AMS)</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="gad-maint-body">
+        <div class="gad-maint-schedule-box">
+          <div class="gad-maint-schedule-item">
+            <span class="gad-maint-label">Scheduled Date</span>
+            <span class="gad-maint-value">
+              <span>📅</span> 10/10/2026 (Oct 10)
+            </span>
+          </div>
+          <div class="gad-maint-schedule-item">
+            <span class="gad-maint-label">Window Duration</span>
+            <span class="gad-maint-value">
+              <span>⏰</span> 5:00 PM – 6:00 PM
+            </span>
+          </div>
+        </div>
+
+        <div class="gad-maint-message-box">
+          <p>
+            <strong>Notice:</strong> Maintenance will take place on <strong>October 10, 2026, from 5:00 PM to 6:00 PM</strong>. Some features may not work or experience intermittent service disruptions during this period.
+          </p>
+        </div>
+
+        <ul class="gad-maint-bullets">
+          <li>System upgrades and routine database optimization will be conducted.</li>
+          <li>Submissions, document uploads, and reports may be temporarily unavailable.</li>
+          <li>Please save any unsaved work prior to <strong>5:00 PM</strong> to avoid potential data loss.</li>
+        </ul>
+
+        <div class="gad-maint-footer">
+          <button type="button" class="gad-maint-btn-primary" id="gadMaintAcknowledgeBtn">
+            I Understand
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Persistent Floating Pill (re-opens the notice if user needs to re-read) -->
+  <button type="button" class="gad-maint-floating-pill" id="gadMaintFloatingPill" title="Click to view maintenance details">
+    <span>⚠️</span>
+    <span>Maintenance: 10/10/2026 @ 5:00 PM - 6:00 PM</span>
+  </button>
+
+  <script>
+    (function () {
+      const STORAGE_KEY = 'gad_ams_maintenance_acknowledged_20261010';
+      const backdrop = document.getElementById('gadMaintModalBackdrop');
+      const closeBtn = document.getElementById('gadMaintCloseBtn');
+      const ackBtn = document.getElementById('gadMaintAcknowledgeBtn');
+      const pill = document.getElementById('gadMaintFloatingPill');
+      const statusText = document.getElementById('gadMaintStatusText');
+
+      // Update status dynamically based on current time
+      function checkMaintenanceWindow() {
+        try {
+          const now = new Date();
+          const start = new Date(2026, 9, 10, 17, 0, 0); // Oct 10, 2026 17:00
+          const end = new Date(2026, 9, 10, 18, 0, 0);   // Oct 10, 2026 18:00
+
+          if (now >= start && now <= end) {
+            if (statusText) statusText.textContent = 'Maintenance In Progress';
+          } else if (now > end) {
+            if (statusText) statusText.textContent = 'Maintenance Concluded';
+          }
+        } catch (e) {
+          // Fallback gracefully
+        }
+      }
+      checkMaintenanceWindow();
+
+      function openModal() {
+        backdrop.classList.add('active');
+        pill.classList.remove('visible');
+      }
+
+      function closeModal() {
+        backdrop.classList.remove('active');
+        pill.classList.add('visible');
+      }
+
+      function acknowledge() {
+        try {
+          sessionStorage.setItem(STORAGE_KEY, 'true');
+        } catch (e) {}
+        closeModal();
+      }
+
+      // Check if user has already acknowledged in current session
+      try {
+        if (sessionStorage.getItem(STORAGE_KEY) === 'true') {
+          backdrop.classList.remove('active');
+          pill.classList.add('visible');
+        } else {
+          backdrop.classList.add('active');
+        }
+      } catch (e) {
+        backdrop.classList.add('active');
+      }
+
+      if (closeBtn) closeBtn.addEventListener('click', closeModal);
+      if (ackBtn) ackBtn.addEventListener('click', acknowledge);
+      if (pill) pill.addEventListener('click', openModal);
+
+      // Close if user clicks outside modal card
+      backdrop.addEventListener('click', function (e) {
+        if (e.target === backdrop) {
+          closeModal();
+        }
+      });
+
+      // Close on Escape key
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && backdrop.classList.contains('active')) {
+          closeModal();
+        }
+      });
+    })();
+  </script>
+</div>
+<!-- END MAINTENANCE NOTICE MODAL -->

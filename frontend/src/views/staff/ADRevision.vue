@@ -169,7 +169,7 @@
                     <!-- Continuous Config UI -->
                     <div v-if="scheduleType === 'continuous'" class="schedule-row schedule-card-row mb-3 p-4 rounded-lg relative">
                       <div class="schedule-inputs-wrapper" style="margin-bottom: 16px;">
-                        <div class="flex-1">
+                        <div class="flex-1" style="min-width: 130px;">
                           <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Start Date</label>
                           <VueDatePicker :dark="isDarkMode" v-model="continuousConfig.start_date" :min-date="minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
 <template #dp-input="{ value }">
@@ -177,7 +177,7 @@
 </template>
 </VueDatePicker>
                         </div>
-                        <div class="flex-1">
+                        <div class="flex-1" style="min-width: 130px;">
                           <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">End Date</label>
                           <VueDatePicker :dark="isDarkMode" v-model="continuousConfig.end_date" :min-date="continuousConfig.start_date || minStartDate" :disabled-dates="isDisabledDate" model-type="yyyy-MM-dd" :enable-time-picker="false" format="MM/dd/yyyy" auto-apply required input-class-name="custom-input-field dp-custom-transparent" :max-date="maxDateLimit" >
 <template #dp-input="{ value }">
@@ -185,7 +185,7 @@
 </template>
 </VueDatePicker>
                         </div>
-                        <div class="flex-1">
+                        <div class="flex-1" style="min-width: 130px;">
                           <div class="label-container" style="margin-bottom: 4px;">
                             <label class="text-[10px] uppercase font-bold text-slate-500 mb-0">Time From</label>
                             <div class="info-btn-wrapper">
@@ -193,9 +193,15 @@
                               <transition name="fade-pop"><div v-if="helpState.startTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                             </div>
                           </div>
-                          <input type="time" v-model="continuousConfig.start_time" min="04:00" max="20:00" required class="custom-input-field" :style="{ colorScheme: isDarkMode ? 'dark' : 'light' }" style="cursor: pointer;" @change="handleTimeChange(continuousConfig)">
+                          <AppTimePicker 
+                            v-model="continuousConfig.start_time" 
+                            min="04:00" 
+                            max="20:00" 
+                            required 
+                            @change="handleTimeChange(continuousConfig)" 
+                          />
                         </div>
-                        <div class="flex-1">
+                        <div class="flex-1" style="min-width: 130px;">
                           <div class="label-container" style="margin-bottom: 4px;">
                             <label class="text-[10px] uppercase font-bold text-slate-500 mb-0">Time To</label>
                             <div class="info-btn-wrapper">
@@ -203,7 +209,13 @@
                               <transition name="fade-pop"><div v-if="helpState.endTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                             </div>
                           </div>
-                          <input type="time" v-model="continuousConfig.end_time" min="04:00" max="20:00" required class="custom-input-field" :style="{ colorScheme: isDarkMode ? 'dark' : 'light' }" style="cursor: pointer;" @change="handleTimeChange(continuousConfig)">
+                          <AppTimePicker 
+                            v-model="continuousConfig.end_time" 
+                            min="04:00" 
+                            max="20:00" 
+                            required 
+                            @change="handleTimeChange(continuousConfig)" 
+                          />
                         </div>
                       </div>
                     </div>
@@ -230,7 +242,13 @@
                             <transition name="fade-pop"><div v-if="helpState.startTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                           </div>
                         </div>
-                        <input type="time" v-model="sch.start_time" min="04:00" max="20:00" required class="custom-input-field" :style="{ colorScheme: isDarkMode ? 'dark' : 'light' }" style="cursor: pointer;" @change="validateScheduleTime(index)">
+                        <AppTimePicker 
+                          v-model="sch.start_time" 
+                          min="04:00" 
+                          max="20:00" 
+                          required 
+                          @change="validateScheduleTime(index)" 
+                        />
                       </div>
                       <div style="flex: 1; min-width: 130px;">
                         <div class="label-container" style="margin-bottom: 6px;">
@@ -240,7 +258,13 @@
                             <transition name="fade-pop"><div v-if="helpState.endTime" class="simple-popup" style="width:160px; font-size:10px; font-weight:normal;">Valid times: 04:00 AM - 08:00 PM</div></transition>
                           </div>
                         </div>
-                        <input type="time" v-model="sch.end_time" min="04:00" max="20:00" required class="custom-input-field" :style="{ colorScheme: isDarkMode ? 'dark' : 'light' }" style="cursor: pointer;" @change="validateScheduleTime(index)">
+                        <AppTimePicker 
+                          v-model="sch.end_time" 
+                          min="04:00" 
+                          max="20:00" 
+                          required 
+                          @change="validateScheduleTime(index)" 
+                        />
                       </div>
                       <button type="button" v-if="scheduleType === 'staggered' && schedules.length > 1" @click.prevent="removeSchedule(index)" class="btn-remove-schedule" title="Remove Schedule">
                         <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
@@ -468,6 +492,7 @@ import api from '../../api';
 import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
 import Swal from 'sweetalert2';
 import BudgetBuilder from '../../components/BudgetBuilder.vue';
+import AppTimePicker from '../../components/AppTimePicker.vue';
 
 const isDarkMode = ref(typeof document !== 'undefined' ? document.documentElement.classList.contains('dark') : false);
 let themeObserver = null;

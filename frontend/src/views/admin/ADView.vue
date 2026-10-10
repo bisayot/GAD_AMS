@@ -54,9 +54,19 @@
                 <span class="info-value-white">{{ design.activity_title }}</span>
               </div>
               <div class="info-item">
-              <span class="info-label">Submitted By</span>
-              <span class="info-value-purple">{{ design.submitter_name || '' }}</span>
-            </div>
+                <span class="info-label">Submitted By</span>
+                <button 
+                  v-if="design.user_id" 
+                  type="button" 
+                  @click="openProponentModal(design.user_id)" 
+                  class="info-value-purple proponent-btn inline-flex items-center gap-1.5 hover:underline cursor-pointer group text-left transition-colors"
+                  :title="'View ' + (design.submitter_name || 'proponent') + '\'s profile'"
+                >
+                  <span>{{ design.submitter_name || '---' }}</span>
+                  <span class="material-symbols-outlined text-[15px] opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">open_in_new</span>
+                </button>
+                <span v-else class="info-value-purple">{{ design.submitter_name || '---' }}</span>
+              </div>
             <div class="info-item">
                 <span class="info-label">Office / Unit</span>
                 <span class="info-value-purple">{{ design.office }}</span>
@@ -399,6 +409,13 @@
         </div>
       </div>
     </div>
+
+    <!-- Proponent Profile Modal -->
+    <ProponentProfileModal 
+      :isOpen="showProponentModal" 
+      :userId="selectedProponentId" 
+      @close="showProponentModal = false" 
+    />
   </main>
     </div>
   </div>
@@ -409,14 +426,35 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '../../api';
 import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
+import ProponentProfileModal from '../../components/ProponentProfileModal.vue';
 import { useHolidays } from '../../utils/useHolidays';
 
 const isDarkMode = ref(document.documentElement.classList.contains('dark'));
 let themeObserver = null;
 
+const showProponentModal = ref(false);
+const selectedProponentId = ref(null);
+
+const openProponentModal = (userId) => {
+  if (!userId) return;
+  selectedProponentId.value = userId;
+  showProponentModal.value = true;
+};
+
+const escapeHtml = (text) => {
+  if (!text) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
+
 const formatBudgetName = (name) => {
   if (!name) return '';
-  return name.replace(/(\([^)]+\))/g, '<span class="budget-item-subtext">$1</span>');
+  const safe = escapeHtml(name);
+  return safe.replace(/(\([^)]+\))/g, '<span class="budget-item-subtext">$1</span>');
 };
 
 const parsedBudget = computed(() => {
