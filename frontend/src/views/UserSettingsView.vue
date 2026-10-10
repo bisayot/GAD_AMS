@@ -171,11 +171,11 @@
                   @focus="handleOfficeFocus"
                   @input="handleOfficeSearchInput"
                   placeholder="Search or Select College / Office"
-                  class="custom-input cursor-pointer pr-10"
+                  class="custom-input cursor-pointer pr-12"
                   :required="!designationForm.office_id && designationForm.office_id !== 'add_new'"
                 />
                 <span 
-                  class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none transition-transform duration-200"
+                  class="material-symbols-outlined absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none transition-transform duration-200"
                   :class="{ 'rotate-180': isOfficeDropdownOpen }"
                 >
                   expand_more
@@ -1316,6 +1316,15 @@ const updateRetentionSettings = async () => {
 }
 
 select.custom-input {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1.25rem center;
+  background-size: 1rem;
+  padding-right: 2.75rem;
+  cursor: pointer;
   max-width: 100%;
   min-width: 0;
   text-overflow: ellipsis;
@@ -1530,6 +1539,11 @@ select.custom-input {
   background: rgba(15, 23, 42, 0.6);
   border-color: rgba(147, 51, 234, 0.25);
   color: #ffffff;
+}
+
+:global(.dark) select.custom-input,
+.dark select.custom-input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
 }
 
 :global(.dark) .custom-input::placeholder,

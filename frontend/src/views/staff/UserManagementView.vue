@@ -291,6 +291,7 @@
                     <option value="Non-TWG">Proponent</option>
                     <option value="TWG">TWG</option>
                     <option value="Staff">Staff</option>
+                    <option value="Director">Director (Admin)</option>
                   </select>
                 </div>
               </div>

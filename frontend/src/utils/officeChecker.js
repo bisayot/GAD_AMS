@@ -107,7 +107,7 @@ export function isAbbreviationPattern(input) {
 
   // Common abbreviation slang/tokens
   const words = trimmed.toLowerCase().split(/\s+/);
-  const commonAbbrevs = ['dept', 'dept.', 'off', 'off.', 'coll', 'coll.', 'admin', 'univ', 'acct', 'tech'];
+  const commonAbbrevs = ['dept', 'dept.', 'off', 'off.', 'coll', 'coll.', 'admin', 'univ', 'acct', 'tech', 'chet', 'hrmo', 'spmo', 'drrm', 'ovpaa', 'ovpf', 'ovpre', 'cas', 'cte', 'cis', 'cn', 'cpag', 'chs', 'cvm', 'ca'];
   if (words.some(w => commonAbbrevs.includes(w))) {
     return true;
   }

@@ -120,7 +120,7 @@ class AuthController extends ResourceController
 
         $rules = [
             'fullname' => 'required',
-            'department' => 'required',
+            'department' => 'permit_empty',
             'email' => 'required|valid_email',
             'password' => ['label' => 'Password', 'rules' => 'required|min_length[8]|regex_match[/[A-Z]/]|regex_match[/[a-z]/]|regex_match[/[0-9]/]|regex_match[/[^A-Za-z0-9]/]'],
             'confirm_password' => 'required|matches[password]'
@@ -130,9 +130,23 @@ class AuthController extends ResourceController
             return $this->fail($this->validator->getErrors());
         }
 
-        $email = $data['email'];
+        $email = trim($data['email']);
         $username = strtolower(str_replace(' ', '_', explode('@', $email)[0]));
         
+        // Map user_role from frontend to actual database role.
+        // Self-registration is ONLY allowed for TWG and Non-TWG.
+        // Admin (Director) and Staff accounts must be created by an admin
+        // through the User Management panel — never through public registration.
+        $userRole = $data['user_role'] ?? 'Non-TWG';
+        $role = ($userRole === 'TWG') ? 'twg' : 'non-twg';
+
+        // Enforce @bsu.edu.ph institutional email for TWG registration
+        if ($role === 'twg' || strtoupper($userRole) === 'TWG') {
+            if (!preg_match('/@bsu\.edu\.ph$/i', $email)) {
+                return $this->fail(['email' => 'TWG accounts require a valid institutional email (@bsu.edu.ph).']);
+            }
+        }
+
         $userModel = new UserModel();
         
         // Check if user exists
@@ -140,45 +154,65 @@ class AuthController extends ResourceController
             return $this->failResourceExists('A user with that email or username already exists');
         }
 
-        // Map department input (could be ID or string)
+        // Map department input (could be ID or string, optional)
         $db = \Config\Database::connect();
-        $departmentInput = $data['department'];
+        $departmentInput = !empty($data['department']) ? $data['department'] : (!empty($data['office_id']) ? $data['office_id'] : null);
         $officeId = null;
 
-        if (is_numeric($departmentInput)) {
-            $officeId = (int) $departmentInput;
-        } else {
-            // Clean the input to prevent redundant entries (spaces, casing)
-            $cleanName = trim($departmentInput);
-            $cleanName = preg_replace('/\s+/', ' ', $cleanName);
-            $cleanName = ucwords(strtolower($cleanName));
-
-            $office = $db->table('office_units')->where('office_name', $cleanName)->get()->getRowArray();
-            if ($office) {
-                $officeId = $office['office_id'];
+        if (!empty($departmentInput)) {
+            if (is_numeric($departmentInput)) {
+                $officeId = (int) $departmentInput;
             } else {
-                $db->table('office_units')->insert(['office_name' => $cleanName]);
-                $officeId = $db->insertID();
+                // Clean the input to prevent redundant entries (spaces, casing)
+                $cleanName = trim($departmentInput);
+                $cleanName = preg_replace('/\s+/', ' ', $cleanName);
+                $cleanName = ucwords(strtolower($cleanName));
+
+                if (!empty($cleanName)) {
+                    // 1. Exact match on office_name
+                    $office = $db->table('office_units')->where('office_name', $cleanName)->get()->getRowArray();
+
+                    // 2. Acronym match on office_acronym (e.g. CHET, CA, CTE, CAS)
+                    if (!$office) {
+                        $office = $db->table('office_units')->where('office_acronym', strtoupper($cleanName))->get()->getRowArray();
+                    }
+
+                    // 3. Computed acronym match from full names (e.g. "CHET" -> "College of Home Economics and Technology")
+                    if (!$office) {
+                        $allOffices = $db->table('office_units')->get()->getResultArray();
+                        $upperClean = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '', $cleanName));
+                        foreach ($allOffices as $o) {
+                            $words = preg_split('/\s+/', trim($o['office_name']));
+                            $majorWords = array_filter($words, function($w) {
+                                return !in_array(strtolower($w), ['of', 'and', 'the', 'for', 'in', 'at', '&']);
+                            });
+                            $acronym = '';
+                            foreach ($majorWords as $mw) {
+                                $acronym .= strtoupper($mw[0] ?? '');
+                            }
+                            if ($acronym === $upperClean && strlen($acronym) >= 2) {
+                                $office = $o;
+                                break;
+                            }
+                        }
+                    }
+
+                    if ($office) {
+                        $officeId = $office['office_id'];
+                    } else {
+                        // Check if input is an abbreviation or acronym (e.g. <= 5 chars or abbreviation tokens)
+                        if (strlen($cleanName) <= 5 || preg_match('/^[a-zA-Z](\.[a-zA-Z])+\.?$/', $cleanName) || preg_match('/^(dept|coll|off|admin|tech|univ|chet|ca|cte|cas|cis|hrmo|spmo)\.?$/i', $cleanName)) {
+                            return $this->fail(['department' => "Abbreviations such as '{$cleanName}' are not allowed. Please select the full official College / Office name."]);
+                        }
+
+                        $db->table('office_units')->insert(['office_name' => $cleanName]);
+                        $officeId = $db->insertID();
+                    }
+                }
             }
         }
 
-        // Map user_role from frontend to actual database role.
-        // Self-registration is ONLY allowed for TWG and Non-TWG.
-        // Admin (Director) and Staff accounts must be created by an admin
-        // through the User Management panel — never through public registration.
-        $role = 'twg'; // Default
-        if (isset($data['user_role'])) {
-            switch ($data['user_role']) {
-                case 'TWG':     $role = 'twg';     break;
-                case 'Non-TWG': $role = 'non-twg'; break;
-                default:
-                    // Silently downgrade any attempt to register as Director/Staff
-                    $role = 'twg';
-                    break;
-            }
-        }
-
-        $officeNameDisplay = 'Unknown Office';
+        $officeNameDisplay = 'None / Unspecified';
         if ($officeId) {
             $officeRow = $db->table('office_units')->where('office_id', $officeId)->get()->getRowArray();
             $officeNameDisplay = $officeRow ? $officeRow['office_name'] : 'Unknown Office';
@@ -186,8 +220,20 @@ class AuthController extends ResourceController
 
         $studentId = ($role === 'non-twg') ? ($data['university_id'] ?? $data['student_id'] ?? null) : null;
         $yearLevel = ($role === 'non-twg') ? ($data['year_level'] ?? null) : null;
-        $departmentName = $data['department_name'] ?? null;
+        $departmentName = !empty($data['department_name']) ? trim($data['department_name']) : null;
         $position = !empty($data['position']) ? trim($data['position']) : null;
+
+        if ($departmentName && (strlen($departmentName) <= 3 || preg_match('/^(dept|it|cs|hrm|educ|agri)\.?$/i', $departmentName))) {
+            return $this->fail(['department_name' => "Abbreviations such as '{$departmentName}' are not allowed for department. Please enter the full name."]);
+        }
+
+        if ($departmentName) {
+            if ($officeNameDisplay !== 'None / Unspecified') {
+                $officeNameDisplay .= " ({$departmentName})";
+            } else {
+                $officeNameDisplay = $departmentName;
+            }
+        }
 
         $userData = [
             'username' => $username,
@@ -441,6 +487,24 @@ class AuthController extends ResourceController
 
     public function getOffices() {
         $db = \Config\Database::connect();
+
+        // Auto-cleanup accidental abbreviation entry 'Chet' if it was registered
+        try {
+            $bogus = $db->table('office_units')->where('office_name', 'Chet')->get()->getRowArray();
+            if ($bogus) {
+                $realChet = $db->table('office_units')
+                    ->like('office_name', 'Home Economics')
+                    ->get()
+                    ->getRowArray();
+                if ($realChet) {
+                    $db->table('users')->where('office_id', $bogus['office_id'])->update(['office_id' => $realChet['office_id']]);
+                    $db->table('office_units')->where('office_id', $bogus['office_id'])->delete();
+                }
+            }
+        } catch (\Throwable $e) {
+            log_message('error', 'Cleanup bogus office failed: ' . $e->getMessage());
+        }
+
         // The frontend expects unit_id and unit_name, but our DB has office_id and office_name
         $offices = $db->table('office_units')->orderBy('office_name', 'ASC')->get()->getResultArray();
         $mappedOffices = array_map(function($o) {
@@ -459,10 +523,19 @@ class AuthController extends ResourceController
         $db = \Config\Database::connect();
         
         // Clean the input to prevent redundant entries (spaces, casing)
-        $cleanName = trim($data['unit_name']);
+        $cleanName = trim($data['unit_name'] ?? '');
         $cleanName = preg_replace('/\s+/', ' ', $cleanName);
         $cleanName = ucwords(strtolower($cleanName));
         $location = !empty($data['location']) ? trim($data['location']) : 'La Trinidad Campus';
+
+        if (empty($cleanName)) {
+            return $this->fail('Office name is required.');
+        }
+
+        // Reject abbreviations / acronyms
+        if (strlen($cleanName) <= 5 || preg_match('/^[a-zA-Z](\.[a-zA-Z])+\.?$/', $cleanName) || preg_match('/^(dept|coll|off|admin|tech|univ|chet|ca|cte|cas|cis|hrmo|spmo)\.?$/i', $cleanName)) {
+            return $this->fail("Abbreviations such as '{$cleanName}' are not allowed. Please enter the full official college or office name.");
+        }
 
         // Check if the cleaned name already exists to prevent duplication
         $existing = $db->table('office_units')->where('office_name', $cleanName)->get()->getRowArray();

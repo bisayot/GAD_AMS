@@ -62,7 +62,7 @@
             <!-- College / Office -->
             <div class="flex flex-col gap-2 md:col-span-2">
               <div class="flex items-center justify-between">
-                <label class="text-xs uppercase tracking-widest font-label font-bold text-on-surface-variant">College / Office <span class="text-red-500">*</span></label>
+                <label class="text-xs uppercase tracking-widest font-label font-bold text-on-surface-variant">College / Office <span class="opacity-70 font-normal lowercase">(optional)</span></label>
                 <button 
                   type="button" 
                   @click="showOfficeNotice = !showOfficeNotice" 
@@ -106,7 +106,6 @@
                     @input="handleSearchInput"
                     placeholder="Search or Select college / office"
                     class="w-full bg-surface-container border border-outline-variant rounded-lg pl-4 pr-12 py-3 text-on-surface focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all placeholder:text-on-surface-variant/60 truncate cursor-pointer text-sm sm:text-base"
-                    :required="!form.office_unit_id && !isAddingNew"
                   />
                   <span 
                     class="material-symbols-outlined absolute right-5 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none transition-transform duration-200"
@@ -259,10 +258,15 @@
             </template>
 
             <div class="flex flex-col gap-2 md:col-span-2">
-              <label class="text-xs uppercase tracking-widest font-label font-bold text-on-surface-variant">
-                {{ form.user_role !== 'Non-TWG' ? 'Institutional Email' : 'Email Address' }} <span class="text-red-500">*</span>
+              <label class="text-xs uppercase tracking-widest font-label font-bold text-on-surface-variant flex items-center justify-between">
+                <span>{{ form.user_role === 'TWG' ? 'Institutional Email' : 'Email Address' }} <span class="text-red-500">*</span></span>
+                <span v-if="form.user_role === 'TWG'" class="text-[11px] text-purple-600 dark:text-purple-400 font-semibold tracking-normal lowercase">(@bsu.edu.ph required)</span>
               </label>
-              <input v-model="form.email" type="email" :placeholder="form.user_role !== 'Non-TWG' ? 'name@bsu.edu.ph' : 'name@example.com'" class="w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-3 text-on-surface focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all placeholder:text-on-surface-variant/60" required />
+              <input v-model="form.email" type="email" :placeholder="form.user_role === 'TWG' ? 'name@bsu.edu.ph' : 'name@example.com'" class="w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-3 text-on-surface focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all placeholder:text-on-surface-variant/60" required />
+              <p v-if="form.user_role === 'TWG'" class="text-xs text-purple-600 dark:text-purple-400 font-medium flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">info</span>
+                TWG members must use their Benguet State University email (@bsu.edu.ph)
+              </p>
             </div>
             <div class="flex flex-col gap-2">
               <label class="text-xs uppercase tracking-widest font-label font-bold text-on-surface-variant">Password <span class="text-red-500">*</span></label>
@@ -342,7 +346,7 @@ import { useRouter } from 'vue-router';
 import api from '../api';
 import TurnstileWidget from '../components/TurnstileWidget.vue';
 import PrivacyPolicyModal from '../components/PrivacyPolicyModal.vue';
-import { checkOfficeName, generateAcronyms, stringSimilarity } from '../utils/officeChecker';
+import { checkOfficeName, generateAcronyms, stringSimilarity, isAbbreviationPattern } from '../utils/officeChecker';
 
 const router = useRouter();
 const loading = ref(false);
@@ -506,8 +510,8 @@ onUnmounted(() => {
 });
 
 const handleRegister = async () => {
-  if (form.user_role !== 'Non-TWG' && form.user_role !== 'TWG' && !form.email.toLowerCase().endsWith('@bsu.edu.ph')) {
-    return error.value = 'This role requires a valid institutional email (@bsu.edu.ph).';
+  if (form.user_role === 'TWG' && !form.email.trim().toLowerCase().endsWith('@bsu.edu.ph')) {
+    return error.value = 'TWG accounts require a valid institutional email (@bsu.edu.ph).';
   }
   if (form.password.length < 8) {
     return error.value = 'Password must be at least 8 characters long.';
@@ -560,6 +564,28 @@ const handleRegister = async () => {
         location: form.campus_location
       });
       departmentId = res.data.new_id;
+    } else if (!departmentId && officeSearchQuery.value && officeSearchQuery.value.trim()) {
+      const q = officeSearchQuery.value.trim();
+      const check = checkOfficeName(q, officeUnits.value, form.campus_location);
+
+      if (check.isAbbreviation) {
+        loading.value = false;
+        if (check.matchedOffice) {
+          return error.value = `"${q}" is an abbreviation. Abbreviations are not allowed. Please select "${check.matchedOffice.unit_name}" from the list.`;
+        }
+        return error.value = `"${q}" is an abbreviation. Abbreviations are not allowed. Please select the full official College / Office name from the list.`;
+      } else if (check.matchedOffice) {
+        departmentId = check.matchedOffice.unit_id;
+        officeSearchQuery.value = check.matchedOffice.unit_name;
+      } else {
+        loading.value = false;
+        return error.value = `"${q}" was not recognized. Please select an existing office from the list or click "Not in the list? Add new office".`;
+      }
+    }
+
+    if (form.department && isAbbreviationPattern(form.department.trim())) {
+      loading.value = false;
+      return error.value = `Department "${form.department.trim()}" looks like an abbreviation. Please type the full academic department name (e.g. "Department of Information Technology").`;
     }
 
     const payload = {
@@ -567,11 +593,11 @@ const handleRegister = async () => {
       first_name: form.first_name,
       middle_name: form.middle_name,
       last_name: form.last_name,
-      department: departmentId, 
-      department_name: form.department || null,
+      department: departmentId || null, 
+      department_name: form.department ? form.department.trim() : null,
       university_id: form.student_id || null,
       year_level: form.year_level || null,
-      email: form.email,
+      email: form.email.trim(),
       password: form.password,
       confirm_password: form.confirm_password,
       user_role: form.user_role,

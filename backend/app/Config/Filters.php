@@ -179,6 +179,7 @@ class Filters extends BaseFilters
                 'api/contact-inquiries*',
                 'api/storage*',
                 'api/add_office',
+                'api/holidays*',
             ]
         ],
 
@@ -189,10 +190,12 @@ class Filters extends BaseFilters
         // ----------------------------------------------------------------
         'staffOrAdmin' => [
             'before' => [
-                // Manage users (the read-only directory endpoint is available to
-                // authenticated messaging users; mutations remain restricted)
+                // Manage users (full permissions for both Admin and Staff)
                 'api/users/create',
                 'api/users/update*',
+                'api/users/suspend*',
+                'api/users/restore*',
+                'api/users/delete*',
                 // Document approval / revision workflow
                 'api/approve-design*',
                 'api/disapprove-design*',
@@ -216,8 +219,10 @@ class Filters extends BaseFilters
                 // Mandates & gender issues (create/update/delete)
                 'api/mandates',
                 'api/gender-issues*',
-                // Campus Resources
+                // Campus Resources (venues, offices, holidays)
                 'api/venues*',
+                'api/offices*',
+                'api/holidays*',
                 // System-wide settings
                 'api/settings*',
                 // Plan & budget configuration
@@ -235,9 +240,6 @@ class Filters extends BaseFilters
         // ----------------------------------------------------------------
         'adminOnly' => [
             'before' => [
-                'api/users/suspend*',
-                'api/users/restore*',
-                'api/users/delete*',
                 'api/dummy-admin-route',
             ]
         ],
