@@ -99,7 +99,7 @@
           <span class="w-1 h-1 rounded-full bg-outline-variant hidden md:block"></span>
           <span class="hidden md:block">All rights reserved.</span>
         </div>
-        <div class="flex items-center gap-6">
+        <div class="flex items-center gap-6 pr-14 md:pr-16">
           <span>Republic of the Philippines &bull; SUC GFPS</span>
         </div>
       </div>

@@ -56,66 +56,68 @@
           
           <div class="detail-item">
             <span class="detail-label">Position / Title</span>
-            <span class="detail-val flex items-center gap-1.5" :class="{ 'text-muted-val': !profile.position }">
-              <span class="material-symbols-outlined text-xs text-indigo-500">badge</span>
-              {{ profile.position || 'N/A' }}
+            <span class="detail-val flex items-start gap-1.5" :class="{ 'text-muted-val': !profile.position }">
+              <span class="material-symbols-outlined text-xs text-indigo-500 mt-0.5 shrink-0">badge</span>
+              <span class="min-w-0 leading-snug">{{ profile.position || 'N/A' }}</span>
             </span>
           </div>
 
           <div class="detail-item">
             <span class="detail-label">Student ID / Employee ID</span>
             <span class="detail-val font-mono flex items-center gap-1.5" :class="{ 'text-muted-val': !profile.student_id }">
-              <span class="material-symbols-outlined text-xs text-amber-500">pin</span>
-              {{ profile.student_id || 'N/A' }}
+              <span class="material-symbols-outlined text-xs text-amber-500 shrink-0">pin</span>
+              <span class="min-w-0">{{ profile.student_id || 'N/A' }}</span>
             </span>
           </div>
 
           <div class="detail-item">
             <span class="detail-label">Campus Location</span>
-            <span class="detail-val flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-xs text-purple-600 dark:text-purple-400">location_on</span>
-              {{ profile.location || 'La Trinidad Campus' }}
+            <span class="detail-val flex items-start gap-1.5">
+              <span class="material-symbols-outlined text-xs text-purple-600 dark:text-purple-400 mt-0.5 shrink-0">location_on</span>
+              <span class="min-w-0 leading-snug">{{ profile.location || 'La Trinidad Campus' }}</span>
             </span>
           </div>
 
           <div class="detail-item">
             <span class="detail-label">College / Office</span>
-            <span class="detail-val flex items-center gap-1.5" :class="{ 'text-muted-val': !profile.office_name || profile.office_name === 'N/A' }">
-              <span class="material-symbols-outlined text-xs text-blue-600 dark:text-blue-400">business</span>
-              <span>{{ profile.office_name || 'N/A' }}</span>
-              <span v-if="profile.office_acronym" class="text-purple-600 dark:text-purple-300 font-mono text-xs font-bold">({{ profile.office_acronym }})</span>
+            <span class="detail-val flex items-start gap-1.5" :class="{ 'text-muted-val': !profile.office_name || profile.office_name === 'N/A' }">
+              <span class="material-symbols-outlined text-xs text-blue-600 dark:text-blue-400 mt-0.5 shrink-0">business</span>
+              <span class="min-w-0 leading-snug">
+                <span>{{ profile.office_name || 'N/A' }}</span>
+                <span v-if="profile.office_acronym" class="inline-block whitespace-nowrap ml-1 text-purple-600 dark:text-purple-300 font-mono text-xs font-bold">({{ profile.office_acronym }})</span>
+              </span>
             </span>
           </div>
 
           <div class="detail-item">
             <span class="detail-label">Department</span>
-            <span class="detail-val flex items-center gap-1.5" :class="{ 'text-muted-val': !profile.department }">
-              <span class="material-symbols-outlined text-xs text-teal-600 dark:text-teal-400">apartment</span>
-              {{ profile.department || 'N/A' }}
+            <span class="detail-val flex items-start gap-1.5" :class="{ 'text-muted-val': !profile.department }">
+              <span class="material-symbols-outlined text-xs text-teal-600 dark:text-teal-400 mt-0.5 shrink-0">apartment</span>
+              <span class="min-w-0 leading-snug">{{ profile.department || 'N/A' }}</span>
             </span>
           </div>
 
           <div class="detail-item">
             <span class="detail-label">Year Level</span>
             <span class="detail-val flex items-center gap-1.5" :class="{ 'text-muted-val': !profile.year_level }">
-              <span class="material-symbols-outlined text-xs text-emerald-600 dark:text-emerald-400">school</span>
-              {{ profile.year_level || 'N/A' }}
+              <span class="material-symbols-outlined text-xs text-emerald-600 dark:text-emerald-400 shrink-0">school</span>
+              <span class="min-w-0">{{ profile.year_level || 'N/A' }}</span>
             </span>
           </div>
 
           <div class="detail-item">
             <span class="detail-label">Sex</span>
             <span class="detail-val flex items-center gap-1.5" :class="{ 'text-muted-val': !profile.sex || profile.sex === 'Not specified' }">
-              <span class="material-symbols-outlined text-xs text-pink-500">wc</span>
-              {{ (profile.sex && profile.sex !== 'Not specified') ? profile.sex : 'N/A' }}
+              <span class="material-symbols-outlined text-xs text-pink-500 shrink-0">wc</span>
+              <span class="min-w-0">{{ (profile.sex && profile.sex !== 'Not specified') ? profile.sex : 'N/A' }}</span>
             </span>
           </div>
 
           <div class="detail-item">
             <span class="detail-label">Membership Type</span>
             <span class="detail-val flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-xs text-purple-600 dark:text-purple-400">group</span>
-              {{ profile.user_role || (profile.role === 'non-twg' ? 'Proponent' : 'TWG Member') }}
+              <span class="material-symbols-outlined text-xs text-purple-600 dark:text-purple-400 shrink-0">group</span>
+              <span class="min-w-0">{{ profile.user_role || (profile.role === 'non-twg' ? 'Proponent' : 'TWG Member') }}</span>
             </span>
           </div>
 

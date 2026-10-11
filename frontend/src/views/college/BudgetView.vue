@@ -1490,6 +1490,7 @@ onMounted(() => {
 .main-content {
   padding: 0;
   flex-grow: 1;
+  zoom: 0.95;
 
   /* --- LIGHT MODE (Default) TOKENS --- */
   --bg-page: transparent;
