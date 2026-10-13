@@ -176,6 +176,15 @@ class PlanController extends ResourceController
                 $totalBudget += (float) ($line['amount'] ?? 0);
             }
 
+            $sources = [];
+            foreach (($item['budgetLines'] ?? []) as $line) {
+                if (!empty($line['source'])) {
+                    $sources[] = trim($line['source']);
+                }
+            }
+            $sources = array_unique($sources);
+            $sourceVal = !empty($sources) ? implode(', ', $sources) : 'GAA';
+
             $possibleData = [
                 'fiscal_year' => $dynamicYear,
                 'section' => $item['section'],
@@ -190,7 +199,7 @@ class PlanController extends ResourceController
                 'targets' => $item['indicators'],
                 'indicators' => $item['indicators'],
                 'budget' => $totalBudget,
-                'source' => isset($item['budgetLines'][0]['source']) ? $item['budgetLines'][0]['source'] : null,
+                'source' => $sourceVal,
                 'office' => $item['responsible'],
                 'responsible' => $item['responsible'],
                 'budget_lines' => json_encode($item['budgetLines']),
@@ -267,7 +276,7 @@ class PlanController extends ResourceController
             
             // Add budget
             $mandateStats[$groupKey]['budget'] += (float)$item['budget'];
-            $mandateStats[$groupKey]['gpb_ids'][] = $item['id'];
+            $mandateStats[$groupKey]['gpb_ids'][] = (int)$item['id'];
 
             // Parse budget lines
             $bLines = isset($item['budget_lines']) ? json_decode($item['budget_lines'], true) : [];

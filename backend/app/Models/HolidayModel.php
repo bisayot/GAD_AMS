@@ -24,7 +24,8 @@ class HolidayModel extends Model
 
     // Validation
     protected $validationRules      = [
-        'date' => 'required|valid_date|is_unique[holidays.date,id,{id}]',
+        'id'   => 'permit_empty',
+        'date' => 'required|valid_date',
         'name' => 'required|max_length[255]',
         'type' => 'required|in_list[public,school,custom]',
     ];

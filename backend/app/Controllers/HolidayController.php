@@ -43,6 +43,9 @@ class HolidayController extends ResourceController
         }
 
         $data = $this->request->getJSON(true) ?? $this->request->getPost();
+        if (isset($data['id'])) {
+            unset($data['id']);
+        }
         
         // Ensure no duplicate date exists
         $model = new HolidayModel();
@@ -74,6 +77,9 @@ class HolidayController extends ResourceController
         }
 
         $data = $this->request->getJSON(true) ?? $this->request->getRawInput();
+        if (isset($data['id'])) {
+            unset($data['id']);
+        }
         $model->update($id, $data);
 
         return $this->respond(['status' => 'success', 'message' => 'Holiday updated']);

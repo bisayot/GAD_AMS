@@ -397,11 +397,35 @@ export default {
 
     // ─── Ledger ───────────────────────────────────────────────────────────────
     const ledger = computed(() => {
-      const itemTotal   = state.value.items.reduce((s, i) => s + itemSubtotal(i), 0);
+      let gaaTotal = 0;
+      let otherLinesTotal = 0;
+
+      state.value.items.forEach(i => {
+        if (Array.isArray(i.budgetLines) && i.budgetLines.length > 0) {
+          i.budgetLines.forEach(l => {
+            const amt = Number(l.amount) || 0;
+            const src = (l.source || 'GAA').toLowerCase().trim();
+            if (src === 'other') {
+              otherLinesTotal += amt;
+            } else {
+              gaaTotal += amt;
+            }
+          });
+        } else {
+          const amt = Number(i.budget) || 0;
+          const src = (i.source || 'GAA').toLowerCase().trim();
+          if (src === 'other') {
+            otherLinesTotal += amt;
+          } else {
+            gaaTotal += amt;
+          }
+        }
+      });
+
       const orgOther    = Number(state.value.org.otherSources) || 0;
-      const total       = itemTotal + orgOther;
-      const other       = orgOther;
-      const primary     = itemTotal;
+      const other       = otherLinesTotal + orgOther;
+      const primary     = gaaTotal;
+      const total       = primary + other;
       const totalBudget = Number(state.value.org.totalOrgBudget) || 0;
       const pct         = totalBudget > 0 ? (total / totalBudget * 100) : 0;
       const bySection   = { client: 0, org: 0, attributed: 0 };
@@ -501,7 +525,7 @@ export default {
         targets:      item.indicators,
         indicators:   item.indicators,
         budget:       totalBudget,
-        source:       item.budgetLines?.[0]?.source || 'GAA',
+        source:       [...new Set((item.budgetLines || []).map(l => l.source || 'GAA'))].join(', ') || 'GAA',
         office:       item.responsible,
         responsible:  item.responsible,
         budget_lines: JSON.stringify(item.budgetLines),

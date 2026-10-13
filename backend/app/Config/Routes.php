@@ -432,6 +432,14 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     $routes->get('annual-reports/archive/(:num)', 'AnnualReportArchiveController::show/$1');
 
     // Holiday API Routes
+    $routes->options('holidays', 'AuthController::handleOptions');
+    $routes->get('holidays', 'HolidayController::index');
+    $routes->post('holidays', 'HolidayController::create', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
+    $routes->options('holidays/(:num)', 'AuthController::handleOptions');
+    $routes->get('holidays/(:num)', 'HolidayController::show/$1');
+    $routes->put('holidays/(:num)', 'HolidayController::update/$1', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
+    $routes->delete('holidays/(:num)', 'HolidayController::delete/$1', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
+
     $routes->group('holidays', function ($routes) {
         $routes->options('/', 'AuthController::handleOptions');
         $routes->get('/', 'HolidayController::index');
