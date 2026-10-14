@@ -1305,7 +1305,7 @@ const updateRetentionSettings = async () => {
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
-  background: #ffffff;
+  background-color: #ffffff;
   border: 1px solid #cbd5e1;
   color: #0f172a;
   padding: 0.75rem 1rem;
@@ -1339,7 +1339,7 @@ select.custom-input {
 .custom-input:focus {
   border-color: #9333ea;
   box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.12);
-  background: #ffffff;
+  background-color: #ffffff;
 }
 
 .password-toggle-btn {
@@ -1536,7 +1536,7 @@ select.custom-input {
 
 :global(.dark) .custom-input,
 .dark .custom-input {
-  background: rgba(15, 23, 42, 0.6);
+  background-color: rgba(15, 23, 42, 0.6);
   border-color: rgba(147, 51, 234, 0.25);
   color: #ffffff;
 }
@@ -1544,6 +1544,16 @@ select.custom-input {
 :global(.dark) select.custom-input,
 .dark select.custom-input {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat !important;
+  background-position: right 1.25rem center !important;
+  background-size: 1rem !important;
+  color-scheme: dark;
+}
+
+:global(.dark) select.custom-input option,
+.dark select.custom-input option {
+  background-color: #0f172a;
+  color: #f8fafc;
 }
 
 :global(.dark) .custom-input::placeholder,
@@ -1554,7 +1564,7 @@ select.custom-input {
 :global(.dark) .custom-input:focus,
 .dark .custom-input:focus {
   border-color: #c084fc;
-  background: rgba(15, 23, 42, 0.85);
+  background-color: rgba(15, 23, 42, 0.85);
   box-shadow: 0 0 0 3px rgba(192, 132, 252, 0.2);
 }
 
