@@ -16,6 +16,28 @@
         </h1>
       </div>
 
+      <!-- Onboarding Callout Banner -->
+      <div class="onboard-banner mb-6 p-4 rounded-2xl border backdrop-blur-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm transition-all hover:border-purple-500/40">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 onboard-icon-wrap">
+            <span class="material-symbols-outlined text-2xl text-purple-600 dark:text-purple-400">help_outline</span>
+          </div>
+          <div>
+            <div class="font-bold text-sm sm:text-base text-on-surface leading-tight">Are you new to GAD-AMS?</div>
+            <p class="text-xs text-on-surface-variant mt-0.5">Explore our onboarding guide to learn how proposals, TWG reviews, and account requirements work.</p>
+          </div>
+        </div>
+        <a 
+          href="https://onboard.bsugad.com/" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          class="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-xs uppercase tracking-wider rounded-xl shadow-sm hover:shadow transition-all duration-200 self-end sm:self-center active:scale-95"
+        >
+          <span>Visit Onboarding</span>
+          <span class="material-symbols-outlined text-sm">open_in_new</span>
+        </a>
+      </div>
+
       <div class="auth-card rounded-2xl p-8 md:p-12 shadow-2xl border relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-blue-500"></div>
         <form @submit.prevent="handleRegister" class="space-y-8">
@@ -328,6 +350,24 @@
             <button type="button" @click="router.back()" class="w-full border border-outline-variant text-on-surface py-4 rounded-full font-bold uppercase hover:bg-surface-variant transition-all cursor-pointer">
               Cancel
             </button>
+          </div>
+
+          <div class="mt-8 pt-6 border-t border-outline-variant text-center space-y-2">
+            <p class="text-sm text-on-surface-variant">
+              Already have an account?
+              <router-link to="/login" class="text-purple-600 dark:text-purple-400 font-bold hover:underline ml-1">Portal Login</router-link>
+            </p>
+            <p class="text-xs text-on-surface-variant">
+              Are you new to the system?
+              <a 
+                href="https://onboard.bsugad.com/" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                class="text-purple-600 dark:text-purple-400 font-bold hover:underline inline-flex items-center gap-0.5 ml-1"
+              >
+                Read the Onboarding Guide <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+              </a>
+            </p>
           </div>
         </form>
       </div>
@@ -685,6 +725,15 @@ const handleRegister = async () => {
   transition: all 0.3s ease;
 }
 
+.onboard-banner {
+  background-color: rgba(168, 85, 247, 0.08);
+  border-color: rgba(168, 85, 247, 0.22);
+}
+
+.onboard-icon-wrap {
+  background-color: rgba(168, 85, 247, 0.14);
+}
+
 .dropdown-list {
   background-color: #ffffff;
   border-color: #e2e8f0;
@@ -791,5 +840,16 @@ const handleRegister = async () => {
 :global(.dark) .register-page .hover\:bg-surface-variant:hover,
 .dark .register-page .hover\:bg-surface-variant:hover {
   background-color: #282b34 !important;
+}
+
+:global(.dark) .onboard-banner,
+.dark .onboard-banner {
+  background-color: rgba(168, 85, 247, 0.1) !important;
+  border-color: rgba(168, 85, 247, 0.25) !important;
+}
+
+:global(.dark) .onboard-icon-wrap,
+.dark .onboard-icon-wrap {
+  background-color: rgba(168, 85, 247, 0.2) !important;
 }
 </style>

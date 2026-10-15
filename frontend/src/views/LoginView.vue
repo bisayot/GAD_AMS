@@ -14,6 +14,28 @@
           <p class="text-sm max-w-xs mx-auto auth-subtitle">Log In to the GAD-AMS Portal.</p>
         </div>
 
+        <!-- Onboarding Notice Banner -->
+        <div class="onboard-banner mb-6 p-3.5 sm:p-4 rounded-2xl border backdrop-blur-sm flex items-center justify-between gap-3 shadow-sm transition-all hover:border-purple-500/40">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 onboard-icon-wrap">
+              <span class="material-symbols-outlined text-xl text-purple-600 dark:text-purple-400">help_outline</span>
+            </div>
+            <div class="min-w-0">
+              <div class="font-bold text-xs sm:text-sm text-on-surface leading-tight">Are you new to GAD-AMS?</div>
+              <p class="text-[11px] sm:text-xs text-on-surface-variant truncate">Explore the onboarding guide & tutorials</p>
+            </div>
+          </div>
+          <a 
+            href="https://onboard.bsugad.com/" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-xs rounded-xl shadow-sm hover:shadow transition-all duration-200 active:scale-95"
+          >
+            <span>Get Started</span>
+            <span class="material-symbols-outlined text-xs">open_in_new</span>
+          </a>
+        </div>
+
         <!-- Login Card -->
         <div class="auth-card rounded-2xl shadow-2xl p-8 md:p-10 border relative overflow-hidden">
           <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-blue-500"></div>
@@ -88,10 +110,25 @@
             </button>
           </form>
 
-          <div class="mt-8 pt-8 border-t border-outline-variant text-center">
+          <div class="mt-8 pt-6 border-t border-outline-variant text-center space-y-2.5">
+            <p class="text-sm text-on-surface-variant font-body">
+              Are you new?
+              <a 
+                href="https://onboard.bsugad.com/" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                class="text-purple-600 dark:text-purple-400 font-bold hover:underline underline-offset-4 decoration-2 ml-1 inline-flex items-center gap-0.5"
+              >
+                Visit Onboarding Guide <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+              </a>
+            </p>
+            <p class="text-sm text-on-surface-variant font-body">
+              Don't have an account?
+              <router-link class="text-purple-600 dark:text-purple-400 font-bold hover:underline underline-offset-4 decoration-2 ml-1" to="/register">Create Account</router-link>
+            </p>
             <p class="text-sm text-on-surface-variant font-body">
               Are you a visitor?
-              <router-link class="text-purple-400 font-bold hover:underline underline-offset-4 decoration-2 ml-1" to="/gad-corner">Explore GAD CORNER</router-link>
+              <router-link class="text-purple-600 dark:text-purple-400 font-bold hover:underline underline-offset-4 decoration-2 ml-1" to="/gad-corner">Explore GAD CORNER</router-link>
             </p>
           </div>
         </div>
@@ -238,6 +275,13 @@ const handleLogin = async () => {
   border-color: var(--color-outline-variant);
   box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.1);
 }
+.onboard-banner {
+  background-color: rgba(168, 85, 247, 0.08);
+  border-color: rgba(168, 85, 247, 0.22);
+}
+.onboard-icon-wrap {
+  background-color: rgba(168, 85, 247, 0.14);
+}
 
 /* Dark mode - Sleek charcoal with elevated card */
 :global(.dark) .login-page,
@@ -321,5 +365,16 @@ const handleLogin = async () => {
 .dark .login-page .bg-surface-container {
   background-color: #16181d !important;
   border-color: #2f333d !important;
+}
+
+:global(.dark) .onboard-banner,
+.dark .onboard-banner {
+  background-color: rgba(168, 85, 247, 0.1) !important;
+  border-color: rgba(168, 85, 247, 0.25) !important;
+}
+
+:global(.dark) .onboard-icon-wrap,
+.dark .onboard-icon-wrap {
+  background-color: rgba(168, 85, 247, 0.2) !important;
 }
 </style>
