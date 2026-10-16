@@ -1028,7 +1028,7 @@ const handleTrash = async () => {
 };
 
 const formatFormType = (type) => {
-  if (!type) return '---';
+  if (!type || type === '0' || type === 0) return '---';
   const map = {
     'employee': 'Employee Training',
     'inset': 'INSET Training',

@@ -114,7 +114,7 @@
                   </div>
                   <div>
                     <label class="info-label">Date Submitted</label>
-                    <p class="text-sm-light mt-1">{{ (existingReport.created_at || existingReport.date) ? new Date(existingReport.created_at || existingReport.date).toLocaleDateString('en-PH', { timeZone: 'Asia/Manila', year: 'numeric', month: 'long', day: 'numeric' }) : '---' }}</p>
+                    <p class="text-sm-light mt-1">{{ (existingReport.activity_design?.date || existingReport.activity_design?.created_at) ? new Date(existingReport.activity_design.date || existingReport.activity_design.created_at).toLocaleDateString('en-PH', { timeZone: 'Asia/Manila', year: 'numeric', month: 'long', day: 'numeric' }) : '---' }}</p>
                   </div>
                   <div>
                     <label class="info-label">Form Type</label>

@@ -50,7 +50,7 @@
                       <option 
                         v-for="ft in formTypes" 
                         :key="ft.id" 
-                        :value="ft.name" 
+                        :value="ft.id" 
                         class="dark-option"
                       >
                         {{ ft.name }}
@@ -1172,7 +1172,15 @@ watch(() => form.value.control_number, async (newVal) => {
     }
     nextTick(() => { isAutoFillingFromAD.value = false; });
     form.value.activity_classification = selected.activity_classification || 'N/A';
-    form.value.form_type = selected.form_type_name || selected.form_type || 'N/A';
+    let ftype = selected.form_type || '';
+    if (ftype && isNaN(ftype)) {
+      const found = formTypes.value.find(ft => ft.name === ftype);
+      if (found) ftype = found.id;
+    } else if (!ftype && selected.form_type_name) {
+      const found = formTypes.value.find(ft => ft.name === selected.form_type_name);
+      if (found) ftype = found.id;
+    }
+    form.value.form_type = ftype ? Number(ftype) : '';
     form.value.target_participants = selected.target_participants || '0';
     await fetchGADMandates();
     const savedMandates = selected.gad_mandate_ids ? String(selected.gad_mandate_ids).split(',').map(s=>s.trim()) : [];

@@ -125,8 +125,20 @@ class ActivityDesignController extends BaseController
             $file = $this->request->getFile('design_file');
             $fileName = FileStorage::saveToDrafts($file);
 
+            $rawFt = $this->request->getPost("form_type");
+            $formTypeId = null;
+            if (is_numeric($rawFt) && (int)$rawFt > 0) {
+                $formTypeId = (int)$rawFt;
+            } else if (!empty($rawFt)) {
+                $ftDb = \Config\Database::connect();
+                $ftRow = $ftDb->table('form_types')->where('name', $rawFt)->get()->getRow();
+                if ($ftRow) {
+                    $formTypeId = $ftRow->id;
+                }
+            }
+
             $data = [
-                "form_type"                  => $this->request->getPost("form_type"),
+                "form_type"                  => $formTypeId,
                 "activity_classification_id" => $this->request->getPost("activity_classification_id"),
                 "classification_id"          => $this->request->getPost("activity_classification_id"), // mapping to db column
                 "gad_mandate_id"             => !empty($finalMandates) ? $finalMandates[0] : null,
@@ -317,7 +329,7 @@ class ActivityDesignController extends BaseController
         $activityDesignModel = new ActivityDesignModel();
 
         $design = $activityDesignModel
-            ->select('activity_design.*, office_units.office_name as office, users.full_name as submitter_name, activity_design.start_date as date, venues.venue_name as venue, venues.is_inside_bsu as venue_is_inside_bsu, activity_classifications.classification_name as activity_classification, form_types.name as form_type_name')
+            ->select('activity_design.*, office_units.office_name as office, users.full_name as submitter_name, DATE(activity_design.created_at) as date, venues.venue_name as venue, venues.is_inside_bsu as venue_is_inside_bsu, activity_classifications.classification_name as activity_classification, form_types.name as form_type_name')
             ->select('(SELECT GROUP_CONCAT(DISTINCT CONCAT(\'GPB - \', CASE WHEN gm.mandate = \'\' OR gm.mandate IS NULL THEN CONCAT(\'N/A (Attributed Program) - \', IFNULL(gm.activity, \'\')) ELSE gm.mandate END) SEPARATOR \';;; \') FROM activity_design_mandates adm JOIN gpb_items gm ON gm.id = adm.mandate_id WHERE adm.act_design_id = activity_design.act_design_id) as gad_mandate')
             ->select('(SELECT GROUP_CONCAT(DISTINCT CASE WHEN gi.cause = \'\' OR gi.cause IS NULL THEN CONCAT(\'N/A (Attributed Program) - \', IFNULL(gi.activity, \'\')) ELSE gi.cause END SEPARATOR \';;; \') FROM activity_design_issues adi JOIN gpb_items gi ON gi.id = adi.issue_id WHERE adi.act_design_id = activity_design.act_design_id) as gender_issue')
             ->select('(SELECT GROUP_CONCAT(DISTINCT adm.mandate_id SEPARATOR \',\') FROM activity_design_mandates adm WHERE adm.act_design_id = activity_design.act_design_id) as gad_mandate_ids')
@@ -630,9 +642,21 @@ class ActivityDesignController extends BaseController
               }
           }
 
+        $rawFt = $this->request->getPost('form_type');
+        $formTypeId = null;
+        if (is_numeric($rawFt) && (int)$rawFt > 0) {
+            $formTypeId = (int)$rawFt;
+        } else if (!empty($rawFt)) {
+            $ftDb = \Config\Database::connect();
+            $ftRow = $ftDb->table('form_types')->where('name', $rawFt)->get()->getRow();
+            if ($ftRow) {
+                $formTypeId = $ftRow->id;
+            }
+        }
+
         $data = [
             'activity_title'      => $this->request->getPost('activity_title'),
-            'form_type'           => $this->request->getPost('form_type'),
+            'form_type'           => $formTypeId,
             'classification_id'   => $this->request->getPost('activity_classification_id'),
             'gad_mandate_id'      => !empty($finalMandates) ? $finalMandates[0] : null,
             'gender_issue_id'     => !empty($finalIssues) ? $finalIssues[0] : null,

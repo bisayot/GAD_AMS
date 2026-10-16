@@ -187,16 +187,24 @@ class AccomplishmentReportController extends BaseController
                     }
                 }
 
+                $db = \Config\Database::connect();
+
                 // Update archived_activity_designs if fields are provided
                 $adUpdateData = [];
                 if ($this->request->getPost('activity_classification_id')) {
                     $adUpdateData['classification_id'] = $this->request->getPost('activity_classification_id');
                 }
                 if ($this->request->getPost('form_type')) {
-                    $adUpdateData['form_type'] = $this->request->getPost('form_type');
+                    $rawFt = $this->request->getPost('form_type');
+                    if (is_numeric($rawFt) && (int)$rawFt > 0) {
+                        $adUpdateData['form_type'] = (int)$rawFt;
+                    } else {
+                        $ftRow = $db->table('form_types')->where('name', $rawFt)->get()->getRow();
+                        if ($ftRow) {
+                            $adUpdateData['form_type'] = $ftRow->id;
+                        }
+                    }
                 }
-                
-                $db = \Config\Database::connect();
                 
                 $customMandate = $this->request->getPost('custom_gad_mandate');
                   $mandateIdStr = $this->request->getPost('gad_mandate_id');
@@ -443,7 +451,7 @@ class AccomplishmentReportController extends BaseController
                 $db = \Config\Database::connect();
                 $ad = $db->table('activity_design as aad')
                       ->select('aad.*, venues.venue_name, activity_classifications.classification_name as activity_classification, form_types.name as form_type_name')
-                      ->select('aad.start_date as date, office_units.office_name as office, users.full_name as submitter_name')
+                      ->select('DATE(aad.created_at) as date, office_units.office_name as office, users.full_name as submitter_name')
                       ->join('venues', 'venues.venue_id = aad.venue_id', 'left')
                       ->join('activity_classifications', 'activity_classifications.id = aad.classification_id', 'left')
                       ->join('form_types', 'form_types.id = aad.form_type', 'left')
@@ -788,16 +796,24 @@ class AccomplishmentReportController extends BaseController
                     }
                 }
 
+                $db = \Config\Database::connect();
+
                 // Update archived_activity_designs if fields are provided
                 $adUpdateData = [];
                 if ($this->request->getPost('activity_classification_id')) {
                     $adUpdateData['classification_id'] = $this->request->getPost('activity_classification_id');
                 }
                 if ($this->request->getPost('form_type')) {
-                    $adUpdateData['form_type'] = $this->request->getPost('form_type');
+                    $rawFt = $this->request->getPost('form_type');
+                    if (is_numeric($rawFt) && (int)$rawFt > 0) {
+                        $adUpdateData['form_type'] = (int)$rawFt;
+                    } else {
+                        $ftRow = $db->table('form_types')->where('name', $rawFt)->get()->getRow();
+                        if ($ftRow) {
+                            $adUpdateData['form_type'] = $ftRow->id;
+                        }
+                    }
                 }
-                
-                $db = \Config\Database::connect();
                 
                 $customMandate = $this->request->getPost('custom_gad_mandate');
                   $mandateIdStr = $this->request->getPost('gad_mandate_id');

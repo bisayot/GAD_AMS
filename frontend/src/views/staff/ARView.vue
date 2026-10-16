@@ -100,7 +100,7 @@
                 </div>
                 <div>
                   <label class="info-label">Form Type</label>
-                  <p class="text-sm-light mt-1 uppercase">{{ report.activity_design.form_type_name || report.activity_design.form_type || '---' }}</p>
+                  <p class="text-sm-light mt-1 uppercase">{{ report.activity_design.form_type_name || (report.activity_design.form_type != '0' && report.activity_design.form_type != 0 ? report.activity_design.form_type : '---') }}</p>
                 </div>
                                 <div class="full-width-info" v-if="report.activity_design">
                   <label class="info-label">Gender Issue / GAD Mandate</label>
@@ -247,7 +247,7 @@
                 </div>
                 <div class="full-width-info" v-if="report.activity_design">
                   <label class="info-label">Form Type</label>
-                  <p class="text-sm-light mt-1 uppercase">{{ report.activity_design.form_type_name || report.activity_design.form_type || '---' }}</p>
+                  <p class="text-sm-light mt-1 uppercase">{{ report.activity_design.form_type_name || (report.activity_design.form_type != '0' && report.activity_design.form_type != 0 ? report.activity_design.form_type : '---') }}</p>
                 </div>
                                 <div class="full-width-info" v-if="report.activity_design">
                   <label class="info-label">Gender Issue / GAD Mandate</label>
