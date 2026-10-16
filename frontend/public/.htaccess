@@ -74,5 +74,6 @@ RewriteRule ^ index.php [L,QSA]
   
   # Fix: Basic CSP to remove wildcard directives and define fallbacks
   # Note: 'unsafe-inline' is kept to prevent Vue/Tailwind from breaking.
-  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: http: https:; connect-src 'self' http: https:; frame-src 'self' https://challenges.cloudflare.com https://maps.google.com https://www.google.com; object-src 'none';"
+  # Note: cdn.jsdelivr.net added for SweetAlert2 in PDF viewer; blob: added to connect-src and worker-src for PDF.js
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: http: https:; connect-src 'self' blob: http: https:; worker-src blob: 'self'; frame-src 'self' https://challenges.cloudflare.com https://maps.google.com https://www.google.com; object-src 'none';"
 </IfModule>
