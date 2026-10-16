@@ -48,6 +48,15 @@
             <div v-if="successMsg" class="rounded-md bg-emerald-900/50 border border-emerald-500/50 text-emerald-200 px-3 py-2 text-sm mb-3 text-center">
               {{ successMsg }}
             </div>
+            <div v-if="lockout" class="rounded-lg bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-100 px-3.5 py-3 text-sm mb-3 space-y-3">
+              <p class="font-semibold">{{ lockout.message }}</p>
+              <p v-if="lockout.isStaffOrAdmin">Please wait 15 minutes, or go to Forgot Password to receive a password reset link.</p>
+              <p v-else>Click Forgot Password to reset your password or contact the GAD Office.</p>
+              <div class="flex flex-wrap gap-2">
+                <button v-if="lockout.isStaffOrAdmin" type="button" class="text-xs font-bold underline" @click="lockout = null">Wait 15 minutes</button>
+                <router-link to="/forgot-password" class="text-xs font-bold underline">Forgot Password</router-link>
+              </div>
+            </div>
 
             <!-- Identity Input -->
             <div class="space-y-2">
@@ -153,6 +162,7 @@ const successMsg = ref('');
 const showPassword = ref(false);
 const turnstileToken = ref('');
 const turnstileRef = ref(null);
+const lockout = ref(null);
 
 onMounted(() => {
   if (route.query.registered === 'true') {
@@ -176,6 +186,7 @@ const handleLogin = async () => {
 
   loading.value = true;
   error.value = '';
+  lockout.value = null;
   
   try {
     const response = await api.post('login', {
@@ -227,10 +238,15 @@ const handleLogin = async () => {
     } else {
       error.value = 'Connection error. Please check if the backend is running.';
     }
+    const responseData = err?.status === 423 ? err : (err?.data?.status === 423 ? err.data : null);
+    if (responseData?.status === 423) {
+      lockout.value = { message: responseData.message, isStaffOrAdmin: responseData.lockout_options?.includes('wait') };
+    }
   } finally {
     loading.value = false;
   }
 };
+
 </script>
 
 <style scoped>

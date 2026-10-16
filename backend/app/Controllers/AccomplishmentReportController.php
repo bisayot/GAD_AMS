@@ -63,6 +63,18 @@ class AccomplishmentReportController extends BaseController
             $controlRecord = $db->table('activity_design')->select('act_design_id')->where('control_number', $this->request->getPost("control_number"))->get()->getRowArray();
             $actDesignId = $controlRecord ? $controlRecord['act_design_id'] : null;
 
+            // --- Duplicate guard: block submission if an active report with the same control_number exists ---
+            $existingReport = $db->table('accomplishment_report')
+                ->where('control_number', $this->request->getPost('control_number'))
+                ->where('deleted_at IS NULL', null, false)
+                ->get()->getRowArray();
+            if ($existingReport) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'An active Accomplishment Report with control number "' . $this->request->getPost('control_number') . '" already exists. Please check your submitted documents or restore it from the trash instead.',
+                ])->setStatusCode(409);
+            }
+
             $data = [
                 "activity_title" => $this->request->getPost("activity_title"),
                 "control_number" => $this->request->getPost("control_number"),

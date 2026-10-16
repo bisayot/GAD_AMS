@@ -46,11 +46,55 @@ class AuthController extends ResourceController
             return $this->failUnauthorized("Your account has been suspended. Please contact the GAD Office.");
         }
 
-        if (!password_verify($password, $user['password'])) {
-            return $this->failUnauthorized("Invalid username/email or password.");
+        $role = strtolower($user['role'] ?? '');
+        $isStaffOrAdmin = in_array($role, ['admin', 'gad_staff', 'superadmin'], true);
+        $maxAttempts = $isStaffOrAdmin ? 5 : 3;
+        $now = time();
+
+        if (!empty($user['locked_until'])) {
+            $lockedUntil = strtotime($user['locked_until']);
+            if ($lockedUntil !== false && $lockedUntil > $now) {
+                return $this->respond([
+                    'status' => 423,
+                    'message' => $isStaffOrAdmin
+                        ? 'Your account is locked for 15 minutes after 5 failed attempts.'
+                        : 'Your account is locked for 15 minutes after 3 failed attempts. Click Forgot Password to reset your password or contact the GAD Office.',
+                    'locked_until' => $user['locked_until'],
+                    'lockout_options' => $isStaffOrAdmin ? ['wait', 'forgot_password'] : ['forgot_password', 'contact_office'],
+                ], 423);
+            }
+
+            $userModel->update($user['id'], ['locked_until' => null, 'failed_login_attempts' => 0]);
+            $user['failed_login_attempts'] = 0;
         }
 
-        $userModel->update($user['id'], ['last_login' => date('Y-m-d H:i:s')]);
+        if (!password_verify($password, $user['password'])) {
+            $failedAttempts = ((int) ($user['failed_login_attempts'] ?? 0)) + 1;
+            $update = ['failed_login_attempts' => $failedAttempts];
+            if ($failedAttempts >= $maxAttempts) {
+                $update['locked_until'] = date('Y-m-d H:i:s', $now + (15 * 60));
+                $userModel->update($user['id'], $update);
+
+                return $this->respond([
+                    'status' => 423,
+                    'message' => $isStaffOrAdmin
+                        ? 'Your account is locked for 15 minutes after 5 failed attempts.'
+                        : 'Your account is locked for 15 minutes after 3 failed attempts. Click Forgot Password to reset your password or contact the GAD Office.',
+                    'locked_until' => $update['locked_until'],
+                    'lockout_options' => $isStaffOrAdmin ? ['wait', 'forgot_password'] : ['forgot_password', 'contact_office'],
+                ], 423);
+            }
+
+            $userModel->update($user['id'], $update);
+            $remaining = $maxAttempts - $failedAttempts;
+            return $this->failUnauthorized("Invalid username/email or password. You have {$remaining} attempt(s) remaining before your account is locked for 15 minutes.");
+        }
+
+        $userModel->update($user['id'], [
+            'last_login' => date('Y-m-d H:i:s'),
+            'failed_login_attempts' => 0,
+            'locked_until' => null,
+        ]);
 
         $userRole = $user['profile_role'] ?? 'Non-TWG';
 
@@ -465,7 +509,9 @@ class AuthController extends ResourceController
         $updateData = [
             'password' => password_hash($data['password'], PASSWORD_DEFAULT),
             'reset_token' => null,
-            'reset_token_expires_at' => null
+            'reset_token_expires_at' => null,
+            'failed_login_attempts' => 0,
+            'locked_until' => null,
         ];
 
         if ($userModel->update($user['id'], $updateData)) {

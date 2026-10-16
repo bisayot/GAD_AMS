@@ -163,6 +163,20 @@ class ActivityDesignController extends BaseController
                 throw new \Exception("User ID is missing. Please log in again.");
             }
 
+            // --- Duplicate guard: block submission if an active design with same title exists for this user ---
+            $dupDb = \Config\Database::connect();
+            $existingDesign = $dupDb->table('activity_design')
+                ->where('activity_title', $data['activity_title'])
+                ->where('user_id', $data['user_id'])
+                ->where('deleted_at IS NULL', null, false)
+                ->get()->getRowArray();
+            if ($existingDesign) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'An active Activity Design titled "' . $data['activity_title'] . '" already exists under your account. Please check your submitted documents or restore it from the trash instead.',
+                ])->setStatusCode(409);
+            }
+
             if ($activityDesignModel->insert($data)) {
                 $actDesignId = $activityDesignModel->getInsertID();
 

@@ -191,12 +191,34 @@ const restoreItems = async (itemsToRestore) => {
     }
   } catch (error) {
     console.error('Error restoring documents:', error);
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Failed to restore documents.',
-      confirmButtonColor: '#b979cc'
-    });
+
+    // Handle 409 Conflict: active duplicate already exists
+    const responseData = error?.response?.data || error;
+    const responseStatus = error?.response?.status;
+    const conflicts = responseData?.conflicts;
+    if ((responseStatus === 409 || conflicts?.length) && conflicts?.length) {
+      const conflictList = conflicts
+        .map(c => `<li style="text-align:left; margin-bottom:4px;"><b>${c.title}</b><br><span style="font-size:0.85em; color:#e05c5c;">${c.message}</span></li>`)
+        .join('');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Restore Blocked — Duplicate Found',
+        html: `
+          <p style="margin-bottom:10px;">The following document(s) could not be restored because an active version with the same details already exists:</p>
+          <ul style="list-style:none; padding:0;">${conflictList}</ul>
+          <p style="margin-top:12px; font-size:0.875em; color:#94a3b8;">Please permanently delete the active duplicate first, or delete the trashed version if it is no longer needed.</p>
+        `,
+        confirmButtonColor: '#b979cc',
+        confirmButtonText: 'Understood'
+      });
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: responseData?.message || 'Failed to restore documents.',
+        confirmButtonColor: '#b979cc'
+      });
+    }
   }
 };
 
