@@ -812,8 +812,9 @@ const userInitials = computed(() => {
 const getAvatarUrl = (path) => {
   if (!path) return '';
   if (path.startsWith('http://') || path.startsWith('https://')) return path;
-  const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace('/api/', '/') || 'http://localhost:8080/';
-  return `${baseUrl.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
+  const baseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/').replace(/\/api\/?$/, '');
+  const filename = path.split('/').pop();
+  return `${baseUrl}/api/files/avatars/${encodeURIComponent(filename)}`;
 };
 
 const handleAvatarSelected = async (e) => {

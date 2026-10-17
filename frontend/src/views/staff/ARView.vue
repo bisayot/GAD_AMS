@@ -427,8 +427,8 @@
     <!-- PDF Preview Modal -->
     <PdfPreviewModal :isOpen="isPdfModalOpen" :fileUrl="pdfFileUrl" @close="closePdfModal" />
 
-    <!-- Proponent Profile Modal -->
-    <ProponentProfileModal 
+    <!-- User Profile Modal -->
+    <UserProfileModal
       :isOpen="showProponentModal" 
       :userId="selectedProponentId" 
       @close="showProponentModal = false" 
@@ -444,7 +444,7 @@ import { useRoute, useRouter } from 'vue-router';
 import api from '../../api';
 import Swal from 'sweetalert2';
 import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
-import ProponentProfileModal from '../../components/ProponentProfileModal.vue';
+import UserProfileModal from '../../components/UserProfileModal.vue';
 import ActivityDesignBudget from '../../components/ActivityDesignBudget.vue';
 
 const isDarkMode = ref(document.documentElement.classList.contains('dark'));
@@ -807,6 +807,4 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped src="../../assets/ar-view-styles.css"></style>
-
-
 

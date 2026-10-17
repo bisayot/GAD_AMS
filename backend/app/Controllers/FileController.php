@@ -10,6 +10,7 @@ use App\Libraries\FileStorage;
  * Routes:
  *   GET api/files/drafts/{filename}
  *   GET api/files/archived/{filename}
+ *   GET api/files/avatars/{filename}
  */
 class FileController extends BaseController
 {
@@ -27,6 +28,25 @@ class FileController extends BaseController
             return $this->response->redirect(FileStorage::getCloudArchivedUrl(basename($filename)));
         }
         return $this->serveFile(FileStorage::archivedPath(), $filename);
+    }
+
+    public function serveAvatar(string $filename)
+    {
+        $filename = basename($filename);
+        $writablePath = WRITEPATH . 'uploads' . DIRECTORY_SEPARATOR . 'avatars' . DIRECTORY_SEPARATOR . $filename;
+        $legacyPath = FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'avatars' . DIRECTORY_SEPARATOR . $filename;
+
+        if (is_file($writablePath)) {
+            return $this->serveImageFile($writablePath, $filename);
+        }
+
+        if (is_file($legacyPath)) {
+            return $this->serveImageFile($legacyPath, $filename);
+        }
+
+        return $this->response
+            ->setStatusCode(404)
+            ->setJSON(['success' => false, 'message' => 'File not found']);
     }
 
     public function serveNewsIec(string $filename)
@@ -87,6 +107,24 @@ class FileController extends BaseController
         }
 
         $mime = mime_content_type($filepath) ?: 'application/octet-stream';
+
+        return $this->response
+            ->setHeader('Content-Type', $mime)
+            ->setHeader('Content-Disposition', 'inline; filename="' . $filename . '"')
+            ->setHeader('Cache-Control', 'private, max-age=3600')
+            ->setBody(file_get_contents($filepath));
+    }
+
+    private function serveImageFile(string $filepath, string $filename)
+    {
+        $mime = function_exists('mime_content_type') ? mime_content_type($filepath) : false;
+        if (!$mime) {
+            $mime = [
+                'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg',
+                'png' => 'image/png', 'gif' => 'image/gif',
+                'webp' => 'image/webp',
+            ][strtolower(pathinfo($filepath, PATHINFO_EXTENSION))] ?? 'application/octet-stream';
+        }
 
         return $this->response
             ->setHeader('Content-Type', $mime)

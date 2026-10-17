@@ -350,6 +350,9 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     $routes->options('files/archived/(:segment)', 'AuthController::handleOptions');
     $routes->get('files/archived/(:segment)', 'FileController::serveArchived/$1');
 
+    $routes->options('files/avatars/(:segment)', 'AuthController::handleOptions');
+    $routes->get('files/avatars/(:segment)', 'FileController::serveAvatar/$1');
+
     $routes->options('files/news-iec/(:segment)', 'AuthController::handleOptions');
     $routes->get('files/news-iec/(:segment)', 'FileController::serveNewsIec/$1');
 

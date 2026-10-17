@@ -410,8 +410,8 @@
       </div>
     </div>
 
-    <!-- Proponent Profile Modal -->
-    <ProponentProfileModal 
+    <!-- User Profile Modal -->
+    <UserProfileModal
       :isOpen="showProponentModal" 
       :userId="selectedProponentId" 
       @close="showProponentModal = false" 
@@ -426,7 +426,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '../../api';
 import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
-import ProponentProfileModal from '../../components/ProponentProfileModal.vue';
+import UserProfileModal from '../../components/UserProfileModal.vue';
 import { useHolidays } from '../../utils/useHolidays';
 
 const isDarkMode = ref(document.documentElement.classList.contains('dark'));

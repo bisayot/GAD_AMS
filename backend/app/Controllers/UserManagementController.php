@@ -384,19 +384,9 @@ class UserManagementController extends ResourceController
         // 1. Handle Avatar Removal or Upload
         if (isset($data['remove_avatar']) && $data['remove_avatar']) {
             if ($existingProfile && !empty($existingProfile['profile_picture'])) {
-                $oldFile = FCPATH . ltrim($existingProfile['profile_picture'], '/\\');
-                if (is_file($oldFile)) {
-                    @unlink($oldFile);
-                }
+                $this->deleteAvatarFiles($existingProfile['profile_picture']);
             }
-            $olderAvatars = glob(FCPATH . 'uploads/avatars/avatar_' . $userId . '_*');
-            if ($olderAvatars) {
-                foreach ($olderAvatars as $oldAvatar) {
-                    if (is_file($oldAvatar)) {
-                        @unlink($oldAvatar);
-                    }
-                }
-            }
+            $this->deleteAvatarFilesForUser($userId);
             if ($existingProfile) {
                 $profileModel->update($existingProfile['id'], ['profile_picture' => null]);
             }
@@ -419,28 +409,21 @@ class UserManagementController extends ResourceController
                 return $this->fail('Image file exceeds the 3MB size limit.');
             }
 
-            if ($existingProfile && !empty($existingProfile['profile_picture'])) {
-                $oldFile = FCPATH . ltrim($existingProfile['profile_picture'], '/\\');
-                if (is_file($oldFile)) {
-                    @unlink($oldFile);
-                }
-            }
-            $olderAvatars = glob(FCPATH . 'uploads/avatars/avatar_' . $userId . '_*');
-            if ($olderAvatars) {
-                foreach ($olderAvatars as $oldAvatar) {
-                    if (is_file($oldAvatar)) {
-                        @unlink($oldAvatar);
-                    }
-                }
-            }
-
-            if (!is_dir(FCPATH . 'uploads/avatars')) {
-                mkdir(FCPATH . 'uploads/avatars', 0755, true);
+            $avatarDirectory = $this->avatarDirectory();
+            if (!is_dir($avatarDirectory) && !mkdir($avatarDirectory, 0755, true) && !is_dir($avatarDirectory)) {
+                return $this->failServerError('Unable to prepare avatar storage directory.');
             }
 
             $newName = 'avatar_' . $userId . '_' . time() . '.' . $ext;
-            $avatarFile->move(FCPATH . 'uploads/avatars', $newName);
+            if (!$avatarFile->move($avatarDirectory, $newName)) {
+                return $this->failServerError('Unable to save the profile picture.');
+            }
             $avatarPath = 'uploads/avatars/' . $newName;
+
+            if ($existingProfile && !empty($existingProfile['profile_picture'])) {
+                $this->deleteAvatarFiles($existingProfile['profile_picture']);
+            }
+            $this->deleteAvatarFilesForUser($userId, $newName);
 
             if ($existingProfile) {
                 $profileModel->update($existingProfile['id'], ['profile_picture' => $avatarPath]);
@@ -559,5 +542,48 @@ class UserManagementController extends ResourceController
         }
 
         return $this->respond(['success' => false, 'message' => 'No valid update data provided']);
+    }
+
+    private function avatarDirectory(): string
+    {
+        return WRITEPATH . 'uploads' . DIRECTORY_SEPARATOR . 'avatars';
+    }
+
+    private function deleteAvatarFiles(string $storedPath): void
+    {
+        $filename = basename($storedPath);
+        if ($filename === '' || $filename === '.' || $filename === DIRECTORY_SEPARATOR) {
+            return;
+        }
+
+        $paths = [
+            $this->avatarDirectory() . DIRECTORY_SEPARATOR . $filename,
+            FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'avatars' . DIRECTORY_SEPARATOR . $filename,
+        ];
+
+        foreach (array_unique($paths) as $path) {
+            if (is_file($path) && !unlink($path)) {
+                log_message('warning', 'Unable to delete avatar file: ' . $path);
+            }
+        }
+    }
+
+    private function deleteAvatarFilesForUser(int|string $userId, ?string $exceptFilename = null): void
+    {
+        $patterns = [
+            $this->avatarDirectory() . DIRECTORY_SEPARATOR . 'avatar_' . $userId . '_*',
+            FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'avatars' . DIRECTORY_SEPARATOR . 'avatar_' . $userId . '_*',
+        ];
+
+        foreach ($patterns as $pattern) {
+            foreach (glob($pattern) ?: [] as $path) {
+                if ($exceptFilename !== null && basename($path) === $exceptFilename) {
+                    continue;
+                }
+                if (is_file($path) && !unlink($path)) {
+                    log_message('warning', 'Unable to delete avatar file: ' . $path);
+                }
+            }
+        }
     }
 }

@@ -521,8 +521,8 @@
     <!-- PDF Preview Modal -->
     <PdfPreviewModal :isOpen="isPdfModalOpen" :fileUrl="pdfFileUrl" @close="closePdfModal" />
 
-    <!-- Proponent Profile Modal -->
-    <ProponentProfileModal 
+    <!-- User Profile Modal -->
+    <UserProfileModal
       :isOpen="showProponentModal" 
       :userId="selectedProponentId" 
       @close="showProponentModal = false" 
@@ -539,7 +539,7 @@ import Swal from 'sweetalert2';
 import api from '../../api';
 import { useHolidays } from '../../utils/useHolidays';
 import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
-import ProponentProfileModal from '../../components/ProponentProfileModal.vue';
+import UserProfileModal from '../../components/UserProfileModal.vue';
 import ActivityDesignBudget from '../../components/ActivityDesignBudget.vue';
 
 const showProponentModal = ref(false);
@@ -1100,7 +1100,5 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped src="../../assets/ar-view-styles.css"></style>
-
-
 
 

@@ -191,7 +191,8 @@ const getAvatarUrl = (path) => {
   if (!path) return '';
   if (path.startsWith('http://') || path.startsWith('https://')) return path;
   const base = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/').replace(/\/api\/?$/, '');
-  return `${base.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
+  const filename = path.split('/').pop();
+  return `${base.replace(/\/$/, '')}/api/files/avatars/${encodeURIComponent(filename)}`;
 };
 
 const userInitial = computed(() => {

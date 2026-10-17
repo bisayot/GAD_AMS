@@ -500,8 +500,8 @@
     <!-- PDF Preview Modal -->
     <PdfPreviewModal :isOpen="isPdfModalOpen" :fileUrl="pdfFileUrl" @close="closePdfModal" />
 
-    <!-- Proponent Profile Modal -->
-    <ProponentProfileModal 
+    <!-- User Profile Modal -->
+    <UserProfileModal
       :isOpen="showProponentModal" 
       :userId="selectedProponentId" 
       @close="showProponentModal = false" 
@@ -517,7 +517,7 @@ import { useRoute, useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import api from '../../api';
 import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
-import ProponentProfileModal from '../../components/ProponentProfileModal.vue';
+import UserProfileModal from '../../components/UserProfileModal.vue';
 import { useHolidays } from '../../utils/useHolidays';
 
 const { getWorkingDaysDiff, addWorkingDays, isDisabledDate } = useHolidays();

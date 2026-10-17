@@ -6,7 +6,7 @@
       <div class="modal-header">
         <div class="flex items-center gap-2">
           <span class="material-symbols-outlined text-purple-600 dark:text-purple-400">account_circle</span>
-          <h3 class="text-lg font-bold modal-title">Proponent Profile</h3>
+          <h3 class="text-lg font-bold modal-title">User Profile</h3>
         </div>
         <button type="button" @click="$emit('close')" class="close-btn" title="Close">
           <span class="material-symbols-outlined">close</span>
@@ -163,8 +163,9 @@ const initials = computed(() => {
 const getAvatarUrl = (path) => {
   if (!path) return '';
   if (path.startsWith('http://') || path.startsWith('https://')) return path;
-  const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace('/api/', '/') || 'http://localhost:8080/';
-  return `${baseUrl.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
+  const baseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/').replace(/\/api\/?$/, '');
+  const filename = path.split('/').pop();
+  return `${baseUrl}/api/files/avatars/${encodeURIComponent(filename)}`;
 };
 
 const fetchData = async () => {
