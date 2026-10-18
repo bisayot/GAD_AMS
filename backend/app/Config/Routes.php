@@ -69,6 +69,21 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     $routes->options('activity-logs', 'AuthController::handleOptions');
     $routes->get('activity-logs', 'ActivityLogController::index');
 
+    // BACKUP MANAGEMENT ROUTES
+    $routes->options('backups', 'AuthController::handleOptions');
+    $routes->get('backups', 'BackupController::index', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
+    $routes->post('backups', 'BackupController::create', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
+    $routes->options('backups/(:segment)', 'AuthController::handleOptions');
+    $routes->post('backups/restore-local', 'BackupController::restoreLocal', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
+    $routes->options('backups/restore-local', 'AuthController::handleOptions');
+    $routes->get('backups/(:segment)/download', 'BackupController::download/$1', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
+    $routes->options('backups/(:segment)/download', 'AuthController::handleOptions');
+    $routes->get('backups/(:segment)/preview', 'BackupController::preview/$1', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
+    $routes->options('backups/(:segment)/preview', 'AuthController::handleOptions');
+    $routes->post('backups/(:segment)/restore', 'BackupController::restore/$1', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
+    $routes->options('backups/(:segment)/restore', 'AuthController::handleOptions');
+    $routes->delete('backups/(:segment)', 'BackupController::delete/$1', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
+
     // ----------------------------------------------------------------
     // CLOUDFLARE R2 STORAGE ROUTE (existing)
     // ----------------------------------------------------------------

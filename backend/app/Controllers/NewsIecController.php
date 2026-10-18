@@ -88,26 +88,46 @@ class NewsIecController extends ResourceController
             return $this->failNotFound('Item not found');
         }
 
-        // Delete physical files
-        if (!empty($item['image_path'])) {
-            $images = json_decode($item['image_path'], true);
-            if (is_array($images)) {
-                foreach ($images as $filename) {
-                    $publicFile = FCPATH . 'uploads/news_iec/' . $filename;
-                    if (is_file($publicFile)) {
-                        unlink($publicFile);
-                    }
-                    $writableFile = WRITEPATH . 'uploads/newsiec images/' . $filename;
-                    if (is_file($writableFile)) {
-                        unlink($writableFile);
-                    }
-                }
-            }
-        }
-
         if ($this->model->delete($id)) {
+            $this->deleteImages($item['image_path'] ?? null);
             return $this->respondDeleted(['success' => true, 'message' => 'Deleted successfully']);
         }
         return $this->fail('Failed to delete');
+    }
+
+    private function deleteImages(?string $imagePath): void
+    {
+        if (!$imagePath) {
+            return;
+        }
+
+        $images = json_decode($imagePath, true);
+        if (!is_array($images)) {
+            $images = [$imagePath];
+        }
+
+        $directories = [
+            FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'news_iec',
+            FCPATH . 'api' . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'news_iec',
+            WRITEPATH . 'uploads' . DIRECTORY_SEPARATOR . 'newsiec images',
+        ];
+
+        foreach ($images as $filename) {
+            if (!is_string($filename) || $filename === '') {
+                continue;
+            }
+
+            $safeFilename = basename(parse_url($filename, PHP_URL_PATH) ?: $filename);
+            if ($safeFilename === '.' || $safeFilename === '..' || $safeFilename === '') {
+                continue;
+            }
+
+            foreach ($directories as $directory) {
+                $file = $directory . DIRECTORY_SEPARATOR . $safeFilename;
+                if (is_file($file) && !unlink($file)) {
+                    log_message('warning', 'Unable to delete News/IEC image: {file}', ['file' => $file]);
+                }
+            }
+        }
     }
 }

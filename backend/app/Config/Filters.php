@@ -137,6 +137,7 @@ class Filters extends BaseFilters
                 'api/users*',
                 'api/offices*',
                 'api/activity-logs',
+                'api/backups*',
                 'api/submit-activity-design',
                 'api/activity-designs*',
                 'api/activity-design*',
@@ -269,4 +270,3 @@ class Filters extends BaseFilters
         unset($config);
     }
 }
-

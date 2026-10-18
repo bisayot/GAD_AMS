@@ -77,7 +77,8 @@ const staffMenu = ref([
     children: [
       { label: 'Campus Resources', icon: 'business_center', href: '/staff/campus-resources' },
       { label: 'User Management', icon: 'manage_accounts', href: '/staff/user-management' },
-      { label: 'Activity Logs', icon: 'history', href: '/staff/activity-logs' }
+      { label: 'Activity Logs', icon: 'history', href: '/staff/activity-logs' },
+      { label: 'Backup Management', icon: 'cloud_sync', href: '/staff/backups' }
     ]
   }
 ]);

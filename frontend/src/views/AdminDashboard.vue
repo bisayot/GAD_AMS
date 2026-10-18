@@ -75,7 +75,8 @@ const adminMenu = ref([
     children: [
       { label: 'User Management', icon: 'manage_accounts', href: '/admin/user-management' },
       { label: 'Campus Resources', icon: 'business_center', href: '/admin/campus-resources' },
-      { label: 'Activity Logs', icon: 'history', href: '/admin/activity-logs' }
+      { label: 'Activity Logs', icon: 'history', href: '/admin/activity-logs' },
+      { label: 'Backup Management', icon: 'cloud_sync', href: '/admin/backups' }
     ]
   }
 ]);
