@@ -48,7 +48,6 @@ class CreateBackupsTable extends Migration
         $this->forge->addKey('id', true);
         $this->forge->addUniqueKey('drive_file_id');
         $this->forge->addKey('created_by');
-        $this->forge->addForeignKey('created_by', 'users', 'id', 'SET NULL', 'CASCADE');
         $this->forge->createTable('backups', true);
     }
 

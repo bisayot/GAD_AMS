@@ -17,6 +17,8 @@ class BackupController extends ResourceController
     private const DRIVE_API = 'https://www.googleapis.com/drive/v3';
     private const UPLOAD_API = 'https://www.googleapis.com/upload/drive/v3/files';
     private const PROTECTED_TABLES = ['activity_logs', 'backups'];
+    private const RETENTION_DAYS = 14;
+    private const BACKUP_TIMEZONE = 'Asia/Manila';
 
     public function index()
     {
@@ -51,6 +53,131 @@ class BackupController extends ResourceController
         } catch (\Throwable $exception) {
             log_message('error', 'Backup listing failed: {message}', ['message' => $exception->getMessage()]);
             return $this->failServerError('Unable to connect to Google Drive.');
+        }
+    }
+
+    public function runScheduledBackup(): array
+    {
+        $this->assertRetentionSchema();
+        $token = $this->getAccessToken();
+        $folderId = $this->getFolderId($token);
+        $archivePath = null;
+        try {
+            $archivePath = $this->createBackupArchive();
+            $name = 'GAD-AMS-backup-' . date('Y-m-d-H-i-s') . '.zip';
+            $contents = file_get_contents($archivePath);
+            if ($contents === false) {
+                throw new RuntimeException('Unable to read the temporary backup archive.');
+            }
+
+            $file = $this->uploadSnapshot($token, $folderId, $name, $contents);
+            $this->recordBackupMetadata($file, 'automatic');
+            $backupId = $file['id'] ?? $name;
+        } finally {
+            if ($archivePath && file_exists($archivePath)) {
+                @unlink($archivePath);
+            }
+        }
+
+        return [
+            'backup' => $backupId,
+            'cleanup' => $this->cleanupExpiredBackups($token, $folderId),
+        ];
+    }
+
+    private function assertRetentionSchema(): void
+    {
+        $required = ['expires_at', 'cleanup_attempts', 'last_cleanup_error', 'drive_deleted_at'];
+        $columns = Database::connect()->getFieldNames('backups');
+        $missing = array_values(array_diff($required, $columns));
+        if ($missing) {
+            throw new RuntimeException(
+                'Backup retention migration is not applied. Run "php spark migrate" before running backups:run. Missing: '
+                . implode(', ', $missing)
+            );
+        }
+    }
+
+    private function cleanupExpiredBackups(string $token, string $folderId): array
+    {
+        $timezone = new \DateTimeZone(self::BACKUP_TIMEZONE);
+        $today = (new \DateTimeImmutable('now', $timezone))->format('Y-m-d');
+        $db = Database::connect();
+        $successfulToday = $db->table('backups')
+            ->where('backup_type', 'automatic')
+            ->where('created_at >=', $today . ' 00:00:00')
+            ->where('created_at <=', $today . ' 23:59:59')
+            ->countAllResults();
+        if ($successfulToday < 1) {
+            throw new RuntimeException('Cleanup skipped because today has no successful automatic backup.');
+        }
+
+        $files = $this->listBackupFiles($token, $folderId);
+        $protectedIds = array_fill_keys(array_column(array_slice($files, 0, 3), 'id'), true);
+        $rows = $db->table('backups')->get()->getResultArray();
+        $now = new \DateTimeImmutable('now', $timezone);
+        $deleted = 0;
+        $failed = 0;
+
+        foreach ($rows as $row) {
+            $fileId = (string) ($row['drive_file_id'] ?? '');
+            if (!$fileId || isset($protectedIds[$fileId]) || empty($row['expires_at'])) {
+                continue;
+            }
+            if (new \DateTimeImmutable($row['expires_at'], $timezone) > $now) {
+                continue;
+            }
+
+            $db->table('backups')->where('id', $row['id'])->set([
+                'cleanup_attempts' => ((int) ($row['cleanup_attempts'] ?? 0)) + 1,
+                'last_cleanup_error' => null,
+            ])->update();
+            try {
+                $this->deleteDriveFile($token, $fileId);
+                $db->table('backups')->where('id', $row['id'])->delete();
+                $deleted++;
+            } catch (\Throwable $exception) {
+                $failed++;
+                $db->table('backups')->where('id', $row['id'])->set([
+                    'last_cleanup_error' => $exception->getMessage(),
+                ])->update();
+                log_message('error', 'Backup cleanup failed for {id}: {message}', [
+                    'id' => $fileId,
+                    'message' => $exception->getMessage(),
+                ]);
+            }
+        }
+        if ($failed > 0) {
+            throw new RuntimeException(sprintf('%d backup cleanup item(s) will be retried.', $failed));
+        }
+        return ['deleted' => $deleted];
+    }
+
+    private function listBackupFiles(string $token, string $folderId): array
+    {
+        $result = $this->driveRequest('/files', $token, [
+            'q' => sprintf("'%s' in parents and trashed = false", addslashes($folderId)),
+            'orderBy' => 'createdTime desc',
+            'pageSize' => 1000,
+            'fields' => 'files(id,name,createdTime)',
+        ]);
+        $files = array_values(array_filter(
+            $result['files'] ?? [],
+            static fn (array $file): bool => self::isBackupName($file['name'] ?? '')
+        ));
+        usort($files, static fn (array $left, array $right): int =>
+            strcmp((string) ($right['createdTime'] ?? ''), (string) ($left['createdTime'] ?? '')));
+        return $files;
+    }
+
+    private function deleteDriveFile(string $token, string $fileId): void
+    {
+        try {
+            $this->driveRequest('/files/' . rawurlencode($fileId), $token, [], 'DELETE');
+        } catch (\Throwable $exception) {
+            if (!str_contains($exception->getMessage(), 'HTTP 404')) {
+                throw $exception;
+            }
         }
     }
 
@@ -102,7 +229,8 @@ class BackupController extends ResourceController
                 return $this->failNotFound('Backup not found.');
             }
 
-            $this->driveRequest('/files/' . rawurlencode($fileId), $token, [], 'DELETE');
+            $this->deleteDriveFile($token, $fileId);
+            Database::connect()->table('backups')->where('drive_file_id', $fileId)->delete();
 
             $this->logBackupAction('Delete Backup', 'Deleted ' . ($file['name'] ?? $fileId) . ' from Google Drive.');
             return $this->respond(['success' => true]);
@@ -508,6 +636,9 @@ class BackupController extends ResourceController
 
     private function currentUserId(): ?int
     {
+        if (!$this->request) {
+            return null;
+        }
         $payload = $this->request->jwtPayload ?? [];
         $userId = $payload['sub'] ?? $payload['id'] ?? null;
         return is_numeric($userId) ? (int) $userId : null;
@@ -526,7 +657,11 @@ class BackupController extends ResourceController
             'size_bytes' => (int) ($file['size'] ?? 0),
             'backup_type' => $backupType,
             'created_by' => $this->currentUserId(),
-            'created_at' => date('Y-m-d H:i:s'),
+            'created_at' => ($createdAt = new \DateTimeImmutable(
+                'now',
+                new \DateTimeZone(self::BACKUP_TIMEZONE)
+            ))->format('Y-m-d H:i:s'),
+            'expires_at' => $createdAt->modify('+' . self::RETENTION_DAYS . ' days')->format('Y-m-d H:i:s'),
         ]);
     }
 
