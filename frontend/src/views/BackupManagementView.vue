@@ -7,7 +7,7 @@
           <span class="text-sm font-black uppercase tracking-[0.18em]">System & Controls</span>
         </div>
         <h1 class="text-3xl md:text-4xl font-black text-slate-900">Backup Management</h1>
-        <p class="mt-2 max-w-2xl text-slate-500">Create and manage MySQL database dumps and uploaded documents stored in the restricted GAD-AMS Google Drive backup folder.</p>
+        <p class="mt-2 max-w-2xl text-slate-500">Back up and manage all system data and uploaded files in Google Drive folder.</p>
       </div>
       <div class="flex items-center gap-3">
       <button type="button" class="backup-action-button inline-flex items-center gap-2 rounded-xl border border-purple-200 bg-white px-4 py-3 font-bold text-purple-700 shadow-sm transition hover:bg-purple-50 disabled:cursor-not-allowed" :disabled="operationLoading" @click="openLocalRestore">
@@ -50,7 +50,6 @@
       <div class="flex items-center justify-between border-b border-slate-100 px-6 py-5 dark:border-slate-700">
         <div>
           <h2 class="text-xl font-black text-slate-900 dark:text-white">Google Drive backups</h2>
-          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">ZIP backups include the MySQL dump and uploaded files. Legacy JSON backups remain available.</p>
         </div>
         <button class="rounded-lg p-2 text-slate-500 transition hover:bg-purple-50 hover:text-purple-700 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-purple-300" title="Refresh backups" :disabled="operationLoading" @click="loadBackups">
           <span class="material-symbols-outlined" :class="{ 'animate-spin': loading }">refresh</span>

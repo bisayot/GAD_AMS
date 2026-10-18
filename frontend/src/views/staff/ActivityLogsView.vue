@@ -515,6 +515,7 @@ onMounted(() => {
   color: #0f172a;
 }
 .log-action-text {
+  margin-left: 0.25rem;
   color: #334155;
 }
 

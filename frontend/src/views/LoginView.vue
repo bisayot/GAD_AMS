@@ -67,7 +67,7 @@
                   v-model="identity"
                   class="w-full pl-12 pr-4 py-4 bg-surface-container border border-outline-variant rounded-lg focus:ring-0 focus:bg-surface-variant focus:border-b-2 focus:border-purple-500 transition-all duration-200 text-on-surface placeholder:text-on-surface-variant" 
                   id="identity" 
-                  placeholder="e.g. gad.office@bsu.edu.ph" 
+                  placeholder="Enter your email"
                   required 
                   type="text" 
                 />
@@ -87,7 +87,7 @@
                   :type="showPassword ? 'text' : 'password'"
                   class="w-full pl-12 pr-12 py-4 bg-surface-container border border-outline-variant rounded-lg focus:ring-0 focus:bg-surface-variant focus:border-b-2 focus:border-purple-500 transition-all duration-200 text-on-surface placeholder:text-on-surface-variant" 
                   id="password" 
-                  placeholder="••••••••" 
+                  placeholder="Enter your password"
                   required 
                 />
                 <button 
