@@ -8,19 +8,28 @@ class AddLoginLockoutFieldsToUsers extends Migration
 {
     public function up()
     {
-        $this->forge->addColumn('users', [
-            'failed_login_attempts' => [
+        $columns = [];
+
+        if (!$this->db->fieldExists('failed_login_attempts', 'users')) {
+            $columns['failed_login_attempts'] = [
                 'type' => 'INT',
                 'constraint' => 10,
                 'unsigned' => true,
                 'default' => 0,
-            ],
-            'locked_until' => [
+            ];
+        }
+
+        if (!$this->db->fieldExists('locked_until', 'users')) {
+            $columns['locked_until'] = [
                 'type' => 'DATETIME',
                 'null' => true,
                 'default' => null,
-            ],
-        ]);
+            ];
+        }
+
+        if ($columns) {
+            $this->forge->addColumn('users', $columns);
+        }
     }
 
     public function down()
