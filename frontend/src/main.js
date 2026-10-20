@@ -15,3 +15,12 @@ const app = createApp(App)
 app.use(router)
 app.component('VueDatePicker', VueDatePicker);
 app.mount('#app')
+
+if ('serviceWorker' in navigator && (window.isSecureContext || window.location.hostname === 'localhost')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
+      .catch((error) => {
+        console.error('Unable to enable offline asset caching.', error);
+      });
+  });
+}

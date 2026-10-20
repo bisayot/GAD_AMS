@@ -88,6 +88,16 @@ if ($isBot && preg_match('/^\\/gad-corner\\/([0-9]+)/', $_SERVER['REQUEST_URI'],
       fs.unlinkSync(htmlPath); // Remove html to force PHP execution
       console.log('✅ Generated index.php for bulletproof Facebook sharing!');
     }
+
+    const serviceWorkerPath = 'dist/sw.js';
+    if (fs.existsSync(serviceWorkerPath)) {
+      const buildAssets = fs.readdirSync('dist/assets')
+        .map((file) => `/assets/${file}`)
+        .sort();
+      const serviceWorker = fs.readFileSync(serviceWorkerPath, 'utf-8')
+        .replace('const BUILD_ASSETS = [];', `const BUILD_ASSETS = ${JSON.stringify(buildAssets)};`);
+      fs.writeFileSync(serviceWorkerPath, serviceWorker);
+    }
   }
 });
 

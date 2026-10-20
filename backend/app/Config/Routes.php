@@ -9,6 +9,9 @@ $routes->get('/', 'Home::index');
 
 $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
 
+    // Lightweight keep-warm health check; intentionally public and side-effect free.
+    $routes->get('health', 'Health::index');
+
     // ----------------------------------------------------------------
     // AUTH ROUTES (existing)
     // ----------------------------------------------------------------
