@@ -237,6 +237,7 @@
                   <span class="material-symbols-outlined icon-pink">edit_document</span>
                   <h3 class="section-title">Actual Accomplishment Details</h3>
                 </div>
+                <div class="locked-section" @click="showLockedFieldAlert" @keydown.capture.prevent>
                 <div class="grid-2">
                   <div class="full-width-info">
                     <label class="info-label">Submitted By</label>
@@ -509,9 +510,11 @@
                       </label>
                     </div>
                   </div>
+                  </div>
                   <div>
                     <label class="info-label">Number of Attendees</label>
                     <input type="number" v-model="form.attendees" min="0" class="custom-input-field mt-1" readonly style="opacity:0.6;cursor:not-allowed;">
+                  </div>
                   </div>
                   <div>
                     <label class="info-label">Male Participants *</label>
@@ -521,7 +524,6 @@
                     <label class="info-label">Female Participants *</label>
                     <input type="number" v-model="form.female" min="0" class="custom-input-field mt-1" placeholder="0">
                   </div>
-                </div>
 
                                                 <!-- Actual Budgetary Expenditure (editable) -->
                 <div class="budget-section mt-4">
@@ -599,7 +601,6 @@
                       </tbody>
                     </table>
                   </div>
-                </div>
 
                 <!-- Rating -->
                 <div class="full-width-info mt-4" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
@@ -682,6 +683,7 @@
                     </div>
                   </div>
                 </div>
+                </div>
 
                 <!-- Submit -->
                 <div class="full-width-info mt-4">
@@ -737,6 +739,15 @@ const route = useRoute();
 
 const goBack = () => {
   router.back();
+};
+
+const showLockedFieldAlert = () => {
+  Swal.fire({
+    icon: 'info',
+    title: 'Field Locked',
+    text: 'Submitted accomplishment details cannot be changed. Only the budget details may be edited.',
+    confirmButtonColor: '#b979cc'
+  });
 };
 
 
@@ -2360,5 +2371,3 @@ onUnmounted(() => {
 </script>
 
 <style scoped src="../../assets/ar-revision-styles.css"></style>
-
-

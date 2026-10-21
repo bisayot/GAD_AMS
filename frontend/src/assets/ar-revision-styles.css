@@ -2,6 +2,19 @@
   box-sizing: border-box;
 }
 
+.locked-section {
+  position: relative;
+}
+
+.locked-section::after {
+  background: transparent;
+  content: '';
+  cursor: not-allowed;
+  inset: 0;
+  position: absolute;
+  z-index: 20;
+}
+
 /* --------------------------------------------------------------------------
    1. Base Viewport & Layout
    -------------------------------------------------------------------------- */

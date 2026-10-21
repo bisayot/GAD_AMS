@@ -28,6 +28,7 @@
                     </select>
                   </div>
 
+                  <div v-if="form.control_number" class="locked-section" @click="showLockedFieldAlert" @keydown.capture.prevent>
                   <div class="input-group-ar">
                     <label class="form-label-ar">Activity Title *</label>
                     <textarea 
@@ -114,6 +115,7 @@
                   
                   <!-- Computed Global Dates -->
                   <div class="form-sub-grid-ar mb-4 mt-4">
+                    </div>
                     <div class="input-group-ar">
                       <div class="label-container">
                         <label class="form-label-ar">Calculated Start Date</label>
@@ -142,6 +144,8 @@
                     </div>
                   </div>
                   
+                  <!-- Gated until an approved AD control number is selected -->
+                  <div :class="{ 'locked-section': !form.control_number }" @click="handleGatedClick" @keydown.capture="handleGatedKeydown">
                   <!-- Staggered Schedules Section -->
                   <div class="schedules-container-ar">
                     <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
@@ -331,6 +335,7 @@
                       </div>
                     </div>
                   </div>
+                  </div>
 
                   <div class="input-group-ar">
                     <div class="label-container">
@@ -372,7 +377,6 @@
                     </div>
                   </div>
                 </div>
-
                 <div class="form-column-right-ar">
                   <div class="budget-section">
                     <label class="form-label-ar">Actual Budgetary Expenditure *</label>
@@ -514,7 +518,7 @@
                           </div>
                           <iframe :src="getPdfViewerUrl(file.previewUrl)" width="100%" height="400px" style="border: 1px solid #b979cc; border-radius: 8px; background: white;"></iframe>
                         </div>
-                      </div>
+                          </div>
                     </div>
                   </div>
                 </div>
@@ -571,6 +575,33 @@ import AppTimePicker from '../../components/AppTimePicker.vue';
 
 const router = useRouter();
 const route = useRoute();
+
+const showLockedFieldAlert = () => {
+  Swal.fire({
+    icon: 'info',
+    title: 'Field Locked',
+    text: 'Submitted accomplishment details cannot be changed. Only the budget details may be edited.',
+    confirmButtonColor: '#b979cc'
+  });
+};
+
+const handleGatedClick = () => {
+  if (!form.value.control_number) {
+    Swal.fire({
+      icon: 'info',
+      title: 'Select a Control Number',
+      text: 'Please select an approved Activity Design Control Number first before filling out this section.',
+      confirmButtonColor: '#b979cc'
+    });
+  }
+};
+
+const handleGatedKeydown = (e) => {
+  if (!form.value.control_number) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+};
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 const isDarkMode = ref(document.documentElement.classList.contains('dark'));
 let themeObserver = null;

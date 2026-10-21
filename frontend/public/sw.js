@@ -1,12 +1,14 @@
-const CACHE_NAME = 'gad-ams-static-v1';
+const CACHE_NAME = 'gad-ams-static-v2'; // Incremented version
+console.log('[SW] Initializing Version:', CACHE_NAME);
+
 const APP_SHELL = [
-  '/',
-  '/site.webmanifest',
-  '/favicon.ico',
-  '/images/bsulogo.webp',
-  '/images/bsulogo.png',
-  '/images/gad_logo_enhanced.png',
-  '/images/logo.png',
+  './',
+  'index.php',
+  'site.webmanifest',
+  'favicon.ico',
+  'images/bsulogo.webp',
+  'images/gad_logo_enhanced.png',
+  'images/logo.png',
 ];
 const BUILD_ASSETS = [];
 
@@ -23,10 +25,19 @@ const isStaticRequest = (request) => {
 };
 
 self.addEventListener('install', (event) => {
+  const urlsToCache = [...APP_SHELL, ...BUILD_ASSETS];
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) =>
-      cache.addAll([...APP_SHELL, ...BUILD_ASSETS])
-    )
+    caches.open(CACHE_NAME).then(async (cache) => {
+      // Use a more resilient approach: cache items one by one
+      // so that one failure doesn't break the whole PWA installation.
+      for (const url of urlsToCache) {
+        try {
+          await cache.add(url);
+        } catch (error) {
+          console.warn(`[SW] Failed to cache: ${url}. Error:`, error);
+        }
+      }
+    })
   );
   self.skipWaiting();
 });
