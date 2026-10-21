@@ -33,7 +33,6 @@
       <div class="drop-panel" style="flex: 1; min-width: 300px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
           <h3 style="margin: 0; font-size: 14px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Organization Profile</h3>
-          <button class="topbar-btn primary" style="padding: 4px 12px; font-size: 12px;" @click="savePlan">Save Changes</button>
         </div>
         <div class="panel-grid">
           <div class="field"><label>Organization Name</label><input :disabled="isReadOnly" v-model="state.org.name" type="text"></div>
@@ -67,12 +66,12 @@
                 <div class="ledger-actual-cost">
                    <div class="ledger-sub-label" style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--primary-bright); margin-bottom: 4px;">Actual Cost</div>
                    <div class="ledger-sub-val mono" style="font-size: 20px; font-weight: 700; color: var(--text);">{{ peso(budgetSummary.total_utilized) }}</div>
-                   <div class="ledger-sub-note" style="font-size: 12px; color: var(--text-muted);">Verified and Archived AR</div>
+                   <div class="ledger-sub-note" style="font-size: 12px; color: var(--text-muted);">Verified Accomplishment Reports</div>
                 </div>
                 <div class="ledger-proposed-budget">
                    <div class="ledger-sub-label" style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--primary-bright); margin-bottom: 4px;">Proposed Budget</div>
                    <div class="ledger-sub-val mono" style="font-size: 20px; font-weight: 700; color: var(--text);">{{ peso(budgetSummary.total_pending_approved) }}</div>
-                   <div class="ledger-sub-note" style="font-size: 12px; color: var(--text-muted);">Approved and Archived AD</div>
+                   <div class="ledger-sub-note" style="font-size: 12px; color: var(--text-muted);">Approved Activity Designs</div>
                 </div>
                 <div class="ledger-remaining-budget">
                    <div class="ledger-sub-label" style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--primary-bright); margin-bottom: 4px;">Remaining GAD Budget</div>
@@ -544,6 +543,7 @@ export default {
     }
 
     async function saveItem(item) {
+      if (isReadOnly) return;
       const { isConfirmed } = await Swal.fire({title: 'Save Item?', text: 'Are you sure you want to save this item?', icon: 'question', showCancelButton: true, confirmButtonText: 'Yes, Save'});
       if (!isConfirmed) return;
       
@@ -938,6 +938,7 @@ export default {
     }
 
     async function savePlan() {
+      if (isReadOnly) return;
       const { isConfirmed } = await Swal.fire({title: 'Save Changes?', text: 'Are you sure you want to save your changes?', icon: 'question', showCancelButton: true, confirmButtonText: 'Yes, Save'});
       if (!isConfirmed) return;
       await saveToAPI();

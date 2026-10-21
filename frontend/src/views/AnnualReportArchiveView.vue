@@ -2,7 +2,7 @@
   <main class="archive-main-container flex-1 overflow-y-auto h-full min-h-screen">
     <div class="max-w-7xl mx-auto p-6">
       <div class="mb-6 flex justify-between items-center">
-        <h1 class="text-2xl font-bold archive-title">Annual GAD Accomplishment Report Archives</h1>
+        <h1 class="text-2xl font-bold archive-title">Published Annual GAD Accomplishment Reports</h1>
         <button @click="$router.back()" class="archive-back-btn px-4 py-2 rounded-lg transition-colors font-semibold text-sm">
           &larr; Back to Reports
         </button>
@@ -22,7 +22,7 @@
 
       <div v-if="loading" class="text-center py-12">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
-        <p class="mt-4 text-slate-500 dark:text-slate-400 text-sm">Loading archived reports...</p>
+        <p class="mt-4 text-slate-500 dark:text-slate-400 text-sm">Loading published reports...</p>
       </div>
 
       <div v-else class="archive-card rounded-xl shadow-sm border overflow-hidden">
@@ -31,7 +31,7 @@
             <tr class="archive-thead-row border-b">
               <th class="p-4 text-xs font-bold uppercase tracking-wider">ID</th>
               <th class="p-4 text-xs font-bold uppercase tracking-wider">Fiscal Year</th>
-              <th class="p-4 text-xs font-bold uppercase tracking-wider">Archived Date</th>
+              <th class="p-4 text-xs font-bold uppercase tracking-wider">Published Date</th>
               <th class="p-4 text-xs font-bold uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
@@ -39,7 +39,7 @@
             <tr v-if="filteredItems.length === 0" class="border-b border-slate-200 dark:border-slate-700">
               <td colspan="4" class="p-8 text-center text-slate-500 dark:text-slate-400">
                 <span class="text-4xl mb-2 block">📭</span>
-                No archived reports found.
+                No published reports found.
               </td>
             </tr>
             <tr v-for="item in filteredItems" :key="item.id" class="archive-row border-b transition-colors">

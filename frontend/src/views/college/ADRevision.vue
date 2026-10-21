@@ -1456,7 +1456,7 @@ const isValidActivityDate = (dateString, checkLeadTime = false) => {
     if (diffDays < 3) {
        return { valid: false, reason: `Activities must be scheduled at least 3 working days in advance.` };
     } else if (diffDays < 15) {
-       return { valid: true, reason: `Activities should ideally be scheduled at least 15 working days in advance.`, isWarning: true };
+       return { valid: true, reason: `Activities should ideally be scheduled at least 15 working days in advance. You selected earlier than 15 working days in advance which will tag your submission as rush.`, isWarning: true };
     }
   }
   return { valid: true, reason: '' };
@@ -1511,7 +1511,7 @@ watch(() => computedStartDate.value, (newDate, oldDate) => {
           icon: 'info',
           title: 'Lead Time Warning',
           text: validation.reason,
-          confirmButtonText: 'Ignore',
+          confirmButtonText: 'Accept',
           confirmButtonColor: '#b979cc'
         });
       }
@@ -1539,7 +1539,7 @@ watch(() => computedStartDate.value, (newDate, oldDate) => {
         icon: 'info',
         title: 'Lead Time Warning',
         text: validation.reason,
-        confirmButtonText: 'Ignore',
+        confirmButtonText: 'Accept',
         confirmButtonColor: '#b979cc'
       });
     }

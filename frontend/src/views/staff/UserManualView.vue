@@ -52,7 +52,7 @@
               </p>
               <ul class="styled-list">
                 <li><strong>Dashboard:</strong> Gives you a quick summary and updates.</li>
-                <li><strong>Documents:</strong> Allows you to access and manage all files and reports. Its menu includes the Submitted List, Activity Design List, Accomplishment Report List, Archives, and Document Trash Bin.</li>
+                <li><strong>Documents:</strong> Allows you to access and manage all files and reports. Its menu includes the Submitted List, Activity Design List, Accomplishment Report List, Approved Documents, and Document Trash Bin.</li>
                 <li><strong>Plan & Budget Distribution:</strong> Allows you to manage financial plans, budgets, and reports. Its menu includes Plan and Budget Distribution, Report Monitoring, and Budget Monitoring.</li>
                 <li><strong>System & Controls:</strong> Allows you to manage system settings and user accounts. Its menu includes User Management, Campus Resources, and Activity Logs.</li>
               </ul>
@@ -112,7 +112,7 @@
                     <li><strong>Remarks/Comments:</strong> An optional space for any notes or feedback you want to add.</li>
                   </ul>
                 </li>
-                <li><strong>Action Buttons:</strong> Found just below the assessment area, these allow you to <strong>Approve and Archive</strong>, request a <strong>Revision</strong>, <strong>Disapprove</strong>, or <strong>Move to Trash</strong> the document.</li>
+                <li><strong>Action Buttons:</strong> Found just below the assessment area, these allow you to <strong>Approve</strong>, request a <strong>Revision</strong>, <strong>Disapprove</strong>, or <strong>Move to Trash</strong> the document.</li>
                 <li><strong>Processing Revisions:</strong> When requesting a revision, you can fill out the Revision Remarks/Comments field or add your feedback directly into the PDF file before sending it back. There are two ways to do this:
                   <ol class="styled-list numeric">
                     <li>To write directly on the PDF, click the PDF highlight tool.</li>
@@ -132,7 +132,7 @@
               <h3 class="subsection-title">3. Accomplishment Reports</h3>
               <p class="subsection-text">Navigate to <em>Documents > Accomplishment Reports</em> to view all reports. Click on any accomplishment report to view the complete report with ratings and attachments.</p>
               <ul class="styled-list">
-                <li><strong>Action Buttons:</strong> Found just below the assessment area, these allow you to <strong>Approve and Archive</strong>, request a <strong>Revision</strong>, <strong>Disapprove</strong>, or <strong>Move to Trash</strong> the document.</li>
+                <li><strong>Action Buttons:</strong> Found just below the assessment area, these allow you to <strong>Approve</strong>, request a <strong>Revision</strong>, <strong>Disapprove</strong>, or <strong>Move to Trash</strong> the document.</li>
                 <li><strong>Processing Revisions:</strong> When requesting a revision, you can fill out the Revision Remarks/Comments field or add your feedback directly into the PDF file before sending it back. There are two ways to do this:
                   <ol class="styled-list numeric">
                     <li>To write directly on the PDF, click the PDF highlight tool.</li>
@@ -168,7 +168,7 @@
               <li><strong>Automatic Integration:</strong> Every GAD plan and budget item added in the GAD plan and budget distribution page will automatically appear in this section.</li>
               <li><strong>Expense Calculation:</strong> Actual expenses are calculated and populated automatically based on the entries in the GAD plan and budget distribution section.</li>
               <li><strong>Participant Demographics:</strong> The gender of participants is automatically inputted based on the approved accomplishment reports.</li>
-              <li><strong>Archiving Reports:</strong> Once report is verified, you can archive the annual accomplishment report.</li>
+              <li><strong>Publishing Reports:</strong> Once the report is verified, it is added to Approved Documents.</li>
             </ul>
           </div>
           
@@ -197,7 +197,7 @@
                 <li><strong>Messages TTL (Days):</strong> Time before messages automatically move to the trash.</li>
                 <li><strong>Main Logs TTL (Days):</strong> Retention period for system activity logs.</li>
                 <li><strong>Operational Logs TTL (Days):</strong> Retention period for logins, logouts, and user management logs.</li>
-                <li><strong>Archived Documents TTL (Days):</strong> Applies specifically to Activity Designs (accomplishment reports remain permanent).</li>
+                <li><strong>Approved Documents Retention (Days):</strong> Applies specifically to Activity Designs (accomplishment reports remain permanent).</li>
                 <li><strong>Drafts TTL (Days):</strong> Retention period for pending, revision, and disapproved documents.</li>
               </ul>
             </div>
@@ -275,8 +275,8 @@ const faqs = [
     a: 'Click on any document to view it in the browser.' 
   },
   { 
-    q: 'What does the "Archive" section contain?', 
-    a: 'The archive contains approved and verified activity designs and accomplishment reports. You can filter by status and type.' 
+    q: 'What does the "Approved Documents" section contain?',
+    a: 'Approved Documents contains approved and verified activity designs and accomplishment reports. You can filter by status and type.'
   },
   { 
     q: 'How do I interpret the Activity Rating?', 

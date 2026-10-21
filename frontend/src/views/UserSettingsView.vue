@@ -540,7 +540,7 @@
             </div>
 
             <div class="input-wrapper">
-              <label class="input-label">Archived Documents TTL (Days)</label>
+              <label class="input-label">Approved Documents Retention (Days)</label>
               <input 
                 type="number" 
                 v-model.number="retentionForm.archived_documents_ttl_days" 

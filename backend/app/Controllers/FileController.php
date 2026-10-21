@@ -160,7 +160,7 @@ class FileController extends BaseController
         if ($cleanFolder === 'archived' && !in_array($role, ['admin', 'gad_staff', 'staff', 'superadmin'], true)) {
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Forbidden: Only GAD Staff and Administrators can modify archived documents'
+                'message' => 'Forbidden: Only GAD Staff and Administrators can modify approved documents'
             ])->setStatusCode(403);
         }
 

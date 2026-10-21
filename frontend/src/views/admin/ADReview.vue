@@ -382,7 +382,7 @@
               <div class="action-buttons">
                 <button @click="handleApprove" class="btn-approve" :disabled="submitting">
                   <span class="material-symbols-outlined">check_circle</span> 
-                  {{ submitting ? 'Processing...' : 'Approve & Archive' }}
+                  {{ submitting ? 'Processing...' : 'Approve' }}
                 </button>
                 <button @click="showRevisionModal = true" class="btn-revision">
                   <span class="material-symbols-outlined">edit_note</span> REVISION
@@ -824,7 +824,7 @@ const handleApprove = async () => {
 
   const result = await Swal.fire({
     title: 'Are you sure?',
-    text: 'You are about to approve this activity design. It will be moved to the archive.',
+    text: 'You are about to approve this activity design. It will be added to approved documents.',
     icon: 'question',
     showCancelButton: true,
     confirmButtonColor: '#22c55e',
@@ -853,7 +853,7 @@ const handleApprove = async () => {
       remarks: assessmentRemarks.value
     });
     if (response.data.success) {
-      Swal.fire({ icon: 'success', title: 'Approved!', text: 'Activity Design approved and successfully archived.', confirmButtonColor: '#b979cc' }).then(() => {
+      Swal.fire({ icon: 'success', title: 'Approved!', text: 'Activity Design approved and added to approved documents.', confirmButtonColor: '#b979cc' }).then(() => {
         router.push('/admin/ad-list');
       });
     } else {

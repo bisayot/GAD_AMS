@@ -177,7 +177,7 @@
             <span class="inline-block px-4 py-1.5 rounded-full bg-surface-variant text-on-surface font-label text-xs font-bold uppercase tracking-widest">Public Disclosures</span>
             <h2 class="text-4xl font-headline font-extrabold text-on-background tracking-tight">Accomplishment Reports</h2>
             <p class="text-on-surface-variant text-lg max-w-lg leading-relaxed">
-              Review the university's verified gender-responsive activities and archived annual reports.
+              Review the university's verified gender-responsive activities and annual reports.
             </p>
           </div>
         </div>
@@ -246,15 +246,15 @@
             </div>
           </div>
 
-          <!-- Archived Annual Reports -->
+          <!-- Annual Reports -->
           <div>
             <div class="flex items-center gap-4 mb-8">
-              <h3 class="text-2xl font-headline font-bold text-on-background">Archived Annual Reports</h3>
+              <h3 class="text-2xl font-headline font-bold text-on-background">Annual Reports</h3>
               <div class="h-px flex-grow bg-outline-variant"></div>
             </div>
             
-            <div v-if="loadingArchives" class="text-center py-8 text-slate-400">Loading archives...</div>
-            <div v-else-if="archivesByYear.length === 0" class="text-center py-8 text-slate-400">No archives found.</div>
+            <div v-if="loadingArchives" class="text-center py-8 text-slate-400">Loading annual reports...</div>
+            <div v-else-if="archivesByYear.length === 0" class="text-center py-8 text-slate-400">No annual reports found.</div>
             <div v-else class="space-y-8">
               <div v-for="group in archivesByYear" :key="'arch_'+group.year" class="book-container group relative w-full h-[450px]" :class="{ 'is-open': openBooks['arch_' + group.year] }">
                 <div class="book relative w-full h-full pointer-events-none">
@@ -262,9 +262,9 @@
                   <div class="book-cover absolute inset-0 bg-white rounded-r-xl border-2 border-slate-300 shadow-[4px_0_15px_rgba(0,0,0,0.05)] flex flex-col items-center justify-center p-8 z-20 pointer-events-auto cursor-pointer" @click="toggleBook('arch_' + group.year)">
                     <div class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-300 to-transparent rounded-l-xl border-r border-slate-300 book-spine"></div>
                     <img src="/images/logo.png" alt="Logo" class="w-28 mb-8 object-contain drop-shadow-md ml-4 group-hover:scale-105 transition-transform" />
-                    <h4 class="font-headline font-black text-center text-slate-800 text-2xl mb-2 ml-4 leading-snug">Archived Annual Reports</h4>
+                    <h4 class="font-headline font-black text-center text-slate-800 text-2xl mb-2 ml-4 leading-snug">Annual Reports</h4>
                     <div class="mt-4 px-4 py-1.5 bg-blue-50 rounded-full text-xs font-label uppercase tracking-widest font-bold text-blue-700 border border-blue-100 ml-4 mb-8">
-                      Archive Collection
+                      Annual Collection
                     </div>
                     <div class="mt-auto ml-4 text-[11px] font-label font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 opacity-70 group-hover:opacity-100 transition-opacity">
                       <span class="material-symbols-outlined text-[14px]">touch_app</span> Click to view
@@ -293,7 +293,7 @@
                           <div class="flex-grow min-w-0 flex flex-col">
                             <h5 class="font-bold text-sm text-black group-hover/item:text-blue-700 truncate transition-colors">FY {{ archive.fiscal_year }} Annual GAD Report</h5>
                             <div class="flex items-center gap-3 mt-0.5">
-                              <span class="text-[10px] font-label font-bold tracking-wide text-slate-700 flex items-center gap-1 uppercase truncate"><span class="material-symbols-outlined text-[13px]">schedule</span>Archived {{ new Date(archive.created_at).toLocaleDateString() }}</span>
+                              <span class="text-[10px] font-label font-bold tracking-wide text-slate-700 flex items-center gap-1 uppercase truncate"><span class="material-symbols-outlined text-[13px]">schedule</span>Published {{ new Date(archive.created_at).toLocaleDateString() }}</span>
                             </div>
                           </div>
                           <div class="shrink-0 w-8 h-8 rounded-full bg-slate-50 group-hover/item:bg-blue-600 flex items-center justify-center transition-colors">
@@ -668,7 +668,7 @@ const viewHtmlReport = async (archive) => {
     }
   } catch (err) {
     isHtmlPreviewOpen.value = false;
-    Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to fetch the archived report.' });
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to fetch the published report.' });
   } finally {
     isHtmlLoading.value = false;
   }

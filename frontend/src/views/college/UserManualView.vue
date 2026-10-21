@@ -66,7 +66,7 @@
               </p>
               <ul class="styled-list">
                 <li><strong>Dashboard:</strong> Gives you a quick summary and updates.</li>
-                <li><strong>Documents:</strong> Allows you to access and manage all files and reports. Its menu includes New Submission, Submitted List, Archives, and Document Trash Bin.</li>
+                <li><strong>Documents:</strong> Allows you to access and manage all files and reports. Its menu includes New Submission, Submitted List, Approved Documents, and Document Trash Bin.</li>
                 <li><strong>Plan & Budget Distribution:</strong> Allows you to view financial plans and budget.</li>
                 <li><strong>Activity Logs:</strong> Allows you to view user activity logs.</li>
               </ul>
@@ -186,7 +186,7 @@
             <p class="subsection-text">The system controls page provides access to:</p>
             <ul class="styled-list">
               <li><strong>Activity Logs:</strong> Track system activities and user actions.</li>
-              <li><strong>Document Trash Bin:</strong> Manage deleted or archived files.</li>
+              <li><strong>Document Trash Bin:</strong> Manage deleted files.</li>
             </ul>
           </div>
 
@@ -270,8 +270,8 @@ const faqs = [
     a: 'Click on any document to view it in the browser.' 
   },
   { 
-    q: 'What does the "Archive" section contain?', 
-    a: 'The archive contains approved and verified activity designs and accomplishment reports. You can filter by status and type.' 
+    q: 'What does the "Approved Documents" section contain?',
+    a: 'Approved Documents contains approved and verified activity designs and accomplishment reports. You can filter by status and type.'
   },
   { 
     q: 'How do I interpret the Activity Rating?', 

@@ -412,7 +412,7 @@
 
               <div class="action-buttons">
                 <button @click="router.back()" class="btn-back">
-                  ← Back to Archive
+                  ← Back to Approved Documents
                 </button>
               </div>
             </div>
@@ -746,4 +746,3 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped src="../../assets/ar-view-styles.css"></style>
-

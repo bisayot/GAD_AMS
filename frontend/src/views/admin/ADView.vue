@@ -356,7 +356,7 @@
                   <span class="material-symbols-outlined">delete</span> MOVE TO TRASH
                 </button>
                 <button @click="router.back()" class="btn-back">
-                  ← Back to Archive
+                  ← Back to Approved Documents
                 </button>
               </div>
             </div>

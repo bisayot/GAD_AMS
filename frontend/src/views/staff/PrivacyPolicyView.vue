@@ -90,7 +90,7 @@
               <div id="data-retention" class="policy-section">
                 <h2 class="section-heading">6. Data Retention</h2>
                 <p class="section-text">
-                  Personal information is retained only for as long as necessary to fulfill the purposes for which it was collected, or as required by applicable laws and regulations. Retention periods for system records (including trash bin data, messages, activity logs, and archived documents) are governed by configurable retention settings maintained by the GAD-AMS Administrator. Approved Accomplishment Reports are retained permanently in accordance with government archival requirements; other record types are retained only for their configured retention period before deletion.
+                  Personal information is retained only for as long as necessary to fulfill the purposes for which it was collected, or as required by applicable laws and regulations. Retention periods for system records (including trash bin data, messages, activity logs, and approved documents) are governed by configurable retention settings maintained by the GAD-AMS Administrator. Approved Accomplishment Reports are retained permanently in accordance with government archival requirements; other record types are retained only for their configured retention period before deletion.
                 </p>
               </div>
 

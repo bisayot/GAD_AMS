@@ -1006,7 +1006,7 @@ class AccomplishmentReportController extends BaseController
         $db->transComplete();
 
         if ($db->transStatus() === false) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Failed to verify and archive report'])->setStatusCode(500);
+            return $this->response->setJSON(['success' => false, 'message' => 'Failed to verify and publish report'])->setStatusCode(500);
         }
 
         // Move PDF from drafts -> archived (outside transaction)
@@ -1022,18 +1022,18 @@ class AccomplishmentReportController extends BaseController
         $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
         \App\Models\ActivityLogModel::log($actionUserId, 'Approve Document', 'verified Accomplishment Report: ' . $item['activity_title']);
 
-        NotificationService::send($item['user_id'], 'Accomplishment Report Verified', 'Your Accomplishment Report "' . $item['activity_title'] . '" has been verified and archived.', '/staff/accomplishment-reports', 'success');
+        NotificationService::send($item['user_id'], 'Accomplishment Report Verified', 'Your Accomplishment Report "' . $item['activity_title'] . '" has been verified and added to approved documents.', '/staff/accomplishment-reports', 'success');
 
         NotificationService::sendToGadStaff(
             'Allocate Budget for Verified AR',
-            'The Accomplishment Report "' . $item['activity_title'] . '" has been verified and archived. Please review and allocate its budget.',
+            'The Accomplishment Report "' . $item['activity_title'] . '" has been verified and added to approved documents. Please review and allocate its budget.',
             '/staff/budget-distribution',
             'warning'
         );
 
         return $this->response->setJSON([
             'success' => true,
-            'message' => 'Accomplishment Report verified and archived successfully.'
+            'message' => 'Accomplishment Report verified and added to approved documents successfully.'
         ]);
     }
 

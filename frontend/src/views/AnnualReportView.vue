@@ -6,7 +6,7 @@
           <span class="text-2xl leading-none">&larr;</span>
         </button>
         <h1 class="text-xl font-bold viewer-title">
-          Archived Annual Report 
+          Published Annual Report
           <span v-if="report" class="text-purple-600 dark:text-purple-400">#{{ report.id }} (FY {{ report.fiscal_year }})</span>
         </h1>
       </div>
@@ -26,7 +26,7 @@
     </div>
 
     <div v-else class="flex-1 overflow-auto p-4 md:p-8 flex justify-center viewer-frame-wrapper">
-      <!-- The inner HTML of the archived report is rendered here. 
+      <!-- The inner HTML of the published report is rendered here.
            We use an iframe to isolate its styles from the admin dashboard -->
       <iframe ref="reportFrame" class="w-full max-w-7xl shadow-xl min-h-screen border-0 rounded-xl" @load="resizeIframe"></iframe>
     </div>

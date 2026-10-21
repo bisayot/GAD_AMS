@@ -73,12 +73,12 @@
                 <div class="ledger-actual-cost">
                    <div class="ledger-sub-label" style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--primary-bright); margin-bottom: 4px;">Actual Cost</div>
                    <div class="ledger-sub-val mono" style="font-size: 20px; font-weight: 700; color: var(--text);">{{ peso(budgetSummary.total_utilized) }}</div>
-                   <div class="ledger-sub-note" style="font-size: 12px; color: var(--text-muted);">Verified and Archived AR</div>
+                   <div class="ledger-sub-note" style="font-size: 12px; color: var(--text-muted);">Verified Accomplishment Reports</div>
                 </div>
                 <div class="ledger-proposed-budget">
                    <div class="ledger-sub-label" style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--primary-bright); margin-bottom: 4px;">Proposed Budget</div>
                    <div class="ledger-sub-val mono" style="font-size: 20px; font-weight: 700; color: var(--text);">{{ peso(budgetSummary.total_pending_approved) }}</div>
-                   <div class="ledger-sub-note" style="font-size: 12px; color: var(--text-muted);">Approved and Archived AD</div>
+                   <div class="ledger-sub-note" style="font-size: 12px; color: var(--text-muted);">Approved Activity Designs</div>
                 </div>
                 <div class="ledger-remaining-budget">
                    <div class="ledger-sub-label" style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--primary-bright); margin-bottom: 4px;">Remaining GAD Budget</div>

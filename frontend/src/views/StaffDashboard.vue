@@ -59,7 +59,7 @@ const staffMenu = ref([
       { label: 'Submitted List', icon: 'list', href: '/staff/submitted-list' },
       { label: 'Activity Design List', icon: 'list', href: '/staff/ad-list' },
       { label: 'Accomplishment Report List', icon: 'list', href: '/staff/ar-list' },
-      { label: 'Archives', icon: 'archive', href: '/staff/archive' },
+      { label: 'Approved Documents', icon: 'archive', href: '/staff/archive' },
       { label: 'Document Trash Bin', icon: 'delete', href: '/staff/trashbin' }
     ]
   },

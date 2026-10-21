@@ -11,7 +11,7 @@
                 </div>
                 <div class="stat-content">
                   <h3 class="stat-number-purple">{{ totalArchived }}</h3>
-                  <p class="stat-label-purple">TOTAL ARCHIVED</p>
+                  <p class="stat-label-purple">TOTAL APPROVED</p>
                 </div>
               </div>
             </div>
@@ -100,7 +100,7 @@
 
           <div v-if="loading" class="loading-state">
             <div class="loading-spinner"></div>
-            <p>Loading archive records...</p>
+            <p>Loading approved documents...</p>
           </div>
 
           <div v-else class="data-table">
@@ -111,7 +111,7 @@
                     <th class="table-header-cell">TYPE</th>
                     <th class="table-header-cell">CONTROL NO.</th>
                     <th class="table-header-cell">ACTIVITY TITLE</th>
-                    <th class="table-header-cell">ARCHIVE DATE</th>
+                    <th class="table-header-cell">DATE APPROVED</th>
                     <th class="table-header-cell">STATUS</th>
                   </tr>
                 </thead>
@@ -120,7 +120,7 @@
                     <td colspan="5" class="empty-cell">
                       <div class="empty-content">
                         <span class="empty-emoji">📭</span>
-                        <p>No archived records found</p>
+                        <p>No approved documents found</p>
                         <button class="btn-secondary-custom" @click="resetFilters">Clear Filters</button>
                       </div>
                     </td>

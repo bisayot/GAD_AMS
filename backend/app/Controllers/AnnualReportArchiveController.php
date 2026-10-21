@@ -26,7 +26,7 @@ class AnnualReportArchiveController extends BaseController
             'created_by' => $userId
         ]);
 
-        return $this->respondCreated(['success' => true, 'message' => 'Report archived successfully']);
+        return $this->respondCreated(['success' => true, 'message' => 'Report published successfully']);
     }
 
     public function index()
@@ -46,7 +46,7 @@ class AnnualReportArchiveController extends BaseController
         $report = $model->find($id);
 
         if (!$report) {
-            return $this->failNotFound('Archived report not found');
+            return $this->failNotFound('Published report not found');
         }
 
         return $this->respond(['success' => true, 'data' => $report]);

@@ -58,8 +58,8 @@
 
 <div class="toolbar">
   <div class="left-group">
-    <button class="gold" id="btn-archive" style="margin-right: 8px;">Archive</button>
-    <button class="gold" id="btn-archives" style="margin-right: 8px;">Archives</button>
+    <button class="gold" id="btn-archive" style="margin-right: 8px;">Publish Report</button>
+    <button class="gold" id="btn-archives" style="margin-right: 8px;">Published Reports</button>
     <button class="gold" id="btn-fit-screen" @click="toggleFitScreen" :class="{ 'btn-active': isFitScreen }" :title="isFitScreen ? 'Switch to scrollable view' : 'Fit all table columns to screen without horizontal scrolling'">
       <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">{{ isFitScreen ? 'open_in_full' : 'fit_screen' }}</span>
       {{ isFitScreen ? 'Scroll View' : 'Fit to Screen' }}
@@ -188,12 +188,12 @@ onMounted(() => {
         });
 
         if (response.data && response.data.success) {
-          Swal.fire({ icon: 'success', title: 'Archived!', text: 'Report archived successfully.', timer: 1500, showConfirmButton: false });
+          Swal.fire({ icon: 'success', title: 'Published!', text: 'Report published successfully.', timer: 1500, showConfirmButton: false });
         } else {
-          Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to archive report.' });
+          Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to publish report.' });
         }
       } catch (error) {
-        Swal.fire({ icon: 'error', title: 'Error', text: 'An error occurred while archiving.' });
+        Swal.fire({ icon: 'error', title: 'Error', text: 'An error occurred while publishing.' });
       }
     };
   }

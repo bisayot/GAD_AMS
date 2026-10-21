@@ -56,7 +56,7 @@ const collegeMenu = ref([
     label: 'Documents', icon: 'folder',
     children: [
       { label: 'Submitted List', icon: 'list', href: '/college/submitted-list' },
-      { label: 'Archives', icon: 'archive', href: '/college/archive' },
+      { label: 'Approved Documents', icon: 'archive', href: '/college/archive' },
       { label: 'Document Trash Bin', icon: 'delete', href: '/college/trashbin' }
     ]
   },

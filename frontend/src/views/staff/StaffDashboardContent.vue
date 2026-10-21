@@ -368,8 +368,10 @@ const chartOptions = computed(() => {
         }
       },
       y: {
+        beginAtZero: true,
         grid: { color: gridColor },
         ticks: { 
+          precision: 0,
           color: textColor,
           font: { weight: '600' }
         }

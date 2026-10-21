@@ -57,7 +57,7 @@ const adminMenu = ref([
       { label: 'Submitted List', icon: 'folder', href: '/admin/submitted-list' },
       { label: 'Activity Design List', icon: 'description', href: '/admin/ad-list' },
       { label: 'Accomplishment Report List', icon: 'description', href: '/admin/ar-list' },
-      { label: 'Archives', icon: 'archive', href: '/admin/archive' },
+      { label: 'Approved Documents', icon: 'archive', href: '/admin/archive' },
       { label: 'Document Trash Bin', icon: 'delete', href: '/admin/trash-bin' }
     ]
   },

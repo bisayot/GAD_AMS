@@ -503,10 +503,10 @@ const fetchMyDocuments = async () => {
     }));
     const archivesList = archivesRes.data?.data || [];
     const archivedDesigns = archivesList.filter(a => a.type === 'design').map(d => ({
-      id: `design_${d.original_id}`, title: `${d.title} (Archived)`, type: 'Activity Design', submitter: d.submitter_name || 'Unknown', user_id: d.user_id
+      id: `design_${d.original_id}`, title: `${d.title} (Approved)`, type: 'Activity Design', submitter: d.submitter_name || 'Unknown', user_id: d.user_id
     }));
     const archivedReports = archivesList.filter(a => a.type === 'report').map(r => ({
-      id: `report_${r.original_id}`, title: `${r.title} (Archived)`, type: 'Accomplishment Report', submitter: r.submitter_name || 'Unknown', user_id: r.user_id
+      id: `report_${r.original_id}`, title: `${r.title} (Approved)`, type: 'Accomplishment Report', submitter: r.submitter_name || 'Unknown', user_id: r.user_id
     }));
     allUserDocuments.value = [...activeDesigns, ...activeReports, ...archivedDesigns, ...archivedReports];
   } catch(e) { console.error('Error fetching my docs:', e); }
@@ -1534,4 +1534,3 @@ select.form-control option { background: #ffffff; color: #0f172a; }
 }
 .dark .selected-count { color: #f8fafc; }
 </style>
-

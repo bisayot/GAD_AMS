@@ -61,18 +61,18 @@ class ArchiveController extends Controller
         }
 
         if ($design['status'] !== 'Approved' && $design['status'] !== 'Cancelled') {
-            return $this->fail('Only Approved or Cancelled designs can be archived.');
+            return $this->fail('Only Approved or Cancelled designs can be added to approved documents.');
         }
 
         if ($design['is_archived']) {
-            return $this->respond(['success' => true, 'message' => 'Design already archived']);
+            return $this->respond(['success' => true, 'message' => 'Design is already in approved documents']);
         }
 
         $db->table('activity_design')->where('act_design_id', $id)->update(['is_archived' => 1]);
         
         $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
-        \App\Models\ActivityLogModel::log($actionUserId, 'Archive Document', 'archived Activity Design: ' . $design['activity_title']);
-        return $this->respond(['success' => true, 'message' => 'Design successfully archived.']);
+        \App\Models\ActivityLogModel::log($actionUserId, 'Approve Document', 'approved Activity Design: ' . $design['activity_title']);
+        return $this->respond(['success' => true, 'message' => 'Design added to approved documents successfully.']);
     }
 
     public function archiveReport($id)
@@ -85,17 +85,17 @@ class ArchiveController extends Controller
         }
 
         if ($report['status'] !== 'Verified' && $report['status'] !== 'Cancelled') {
-            return $this->fail('Only Verified or Cancelled reports can be archived.');
+            return $this->fail('Only Verified or Cancelled reports can be added to approved documents.');
         }
 
         if ($report['is_archived']) {
-            return $this->respond(['success' => true, 'message' => 'Report already archived']);
+            return $this->respond(['success' => true, 'message' => 'Report is already in approved documents']);
         }
 
         $db->table('accomplishment_report')->where('id', $id)->update(['is_archived' => 1]);
         
         $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $report['user_id'];
-        \App\Models\ActivityLogModel::log($actionUserId, 'Archive Document', 'archived Accomplishment Report: ' . $report['activity_title']);
-        return $this->respond(['success' => true, 'message' => 'Report successfully archived.']);
+        \App\Models\ActivityLogModel::log($actionUserId, 'Approve Document', 'approved Accomplishment Report: ' . $report['activity_title']);
+        return $this->respond(['success' => true, 'message' => 'Report added to approved documents successfully.']);
     }
 }

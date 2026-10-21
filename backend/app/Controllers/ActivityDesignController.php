@@ -884,7 +884,7 @@ class ActivityDesignController extends BaseController
 
         NotificationService::sendToGadStaff(
             'Allocate Budget for Approved AD',
-            'The Activity Design "' . $item['activity_title'] . '" has been approved and archived. Please allocate its budget.',
+            'The Activity Design "' . $item['activity_title'] . '" has been approved and added to approved documents. Please allocate its budget.',
             '/staff/budget-distribution',
             'warning'
         );
@@ -1062,7 +1062,7 @@ class ActivityDesignController extends BaseController
             return $this->response->setJSON(['success' => true, 'message' => 'Decision reverted successfully']);
         }
 
-        return $this->response->setJSON(['success' => false, 'message' => 'Design not found in active or archived lists'])->setStatusCode(404);
+        return $this->response->setJSON(['success' => false, 'message' => 'Design not found in active or approved-document lists'])->setStatusCode(404);
     }
 
     public function updateDeadline($id = null)
