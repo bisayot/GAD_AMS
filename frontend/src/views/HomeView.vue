@@ -326,7 +326,7 @@ const displayMale = ref(0);
 const displayFemale = ref(0);
 const displayOffices = ref([]);
 const isAnimating = ref(false);
-const showSplash = ref(true);
+const showSplash = ref(!sessionStorage.getItem('splashLoaded'));
 const showGuidelinesModal = ref(false);
 const showPrivacyModal = ref(false);
 const $router = useRouter();
@@ -527,9 +527,12 @@ watch(analyticsYear, () => {
 });
 
 onMounted(() => {
-  setTimeout(() => {
-    showSplash.value = false;
-  }, 2500);
+  if (showSplash.value) {
+    setTimeout(() => {
+      showSplash.value = false;
+      sessionStorage.setItem('splashLoaded', 'true');
+    }, 10000);
+  }
 
   fetchAnalyticsData();
   fetchLatestBulletins();
@@ -624,7 +627,7 @@ const goals = [
   background-position: center;
   opacity: 0.5;
   transform: scale(1.1);
-  animation: splashZoom 3s ease-out forwards;
+  animation: splashZoom 8s ease-out forwards;
 }
 .splash-overlay {
   position: absolute;
