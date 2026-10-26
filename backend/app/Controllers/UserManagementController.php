@@ -544,6 +544,167 @@ class UserManagementController extends ResourceController
         return $this->respond(['success' => false, 'message' => 'No valid update data provided']);
     }
 
+    /**
+     * Return the sign-up details of a self-registered account so staff can
+     * review it before approving or declining.
+     */
+    public function getApproval($id = null)
+    {
+        if (!$id) return $this->fail('User ID required');
+
+        $db = \Config\Database::connect();
+        $user = $db->table('users')
+            ->select('users.id, users.username, users.email, users.full_name, users.role, users.profile_role, users.student_id, users.year_level, users.created_at, users.approval_status, office_units.office_name, office_units.location as campus_location, office_units.office_acronym')
+            ->join('office_units', 'office_units.office_id = users.office_id', 'left')
+            ->where('users.id', $id)
+            ->get()
+            ->getRowArray();
+
+        if (!$user) return $this->failNotFound('User not found');
+
+        $profile = $db->tableExists('user_profiles')
+            ? ($db->table('user_profiles')->where('user_id', $id)->get()->getRowArray() ?: [])
+            : [];
+
+        return $this->respond([
+            'success' => true,
+            'data' => [
+                'id' => $user['id'],
+                'full_name' => $user['full_name'],
+                'email' => $user['email'] ?? '',
+                'username' => $user['username'] ?? '',
+                'role' => $user['role'],
+                'user_role' => $user['profile_role'] ?? 'Non-TWG',
+                'office_name' => $user['office_name'] ?? 'N/A',
+                'location' => $user['campus_location'] ?? 'La Trinidad Campus',
+                'office_acronym' => $user['office_acronym'] ?? '',
+                'first_name' => $profile['first_name'] ?? '',
+                'middle_name' => $profile['middle_name'] ?? '',
+                'last_name' => $profile['last_name'] ?? '',
+                'sex' => $profile['sex'] ?? '',
+                'position' => $profile['position'] ?? '',
+                'department' => $profile['department'] ?? '',
+                'student_id' => $profile['student_id'] ?? $user['student_id'] ?? '',
+                'year_level' => $profile['year_level'] ?? $user['year_level'] ?? '',
+                'approval_status' => $user['approval_status'] ?? 'approved',
+                'created_at' => $user['created_at'] ?? '',
+            ]
+        ]);
+    }
+
+    /**
+     * Approve a pending registration and email the applicant a login link.
+     */
+    public function approve($id = null)
+    {
+        if (!$id) return $this->fail('User ID required');
+
+        $userModel = new \App\Models\UserModel();
+        $user = $userModel->find($id);
+        if (!$user) return $this->failNotFound('User not found');
+
+        $userModel->update($id, ['approval_status' => 'approved']);
+
+        $payload = $this->request->jwtPayload ?? null;
+        $actionUserId = $payload['sub'] ?? $this->request->getHeaderLine('X-User-Id');
+        if ($actionUserId) {
+            \App\Models\ActivityLogModel::log($actionUserId, 'Approve User', 'approved the registration of: ' . $user['full_name']);
+        }
+
+        $this->sendDecisionEmail($user, 'approved');
+
+        return $this->respond(['success' => true, 'message' => 'User account approved.']);
+    }
+
+    /**
+     * Decline a pending registration and delete the account details so they are not stored.
+     * Only accepted accounts are kept in the database.
+     */
+    public function decline($id = null)
+    {
+        if (!$id) return $this->fail('User ID required');
+
+        $data = $this->request->getJSON(true) ?: $this->request->getPost() ?: [];
+        $reason = trim($data['reason'] ?? '');
+
+        $userModel = new \App\Models\UserModel();
+        $user = $userModel->find($id);
+        if (!$user) return $this->failNotFound('User not found');
+
+        // Log the decision before deleting the record
+        $payload = $this->request->jwtPayload ?? null;
+        $actionUserId = $payload['sub'] ?? $this->request->getHeaderLine('X-User-Id');
+        if ($actionUserId) {
+            \App\Models\ActivityLogModel::log($actionUserId, 'Decline User', 'declined and deleted the registration of: ' . $user['full_name'] . ($reason !== '' ? ' — Reason: ' . $reason : ''));
+        }
+
+        // Email the decision before deleting the record
+        $this->sendDecisionEmail($user, 'declined', $reason);
+
+        // Delete associated records first
+        $db = \Config\Database::connect();
+        
+        // 1. Delete profile
+        if ($db->tableExists('user_profiles')) {
+            $db->table('user_profiles')->where('user_id', $id)->delete();
+        }
+
+        // 2. Delete notifications related to this user's approval
+        if ($db->tableExists('notifications')) {
+            $db->table('notifications')->where('link', '/user-approval/' . $id)->delete();
+        }
+
+        // 3. Delete the user record permanently
+        $userModel->delete($id);
+
+        return $this->respond(['success' => true, 'message' => 'User registration declined and account details removed.']);
+    }
+
+    /**
+     * Email the applicant the outcome of the staff review.
+     */
+    private function sendDecisionEmail(array $user, string $decision, string $reason = ''): void
+    {
+        if (empty($user['email'])) return;
+
+        $frontendUrl = rtrim(getenv('FRONTEND_URL') ?: env('FRONTEND_URL') ?: getenv('app.baseURL') ?: env('app.baseURL') ?: 'http://localhost:5173', '/');
+        $loginUrl = $frontendUrl . '/login';
+        $name = htmlspecialchars($user['full_name'] ?: 'there');
+
+        if ($decision === 'approved') {
+            $subject = 'Your GAD AMS account has been approved';
+            $body = "
+                <h2>Account Approved</h2>
+                <p>Hello {$name},</p>
+                <p>Your GAD AMS registration has been <strong>approved</strong>. You can now log in using the email and password you registered with.</p>
+                <p><a href='{$loginUrl}' style='background-color: #9333ea; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Go to Login</a></p>
+                <p>If the button does not work, copy and paste this link into your browser:<br>{$loginUrl}</p>
+            ";
+        } else {
+            $subject = 'Your GAD AMS registration was declined';
+            $reasonHtml = $reason !== '' ? '<p><strong>Reason:</strong> ' . htmlspecialchars($reason) . '</p>' : '';
+            $body = "
+                <h2>Registration Declined</h2>
+                <p>Hello {$name},</p>
+                <p>We're sorry, but your GAD AMS registration has been <strong>declined</strong> by the GAD staff.</p>
+                {$reasonHtml}
+                <p>If you believe this is a mistake, please contact the GAD Office.</p>
+            ";
+        }
+
+        $message = "<html><head><title>{$subject}</title></head><body>{$body}</body></html>";
+
+        try {
+            $emailService = \Config\Services::email(false);
+            $emailService->setTo($user['email']);
+            $emailService->setSubject($subject);
+            $emailService->setMessage($message);
+            $emailService->send();
+        } catch (\Throwable $e) {
+            log_message('error', 'Error sending approval decision email: ' . $e->getMessage());
+        }
+    }
+
     private function avatarDirectory(): string
     {
         return WRITEPATH . 'uploads' . DIRECTORY_SEPARATOR . 'avatars';

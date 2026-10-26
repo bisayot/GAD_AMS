@@ -41,8 +41,8 @@
       <div class="auth-card rounded-2xl p-8 md:p-12 shadow-2xl border relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-blue-500"></div>
         <form @submit.prevent="handleRegister" class="space-y-8">
-          <div v-if="error" class="rounded-lg bg-red-50 dark:bg-red-950/60 border border-red-300 dark:border-red-800 text-red-900 dark:text-red-200 px-4 py-3 text-sm flex items-start gap-2.5 font-medium shadow-sm">
-            <span class="material-symbols-outlined text-red-700 dark:text-red-400 text-base shrink-0 mt-0.5">error</span>
+          <div v-if="error" class="rounded-xl bg-red-600 border border-red-700 text-white px-4 py-3 text-sm flex items-start gap-3 font-bold shadow-lg shadow-red-500/20 dark:bg-red-950/60 dark:border-red-800 dark:text-red-200 dark:shadow-none mb-6">
+            <span class="material-symbols-outlined text-white dark:text-red-400 text-lg shrink-0 mt-0.5">error</span>
             <span>{{ error }}</span>
           </div>
           

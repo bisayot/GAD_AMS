@@ -41,14 +41,15 @@
           <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-blue-500"></div>
           
           <form @submit.prevent="handleLogin" class="space-y-6">
-            <div v-if="error" class="rounded-lg bg-red-50 dark:bg-red-950/60 border border-red-300 dark:border-red-800 text-red-900 dark:text-red-200 px-3.5 py-2.5 text-sm mb-3 flex items-start gap-2 font-medium shadow-sm">
-              <span class="material-symbols-outlined text-red-700 dark:text-red-400 text-base shrink-0 mt-0.5">error</span>
+            <div v-if="error" class="rounded-xl bg-red-600 border border-red-700 text-white px-4 py-3 text-sm mb-6 flex items-start gap-3 font-bold shadow-lg shadow-red-500/20 dark:bg-red-950/60 dark:border-red-800 dark:text-red-200 dark:shadow-none">
+              <span class="material-symbols-outlined text-white dark:text-red-400 text-lg shrink-0 mt-0.5">error</span>
               <span>{{ error }}</span>
             </div>
-            <div v-if="successMsg" class="rounded-md bg-emerald-900/50 border border-emerald-500/50 text-emerald-200 px-3 py-2 text-sm mb-3 text-center">
+            <div v-if="successMsg" class="rounded-xl bg-emerald-600 border border-emerald-700 text-white px-4 py-3 text-sm mb-6 text-center font-bold shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 dark:bg-emerald-900/50 dark:border-emerald-500/50 dark:text-emerald-200 dark:shadow-none">
+              <span class="material-symbols-outlined text-white dark:text-emerald-400 text-lg">check_circle</span>
               {{ successMsg }}
             </div>
-            <div v-if="lockout" class="rounded-lg bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-100 px-3.5 py-3 text-sm mb-3 space-y-3">
+            <div v-if="lockout" class="rounded-xl bg-amber-600 border border-amber-700 text-white px-4 py-3 text-sm mb-6 space-y-3 font-bold shadow-lg shadow-amber-500/20 dark:bg-amber-950/60 dark:border-amber-800 dark:text-amber-100 dark:shadow-none">
               <p class="font-semibold">{{ lockout.message }}</p>
               <p v-if="lockout.isStaffOrAdmin">Please wait 15 minutes, or go to Forgot Password to receive a password reset link.</p>
               <p v-else>Click Forgot Password to reset your password or contact the GAD Office.</p>
@@ -166,7 +167,7 @@ const lockout = ref(null);
 
 onMounted(() => {
   if (route.query.registered === 'true') {
-    successMsg.value = 'Registration successful! You can now log in.';
+    successMsg.value = 'Registration submitted! Your account is pending approval by the GAD staff. You will receive an email once it has been approved.';
     // Clean up the URL query parameter
     const newQuery = { ...route.query };
     delete newQuery.registered;

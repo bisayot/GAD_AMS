@@ -59,6 +59,14 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     $routes->options('users/update/(:num)', 'AuthController::handleOptions');
     $routes->post('users/update/(:num)', 'UserManagementController::update/$1');
 
+    // Self-registration approval (GAD staff approve or decline new accounts)
+    $routes->options('users/approval/(:num)', 'AuthController::handleOptions');
+    $routes->get('users/approval/(:num)', 'UserManagementController::getApproval/$1');
+    $routes->options('users/approve/(:num)', 'AuthController::handleOptions');
+    $routes->post('users/approve/(:num)', 'UserManagementController::approve/$1');
+    $routes->options('users/decline/(:num)', 'AuthController::handleOptions');
+    $routes->post('users/decline/(:num)', 'UserManagementController::decline/$1');
+
     $routes->options('users/profile', 'AuthController::handleOptions');
     $routes->get('users/profile', 'UserManagementController::getProfile');
     $routes->options('users/profile/(:num)', 'AuthController::handleOptions');

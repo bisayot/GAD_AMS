@@ -93,7 +93,13 @@ const handleNotificationClick = async (notif) => {
   
   if (notif.link) {
     showNotifications.value = false;
-    router.push(notif.link);
+    // Account approval pages are opened in their own tab so they can close
+    // themselves automatically once a decision is made.
+    if (notif.link.includes('/user-approval/')) {
+      window.open(router.resolve(notif.link).href, '_blank');
+    } else {
+      router.push(notif.link);
+    }
   }
 };
 

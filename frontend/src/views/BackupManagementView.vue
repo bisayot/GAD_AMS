@@ -25,8 +25,14 @@
       </div>
     </header>
 
-    <div v-if="errorMessage" class="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">{{ errorMessage }}</div>
-    <div v-if="successMessage" class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">{{ successMessage }}</div>
+    <div v-if="errorMessage" class="rounded-xl bg-red-600 border border-red-700 text-white p-4 text-sm font-bold shadow-lg shadow-red-500/20 mb-6 flex items-center gap-3 dark:bg-red-950/40 dark:border-red-900 dark:text-red-200 dark:shadow-none">
+      <span class="material-symbols-outlined">error</span>
+      {{ errorMessage }}
+    </div>
+    <div v-if="successMessage" class="rounded-xl bg-emerald-600 border border-emerald-700 text-white p-4 text-sm font-bold shadow-lg shadow-emerald-500/20 mb-6 flex items-center gap-3 dark:bg-emerald-950/40 dark:border-emerald-900 dark:text-emerald-200 dark:shadow-none">
+      <span class="material-symbols-outlined">check_circle</span>
+      {{ successMessage }}
+    </div>
 
     <div class="grid gap-5 md:grid-cols-3">
       <div class="backup-stat-card rounded-2xl border border-purple-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-[#111827]">

@@ -90,6 +90,15 @@ class AuthController extends ResourceController
             return $this->failUnauthorized("Invalid username/email or password. You have {$remaining} attempt(s) remaining before your account is locked for 15 minutes.");
         }
 
+        // Self-registered accounts require GAD staff approval before first login.
+        $approvalStatus = strtolower($user['approval_status'] ?? 'approved');
+        if ($approvalStatus === 'pending') {
+            return $this->respond([
+                'status'  => 403,
+                'message' => 'Your account is still pending approval. The GAD staff must approve your registration before you can log in. You will receive an email once a decision has been made.',
+            ], 403);
+        }
+
         $userModel->update($user['id'], [
             'last_login' => date('Y-m-d H:i:s'),
             'failed_login_attempts' => 0,
@@ -291,7 +300,9 @@ class AuthController extends ResourceController
             'profile_role' => $data['user_role'] ?? 'Non-TWG',
             'student_id' => $studentId,
             'year_level' => $yearLevel,
-            'office_id' => $officeId
+            'office_id' => $officeId,
+            // New self-registrations must be approved by GAD staff before login.
+            'approval_status' => 'pending'
         ];
 
         if ($userModel->insert($userData)) {
@@ -324,13 +335,15 @@ class AuthController extends ResourceController
                 $frontendUrl = rtrim(getenv('FRONTEND_URL') ?: env('FRONTEND_URL') ?: getenv('app.baseURL') ?: env('app.baseURL') ?: 'http://localhost:5173', '/');
 
                 foreach ($adminsAndStaff as $notifUser) {
-                    $manageLink = $notifUser['role'] === 'admin' ? '/admin/user-management' : '/staff/user-management';
-                    
+                    // Staff review page where the sign-up details are shown with
+                    // an Approve / Decline decision below.
+                    $manageLink = '/user-approval/' . $newUserId;
+
                     // 1. In-site Notification
                     $notificationModel->insert([
                         'user_id' => $notifUser['id'],
-                        'title' => 'New User Registration',
-                        'message' => "A new user {$data['fullname']} ({$email}) has registered. Role: {$data['user_role']}, Office: {$officeNameDisplay}.",
+                        'title' => 'New User Registration — Action Required',
+                        'message' => "A new user {$data['fullname']} ({$email}) has registered and is awaiting approval. Role: {$data['user_role']}, Office: {$officeNameDisplay}. Please approve or decline.",
                         'type' => 'info',
                         'link' => $manageLink,
                         'is_read' => 0
@@ -340,21 +353,22 @@ class AuthController extends ResourceController
                     if (!empty($notifUser['email'])) {
                         $emailService = \Config\Services::email(false); // get new instance for each email
                         $emailService->setTo($notifUser['email']);
-                        $emailService->setSubject('New User Registration');
+                        $emailService->setSubject('New User Registration — Approval Required');
                         
                         $emailMessage = "
                         <html>
                         <head><title>New User Registration</title></head>
                         <body>
                             <h2>New User Registration</h2>
-                            <p>A new user has registered in the GAD AMS system.</p>
+                            <p>A new user has registered in the GAD AMS system and is awaiting your approval.</p>
                             <ul>
                                 <li><strong>Name:</strong> {$data['fullname']}</li>
                                 <li><strong>Email:</strong> {$email}</li>
                                 <li><strong>Role:</strong> {$data['user_role']}</li>
                                 <li><strong>Department/Office:</strong> {$officeNameDisplay}</li>
                             </ul>
-                            <p>You can manage this user in the <a href='{$frontendUrl}{$manageLink}'>User Management</a> page.</p>
+                            <p>Please review the registration and choose to <strong>Approve</strong> or <strong>Decline</strong> it here:</p>
+                            <p><a href='{$frontendUrl}{$manageLink}' style='background-color: #9333ea; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Review Registration</a></p>
                         </body>
                         </html>
                         ";
@@ -367,7 +381,7 @@ class AuthController extends ResourceController
                 log_message('error', 'Error sending registration notifications: ' . $e->getMessage());
             }
 
-            return $this->respondCreated(['message' => 'Account created successfully. Please log in.']);
+            return $this->respondCreated(['message' => 'Your account has been created and is pending approval by the GAD staff. You will receive an email once your account has been approved.']);
         }
 
         return $this->fail('Unable to create account. Please try again later.');
@@ -599,7 +613,7 @@ class AuthController extends ResourceController
     public function getAllUsers() {
         $db = \Config\Database::connect();
         $builder = $db->table('users')
-            ->select('users.id, users.email, users.full_name, users.role, users.office_id, users.deleted_at, users.created_at, users.last_login, users.profile_role as user_role, office_units.office_name, office_units.location as campus_location')
+            ->select('users.id, users.email, users.full_name, users.role, users.office_id, users.deleted_at, users.created_at, users.last_login, users.profile_role as user_role, users.approval_status, office_units.office_name, office_units.location as campus_location')
             ->select('(SELECT COUNT(*) FROM activity_design WHERE activity_design.user_id = users.id) as ad_count')
             ->select('(SELECT COUNT(*) FROM accomplishment_report WHERE accomplishment_report.user_id = users.id) as ar_count')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left');

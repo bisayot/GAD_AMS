@@ -19,7 +19,41 @@
       </div>
 
       <div class="layout-stacked">
-        
+
+        <!-- Pending Registrations awaiting staff approval -->
+        <section v-if="pendingUsers.length > 0" class="user-card glass-card">
+          <div class="card-header">
+            <div class="flex items-center gap-3">
+              <div class="icon-box icon-box-purple">
+                <span class="material-symbols-outlined">how_to_reg</span>
+              </div>
+              <h2 class="card-section-title">Pending Approvals <span class="badge ml-2 badge-purple">{{ pendingUsers.length }}</span></h2>
+            </div>
+          </div>
+          <div class="card-body custom-scrollbar">
+            <div class="user-grid">
+              <div v-for="user in pendingUsers" :key="user.id" class="user-item">
+                <div class="user-info">
+                  <div class="user-name">{{ user.full_name || 'N/A' }}</div>
+                  <div class="user-meta">{{ user.email }}</div>
+                  <div class="user-office mt-1">{{ user.office_name || 'No Office' }}</div>
+                  <div class="user-meta mt-2 flex flex-wrap items-center gap-2">
+                    <span class="user-days flex items-center gap-1">
+                      <span class="material-symbols-outlined text-xs" style="font-size: 14px;">schedule</span>
+                      Registered: {{ formatDate(user.created_at) }}
+                    </span>
+                  </div>
+                </div>
+                <div class="user-actions mt-auto">
+                  <button @click="reviewUser(user.id)" class="btn-primary flex items-center gap-1" title="Review Registration">
+                    <span class="material-symbols-outlined text-sm">fact_check</span> Review
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- System Accounts (No card container, just horizontal scrolling cards) -->
         <div class="flex gap-4 overflow-x-auto custom-scrollbar pb-4" style="flex-wrap: nowrap;">
           <div v-for="user in systemUsers" :key="user.id" class="user-item flex-shrink-0 flex flex-col !bg-white dark:!bg-[#1e293b] !border-slate-200 dark:!border-slate-700" style="width: 280px; min-height: auto; padding: 1.25rem;">
@@ -560,17 +594,30 @@ const filterUserList = (userList, search, office) => {
   });
 };
 
+// Only accounts that have been approved (or created before approval existed)
+// should appear in the regular user lists.
+const isApprovedUser = (u) => !u.deleted_at && u.role !== 'deleted' && (u.approval_status || 'approved') === 'approved';
+
+const pendingUsers = computed(() => {
+  return users.value.filter(u => !u.deleted_at && u.role !== 'deleted' && u.approval_status === 'pending');
+});
+
+const reviewUser = (id) => {
+  const { href } = router.resolve({ name: 'user-approval', params: { id } });
+  window.open(href, '_blank');
+};
+
 const twgUsers = computed(() => {
-  const baseList = users.value.filter(u => !u.deleted_at && u.user_role === 'TWG' && u.role !== 'deleted');
+  const baseList = users.value.filter(u => isApprovedUser(u) && u.user_role === 'TWG');
   return filterUserList(baseList, searchTwg.value, filterTwgOffice.value);
 });
 
 const systemUsers = computed(() => {
-  return users.value.filter(u => !u.deleted_at && u.role !== 'deleted' && (u.role === 'admin' || u.user_role === 'Director' || u.role === 'gad_staff' || u.user_role === 'Staff'));
+  return users.value.filter(u => isApprovedUser(u) && (u.role === 'admin' || u.user_role === 'Director' || u.role === 'gad_staff' || u.user_role === 'Staff'));
 });
 
 const nonTwgUsers = computed(() => {
-  const baseList = users.value.filter(u => !u.deleted_at && u.user_role === 'Non-TWG' && u.role !== 'deleted');
+  const baseList = users.value.filter(u => isApprovedUser(u) && u.user_role === 'Non-TWG');
   return filterUserList(baseList, searchNonTwg.value, filterNonTwgOffice.value);
 });
 

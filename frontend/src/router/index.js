@@ -14,6 +14,7 @@ const routes = [
   { path: '/gad-corner/:id', name: 'gad-corner-post', component: () => import('../views/GadCornerPostView.vue') },
   { path: '/gad-corner/tags/:tag', name: 'gad-corner-tags', component: () => import('../views/TagResultsView.vue') },
   { path: '/contact', name: 'contact', component: () => import('../views/ContactView.vue') },
+  { path: '/user-approval/:id', name: 'user-approval', component: () => import('../views/UserApprovalView.vue') },
 
   // Legacy bookmarks → nested routes
   { path: '/college/submit-accomplishment', redirect: '/college/submit-report' },
@@ -156,6 +157,19 @@ router.beforeEach((to, from, next) => {
   const isAdminRoute   = to.path.startsWith('/admin');
   const isStaffRoute   = to.path.startsWith('/staff');
   const isCollegeRoute = to.path.startsWith('/college');
+  const isApprovalRoute = to.path.startsWith('/user-approval');
+
+  // Account approval page — staff/admin only.
+  if (isApprovalRoute) {
+    if (!isLoggedIn) {
+      return next('/login');
+    }
+    const approvalRole = (user.role || '').toLowerCase();
+    if (approvalRole !== 'admin' && approvalRole !== 'gad_staff') {
+      return next('/login');
+    }
+    return next();
+  }
 
   // If not a protected route, allow through
   if (!isAdminRoute && !isStaffRoute && !isCollegeRoute) {
