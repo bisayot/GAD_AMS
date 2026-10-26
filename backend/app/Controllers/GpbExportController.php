@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Libraries\GpbTemplateWriter;
 use App\Models\GpbModel;
+use App\Models\SettingModel;
 
 class GpbExportController extends BaseController
 {
@@ -15,18 +16,55 @@ class GpbExportController extends BaseController
 
         // GpbModel rows already use 'budget' (single numeric column), so we
         // only need to rename it to 'budget_value' for the writer's contract.
+        $otherLinesTotal = 0.0;
         foreach ($grouped as $section => $rows) {
             foreach ($rows as $i => $row) {
-                $grouped[$section][$i]['budget_value'] = (float) $row['budget'];
+                $amount = (float) $row['budget'];
+                $grouped[$section][$i]['budget_value'] = $amount;
+
+                // Check budget_lines for source-specific totals if available
+                $budgetLines = isset($row['budget_lines']) ? json_decode($row['budget_lines'], true) : [];
+                if (is_array($budgetLines) && count($budgetLines) > 0) {
+                    $sourceLines = [];
+                    foreach ($budgetLines as $line) {
+                        $lineAmount = (float) ($line['amount'] ?? 0);
+                        $src = (string) ($line['source'] ?? '');
+                        $spec = trim((string) ($line['sourceOther'] ?? ''));
+                        
+                        if (strtolower(trim($src)) === 'other') {
+                            $otherLinesTotal += $lineAmount;
+                            $sourceLines[] = $spec ? "Other ($spec)" : 'Other';
+                        } else {
+                            $sourceLines[] = $src;
+                        }
+                    }
+                    // Update the source display for the writer if needed
+                    $grouped[$section][$i]['source'] = implode("\n", $sourceLines);
+                    $grouped[$section][$i]['budget_lines_raw'] = $budgetLines;
+                } else {
+                    // Fallback to the single source column
+                    $source = strtolower(trim((string) ($row['source'] ?? '')));
+                    if ($source === 'other') {
+                        $otherLinesTotal += $amount;
+                    }
+                }
             }
         }
 
+        // Fetch organization settings for the given fiscal year
+        $settingModel = new SettingModel();
+        $settings = $settingModel->getByFiscalYear($fiscalYear);
+        $orgOther = (float) ($settings['otherSources'] ?? 0);
+
         $writer      = new GpbTemplateWriter();
         $spreadsheet = $writer->build($grouped, [
-            'fiscal_year' => 'FY ' . $fiscalYear,
-            // Wire these to your organizations/settings table when you have one:
-            // 'org_name' => ..., 'org_category' => ..., 'org_hierarchy' => ...,
-            // 'total_org_budget' => ..., 'other_sources' => ...,
+            'fiscal_year'      => 'FY ' . $fiscalYear,
+            'org_name'         => $settings['name'] ?? '',
+            'org_category'     => $settings['category'] ?? '',
+            'org_hierarchy'    => $settings['hierarchy'] ?? '',
+            'total_org_budget' => (float) ($settings['totalOrgBudget'] ?? 0),
+            'other_sources'    => $otherLinesTotal + $orgOther,
+            'org_other'        => $orgOther, // Pass this to help the writer adjust grandTotal
         ]);
 
         return $this->stream($spreadsheet, "gpb-{$fiscalYear}.xlsx");

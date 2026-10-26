@@ -5,7 +5,9 @@ namespace App\Libraries;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\RichText\RichText;
 
 /**
  * GpbTemplateWriter
@@ -136,11 +138,18 @@ class GpbTemplateWriter
         $sheet->setCellValue("A{$rowIndex}", $itemNumber);
 
         foreach (self::COLUMNS as $field => $column) {
-            $sheet->setCellValue("{$column}{$rowIndex}", (string) ($item[$field] ?? ''));
+            if ($field === 'source' && ! empty($item['budget_lines_raw'])) {
+                $this->writeRichTextLines($sheet, "{$column}{$rowIndex}", $item['budget_lines_raw'], 'source');
+            } else {
+                $sheet->setCellValue("{$column}{$rowIndex}", (string) ($item[$field] ?? ''));
+            }
         }
 
         $budgetCell = self::BUDGET_COLUMN . $rowIndex;
-        if (! empty($item['budget_display'])) {
+        if (! empty($item['budget_lines_raw'])) {
+            $this->writeRichTextLines($sheet, $budgetCell, $item['budget_lines_raw'], 'budget');
+            $sheet->getStyle($budgetCell)->getNumberFormat()->setFormatCode('General');
+        } elseif (! empty($item['budget_display'])) {
             // Multi-line breakdown (e.g. several budget lines stacked with
             // "\n") — write as text, not a formatted number.
             $sheet->setCellValue($budgetCell, (string) $item['budget_display']);
@@ -155,6 +164,40 @@ class GpbTemplateWriter
             $style->getAlignment()->setWrapText(true);
             $style->getAlignment()->setVertical(Alignment::VERTICAL_TOP);
         }
+    }
+
+    private function writeRichTextLines(Worksheet $sheet, string $cellCoordinate, array $lines, string $type): void
+    {
+        $richText = new RichText();
+        $count = count($lines);
+
+        foreach ($lines as $i => $line) {
+            $isOther = strtolower(trim((string)($line['source'] ?? ''))) === 'other';
+            $text = '';
+
+            if ($type === 'budget') {
+                $label = trim((string)($line['label'] ?? '')) ?: 'Budget line';
+                $amount = (float)($line['amount'] ?? 0);
+                $text = $label . ' - ' . number_format($amount, 2);
+            } else {
+                $src = (string)($line['source'] ?? '');
+                $spec = trim((string)($line['sourceOther'] ?? ''));
+                $text = ($isOther && $spec) ? "Other ($spec)" : $src;
+            }
+
+            if ($i < $count - 1) {
+                $text .= "\n";
+            }
+
+            $run = $richText->createTextRun($text);
+            if ($isOther) {
+                // Color for "Other" items: Dark Red (CC0000)
+                $run->getFont()->setColor(new Color('FFCC0000'));
+                $run->getFont()->setBold(true);
+            }
+        }
+
+        $sheet->setCellValue($cellCoordinate, $richText);
     }
 
     private function cloneRowStyle(Worksheet $sheet, int $fromRow, int $toRow): void

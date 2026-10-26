@@ -54,8 +54,9 @@ class GpbLiveExportController extends BaseController
             ]);
         }
 
-        $grouped = $this->normalizePayload($payload['items']);
-        $meta    = $this->extractHeaderMeta($payload['org'] ?? []);
+        $normalized = $this->normalizePayload($payload['items']);
+        $grouped    = $normalized['grouped'];
+        $meta       = $this->extractHeaderMeta($payload['org'] ?? [], $normalized['otherLinesTotal']);
 
         $writer      = new GpbTemplateWriter();
         $spreadsheet = $writer->build($grouped, $meta);
@@ -82,52 +83,66 @@ class GpbLiveExportController extends BaseController
      */
     private function normalizePayload(array $items): array
     {
-        $grouped = array_fill_keys(GpbTemplateWriter::SECTION_ORDER, []);
+        $grouped         = array_fill_keys(GpbTemplateWriter::SECTION_ORDER, []);
+        $otherLinesTotal = 0.0;
 
         foreach ($items as $item) {
             $section = self::SECTION_MAP[$item['section'] ?? ''] ?? null;
             if ($section === null) {
-                continue; // unknown/legacy section key — skip rather than guess
+                continue;
             }
 
-            $total        = 0.0;
-            $budgetLines  = [];
-            $sourceLines  = [];
+            $total       = 0.0;
+            $budgetLines = [];
+            $sourceLines = [];
 
             foreach (($item['budgetLines'] ?? []) as $line) {
                 $amount = (float) ($line['amount'] ?? 0);
                 $total += $amount;
                 $label  = trim((string) ($line['label'] ?? '')) ?: 'Budget line';
                 $budgetLines[] = $label . ' - ' . number_format($amount, 2);
-                $sourceLines[] = (string) ($line['source'] ?? '');
+
+                $src = (string) ($line['source'] ?? '');
+                $spec = trim((string) ($line['sourceOther'] ?? ''));
+                if (strtolower(trim($src)) === 'other') {
+                    $otherLinesTotal += $amount;
+                    $sourceLines[] = $spec ? "Other ($spec)" : 'Other';
+                } else {
+                    $sourceLines[] = $src;
+                }
             }
 
             $grouped[$section][] = [
-                'mandate'        => $item['mandate'] ?? '',
-                'cause'          => $item['cause'] ?? '',
-                'objective'      => $item['result'] ?? '',
-                'ppa'            => $item['mfo'] ?? '',
-                'activity'       => $item['activity'] ?? '',
-                'targets'        => $item['indicators'] ?? '',
-                'budget_value'   => $total,
-                'budget_display' => implode("\n", $budgetLines),
-                'source'         => implode("\n", $sourceLines),
-                'office'         => $item['responsible'] ?? '',
+                'mandate'          => $item['mandate'] ?? '',
+                'cause'            => $item['cause'] ?? '',
+                'objective'        => $item['result'] ?? '',
+                'ppa'              => $item['mfo'] ?? '',
+                'activity'         => $item['activity'] ?? '',
+                'targets'          => $item['indicators'] ?? '',
+                'budget_value'     => $total,
+                'budget_display'   => implode("\n", $budgetLines),
+                'source'           => implode("\n", $sourceLines),
+                'office'           => $item['responsible'] ?? '',
+                'budget_lines_raw' => $item['budgetLines'] ?? [],
             ];
         }
 
-        return $grouped;
+        return [
+            'grouped'         => $grouped,
+            'otherLinesTotal' => $otherLinesTotal,
+        ];
     }
 
-    private function extractHeaderMeta(array $org): array
+    private function extractHeaderMeta(array $org, float $otherLinesTotal = 0.0): array
     {
+        $orgOther = (float) ($org['otherSources'] ?? 0);
         return [
             'org_name'         => $org['name'] ?? '',
             'org_category'     => $org['category'] ?? '',
             'org_hierarchy'    => $org['hierarchy'] ?? '',
             'fiscal_year'      => $org['year'] ?? '',
             'total_org_budget' => (float) ($org['totalOrgBudget'] ?? 0),
-            'other_sources'    => (float) ($org['otherSources'] ?? 0),
+            'other_sources'    => $orgOther + $otherLinesTotal,
         ];
     }
 

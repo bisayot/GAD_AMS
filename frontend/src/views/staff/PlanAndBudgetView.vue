@@ -185,10 +185,13 @@
                     <div v-for="l in item.budgetLines" :key="l.id" class="budget-line">
                       <input :disabled="isReadOnly" type="text" v-model="l.label" placeholder="e.g. Supplies and Materials" @input="markDirty(item)">
                       <input :disabled="isReadOnly" type="number" step="0.01" min="0" v-model.number="l.amount" @input="markDirty(item)">
-                      <select :disabled="isReadOnly" v-model="l.source" @change="markDirty(item)">
-                         <option v-if="!SOURCE_OPTIONS.includes(l.source) && l.source" :value="l.source">{{ l.source }}</option>
-                        <option v-for="s in SOURCE_OPTIONS" :key="s" :value="s">{{ s }}</option>
-                      </select>
+                      <div class="source-col">
+                        <select :disabled="isReadOnly" v-model="l.source" @change="markDirty(item)">
+                          <option v-if="!SOURCE_OPTIONS.includes(l.source) && l.source" :value="l.source">{{ l.source }}</option>
+                          <option v-for="s in SOURCE_OPTIONS" :key="s" :value="s">{{ s }}</option>
+                        </select>
+                        <input v-if="l.source === 'Other'" :disabled="isReadOnly" type="text" v-model="l.sourceOther" placeholder="Specify..." @input="markDirty(item)" class="source-spec">
+                      </div>
                       <button class="remove-line" v-if="!isReadOnly" aria-label="Remove line" @click="removeBudgetLine(item, l.id)">×</button>
                     </div>
                   </div>
@@ -673,7 +676,7 @@ export default {
         section,
         mandate: '', cause: '', result: '', mfo: '',
         activity: '', indicators: '', responsible: '',
-        budgetLines: [{ id: uid('l'), label: '', amount: 0, source: 'GAA' }],
+        budgetLines: [{ id: uid('l'), label: '', amount: 0, source: 'GAA', sourceOther: '' }],
         _isNew: true,   // flag: not yet saved to DB
         _dirty: true,
         _saving: false,
@@ -771,7 +774,7 @@ export default {
     }
 
     function addBudgetLine(item) {
-      item.budgetLines.push({ id: uid('l'), label: '', amount: 0, source: 'GAA' });
+      item.budgetLines.push({ id: uid('l'), label: '', amount: 0, source: 'GAA', sourceOther: '' });
       markDirty(item);
     }
     function removeBudgetLine(item, lineId) {
@@ -2048,6 +2051,15 @@ select option { background: #ffffff; color: #0f172a; }
   display: grid;
   grid-template-columns: 1fr 150px 130px 34px;
   gap: 8px; margin-bottom: 8px; align-items: center;
+}
+.source-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.source-spec {
+  font-size: 12px !important;
+  padding: 5px 8px !important;
 }
 .budget-line input, .budget-line select {
   padding: 9px 10px;
