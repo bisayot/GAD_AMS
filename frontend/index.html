@@ -12,9 +12,10 @@
   <meta name="description" content="Gender and Development (GAD) Activity Management System" />
   <title>GAD-AMS</title>
 
-  <!-- Cloudflare Turnstile: warm up DNS/TLS early so the widget loads as fast as possible -->
+  <!-- Cloudflare Turnstile: warm up DNS/TLS early for both script and CORS challenge pools -->
   <link rel="dns-prefetch" href="https://challenges.cloudflare.com" />
   <link rel="preconnect" href="https://challenges.cloudflare.com" />
+  <link rel="preconnect" href="https://challenges.cloudflare.com" crossorigin />
 
   <script>
     // Render the Turnstile widget the instant the API is ready (no polling).

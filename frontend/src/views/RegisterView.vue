@@ -345,7 +345,7 @@
 
           <div class="flex flex-col gap-4 pt-4">
             <button :disabled="loading" class="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-full font-bold uppercase shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:shadow-[0_0_30px_rgba(168,85,247,0.7)] hover:-translate-y-1 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 cursor-pointer disabled:opacity-50" type="submit">
-              {{ loading ? 'Processing...' : 'Register' }}
+              {{ loading ? (turnstileToken ? 'Processing...' : 'Verifying Security...') : 'Register' }}
             </button>
             <button type="button" @click="router.back()" class="w-full border border-outline-variant text-on-surface py-4 rounded-full font-bold uppercase hover:bg-surface-variant transition-all cursor-pointer">
               Cancel
@@ -575,7 +575,14 @@ const handleRegister = async () => {
     return error.value = 'Passwords do not match.';
   }
   if (!turnstileToken.value) {
-    return error.value = 'Please complete the security check.';
+    if (turnstileRef.value?.waitForToken) {
+      loading.value = true;
+      await turnstileRef.value.waitForToken(3500);
+    }
+    if (!turnstileToken.value) {
+      loading.value = false;
+      return error.value = 'Security verification is still loading. Please check your internet connection and try again.';
+    }
   }
   if (!form.privacyAccepted) {
     return error.value = 'You must agree to the Privacy Policy.';

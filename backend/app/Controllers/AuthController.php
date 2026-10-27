@@ -650,8 +650,9 @@ class AuthController extends ResourceController
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);        // fail after 10 s
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);  // fail connection after 5 s
+        curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4); // Force IPv4: avoids 2-5s dual-stack DNS timeouts on Windows/XAMPP
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);        // fail after 15 s
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 8);  // fail connection after 8 s
         // SSL certificate verification is intentionally left ON (default)
         // so PHP validates Cloudflare's certificate against its CA store.
 
