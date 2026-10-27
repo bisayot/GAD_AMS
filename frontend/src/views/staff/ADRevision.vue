@@ -56,6 +56,8 @@
               <input 
                 v-model="formData.activity_title" 
                 type="text" 
+                minlength="3"
+                maxlength="255"
                 class="modal-input title-input" 
                 placeholder="Enter Activity Title"
               >
@@ -1687,6 +1689,24 @@ watch([() => formData.value.start_time, () => formData.value.end_time], ([newSta
 });
 
 const handleUpdate = async () => {
+  if (!formData.value.activity_title || formData.value.activity_title.trim().length < 3) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Title',
+      text: 'Activity Title must be at least 3 characters long.',
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+  if (formData.value.activity_title.length > 255) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Title',
+      text: 'Activity Title must not exceed 255 characters.',
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
   if (scheduleType.value === 'staggered') {
     const selectedDates = schedules.value.map(schedule => schedule.date).filter(Boolean);
     if (new Set(selectedDates).size !== selectedDates.length) {

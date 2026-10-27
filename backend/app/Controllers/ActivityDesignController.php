@@ -1427,4 +1427,65 @@ class ActivityDesignController extends BaseController
 
         return $this->response->setJSON(['success' => true, 'message' => 'Modification request rejected']);
     }
+
+    private function resolveDraftUserId($fallback = null)
+    {
+        if ($fallback) return $fallback;
+        $body = $this->request->getJSON(true) ?? $this->request->getPost();
+        return $body['user_id'] ?? ($this->request->getHeaderLine('X-User-Id') ?: null);
+    }
+
+    public function saveDraft()
+    {
+        $body = $this->request->getJSON(true) ?? $this->request->getPost();
+        $userId = $body['user_id'] ?? $this->request->getHeaderLine('X-User-Id');
+        $payload = $body['payload'] ?? null;
+
+        if (!$userId || $payload === null || $payload === '') {
+            return $this->response->setJSON(['success' => false, 'message' => 'Missing user_id or payload'])->setStatusCode(422);
+        }
+
+        $db = \Config\Database::connect();
+        $data = [
+            'user_id'    => $userId,
+            'payload'    => is_string($payload) ? $payload : json_encode($payload),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ];
+
+        $existing = $db->table('ad_drafts')->where('user_id', $userId)->get()->getRowArray();
+        if ($existing) {
+            $db->table('ad_drafts')->where('user_id', $userId)->update($data);
+        } else {
+            $data['created_at'] = date('Y-m-d H:i:s');
+            $db->table('ad_drafts')->insert($data);
+        }
+
+        return $this->response->setJSON(['success' => true, 'saved_at' => $data['updated_at']]);
+    }
+
+    public function getDraft($userId = null)
+    {
+        $userId = $this->resolveDraftUserId($userId);
+        if (!$userId) {
+            return $this->response->setJSON(['success' => false, 'message' => 'user_id required'])->setStatusCode(422);
+        }
+
+        $db = \Config\Database::connect();
+        $draft = $db->table('ad_drafts')->where('user_id', $userId)->get()->getRowArray();
+
+        return $this->response->setJSON(['success' => true, 'draft' => $draft ?: null]);
+    }
+
+    public function deleteDraft($userId = null)
+    {
+        $userId = $this->resolveDraftUserId($userId);
+        if (!$userId) {
+            return $this->response->setJSON(['success' => false, 'message' => 'user_id required'])->setStatusCode(422);
+        }
+
+        $db = \Config\Database::connect();
+        $db->table('ad_drafts')->where('user_id', $userId)->delete();
+
+        return $this->response->setJSON(['success' => true]);
+    }
 }

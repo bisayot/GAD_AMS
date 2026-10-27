@@ -13,31 +13,34 @@ let widgetId = null;
 
 const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 
-onMounted(() => {
-  // Wait for the Turnstile API to be ready
-  const renderWidget = () => {
-    if (window.turnstile && turnstileElement.value) {
-      widgetId = window.turnstile.render(turnstileElement.value, {
-        sitekey: siteKey,
-        callback: (token) => {
-          emit('verify', token);
-        },
-        'error-callback': () => {
-          emit('error');
-        },
-        'expired-callback': () => {
-          emit('expired');
-        }
-      });
-    } else {
-      setTimeout(renderWidget, 100);
+const renderWidget = () => {
+  if (!window.turnstile || !turnstileElement.value) return;
+  widgetId = window.turnstile.render(turnstileElement.value, {
+    sitekey: siteKey,
+    callback: (token) => {
+      emit('verify', token);
+    },
+    'error-callback': () => {
+      emit('error');
+    },
+    'expired-callback': () => {
+      emit('expired');
     }
-  };
-  
-  renderWidget();
+  });
+};
+
+onMounted(() => {
+  if (window.turnstile) {
+    // API already loaded (e.g. SPA navigation) - render immediately.
+    renderWidget();
+  } else {
+    // index.html's onload handler fires this the moment api.js is ready.
+    window.addEventListener('turnstile:ready', renderWidget, { once: true });
+  }
 });
 
 onUnmounted(() => {
+  window.removeEventListener('turnstile:ready', renderWidget);
   if (widgetId !== null && window.turnstile) {
     window.turnstile.remove(widgetId);
   }

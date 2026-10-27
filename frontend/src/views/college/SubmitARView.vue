@@ -34,6 +34,8 @@
                     <textarea 
                       v-model="form.activity_title" 
                       required 
+                      minlength="3"
+                      maxlength="255"
                       rows="2" 
                       class="custom-input-field textarea-no-resize"
                       placeholder="Enter the complete title of the activity"
@@ -1577,6 +1579,24 @@ const totalPMSnackDays = computed(() => {
 
 
 const submitReport = async () => {
+  if (!form.value.activity_title || form.value.activity_title.trim().length < 3) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Title',
+      text: 'Activity Title must be at least 3 characters long.',
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+  if (form.value.activity_title.length > 255) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Title',
+      text: 'Activity Title must not exceed 255 characters.',
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
   const hasBlankEval = form.value.evaluation_items && form.value.evaluation_items.some(i => !i.area || i.rating === '' || i.rating === null);
   if (hasBlankEval) {
     Swal.fire({

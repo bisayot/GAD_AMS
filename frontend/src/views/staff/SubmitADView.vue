@@ -57,6 +57,8 @@
                     <textarea 
                       v-model="form.activity_title" 
                       required 
+                      minlength="3"
+                      maxlength="255"
                       rows="2" 
                       class="custom-input-field textarea-no-resize"
                       placeholder="Enter the complete title of the activity"
@@ -418,6 +420,7 @@ import Swal from 'sweetalert2';
 import BudgetBuilder from '../../components/BudgetBuilder.vue';
 import AppTimePicker from '../../components/AppTimePicker.vue';
 import api from '../../api';
+import { useAdDraft } from '../../utils/useAdDraft';
 
 const router = useRouter();
 const route = useRoute();
@@ -784,6 +787,46 @@ const addCustomVenue = async () => {
   }
 };
 
+const { isRestoring, scheduleSave, restoreDraft, clearDraft } = useAdDraft({
+  userId: user.value.id || user.value.user_id,
+  getData: () => ({
+    form: form.value,
+    schedules: schedules.value,
+    scheduleType: scheduleType.value,
+    continuousConfig: continuousConfig.value,
+    customVenuesList: customVenuesList.value,
+    customMandate: customMandate.value,
+    customGenderIssue: customGenderIssue.value
+  }),
+  setData: (draft) => {
+    if (draft.form) Object.assign(form.value, draft.form);
+    if (Array.isArray(draft.schedules) && draft.schedules.length) schedules.value = draft.schedules;
+    if (draft.scheduleType) scheduleType.value = draft.scheduleType;
+    if (draft.continuousConfig) continuousConfig.value = draft.continuousConfig;
+    if (Array.isArray(draft.customVenuesList)) customVenuesList.value = draft.customVenuesList;
+    if (typeof draft.customMandate === 'string') customMandate.value = draft.customMandate;
+    if (typeof draft.customGenderIssue === 'string') customGenderIssue.value = draft.customGenderIssue;
+  },
+  hasInput: (d) => {
+    const f = d.form || {};
+    return Boolean(
+      (typeof f.activity_title === 'string' && f.activity_title.trim()) ||
+      f.form_type ||
+      f.activity_classification_id ||
+      (Array.isArray(f.gad_mandate_id) && f.gad_mandate_id.length) ||
+      (Array.isArray(f.gender_issue_id) && f.gender_issue_id.length) ||
+      (Array.isArray(f.venues) && f.venues.length) ||
+      (d.schedules || []).some(s => s.date || s.start_time || s.end_time)
+    );
+  }
+});
+
+watch(
+  [form, schedules, scheduleType, continuousConfig, customVenuesList, customMandate, customGenderIssue],
+  () => scheduleSave(),
+  { deep: true }
+);
+
 const userRole = user.value?.role || user.value?.user_role || '';
 const getPdfViewerUrl = (url) => {
   if (!url) return '';
@@ -895,6 +938,7 @@ const venueInsideMap = computed(() => {
 });
 
 watch(() => form.value.is_inside_bsu, () => {
+  if (isRestoring.value) return;
   if (form.value.venues && form.value.venues.length > 0) {
     form.value.venues = [];
   }
@@ -966,12 +1010,14 @@ const fetchGenderIssues = async (mandateIds) => {
 };
 
 watch(() => form.value.activity_classification_id, (newVal) => {
+    if (isRestoring.value) return;
     form.value.gad_mandate_id = [];
     form.value.gender_issue_id = [];
     fetchGADMandates();
   });
 
   watch(() => form.value.gad_mandate_id, (newVal) => {
+  if (isRestoring.value) return;
   form.value.gender_issue_id = [];
   fetchGenderIssues(newVal);
 });
@@ -988,6 +1034,7 @@ watch(() => form.value.venue_budgets, (newBudgets) => {
 }, { deep: true });
 
 watch(() => computedStartDate.value, (newDate, oldDate) => {
+    if (isRestoring.value) return;
     if (newDate && newDate !== oldDate) {
       const validation = isValidActivityDate(newDate, true);
       if (!validation.valid) {
@@ -1273,6 +1320,24 @@ const fetchSystemSettings = async () => {
 };
 
 const submitActivityDesign = async () => {
+  if (!form.value.activity_title || form.value.activity_title.trim().length < 3) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Title',
+      text: 'Activity Title must be at least 3 characters long.',
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
+  if (form.value.activity_title.length > 255) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Title',
+      text: 'Activity Title must not exceed 255 characters.',
+      confirmButtonColor: '#b979cc'
+    });
+    return;
+  }
   if (scheduleType.value === 'staggered') {
     const selectedDates = schedules.value.map(schedule => schedule.date).filter(Boolean);
     if (new Set(selectedDates).size !== selectedDates.length) {
@@ -1549,6 +1614,7 @@ const submitActivityDesign = async () => {
     });
 
     if (response.data.success) {
+      await clearDraft();
       Swal.fire({
         icon: 'success',
         title: 'Submitted Successfully!',
@@ -1575,6 +1641,7 @@ const goBack = () => {
 };
 
 const handleLogout = async () => {
+  await clearDraft();
   try {
     await api.get('logout');
     localStorage.removeItem('user');
@@ -1585,7 +1652,7 @@ const handleLogout = async () => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
   if (!user.value.id) {
     router.push('/login');
   }
@@ -1601,6 +1668,13 @@ onMounted(() => {
     isDarkMode.value = document.documentElement.classList.contains('dark');
   });
   themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+  // Offer to restore an unsaved draft once reference data has loaded.
+  const restored = await restoreDraft();
+  if (restored) {
+    fetchGADMandates();
+    fetchGenderIssues(form.value.gad_mandate_id);
+  }
 });
 
 onUnmounted(() => {

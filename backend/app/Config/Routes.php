@@ -129,6 +129,15 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     $routes->post('submit-activity-design', 'ActivityDesignController::submitDesign');
     $routes->options('activity-designs/submit', 'AuthController::handleOptions');
     $routes->post('activity-designs/submit', 'ActivityDesignController::submitDesign');
+
+    // Activity Design draft autosave
+    $routes->options('save-ad-draft', 'AuthController::handleOptions');
+    $routes->post('save-ad-draft', 'ActivityDesignController::saveDraft');
+    $routes->options('get-ad-draft/(:num)', 'AuthController::handleOptions');
+    $routes->get('get-ad-draft/(:num)', 'ActivityDesignController::getDraft/$1');
+    $routes->options('delete-ad-draft/(:num)', 'AuthController::handleOptions');
+    $routes->delete('delete-ad-draft/(:num)', 'ActivityDesignController::deleteDraft/$1');
+
     $routes->options('activity-designs/trash/(:num)', 'AuthController::handleOptions');
     $routes->delete('activity-designs/trash/(:num)', 'ActivityDesignController::trash/$1');
 

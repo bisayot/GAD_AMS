@@ -11,7 +11,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Gender and Development (GAD) Activity Management System" />
   <title>GAD-AMS</title>
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+  <!-- Cloudflare Turnstile: warm up DNS/TLS early so the widget loads as fast as possible -->
+  <link rel="dns-prefetch" href="https://challenges.cloudflare.com" />
+  <link rel="preconnect" href="https://challenges.cloudflare.com" />
+
+  <script>
+    // Render the Turnstile widget the instant the API is ready (no polling).
+    window.__turnstileReady = false;
+    window.__onTurnstileLoaded = function () {
+      window.__turnstileReady = true;
+      window.dispatchEvent(new Event('turnstile:ready'));
+    };
+  </script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=__onTurnstileLoaded" async defer></script>
 </head>
 
 <body>
