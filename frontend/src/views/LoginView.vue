@@ -188,7 +188,11 @@ const handleLogin = async () => {
 
     if (!turnstileToken.value) {
       loading.value = false;
-      error.value = 'Security verification is still loading. Please check your internet connection and try again.';
+      if (turnstileRef.value?.isHumanChecker) {
+        error.value = 'Please type the verification words strictly to confirm you are human.';
+      } else {
+        error.value = 'Security verification is still loading. Please check your internet connection and try again.';
+      }
       return;
     }
   }

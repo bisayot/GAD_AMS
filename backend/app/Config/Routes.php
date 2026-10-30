@@ -22,6 +22,8 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     $routes->post('reset-password', 'AuthController::resetPassword');
     $routes->options('forgot-password', 'AuthController::handleOptions');
     $routes->options('reset-password', 'AuthController::handleOptions');
+    $routes->get('human-challenge', 'AuthController::getHumanChallenge');
+    $routes->options('human-challenge', 'AuthController::handleOptions');
 
     // CORS preflight routes (existing)
     $routes->options('login', 'AuthController::handleOptions');

@@ -581,7 +581,11 @@ const handleRegister = async () => {
     }
     if (!turnstileToken.value) {
       loading.value = false;
-      return error.value = 'Security verification is still loading. Please check your internet connection and try again.';
+      if (turnstileRef.value?.isHumanChecker) {
+        return error.value = 'Please type the verification words strictly to confirm you are human.';
+      } else {
+        return error.value = 'Security verification is still loading. Please check your internet connection and try again.';
+      }
     }
   }
   if (!form.privacyAccepted) {

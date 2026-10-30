@@ -629,9 +629,51 @@ class AuthController extends ResourceController
         return $this->respond($users);
     }
 
+    public function getHumanChallenge()
+    {
+        $wordBank = [
+            'SUMMIT', 'BREEZE', 'SILVER', 'HARBOR', 'FOREST',
+            'PLANET', 'CANYON', 'BRIDGE', 'STREAM', 'CASTLE',
+            'GOLDEN', 'SHADOW', 'BRIGHT', 'FALCON', 'MEADOW',
+            'VALLEY', 'SPIRIT', 'SHIELD', 'ORANGE', 'PURPLE',
+            'BEACON', 'FLOWER', 'SPRING', 'WINTER', 'SUMMER',
+            'AUTUMN', 'GARDEN', 'RIVER', 'ISLAND', 'TEMPLE',
+            'GALAXY', 'ANCHOR', 'PENCIL', 'WINDOW', 'VOYAGE',
+            'MIRROR', 'CLOVER', 'TIGER', 'NATURE', 'DESERT',
+            'SUNSET', 'CRYSTAL', 'CORAL', 'COSMOS', 'HARMONY',
+            'THUNDER', 'VELVET', 'ZENITH', 'AURORA', 'COMPASS'
+        ];
+
+        $k1 = array_rand($wordBank);
+        do {
+            $k2 = array_rand($wordBank);
+        } while ($k1 === $k2);
+
+        $words = $wordBank[$k1] . ' ' . $wordBank[$k2];
+        $time = time();
+
+        $secret = env('JWT_SECRET') ?: env('TURNSTILE_SECRET_KEY') ?: 'gad_ams_secret_fallback_key';
+        $sig = hash_hmac('sha256', "{$words}|{$time}", $secret);
+
+        $challengeKey = base64_encode(json_encode([
+            't' => $time,
+            's' => $sig
+        ]));
+
+        return $this->respond([
+            'challenge_key' => $challengeKey,
+            'words' => $words
+        ]);
+    }
+
     protected function verifyTurnstile($token)
     {
         if (empty($token)) return ['success' => false, 'error' => 'Token is empty'];
+
+        // Fallback custom human checker token
+        if (strpos($token, 'hc_fallback:') === 0) {
+            return $this->verifyHumanChallenge($token);
+        }
 
         $secret = env('TURNSTILE_SECRET_KEY');
         if (empty($secret)) {
@@ -675,6 +717,44 @@ class AuthController extends ResourceController
             'success' => false, 
             'error' => 'Cloudflare rejected token', 
             'cloudflare_response' => $response
+        ];
+    }
+
+    protected function verifyHumanChallenge($token)
+    {
+        $payloadStr = substr($token, strlen('hc_fallback:'));
+        $payload = json_decode(base64_decode($payloadStr), true);
+
+        if (!$payload || !isset($payload['key'], $payload['answer'])) {
+            return ['success' => false, 'error' => 'Malformed human verification payload'];
+        }
+
+        $keyData = json_decode(base64_decode($payload['key']), true);
+        if (!$keyData || !isset($keyData['t'], $keyData['s'])) {
+            return ['success' => false, 'error' => 'Invalid human verification key'];
+        }
+
+        $time = (int)$keyData['t'];
+        $sig = $keyData['s'];
+        $currentTime = time();
+
+        // 10 minutes expiry window (600s), allow 60s future drift
+        if (($currentTime - $time) > 600 || ($time - $currentTime) > 60) {
+            return ['success' => false, 'error' => 'Human verification expired. Please refresh and try again.'];
+        }
+
+        $secret = env('JWT_SECRET') ?: env('TURNSTILE_SECRET_KEY') ?: 'gad_ams_secret_fallback_key';
+        
+        // Strict comparison of the words (as required: "type those words as is strictly")
+        $userAnswer = trim($payload['answer']);
+        $expectedSig = hash_hmac('sha256', "{$userAnswer}|{$time}", $secret);
+
+        if (!hash_equals($expectedSig, $sig)) {
+            return ['success' => false, 'error' => 'Human verification mismatch. Words must match strictly.'];
+        }
+
+        return [
+            'success' => true
         ];
     }
 }
