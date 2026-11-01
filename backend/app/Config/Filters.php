@@ -158,6 +158,8 @@ class Filters extends BaseFilters
                 'api/accomplishment-report*',
                 'api/activity-reports*',
                 'api/activity-report*',
+                'api/plan*',
+                'api/gpb*',
                 'api/update-report*',
                 'api/approve-report*',
                 'api/revision-report*',

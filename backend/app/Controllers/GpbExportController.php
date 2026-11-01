@@ -51,10 +51,9 @@ class GpbExportController extends BaseController
             }
         }
 
-        // Fetch organization settings for the given fiscal year
+        // Keep non-versioned organization profile fields for legacy exports.
         $settingModel = new SettingModel();
         $settings = $settingModel->getByFiscalYear($fiscalYear);
-        $orgOther = (float) ($settings['otherSources'] ?? 0);
 
         $writer      = new GpbTemplateWriter();
         $spreadsheet = $writer->build($grouped, [
@@ -63,8 +62,8 @@ class GpbExportController extends BaseController
             'org_category'     => $settings['category'] ?? '',
             'org_hierarchy'    => $settings['hierarchy'] ?? '',
             'total_org_budget' => (float) ($settings['totalOrgBudget'] ?? 0),
-            'other_sources'    => $otherLinesTotal + $orgOther,
-            'org_other'        => $orgOther, // Pass this to help the writer adjust grandTotal
+            'other_sources'    => $otherLinesTotal,
+            'org_other'        => 0,
         ]);
 
         return $this->stream($spreadsheet, "gpb-{$fiscalYear}.xlsx");

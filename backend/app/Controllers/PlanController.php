@@ -12,6 +12,9 @@ class PlanController extends ResourceController
     public function getPlan()
     {
         $db = \Config\Database::connect();
+        $requestedYear = (int)($this->request->getGet('fiscal_year') ?: date('Y'));
+        $versionService = new \App\Libraries\BudgetVersionService($db);
+        $version = $versionService->active($requestedYear);
 
         // Get organization settings
         $orgData = [
@@ -20,24 +23,28 @@ class PlanController extends ResourceController
             'hierarchy' => 'Benguet State University',
             'year' => date('Y'),
             'totalOrgBudget' => 1062488000.00,
-            'otherSources' => 0.00,
             'preparedByName' => 'Jude Laoagan Tayaben, GAD Director',
             'approvedByName' => 'Kenneth Alip Laruan, President',
         ];
 
-        if ($db->tableExists('settings')) {
+        if (!$version && $db->tableExists('settings')) {
             $settingModel = new \App\Models\SettingModel();
             // Get the fiscal year of the items currently in the database
-            $latestItem = $db->table('gpb_items')->select('fiscal_year')->orderBy('id', 'DESC')->get()->getRowArray();
-            $latestYear = $latestItem ? $latestItem['fiscal_year'] : date('Y');
+            $latestYear = $version['fiscal_year'] ?? $requestedYear;
             $settings = $settingModel->getByFiscalYear($latestYear);
             if (!empty($settings)) {
                 // Only merge keys that are expected in orgData or just merge all
                 foreach ($orgData as $k => $v) {
-                    if (isset($settings[$k])) {
+                    if ($k !== 'otherSources' && isset($settings[$k])) {
                         $orgData[$k] = $settings[$k];
                     }
                 }
+            }
+        }
+        if ($version && !empty($version['organization_data'])) {
+            $versionOrganization = json_decode($version['organization_data'], true);
+            if (is_array($versionOrganization)) {
+                $orgData = array_merge($orgData, $versionOrganization);
             }
         }
 
@@ -47,10 +54,27 @@ class PlanController extends ResourceController
             $orgData['year'] = date('Y');
         }
 
-        $items = $db->table('gpb_items')
+        $itemQuery = $db->table('gpb_items');
+        if ($version) {
+            $itemQuery->where('plan_version_id', $version['id']);
+        } else {
+            $itemQuery->where('fiscal_year', $requestedYear);
+        }
+        $items = $itemQuery
             ->orderBy('sort_order', 'ASC')
             ->get()
             ->getResultArray();
+
+        $restoredMonitoringByKey = [];
+        if ($version && ($version['source'] ?? '') === 'restore' && $db->tableExists('budget_version_monitoring_snapshots')) {
+            $snapshot = $db->table('budget_version_monitoring_snapshots')
+                ->where('plan_version_id', $version['id'])->get()->getRowArray();
+            foreach (json_decode($snapshot['rows_data'] ?? '[]', true) ?: [] as $snapshotRow) {
+                if (!empty($snapshotRow['item_key'])) {
+                    $restoredMonitoringByKey[$snapshotRow['item_key']] = $snapshotRow;
+                }
+            }
+        }
 
         // Get actual accomplishment results for each mandate by looking up the linked Activity Designs
         $arDataQuery = $db->table('activity_design_mandates adm')
@@ -115,10 +139,22 @@ class PlanController extends ResourceController
                         $bl['utilized_budget'] = $utilizedBudgets[$itemId][$blId];
                     }
                 }
+                unset($bl);
+            }
+
+            $restoredMonitoring = $restoredMonitoringByKey[$item['item_key'] ?? ''] ?? null;
+            if ($restoredMonitoring && $budgetLines) {
+                foreach ($budgetLines as $lineIndex => &$budgetLine) {
+                    $budgetLine['utilized_budget'] = $lineIndex === 0
+                        ? (float)($restoredMonitoring['utilized'] ?? 0)
+                        : 0;
+                }
+                unset($budgetLine);
             }
 
             $processedItems[] = [
                 'id' => (string) $item['id'],
+                'item_key' => $item['item_key'] ?? null,
                 'section' => $item['section'],
                 'mandate' => $item['mandate'],
                 'cause' => $item['cause'],
@@ -128,8 +164,14 @@ class PlanController extends ResourceController
                 'indicators' => $item['indicators'] ?? $item['targets'],
                 'responsible' => $item['responsible'] ?? $item['office'],
                 'budgetLines' => $budgetLines,
-                'actualResult_m' => isset($arHeadcounts[$item['id']]) ? $arHeadcounts[$item['id']]['male'] : 0,
-                'actualResult_f' => isset($arHeadcounts[$item['id']]) ? $arHeadcounts[$item['id']]['female'] : 0,
+                'budget' => (float)($item['budget'] ?? 0),
+                'source' => $item['source'] ?? 'GAA',
+                'actualResult_m' => $restoredMonitoring
+                    ? (int)($restoredMonitoring['actual_result_m'] ?? 0)
+                    : (isset($arHeadcounts[$item['id']]) ? $arHeadcounts[$item['id']]['male'] : 0),
+                'actualResult_f' => $restoredMonitoring
+                    ? (int)($restoredMonitoring['actual_result_f'] ?? 0)
+                    : (isset($arHeadcounts[$item['id']]) ? $arHeadcounts[$item['id']]['female'] : 0),
             ];
         }
 
@@ -137,6 +179,12 @@ class PlanController extends ResourceController
             'settings' => ['apiBaseUrl' => ''],
             'org' => $orgData,
             'items' => $processedItems,
+            'version' => $version ? [
+                'id' => (int)$version['id'],
+                'fiscal_year' => (int)$version['fiscal_year'],
+                'version_number' => (int)$version['version_number'],
+                'status' => $version['status'],
+            ] : null,
         ]);
     }
 
@@ -155,91 +203,65 @@ class PlanController extends ResourceController
             return $this->failValidationErrors('Org and items data are required');
         }
 
-        // Save organization settings
-        $orgData = $input['org'];
-        $dynamicYear = !empty($orgData['year']) ? (int)$orgData['year'] : 2026;
-        if ($db->tableExists('settings')) {
-            $settingModel = new \App\Models\SettingModel();
-            foreach ($orgData as $key => $val) {
-                $settingModel->saveSetting($key, $val, $dynamicYear);
-            }
+        $year = (int)($input['org']['year'] ?? 0);
+        if ($year < 2000 || $year > 2100) {
+            return $this->failValidationErrors('A valid fiscal year is required.');
+        }
+        try {
+            $service = new \App\Libraries\BudgetVersionService($db);
+            $actorId = isset($payload['uid']) ? (int)$payload['uid'] : (isset($payload['id']) ? (int)$payload['id'] : null);
+            $version = $service->saveInPlace($year, $input['org'], $input['items'], $actorId);
+            return $this->respond(['status' => 'success', 'message' => 'Plan saved successfully', 'version' => $version]);
+        } catch (\InvalidArgumentException|\RuntimeException $e) {
+            return $this->failValidationErrors($e->getMessage());
         }
 
-        // Save items
-        $db->table('gpb_items')->emptyTable(); // Safe delete without dropping InnoDB tablespace
-        $columns = $db->getFieldNames('gpb_items');
-        $sortOrder = 1;
-        $batchData = [];
-        foreach ($input['items'] as $item) {
-            $totalBudget = 0;
-            foreach ($item['budgetLines'] as $line) {
-                $totalBudget += (float) ($line['amount'] ?? 0);
-            }
+        return $this->failServerError('Plan save did not complete.');
+    }
 
-            $sources = [];
-            foreach (($item['budgetLines'] ?? []) as $line) {
-                if (!empty($line['source'])) {
-                    $sources[] = trim($line['source']);
-                }
-            }
-            $sources = array_unique($sources);
-            $sourceVal = !empty($sources) ? implode(', ', $sources) : 'GAA';
-
-            $possibleData = [
-                'fiscal_year' => $dynamicYear,
-                'section' => $item['section'],
-                'sort_order' => $sortOrder++,
-                'mandate' => $item['mandate'],
-                'cause' => $item['cause'],
-                'objective' => $item['result'],
-                'result' => $item['result'],
-                'ppa' => $item['mfo'],
-                'mfo' => $item['mfo'],
-                'activity' => $item['activity'],
-                'targets' => $item['indicators'],
-                'indicators' => $item['indicators'],
-                'budget' => $totalBudget,
-                'source' => $sourceVal,
-                'office' => $item['responsible'],
-                'responsible' => $item['responsible'],
-                'budget_lines' => json_encode($item['budgetLines']),
-                'created_at' => date('Y-m-d H:i:s'),
-                'updated_at' => date('Y-m-d H:i:s'),
-            ];
-
-            $data = [];
-            foreach ($possibleData as $field => $value) {
-                if (in_array($field, $columns)) {
-                    $data[$field] = $value;
-                }
-            }
-
-            // Preserve original ID if provided as integer, else set to null for auto-increment
-            if (isset($item['id']) && ctype_digit((string)$item['id']) && in_array('id', $columns)) {
-                $data['id'] = (int) $item['id'];
-            } elseif (in_array('id', $columns)) {
-                $data['id'] = null; // Forces auto-increment and ensures keys are uniform for insertBatch
-            }
-
-            // Ensure consistent key order for CodeIgniter's insertBatch
-            ksort($data);
-
-            $batchData[] = $data;
+    public function resetPlan()
+    {
+        $payload = $this->request->jwtPayload ?? [];
+        if (!in_array($payload['role'] ?? '', ['admin', 'gad_staff', 'staff', 'superadmin'], true)) {
+            return $this->failForbidden('Staff or Administrator access required to reset the plan.');
         }
-
-        if (!empty($batchData)) {
-            $db->table('gpb_items')->insertBatch($batchData);
+        $input = $this->request->getJSON(true) ?: [];
+        $year = (int)($input['year'] ?? $this->request->getGet('fiscal_year') ?? date('Y'));
+        if ($year < 2000 || $year > 2100) {
+            return $this->failValidationErrors('A valid fiscal year is required.');
         }
-
-        return $this->respond(['status' => 'success', 'message' => 'Plan saved successfully']);
+        try {
+            $actorId = isset($payload['uid']) ? (int)$payload['uid'] : (isset($payload['id']) ? (int)$payload['id'] : null);
+            $version = (new \App\Libraries\BudgetVersionService())->createReplacement(
+                $year,
+                is_array($input['org'] ?? null) ? $input['org'] : ['year' => $year],
+                [],
+                'reset',
+                $actorId
+            );
+            return $this->respond(['status' => 'success', 'message' => 'A new empty plan version is active.', 'version' => $version]);
+        } catch (\Throwable $e) {
+            log_message('error', 'Plan reset failed: {message}', ['message' => $e->getMessage()]);
+            return $this->failServerError('Plan reset failed and was rolled back.');
+        }
     }
 
     public function getMandateStatistics()
     {
         $db = \Config\Database::connect();
+        $fiscalYear = (int)($this->request->getGet('fiscal_year') ?: date('Y'));
+        $version = $db->tableExists('budget_versions')
+            ? (new \App\Libraries\BudgetVersionService($db))->active($fiscalYear)
+            : null;
         
         // 1. Get all GPB Items
-        $gpbItems = $db->table('gpb_items')->get()->getResultArray();
+        $gpbQuery = $db->table('gpb_items');
+        if ($version) {
+            $gpbQuery->where('plan_version_id', $version['id']);
+        } else {
+            $gpbQuery->where('fiscal_year', $fiscalYear);
+        }
+        $gpbItems = $gpbQuery->get()->getResultArray();
         
         $mandateStats = [];
         
@@ -270,6 +292,7 @@ class PlanController extends ResourceController
                     'utilized_budget' => 0.0,
                     'pending_budget' => 0.0,
                     'gpb_ids' => [],
+                    'lineage_ids' => [],
                     'budget_lines' => []
                 ];
             }
@@ -277,6 +300,17 @@ class PlanController extends ResourceController
             // Add budget
             $mandateStats[$groupKey]['budget'] += (float)$item['budget'];
             $mandateStats[$groupKey]['gpb_ids'][] = (int)$item['id'];
+            $lineageIds = [$item['id']];
+            if (!empty($item['item_key'])) {
+                $lineageIds = array_column(
+                    $db->table('gpb_items')->select('id')->where('item_key', $item['item_key'])->get()->getResultArray(),
+                    'id'
+                );
+            }
+            $mandateStats[$groupKey]['lineage_ids'] = array_values(array_unique(array_merge(
+                $mandateStats[$groupKey]['lineage_ids'],
+                array_map('intval', $lineageIds)
+            )));
 
             // Parse budget lines
             $bLines = isset($item['budget_lines']) ? json_decode($item['budget_lines'], true) : [];
@@ -294,13 +328,14 @@ class PlanController extends ResourceController
             if (empty($stat['gpb_ids'])) {
                 continue;
             }
+            $lineageIds = $stat['lineage_ids'] ?: $stat['gpb_ids'];
             
             // Get all Approved ADs linked to these gpb_ids
             $adLinks = $db->table('activity_design_mandates adm')
                 ->select('ad.act_design_id, ad.proposed_budget, ad.control_number')
                 ->join('activity_design ad', 'ad.act_design_id = adm.act_design_id')
                 ->join('activity_design_issues adi', 'adi.act_design_id = ad.act_design_id AND adi.issue_id = adm.mandate_id')
-                ->whereIn('adm.mandate_id', $stat['gpb_ids'])
+                ->whereIn('adm.mandate_id', $lineageIds)
                 ->where('ad.status', 'Approved')
                 ->where('ad.deleted_at', null)
                 ->groupBy('ad.act_design_id')
@@ -331,7 +366,7 @@ class PlanController extends ResourceController
                             ->join('accomplishment_budget_items abi', 'abi.id = bima.budget_item_id')
                             ->where('bima.item_type', 'AR')
                             ->where('abi.accomplishment_report_id', $ar['id'])
-                            ->whereIn('bima.mandate_id', $stat['gpb_ids'])
+                            ->whereIn('bima.mandate_id', $lineageIds)
                             ->get()->getRowArray();
                         $actualCost = $manualCostRow ? (float)$manualCostRow['allocated_amount'] : 0.0;
                     } else {
@@ -341,7 +376,7 @@ class PlanController extends ResourceController
                             ->join('activity_budget_items abi', 'abi.id = bima.budget_item_id')
                             ->where('bima.item_type', 'AD')
                             ->where('abi.act_design_id', $ad['act_design_id'])
-                            ->whereIn('bima.mandate_id', $stat['gpb_ids'])
+                            ->whereIn('bima.mandate_id', $lineageIds)
                             ->get()->getRowArray();
                         $actualCost = $manualPendingRow ? (float)$manualPendingRow['allocated_amount'] : 0.0;
                     }
@@ -354,7 +389,7 @@ class PlanController extends ResourceController
                         ->join('activity_budget_items abi', 'abi.id = bima.budget_item_id')
                         ->where('bima.item_type', 'AD')
                         ->where('abi.act_design_id', $ad['act_design_id'])
-                        ->whereIn('bima.mandate_id', $stat['gpb_ids'])
+                        ->whereIn('bima.mandate_id', $lineageIds)
                         ->get()->getRowArray();
                         
                     $pendingCost = $manualPendingRow ? (float)$manualPendingRow['allocated_amount'] : 0.0;
@@ -368,7 +403,7 @@ class PlanController extends ResourceController
                 ->join('accomplishment_budget_items abi', 'abi.id = bima.budget_item_id')
                 ->join('accomplishment_report ar', 'ar.id = abi.accomplishment_report_id')
                 ->where('bima.item_type', 'AR')
-                ->whereIn('bima.mandate_id', $stat['gpb_ids'])
+                ->whereIn('bima.mandate_id', $lineageIds)
                 ->where('ar.status', 'Verified')
                 ->where('ar.deleted_at', null)
                 ->where('bima.gpb_budget_line_id !=', null)
@@ -390,7 +425,7 @@ class PlanController extends ResourceController
                 ->join('activity_budget_items abi', 'abi.id = bima.budget_item_id')
                 ->join('activity_design ad', 'ad.act_design_id = abi.act_design_id')
                 ->where('bima.item_type', 'AD')
-                ->whereIn('bima.mandate_id', $stat['gpb_ids'])
+                ->whereIn('bima.mandate_id', $lineageIds)
                 ->where('ad.status', 'Approved')
                 ->where('ad.deleted_at', null)
                 ->where('bima.gpb_budget_line_id !=', null)
@@ -433,13 +468,24 @@ class PlanController extends ResourceController
         $gpbIds = explode(',', $gpbIds);
 
         $db = \Config\Database::connect();
+        $selectedRows = $db->table('gpb_items')->select('item_key')->whereIn('id', $gpbIds)->get()->getResultArray();
+        $lineageKeys = array_values(array_filter(array_column($selectedRows, 'item_key')));
+        $lineageQuery = $db->table('gpb_items')->select('id')->whereIn('id', $gpbIds);
+        if ($lineageKeys) {
+            $lineageQuery->orWhereIn('item_key', $lineageKeys);
+        }
+        $lineageIds = $lineageQuery->get()->getResultArray();
+        $lineageIds = array_values(array_unique(array_map('intval', array_column($lineageIds, 'id'))));
+        if (!$lineageIds) {
+            $lineageIds = array_map('intval', $gpbIds);
+        }
 
         $adLinks = $db->table('activity_design_mandates adm')
             ->select('ad.act_design_id, ad.activity_title as title, ad.control_number, ad.attachment')
             ->join('activity_design ad', 'ad.act_design_id = adm.act_design_id')
             ->join('activity_design_issues adi', 'adi.act_design_id = ad.act_design_id')
-            ->whereIn('adm.mandate_id', $gpbIds)
-            ->whereIn('adi.issue_id', $gpbIds)
+            ->whereIn('adm.mandate_id', $lineageIds)
+            ->whereIn('adi.issue_id', $lineageIds)
             ->where('ad.status', 'Approved')
             ->where('ad.deleted_at', null)
             ->groupBy('ad.act_design_id')
@@ -487,7 +533,7 @@ class PlanController extends ResourceController
                     $allocatedToCurrent = 0;
                     $allocatedGpbLineId = null;
                     foreach ($allocations as $al) {
-                        if (in_array($al['mandate_id'], $gpbIds)) {
+                        if (in_array($al['mandate_id'], $lineageIds)) {
                             $allocatedToCurrent += (float)$al['allocated_amount'];
                             if (!empty($al['gpb_budget_line_id'])) {
                                 $allocatedGpbLineId = $al['gpb_budget_line_id'];
@@ -526,7 +572,7 @@ class PlanController extends ResourceController
                     $allocatedToCurrent = 0;
                     $allocatedGpbLineId = null;
                     foreach ($allocations as $al) {
-                        if (in_array($al['mandate_id'], $gpbIds)) {
+                        if (in_array($al['mandate_id'], $lineageIds)) {
                             $allocatedToCurrent += (float)$al['allocated_amount'];
                             if (!empty($al['gpb_budget_line_id'])) {
                                 $allocatedGpbLineId = $al['gpb_budget_line_id'];

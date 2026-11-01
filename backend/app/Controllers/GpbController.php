@@ -87,7 +87,6 @@ class GpbController extends BaseController
     // Bulk import items
     public function import()
     {
-        $model = new GpbModel();
         $data = $this->request->getJSON(true);
         
         if (!is_array($data) || empty($data)) {
@@ -95,13 +94,22 @@ class GpbController extends BaseController
         }
 
         try {
-            if ($model->insertBatch($data)) {
-                return $this->respondCreated(['success' => true, 'count' => count($data)]);
+            $year = (int)($this->request->getGet('fiscal_year') ?: ($data['org']['year'] ?? date('Y')));
+            $organization = is_array($data['org'] ?? null) ? $data['org'] : ['year' => $year];
+            $items = isset($data['items']) && is_array($data['items']) ? $data['items'] : $data;
+            $payload = $this->request->jwtPayload ?? [];
+            $actorId = isset($payload['uid']) ? (int)$payload['uid'] : (isset($payload['id']) ? (int)$payload['id'] : null);
+            $versionService = new \App\Libraries\BudgetVersionService();
+            if ($versionService->hasDuplicateVersion($year, $organization, $items)) {
+                throw new \InvalidArgumentException('This fiscal year already has a budget version with the same imported details. The duplicate import was not allowed.');
             }
-        } catch (\Exception $e) {
-            return $this->failServerError('Database error during import: ' . $e->getMessage());
+            $version = $versionService->createReplacement($year, $organization, $items, 'import', $actorId);
+            return $this->respondCreated(['success' => true, 'count' => count($items), 'version' => $version]);
+        } catch (\InvalidArgumentException|\RuntimeException $e) {
+            return $this->failValidationErrors($e->getMessage());
+        } catch (\Throwable $e) {
+            log_message('error', 'GPB import failed: {message}', ['message' => $e->getMessage()]);
+            return $this->failServerError('Database error during import.');
         }
-
-        return $this->failValidationErrors($model->errors());
     }
 }

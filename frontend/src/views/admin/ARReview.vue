@@ -445,9 +445,6 @@
                 <button @click="showRevisionModal = true" class="btn-revision">
                   <span class="material-symbols-outlined">edit_note</span> REVISION
                 </button>
-                <button @click="handleTrash" class="btn-trash" >
-                  <span class="material-symbols-outlined">delete</span> MOVE TO TRASH
-                </button>
                 <button @click="router.back()" class="btn-back">
                   ← Back to List
                 </button>
@@ -1100,4 +1097,3 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped src="../../assets/ar-view-styles.css"></style>
-

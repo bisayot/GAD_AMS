@@ -47,10 +47,13 @@
               <td class="p-4">
                 <span class="bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300 text-xs font-bold px-2.5 py-1 rounded-full">{{ item.fiscal_year }}</span>
               </td>
-              <td class="p-4 text-sm text-slate-500 dark:text-slate-400">{{ new Date(item.created_at).toLocaleString() }}</td>
-              <td class="p-4">
+              <td class="p-4 text-sm text-slate-500 dark:text-slate-400">{{ formatPublishedDate(item.created_at) }}</td>
+              <td class="p-4 flex items-center gap-3">
                 <button @click="viewReport(item.id)" class="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-bold text-sm bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/30 dark:hover:bg-purple-900/50 px-3 py-1.5 rounded-lg transition-colors border border-purple-200 dark:border-transparent">
                   View Report
+                </button>
+                <button @click="deleteReport(item)" class="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 p-2 rounded-lg transition-colors hover:bg-red-50 dark:hover:bg-red-900/30" title="Delete published report" aria-label="Delete published report">
+                  <span class="material-symbols-outlined text-[20px]">delete</span>
                 </button>
               </td>
             </tr>
@@ -65,6 +68,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../api';
+import Swal from 'sweetalert2';
 
 const router = useRouter();
 const loading = ref(true);
@@ -86,6 +90,29 @@ const filteredItems = computed(() => {
   return items;
 });
 
+const formatPublishedDate = (value) => {
+  if (!value) return '';
+
+  const raw = String(value);
+  const normalized = /(?:Z|[+-]\d{2}:\d{2})$/i.test(raw)
+    ? raw
+    : `${raw.replace(' ', 'T')}Z`;
+  const date = new Date(normalized);
+
+  if (Number.isNaN(date.getTime())) return raw;
+
+  return new Intl.DateTimeFormat('en-PH', {
+    timeZone: 'Asia/Manila',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  }).format(date);
+};
+
 const fetchArchives = async () => {
   loading.value = true;
   try {
@@ -102,6 +129,38 @@ const fetchArchives = async () => {
 
 const viewReport = (id) => {
   router.push(`${router.currentRoute.value.path.includes('/admin') ? '/admin' : '/staff'}/annual-report-view/${id}`);
+};
+
+const deleteReport = async (item) => {
+  const confirmation = await Swal.fire({
+    icon: 'warning',
+    title: 'Delete published report?',
+    text: `Report #${item.id} for fiscal year ${item.fiscal_year} will be permanently deleted.`,
+    showCancelButton: true,
+    confirmButtonText: 'Yes, delete it',
+    cancelButtonText: 'Cancel',
+    confirmButtonColor: '#dc2626'
+  });
+
+  if (!confirmation.isConfirmed) return;
+
+  try {
+    await api.delete(`annual-reports/archive/${item.id}`);
+    reports.value = reports.value.filter(report => report.id !== item.id);
+    await Swal.fire({
+      icon: 'success',
+      title: 'Deleted',
+      text: 'The published report was deleted.',
+      timer: 1500,
+      showConfirmButton: false
+    });
+  } catch (error) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Delete failed',
+      text: error?.message || 'The published report could not be deleted.'
+    });
+  }
 };
 
 onMounted(() => {

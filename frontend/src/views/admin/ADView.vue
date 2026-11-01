@@ -344,13 +344,16 @@
 
               <div class="action-buttons">
                 <div v-if="design.modification_request_status === 'pending'" class="staff-mod-box">
-                  <div class="staff-mod-title"><span class="material-symbols-outlined">warning</span> Modification Requested</div>
+                  <div class="staff-mod-title"><span class="material-symbols-outlined">warning</span> {{ design.request_type === 'cancellation' ? 'Cancellation Requested' : 'Modification Requested' }}</div>
                   <div class="staff-mod-body">{{ design.modification_remarks || 'No reason provided.' }}</div>
                   <button @click="approveModRequest" class="btn-primary" style="background: #4ade80; color: #064e3b; border: none; width: 100%; margin-bottom: 0.5rem; padding: 0.5rem;">Approve Request</button>
                   <button @click="openRejectModModal" class="btn-primary" style="background: #f87171; color: #450a0a; border: none; width: 100%; padding: 0.5rem;">Reject Request</button>
                 </div>
                 <button v-if="design.status === 'Approved'" @click="router.push(`/admin/ad-revision/${design.act_design_id}`)" class="btn-primary" style="margin-bottom: 10px; width: 100%;">
                   <span class="material-symbols-outlined" style="font-size: 1.2rem; margin-right: 4px;">edit</span> Modify Design
+                </button>
+                <button v-if="design.status === 'Approved' && design.is_archived == 1" @click="cancelDesign" class="btn-cancel-design" style="display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #b91c1c; border-radius: 6px; background: #fee2e2; color: #991b1b; cursor: pointer; font-weight: 700;">
+                  <span class="material-symbols-outlined">cancel</span> CANCEL ACTIVITY DESIGN
                 </button>
                 <button v-if="design.is_archived == 1" @click="handleTrash" class="btn-trash">
                   <span class="material-symbols-outlined">delete</span> MOVE TO TRASH
@@ -1014,9 +1017,44 @@ const handleTrash = async () => {
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: err.message || 'An error occurred while moving to trash'
+        text: err.response?.data?.message || err.message || 'An error occurred while moving to trash'
       });
     }
+  }
+};
+
+const cancelDesign = async () => {
+  const result = await Swal.fire({
+    title: 'Cancel Activity Design?',
+    text: 'The stored document will remain available, but its status will be changed to Cancelled.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#dc2626',
+    cancelButtonColor: '#334155',
+    confirmButtonText: 'Yes, cancel it'
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    const response = await api.post(`cancel-design/${route.params.id}`);
+    if (!response.data?.success) {
+      throw new Error(response.data?.message || 'Failed to cancel Activity Design');
+    }
+    await Swal.fire({
+      icon: 'success',
+      title: 'Cancelled',
+      text: 'The Activity Design status is now Cancelled.',
+      timer: 1500,
+      showConfirmButton: false
+    });
+    await fetchDesignDetails();
+  } catch (err) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Cancellation failed',
+      text: err.response?.data?.message || err.message || 'An error occurred while cancelling the Activity Design.'
+    });
   }
 };
 

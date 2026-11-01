@@ -18,10 +18,17 @@ class AnnualReportArchiveController extends BaseController
         }
 
         $userId = $this->request->getHeaderLine('X-User-Id') ?: null;
+        $fiscalYear = (int)$data->fiscal_year;
+        $db = \Config\Database::connect();
+        $version = $db->tableExists('budget_versions')
+            ? (new \App\Libraries\BudgetVersionService($db))->active($fiscalYear)
+            : null;
 
         $model = new ArchivedAnnualReport();
         $model->insert([
-            'fiscal_year' => $data->fiscal_year,
+            'fiscal_year' => $fiscalYear,
+            'plan_version_id' => $version['id'] ?? null,
+            'version_number' => $version['version_number'] ?? null,
             'html_content' => $data->html_content,
             'created_by' => $userId
         ]);
@@ -33,7 +40,7 @@ class AnnualReportArchiveController extends BaseController
     {
         $model = new ArchivedAnnualReport();
         // Fetch all without html_content to keep response small
-        $reports = $model->select('id, fiscal_year, created_by, created_at')
+        $reports = $model->select('id, fiscal_year, plan_version_id, version_number, created_by, created_at')
                          ->orderBy('created_at', 'DESC')
                          ->findAll();
                          
@@ -50,5 +57,21 @@ class AnnualReportArchiveController extends BaseController
         }
 
         return $this->respond(['success' => true, 'data' => $report]);
+    }
+
+    public function delete($id)
+    {
+        $model = new ArchivedAnnualReport();
+        $report = $model->find($id);
+
+        if (!$report) {
+            return $this->failNotFound('Published report not found');
+        }
+
+        if (!$model->delete($id)) {
+            return $this->failServerError('Published report could not be deleted');
+        }
+
+        return $this->respondDeleted(['success' => true, 'message' => 'Published report deleted successfully']);
     }
 }

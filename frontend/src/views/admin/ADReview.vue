@@ -1021,7 +1021,7 @@ const handleTrash = async () => {
     }
   } catch (err) {
     console.error('Error trashing request:', err);
-    Swal.fire({ icon: 'error', title: 'Failed', text: 'Failed to trash request.', confirmButtonColor: '#b979cc' });
+    Swal.fire({ icon: 'error', title: 'Cannot Move to Trash', text: err.response?.data?.message || 'Failed to trash request.', confirmButtonColor: '#b979cc' });
   } finally {
     submitting.value = false;
   }

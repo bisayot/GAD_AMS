@@ -344,7 +344,7 @@
 
               <div class="action-buttons">
                 <div v-if="design.modification_request_status === 'pending'" class="staff-mod-box">
-                  <div class="staff-mod-title"><span class="material-symbols-outlined">warning</span> Modification Requested</div>
+                  <div class="staff-mod-title"><span class="material-symbols-outlined">warning</span> {{ design.request_type === 'cancellation' ? 'Cancellation Requested' : 'Modification Requested' }}</div>
                   <div class="staff-mod-body">{{ design.modification_remarks || 'No reason provided.' }}</div>
                   <button @click="approveModRequest" class="btn-primary" style="background: #4ade80; color: #064e3b; border: none; width: 100%; margin-bottom: 0.5rem; padding: 0.5rem;">Approve Request</button>
                   <button @click="openRejectModModal" class="btn-primary" style="background: #f87171; color: #450a0a; border: none; width: 100%; padding: 0.5rem;">Reject Request</button>
@@ -894,7 +894,7 @@ const handleTrash = async () => {
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: err.message || 'An error occurred while moving to trash'
+        text: err.response?.data?.message || err.message || 'An error occurred while moving to trash'
       });
     }
   }

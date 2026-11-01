@@ -69,7 +69,8 @@ const staffMenu = ref([
       { label: 'Plan and Budget', icon: 'gavel', href: '/staff/plan-and-budget' },
       { label: 'Budget Distribution by Mandate', icon: 'pie_chart', href: '/staff/budget-distribution' },
       { label: 'Report Monitoring', icon: 'description', href: '/staff/reports' },
-      { label: 'Budget Monitoring', icon: 'payments', href: '/staff/budget' }
+      { label: 'Budget Monitoring', icon: 'payments', href: '/staff/budget' },
+      { label: 'Budget History', icon: 'history', href: '/staff/budget-history' }
     ]
   },
   {

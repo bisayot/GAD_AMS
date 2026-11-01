@@ -17,29 +17,65 @@ class BudgetController extends Controller
     public function getSummary()
     {
         $db = \Config\Database::connect();
-        
-        $items = $db->table('gpb_items')->get()->getResultArray();
-        $totalBudget = 0.0;
+        $fiscalYear = (int)($this->request->getGet('fiscal_year') ?: date('Y'));
+        $version = null;
+        if ($db->tableExists('budget_versions')) {
+            $version = (new \App\Libraries\BudgetVersionService($db))->active($fiscalYear);
+        }
+        $itemsQuery = $db->table('gpb_items');
+        if ($version) {
+            $itemsQuery->where('plan_version_id', $version['id']);
+        } else {
+            $itemsQuery->where('fiscal_year', $fiscalYear);
+        }
+        $items = $itemsQuery->get()->getResultArray();
+        $gaaBudget = 0.0;
+        $lineOtherSources = 0.0;
         foreach ($items as $item) {
             $budgetLines = isset($item['budget_lines']) ? json_decode($item['budget_lines'], true) : [];
             if (is_array($budgetLines)) {
                 foreach ($budgetLines as $line) {
-                    $totalBudget += (float) ($line['amount'] ?? 0);
+                    $amount = (float)($line['amount'] ?? 0);
+                    if (strtolower(trim((string)($line['source'] ?? 'GAA'))) === 'other') {
+                        $lineOtherSources += $amount;
+                    } else {
+                        $gaaBudget += $amount;
+                    }
                 }
             }
         }
 
-        $settingModel = new \App\Models\SettingModel();
-        $latestItem = $db->table('gpb_items')->select('fiscal_year')->orderBy('id', 'DESC')->get()->getRowArray();
-        $latestYear = $latestItem ? $latestItem['fiscal_year'] : date('Y');
-        $settings = $settingModel->getByFiscalYear($latestYear);
-        $otherSources = isset($settings['otherSources']) ? (float) $settings['otherSources'] : 0.0;
-        
-        $totalBudget += $otherSources;
+        $totalBudget = $gaaBudget + $lineOtherSources;
 
-        $approvedDesigns = $db->table('activity_design')
-            ->where('status', 'Approved')
-            ->where('deleted_at', null)
+        $lineageIds = [];
+        if ($version) {
+            $activeKeys = array_values(array_filter(array_column($items, 'item_key')));
+            if ($activeKeys) {
+                $lineageIds = array_column(
+                    $db->table('gpb_items')->select('id')->whereIn('item_key', $activeKeys)->get()->getResultArray(),
+                    'id'
+                );
+            }
+        } else {
+            $lineageIds = array_column($items, 'id');
+        }
+
+        $approvedDesignQuery = $db->table('activity_design ad')
+            ->select('ad.*')
+            ->join('activity_design_mandates adm', 'adm.act_design_id = ad.act_design_id', 'left')
+            ->groupStart();
+        if ($lineageIds) {
+            $approvedDesignQuery
+                ->whereIn('adm.mandate_id', $lineageIds)
+                ->orWhereIn('ad.gpb_id', $lineageIds);
+        } else {
+            $approvedDesignQuery->where('ad.act_design_id', 0);
+        }
+        $approvedDesigns = $approvedDesignQuery
+            ->groupEnd()
+            ->where('ad.status', 'Approved')
+            ->where('ad.deleted_at', null)
+            ->groupBy('ad.act_design_id')
             ->get()
             ->getResultArray();
 
@@ -96,9 +132,19 @@ class BudgetController extends Controller
     public function getGadPlan()
     {
         $db = \Config\Database::connect();
+        $fiscalYear = (int)($this->request->getGet('fiscal_year') ?: date('Y'));
+        $version = $db->tableExists('budget_versions')
+            ? (new \App\Libraries\BudgetVersionService($db))->active($fiscalYear)
+            : null;
         
         // Aliasing the new columns to match the old expected JSON response for the frontend
-        $rows = $db->table('gpb_items')
+        $query = $db->table('gpb_items');
+        if ($version) {
+            $query->where('plan_version_id', $version['id']);
+        } else {
+            $query->where('fiscal_year', $fiscalYear);
+        }
+        $rows = $query
             ->select('
                 id as gpb_id,
                 mandate as gender_issue_mandate,
@@ -135,13 +181,18 @@ class BudgetController extends Controller
         $fiscalYear = $this->request->getGet('fiscal_year');
 
         // Fetch distinct fiscal years for switcher
-        $yearsRows = $db->table('gpb_items')
+        $yearsQuery = $db->table('gpb_items')
             ->select('DISTINCT(fiscal_year) as year')
             ->where('fiscal_year IS NOT NULL')
             ->where('fiscal_year !=', '')
-            ->orderBy('fiscal_year', 'DESC')
-            ->get()
-            ->getResultArray();
+            ->orderBy('fiscal_year', 'DESC');
+        if ($db->tableExists('budget_versions')) {
+            $yearsQuery = $db->table('budget_versions')
+                ->select('DISTINCT(fiscal_year) as year')
+                ->where('fiscal_year IS NOT NULL')
+                ->orderBy('fiscal_year', 'DESC');
+        }
+        $yearsRows = $yearsQuery->get()->getResultArray();
         $availableYears = array_values(array_filter(array_map(function($r) {
             return !empty($r['year']) ? (string)$r['year'] : null;
         }, $yearsRows)));
@@ -149,16 +200,43 @@ class BudgetController extends Controller
             $availableYears = [(string)date('Y')];
         }
 
+        $selectedYear = (!empty($fiscalYear) && $fiscalYear !== 'all')
+            ? (int)$fiscalYear
+            : (int)($availableYears[0] ?? date('Y'));
+        $version = $db->tableExists('budget_versions')
+            ? (new \App\Libraries\BudgetVersionService($db))->active($selectedYear)
+            : null;
+
         $gpbQuery = $db->table('gpb_items');
-        if (!empty($fiscalYear) && $fiscalYear !== 'all') {
-            $gpbQuery->where('fiscal_year', $fiscalYear);
+        if ($version) {
+            $gpbQuery->where('plan_version_id', $version['id']);
+        } else {
+            $gpbQuery->where('fiscal_year', $selectedYear);
         }
         $gpbs = $gpbQuery->orderBy('id', 'ASC')->get()->getResultArray();
+        $restoredSnapshotRows = [];
+        if ($version && ($version['source'] ?? '') === 'restore' && $db->tableExists('budget_version_monitoring_snapshots')) {
+            $snapshot = $db->table('budget_version_monitoring_snapshots')
+                ->where('plan_version_id', $version['id'])->get()->getRowArray();
+            foreach (json_decode($snapshot['rows_data'] ?? '[]', true) ?: [] as $snapshotRow) {
+                if (!empty($snapshotRow['item_key'])) {
+                    $restoredSnapshotRows[$snapshotRow['item_key']] = $snapshotRow;
+                }
+            }
+        }
         $budgetRows = [];
 
         foreach ($gpbs as $gpb) {
             $gpbId = $gpb['id'];
             $allocated = (float) $gpb['budget'];
+            $lineageIds = [$gpbId];
+            if (!empty($gpb['item_key'])) {
+                $lineageIds = array_column(
+                    $db->table('gpb_items')->select('id')->where('item_key', $gpb['item_key'])->get()->getResultArray(),
+                    'id'
+                );
+            }
+            $lineageIds = array_values(array_unique(array_map('intval', $lineageIds)));
 
             // Get approved activity designs for this mandate (GPB item)
             // Check both modern activity_design_mandates and direct gpb_id
@@ -170,13 +248,13 @@ class BudgetController extends Controller
                 ->join('activity_design_issues adi', 'adi.act_design_id = ad.act_design_id', 'left')
                 ->groupStart()
                     ->groupStart()
-                        ->where('adm.mandate_id', $gpbId)
+                        ->whereIn('adm.mandate_id', $lineageIds)
                         ->groupStart()
-                            ->where('adi.issue_id', $gpbId)
+                            ->whereIn('adi.issue_id', $lineageIds)
                             ->orWhere('adi.issue_id IS NULL')
                         ->groupEnd()
                     ->groupEnd()
-                    ->orWhere('ad.gpb_id', $gpbId)
+                    ->orWhereIn('ad.gpb_id', $lineageIds)
                 ->groupEnd()
                 ->where('ad.status', 'Approved')
                 ->where('ad.deleted_at', null)
@@ -246,6 +324,13 @@ class BudgetController extends Controller
 
             $remaining = $allocated - $utilized - $pendingApproved;  // can be negative (overspent)
             $utilizationRate = $allocated > 0 ? ($utilized / $allocated) * 100 : 0.0;
+            $restoredRow = $restoredSnapshotRows[$gpb['item_key'] ?? ''] ?? null;
+            if ($restoredRow) {
+                $utilized = (float)($restoredRow['utilized'] ?? $utilized);
+                $pendingApproved = (float)($restoredRow['pending_approved'] ?? $pendingApproved);
+                $remaining = (float)($restoredRow['remaining'] ?? ($allocated - $utilized - $pendingApproved));
+                $utilizationRate = (float)($restoredRow['utilization_rate'] ?? ($allocated > 0 ? ($utilized / $allocated) * 100 : 0.0));
+            }
 
             $budgetRows[] = [
                 'id'               => $gpbId,
@@ -291,13 +376,23 @@ class BudgetController extends Controller
         }
 
         if ($field === 'allocated') {
-            $gpb = $db->table('gpb_items')->where('id', $gpbId)->get()->getRowArray();
+            $fiscalYear = (int)($this->request->getPost('fiscal_year') ?: date('Y'));
+            $version = $db->tableExists('budget_versions')
+                ? (new \App\Libraries\BudgetVersionService($db))->active($fiscalYear)
+                : null;
+            $gpbQuery = $db->table('gpb_items')->where('id', $gpbId);
+            if ($version) {
+                $gpbQuery->where('plan_version_id', $version['id']);
+            } else {
+                $gpbQuery->where('fiscal_year', $fiscalYear);
+            }
+            $gpb = $gpbQuery->get()->getRowArray();
             if (!$gpb) {
                 return $this->fail('Mandate activity not found');
             }
 
             $db->table('gpb_items')
-                ->where('id', $gpbId)
+                ->where('id', $gpb['id'])
                 ->update(['budget' => $newValue]);
         }
 
@@ -315,7 +410,17 @@ class BudgetController extends Controller
     public function getAvailableMandates()
     {
         $db = \Config\Database::connect();
-        $gpbs = $db->table('gpb_items')->get()->getResultArray();
+        $fiscalYear = (int)($this->request->getGet('fiscal_year') ?: date('Y'));
+        $version = $db->tableExists('budget_versions')
+            ? (new \App\Libraries\BudgetVersionService($db))->active($fiscalYear)
+            : null;
+        $gpbQuery = $db->table('gpb_items');
+        if ($version) {
+            $gpbQuery->where('plan_version_id', $version['id']);
+        } else {
+            $gpbQuery->where('fiscal_year', $fiscalYear);
+        }
+        $gpbs = $gpbQuery->get()->getResultArray();
         $mandates = [];
 
         foreach ($gpbs as $gpb) {
@@ -323,14 +428,21 @@ class BudgetController extends Controller
             $totalBudget = (float) $gpb['budget'];
 
             // Sum proposed budget of all active designs linked to this GPB activity
+            $lineageIds = [$gpbId];
+            if (!empty($gpb['item_key'])) {
+                $lineageIds = array_column(
+                    $db->table('gpb_items')->select('id')->where('item_key', $gpb['item_key'])->get()->getResultArray(),
+                    'id'
+                );
+            }
             $proposedActive = $db->table('activity_design')
                 ->selectSum('proposed_budget')
-                ->where('gpb_id', $gpbId)
+                ->whereIn('gpb_id', $lineageIds)
                 ->get()->getRow()->proposed_budget ?? 0.0;
 
             $proposedArchived = $db->table('activity_design')
                 ->selectSum('proposed_budget')
-                ->where('gpb_id', $gpbId)
+                ->whereIn('gpb_id', $lineageIds)
                 ->where('is_archived', 1)
                 ->get()->getRow()->proposed_budget ?? 0.0;
 
@@ -387,8 +499,17 @@ class BudgetController extends Controller
     public function getFinancialMeta()
     {
         $db = \Config\Database::connect();
-        
-        $totalBudget = $db->table('gpb_items')
+        $fiscalYear = (int)($this->request->getGet('fiscal_year') ?: date('Y'));
+        $version = $db->tableExists('budget_versions')
+            ? (new \App\Libraries\BudgetVersionService($db))->active($fiscalYear)
+            : null;
+        $budgetQuery = $db->table('gpb_items');
+        if ($version) {
+            $budgetQuery->where('plan_version_id', $version['id']);
+        } else {
+            $budgetQuery->where('fiscal_year', $fiscalYear);
+        }
+        $totalBudget = $budgetQuery
             ->selectSum('budget')
             ->get()->getRow()->budget ?? 0.0;
 

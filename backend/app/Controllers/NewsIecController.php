@@ -81,6 +81,61 @@ class NewsIecController extends ResourceController
         return $this->fail('Failed to publish');
     }
 
+    public function update($id = null)
+    {
+        $item = $this->model->find($id);
+        if (!$item) {
+            return $this->failNotFound('Item not found');
+        }
+
+        $title = trim((string) $this->request->getPost('title'));
+        $category = $this->request->getPost('category');
+        if (mb_strlen($title) < 3 || mb_strlen($title) > 255) {
+            return $this->failValidationErrors(['title' => 'Title must be between 3 and 255 characters.']);
+        }
+        if (!in_array($category, ['News', 'IEC', 'Announcement'], true)) {
+            return $this->failValidationErrors(['category' => 'Invalid category.']);
+        }
+
+        $imagePath = $item['image_path'];
+        $files = $this->request->getFileMultiple('images');
+        $imagePaths = [];
+        if ($files) {
+            $uploadPath = FCPATH . 'uploads/news_iec';
+            if (!is_dir($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+            foreach ($files as $file) {
+                if ($file->isValid() && !$file->hasMoved()) {
+                    $mime = $file->getMimeType();
+                    $ext = strtolower($file->guessExtension() ?: $file->getExtension());
+                    if (in_array($mime, ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true)
+                        && in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true)) {
+                        $newName = $file->getRandomName();
+                        $file->move($uploadPath, $newName);
+                        $imagePaths[] = $newName;
+                    }
+                }
+            }
+        }
+        if ($imagePaths) {
+            $this->deleteImages($imagePath);
+            $imagePath = json_encode($imagePaths);
+        }
+
+        if (!$this->model->update($id, [
+            'title' => $title,
+            'description' => $this->request->getPost('description'),
+            'tags' => $this->request->getPost('tags'),
+            'category' => $category,
+            'image_path' => $imagePath,
+        ])) {
+            return $this->fail('Failed to update post');
+        }
+
+        return $this->respond(['success' => true, 'message' => 'Post updated successfully']);
+    }
+
     public function delete($id = null)
     {
         $item = $this->model->find($id);

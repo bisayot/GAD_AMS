@@ -411,9 +411,6 @@
               </div>
 
               <div class="action-buttons">
-                <button @click="handleTrash" class="btn-trash">
-                  <span class="material-symbols-outlined">delete</span> MOVE TO TRASH
-                </button>
                 <button @click="router.back()" class="btn-back">
                   ← Back
                 </button>
@@ -807,4 +804,3 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped src="../../assets/ar-view-styles.css"></style>
-

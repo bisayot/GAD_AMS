@@ -3,11 +3,15 @@
     <div class="content-wrapper">
       
       <div class="page-header">
-        <h1 class="page-title">Post a Bulletin</h1>
+        <h1 class="page-title">{{ editingItemId ? 'Modify Bulletin' : 'Post a Bulletin' }}</h1>
         <p class="page-subtitle">Post new News updates, IEC materials, or Announcements for the public GAD Corner.</p>
       </div>
 
       <div class="form-container">
+        <div v-if="editingItemId" class="mb-5 flex items-center justify-between rounded-lg border border-purple-200 bg-purple-50 px-4 py-3 text-sm text-purple-800">
+          <span>Editing an existing bulletin. Upload new images only if you want to replace the current images.</span>
+          <button type="button" @click="cancelEdit" class="font-semibold hover:underline">Cancel edit</button>
+        </div>
         <form @submit.prevent="confirmPublish" class="space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="input-group md:col-span-2">
@@ -221,6 +225,9 @@
                 <td class="table-cell title-cell">{{ item.title }}</td>
                 <td class="table-cell date-cell">{{ new Date(item.created_at).toLocaleDateString() }}</td>
                 <td class="table-cell text-right">
+                  <button @click="startEdit(item)" class="mr-3 text-purple-600 transition-colors hover:text-purple-800" title="Edit">
+                    <span class="material-symbols-outlined text-sm">edit</span>
+                  </button>
                   <button @click="deleteItem(item.id)" class="btn-delete-item transition-colors" title="Delete">
                     <span class="material-symbols-outlined text-sm">delete</span>
                   </button>
@@ -247,6 +254,7 @@ const previewImageUrls = ref([]);
 const currentPreviewIndex = ref(0);
 const tagsList = ref([]);
 const currentTagInput = ref('');
+const editingItemId = ref(null);
 
 const addTag = () => {
   const val = currentTagInput.value.trim();
@@ -397,6 +405,29 @@ const fetchItems = async () => {
   }
 };
 
+const startEdit = (item) => {
+  editingItemId.value = item.id;
+  form.value = {
+    title: item.title || '',
+    category: item.category || 'News',
+    tags: item.tags || '',
+    description: item.description || '',
+    images: []
+  };
+  tagsList.value = (item.tags || '').split(',').map(tag => tag.trim()).filter(Boolean);
+  currentTagInput.value = '';
+  previewImageUrls.value = [];
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+const cancelEdit = () => {
+  editingItemId.value = null;
+  form.value = { title: '', category: 'News', description: '', tags: '', images: [] };
+  tagsList.value = [];
+  currentTagInput.value = '';
+  previewImageUrls.value = [];
+};
+
 onMounted(() => {
   fetchItems();
 });
@@ -413,12 +444,14 @@ const confirmPublish = () => {
 
   Swal.fire({
     title: 'Are you sure?',
-    text: `You are about to publish this ${form.value.category}. It will be visible to the public.`,
+    text: editingItemId.value
+      ? `You are about to update this ${form.value.category} bulletin.`
+      : `You are about to publish this ${form.value.category}. It will be visible to the public.`,
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#9333ea',
     cancelButtonColor: '#475569',
-    confirmButtonText: 'Yes, publish it!'
+    confirmButtonText: editingItemId.value ? 'Yes, update it!' : 'Yes, publish it!'
   }).then((result) => {
     if (result.isConfirmed) {
       submitPublish();
@@ -440,7 +473,8 @@ const submitPublish = async () => {
       });
     }
 
-    const res = await api.post('news-iec', formData, {
+    const endpoint = editingItemId.value ? `news-iec/${editingItemId.value}` : 'news-iec';
+    const res = await api.post(endpoint, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
 
@@ -449,9 +483,9 @@ const submitPublish = async () => {
       const shareLink = `${window.location.origin}/gad-corner/${res.data.id}`;
       Swal.fire({ 
         icon: 'success', 
-        title: 'Published!', 
+        title: editingItemId.value ? 'Updated!' : 'Published!',
         html: `
-          <p class="mb-4 text-sm text-slate-600">Your material has been published successfully.</p>
+          <p class="mb-4 text-sm text-slate-600">Your material has been ${editingItemId.value ? 'updated' : 'published'} successfully.</p>
           <div class="text-left mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Share Link</div>
           <div class="bg-black/5 p-2 rounded-lg border border-slate-200 flex items-center justify-between gap-2 overflow-hidden shadow-inner">
             <span class="text-sm truncate font-mono text-slate-700 select-all">${shareLink}</span>
@@ -480,6 +514,7 @@ const submitPublish = async () => {
         }
       });
       form.value = { title: '', category: 'News', description: '', images: [] };
+      editingItemId.value = null;
       tagsList.value = [];
       currentTagInput.value = '';
       previewImageUrls.value.forEach(url => URL.revokeObjectURL(url));

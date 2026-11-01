@@ -87,7 +87,7 @@
             <!-- College / Office -->
             <div class="flex flex-col gap-2 md:col-span-2">
               <div class="flex items-center justify-between">
-                <label class="text-xs uppercase tracking-widest font-label font-bold text-on-surface-variant">College / Office <span class="opacity-70 font-normal lowercase">(optional)</span></label>
+                <label class="text-xs uppercase tracking-widest font-label font-bold text-on-surface-variant">College / Office</label>
                 <button 
                   type="button" 
                   @click="showOfficeNotice = !showOfficeNotice" 
@@ -197,7 +197,6 @@
                       'border-emerald-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500': officeCheckResult.isValid,
                       'border-purple-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500': officeCheckResult.isEmpty
                     }"
-                    required 
                   />
 
                   <!-- Smart Validation: Matched Existing Office -->
@@ -249,7 +248,6 @@
             <div class="flex flex-col gap-2 md:col-span-2">
               <label class="text-xs uppercase tracking-widest font-label font-bold text-on-surface-variant flex items-center gap-2">
                 <span>Department</span>
-                <span class="opacity-70 font-normal lowercase">(optional - for academic departments within colleges)</span>
               </label>
               <input v-model="form.department" placeholder="e.g. Department of Information Technology" class="w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-3 text-on-surface focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all placeholder:text-on-surface-variant/60" />
             </div>
@@ -259,14 +257,12 @@
               <div class="flex flex-col gap-2">
                 <label class="text-xs uppercase tracking-widest font-label font-bold text-on-surface-variant flex items-center gap-2">
                   <span>Student ID / ID Number</span>
-                  <span class="opacity-70 font-normal lowercase">(optional)</span>
                 </label>
                 <input v-model="form.student_id" placeholder="e.g. 2022-12345" class="w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-3 text-on-surface focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all placeholder:text-on-surface-variant/60" />
               </div>
               <div class="flex flex-col gap-2">
                 <label class="text-xs uppercase tracking-widest font-label font-bold text-on-surface-variant flex items-center gap-2">
                   <span>Year Level</span>
-                  <span class="opacity-70 font-normal lowercase">(optional)</span>
                 </label>
                 <div class="relative">
                   <select v-model="form.year_level" class="w-full bg-surface-container border border-outline-variant rounded-lg pl-4 pr-12 py-3 text-on-surface focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all appearance-none cursor-pointer">

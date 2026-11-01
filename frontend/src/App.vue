@@ -27,7 +27,8 @@ onMounted(() => {
 });
 
 const isDashboard = computed(() => {
-  const path = route.path;
+  const routePath = route && typeof route.path === 'string' ? route.path : '';
+  const path = routePath || window.location.pathname || '';
   return path.startsWith('/admin') || path.startsWith('/staff') || path.startsWith('/college');
 });
 </script>

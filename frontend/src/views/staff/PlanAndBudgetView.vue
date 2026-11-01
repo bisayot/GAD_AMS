@@ -12,6 +12,7 @@
   
         <div class="topbar-actions">
           <router-link to="/staff/budget-distribution"><button class="topbar-btn secondary btn-budget-dist">Budget Distribution</button></router-link>
+          <router-link to="/staff/budget-history"><button class="topbar-btn secondary">Budget History</button></router-link>
           <button class="topbar-btn outline btn-baseline" @click="openBaselineModal">
             ⚙️ Baseline Amounts
           </button>
@@ -47,7 +48,6 @@
           <div class="field"><label>Organization Hierarchy</label><input :disabled="isReadOnly" v-model="state.org.hierarchy" type="text"></div>
           <div class="field"><label>Fiscal Year</label><input :disabled="isReadOnly" v-model="state.org.year" type="number" min="2000" max="2100" step="1" placeholder="YYYY"></div>
           <div class="field"><label>Total Budget / GAA of Organization (₱)</label><input :disabled="isReadOnly" v-model.number="state.org.totalOrgBudget" type="number" step="0.01" min="0"></div>
-          <div class="field"><label>Other Sources of GAD Budget (₱)</label><input :disabled="isReadOnly" v-model.number="state.org.otherSources" type="number" step="0.01" min="0"></div>
         </div>
       </div>
 
@@ -615,8 +615,7 @@ export default {
         }
       });
 
-      const orgOther    = Number(state.value.org.otherSources) || 0;
-      const other       = otherLinesTotal + orgOther;
+      const other       = otherLinesTotal;
       const primary     = gaaTotal;
       const total       = primary + other;
       const totalBudget = Number(state.value.org.totalOrgBudget) || 0;
@@ -637,6 +636,16 @@ export default {
           : '⚠ ' + Math.abs(diff).toFixed(2) + ' pts below the 5% minimum mandate',
       };
     });
+
+    const otherSourcesTotal = computed(() => state.value.items.reduce((total, item) => {
+      const lines = Array.isArray(item.budgetLines) ? item.budgetLines : [];
+      if (lines.length) {
+        return total + lines.reduce((sum, line) => (
+          sum + (String(line.source || '').toLowerCase().trim() === 'other' ? (Number(line.amount) || 0) : 0)
+        ), 0);
+      }
+      return total + (String(item.source || '').toLowerCase().trim() === 'other' ? (Number(item.budget) || 0) : 0);
+    }, 0));
 
     // ─── Filtering ────────────────────────────────────────────────────────────
     function getSectionItems(sec) {
@@ -844,6 +853,16 @@ export default {
 
           if (!json || json.length === 0) throw new Error('Empty Excel file');
 
+          const parseImportedNumber = (value) => {
+             const parsed = parseFloat(String(value ?? '').replace(/[^0-9.-]+/g, ''));
+             return Number.isFinite(parsed) ? parsed : 0;
+          };
+          const fiscalYearMatch = String(worksheet.A1?.v ?? '').match(/\b(20\d{2})\b/);
+          const importedFiscalYear = fiscalYearMatch ? Number(fiscalYearMatch[1]) : (parseInt(state.value.org.year) || new Date().getFullYear());
+          const importedTotalOrgBudget = parseImportedNumber(
+            worksheet.D4?.v ?? worksheet.D4?.w ?? worksheet.C4?.v ?? worksheet.C4?.w
+          );
+
           const importedItems = [];
           
           let currentSection = 'client';
@@ -868,13 +887,14 @@ export default {
 
              const mandate = (row['B'] || '').toString().trim();
              const cause = (row['C'] || '').toString().trim();
-             const objective = (row['E'] || '').toString().trim();
-             const ppa = (row['H'] || '').toString().trim();
-             const activity = (row['J'] || '').toString().trim();
-             const targets = (row['K'] || '').toString().trim();
-             const rawBudget = (row['L'] || '').toString().trim();
-             const rawSource = (row['N'] || '').toString().trim();
-             const office = (row['O'] || '').toString().trim();
+             const firstValue = (...keys) => keys.map(key => row[key]).find(value => value !== undefined && value !== null && String(value).trim() !== '') ?? '';
+             const objective = String(firstValue('E')).trim();
+             const ppa = String(firstValue('H')).trim();
+             const activity = String(firstValue('J', 'M')).trim();
+             const targets = String(firstValue('K', 'R')).trim();
+             const rawBudget = String(firstValue('L', 'T')).trim();
+             const rawSource = String(firstValue('N', 'W')).trim();
+             const office = String(firstValue('O', 'X')).trim();
 
              if (!mandate && !activity && !ppa) continue;
 
@@ -975,22 +995,40 @@ export default {
                 indicators: targets,
                 responsible: office,
                 budgetLines: budgetLines,
-                fiscal_year: parseInt(state.value.org.year) || new Date().getFullYear()
+                fiscal_year: importedFiscalYear
              });
           }
 
+          const currentFiscalYear = Number(new Intl.DateTimeFormat('en-US', {
+             timeZone: 'Asia/Manila',
+             year: 'numeric'
+          }).format(new Date()));
+          if (importedFiscalYear < currentFiscalYear) {
+             const pastYearConfirmation = await Swal.fire({
+                title: 'Past fiscal year detected',
+                html: `This Excel file is from fiscal year <b>${importedFiscalYear}</b>, which is earlier than the current fiscal year <b>${currentFiscalYear}</b>.<br><br>Are you sure you want to import this past-year GAD Plan and Budget?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, import past year',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#9333ea'
+             });
+             if (!pastYearConfirmation.isConfirmed) return;
+          }
+
           const { isConfirmed } = await Swal.fire({
-             title: 'Import ' + importedItems.length + ' Items?',
+             title: 'Preview import: ' + importedItems.length + ' items',
              html: `
-               <p style="font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 16px;">This will add the new items to your current plan.</p>
+               <p style="font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 16px;">This will create a new budget version and preserve the current version in Budget History.</p>
+               <p style="font-size: 14px; color: var(--text); margin-bottom: 16px;">Fiscal year: <b>${importedFiscalYear}</b><br>Total Budget / GAA of Organization: <b>₱${importedTotalOrgBudget.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</b><br>Sections: ${[...new Set(importedItems.map(item => item.section))].join(', ')} · Budget lines: ${importedItems.reduce((sum, item) => sum + item.budgetLines.length, 0)}</p>
                <div style="background: #fef3c7; border: 1px solid #fcd34d; padding: 16px; border-radius: 8px; text-align: center;">
-                  <b style="color: #b45309; font-size: 16px;">Please thoroughly review and double-check all items and budget values after importation.</b>
+                  <b style="color: #b45309; font-size: 16px;">Please double-check the fiscal year, Total Budget / GAA of Organization, and all other imported details before continuing.</b>
                </div>
              `,
              width: 500,
              icon: 'question',
              showCancelButton: true,
-             confirmButtonText: 'Yes, Import'
+             confirmButtonText: 'Create New Version'
           });
 
           if (isConfirmed) {
@@ -1016,15 +1054,23 @@ export default {
                 sort_order: state.value.items.filter(i => i.section === item.section).length + idx + 1
              }));
 
-             const res = await api.post('/gpb/import', dbPayload);
+             const res = await api.post('/gpb/import', { org: { ...state.value.org, year: importedFiscalYear, totalOrgBudget: importedTotalOrgBudget }, items: dbPayload });
              if (res.status === 201) {
                 Swal.fire('Success', 'Imported ' + res.data.count + ' items successfully.', 'success');
-                await loadFromAPI(); 
+                const importUrl = new URL(window.location.href);
+                importUrl.searchParams.set('fiscal_year', String(importedFiscalYear));
+                window.history.replaceState({}, '', importUrl);
+                await loadFromAPI(importedFiscalYear);
              }
           }
         } catch(e) { 
            console.error(e);
-           Swal.fire('Error', 'Could not process the Excel file. Please ensure it follows the correct template format.', 'error'); 
+           const importError = e?.message || e?.data?.message || e?.response?.data?.message || '';
+           if (importError.toLowerCase().includes('duplicate import') || importError.toLowerCase().includes('same imported details')) {
+             Swal.fire('Duplicate import blocked', importError, 'warning');
+           } else {
+             Swal.fire('Error', importError || 'Could not process the Excel file. Please ensure it follows the correct template format.', 'error');
+           }
         }
       };
       reader.readAsArrayBuffer(file);
@@ -1034,6 +1080,16 @@ export default {
     // ─── Excel export ─────────────────────────────────────────────────────────
     function setExportStatus(text, kind) { exportStatus.value = { text, class: kind || '' }; }
     async function exportToExcel() {
+      if (!Array.isArray(state.value.items) || state.value.items.length === 0) {
+        await Swal.fire({
+          title: 'Nothing to export',
+          text: 'Add at least one plan and budget item before exporting to Excel.',
+          icon: 'warning',
+          confirmButtonText: 'OK'
+        });
+        return;
+      }
+
       const { isConfirmed } = await Swal.fire({
          title: 'Export to Excel',
          html: `
@@ -1068,14 +1124,28 @@ export default {
         URL.revokeObjectURL(dlUrl);
         setExportStatus('✓ Downloaded ' + filename, 'success');
       } catch (err) {
-        console.error(err);
-        setExportStatus('Could not reach the backend server. Is php spark serve running?', 'error');
+        if (err.response?.status === 422) {
+          let message = 'Add at least one plan and budget item before exporting to Excel.';
+          try {
+            const body = err.response.data instanceof Blob
+              ? await err.response.data.text()
+              : err.response.data;
+            const parsed = typeof body === 'string' ? JSON.parse(body) : body;
+            if (parsed?.error) message = parsed.error;
+          } catch (_) {
+            // Keep the user-friendly fallback when the error body is not JSON.
+          }
+          await Swal.fire('Nothing to export', message, 'warning');
+        } else {
+          console.error(err);
+          setExportStatus('Could not reach the backend server. Is php spark serve running?', 'error');
+        }
       } finally { exporting.value = false; }
     }
 
     // ─── Reset ────────────────────────────────────────────────────────────────
     async function resetToSeed() {
-      const { isConfirmed } = await Swal.fire({title: 'Reset Plan?', text: 'This will completely clear the current plan. All data will be deleted. This cannot be undone.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, Reset Plan'});
+      const { isConfirmed } = await Swal.fire({title: 'Reset Plan?', text: 'The current plan will be preserved in Budget History and a new empty version will become active.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Create Empty Version'});
       if (!isConfirmed) return;
       
       const currentYear = parseInt(state.value.org.year);
@@ -1096,8 +1166,8 @@ export default {
         items: []
       };
       expandedCards.value = [];
-      try { await api.post('/plan', state.value); }
-      catch(e) { console.warn('Failed to reset DB:', e); }
+      try { await api.post('/plan/reset', { year: yearToSet, org: state.value.org }); }
+      catch(e) { Swal.fire('Reset failed', e.response?.data?.message || 'The plan was not reset.', 'error'); }
     }
 
     async function savePlan() {
@@ -1107,10 +1177,11 @@ export default {
       Swal.fire('Saved!', 'Your changes have been successfully saved.', 'success');
     }
 
-    async function loadFromAPI() {
+    async function loadFromAPI(yearOverride = null) {
       try {
         saveStatus.value = 'Loading…';
-        const res = await api.get('/plan');
+        const fiscalYear = yearOverride || new URLSearchParams(window.location.search).get('fiscal_year');
+        const res = await api.get(fiscalYear ? `/plan?fiscal_year=${encodeURIComponent(fiscalYear)}` : '/plan');
         if (res.status === 200) {
           const data = res.data;
           // Prefill with current Philippine year if empty, invalid, or left as 2000 artifact
@@ -1149,9 +1220,10 @@ export default {
 
     onMounted(async () => {
       fetchMandateStats();
-      loadFromAPI();
+      await loadFromAPI();
       try {
-        const res = await api.get('/budget/summary');
+        const fiscalYear = new URLSearchParams(window.location.search).get('fiscal_year') || state.value.org.year;
+        const res = await api.get(`/budget/summary?fiscal_year=${encodeURIComponent(fiscalYear)}`);
         if (res.data?.success) {
           budgetSummary.value = res.data.data;
         }
@@ -1649,6 +1721,8 @@ select option { background: #ffffff; color: #0f172a; }
   gap: 8px;
   align-items: center;
   flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 .topbar-btn {
   display: flex;
@@ -1661,6 +1735,58 @@ select option { background: #ffffff; color: #0f172a; }
   border: 1px solid var(--border);
   transition: all 0.18s;
   white-space: nowrap;
+}
+
+@media (max-width: 1100px) {
+  .topbar {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .topbar-brand {
+    flex: 1 1 220px;
+  }
+
+  .topbar-actions {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .topbar {
+    padding: 10px 12px;
+  }
+
+  .topbar-brand {
+    min-width: 0;
+    width: 100%;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+    padding: 0 0 8px;
+  }
+
+  .topbar-title {
+    max-width: 100%;
+  }
+
+  .topbar-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .topbar-actions > *,
+  .topbar-actions .topbar-btn {
+    width: 100%;
+  }
+
+  .topbar-actions .topbar-btn {
+    justify-content: center;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
 }
 .btn-budget-dist {
   background: var(--btn-dist-bg);

@@ -39,6 +39,7 @@ class ActivityDesignModel extends Model // No change needed here, class name is 
         "is_archived",
         "control_number",
         "modification_request_status",
+        "request_type",
         "modification_remarks",
         "is_modified",
         "is_inside_bsu",

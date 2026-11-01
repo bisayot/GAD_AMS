@@ -355,6 +355,12 @@
                 <button v-else-if="design.status === 'Approved' && design.modification_request_status === 'approved'" @click="router.push(`/college/ad-revision/${design.act_design_id}`)" class="btn-approve" style="margin-bottom: 10px; width: 100%;">
                   <span class="material-symbols-outlined" style="font-size: 1.2rem; margin-right: 4px;">edit</span> Modify Design
                 </button>
+                <button v-if="['twg', 'non-twg'].includes((user.role || user.user_role || '').toLowerCase()) && design.status === 'Approved' && design.modification_request_status !== 'pending' && !Number(design.verified_accomplishment_report_count)" @click="openCancellationModal" class="btn-approve" style="margin-bottom: 10px; width: 100%; background: #fee2e2; color: #991b1b;">
+                  <span class="material-symbols-outlined" style="font-size: 1.2rem; margin-right: 4px;">cancel</span> Request Cancellation
+                </button>
+                <div v-if="design.status === 'Approved' && Number(design.verified_accomplishment_report_count)" class="mod-pending-badge" style="color: #991b1b;">
+                  Cancellation unavailable: verified Accomplishment Report exists
+                </div>
 
                 <button @click="handleTrash" class="btn-trash">
                   <span class="material-symbols-outlined">delete</span> MOVE TO TRASH
@@ -381,6 +387,18 @@
         <div class="modal-actions">
           <button @click="closeModModal" class="btn-cancel">Cancel</button>
           <button @click="submitModRequest" class="btn-submit">Submit Request</button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="isCancellationModalOpen" class="modal-overlay">
+      <div class="modal-content">
+        <h3 class="modal-title">Request Cancellation</h3>
+        <p class="modal-desc">Please provide a reason. Staff and the Director will review this cancellation request.</p>
+        <textarea v-model="cancellationRemarks" class="modal-input" rows="4" placeholder="Enter reason..."></textarea>
+        <div class="modal-actions">
+          <button @click="closeCancellationModal" class="btn-cancel">Cancel</button>
+          <button @click="submitCancellationRequest" class="btn-submit">Submit Request</button>
         </div>
       </div>
     </div>
@@ -684,6 +702,8 @@ const error = ref(null);
 
 const isModModalOpen = ref(false);
 const modRemarks = ref('');
+const isCancellationModalOpen = ref(false);
+const cancellationRemarks = ref('');
 
 const openModModal = () => {
   isModModalOpen.value = true;
@@ -692,6 +712,42 @@ const openModModal = () => {
 
 const closeModModal = () => {
   isModModalOpen.value = false;
+};
+
+const openCancellationModal = async () => {
+  const result = await Swal.fire({
+    title: 'Request cancellation?',
+    text: 'This will send a cancellation request to the GAD Staff and Director for review.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#dc2626',
+    cancelButtonColor: '#334155',
+    confirmButtonText: 'Yes, continue'
+  });
+  if (!result.isConfirmed) return;
+  isCancellationModalOpen.value = true;
+  cancellationRemarks.value = '';
+};
+
+const closeCancellationModal = () => {
+  isCancellationModalOpen.value = false;
+};
+
+const submitCancellationRequest = async () => {
+  if (!cancellationRemarks.value.trim()) {
+    Swal.fire({ icon: 'warning', title: 'Reason Required', text: 'Please provide a reason for requesting cancellation.' });
+    return;
+  }
+  try {
+    Swal.fire({ title: 'Submitting Request', text: 'Please wait while staff and the Director are notified...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    const res = await api.post(`activity-designs/${route.params.id}/request-cancellation`, { remarks: cancellationRemarks.value });
+    if (!res.data.success) throw new Error(res.data.message || 'Failed to submit cancellation request.');
+    closeCancellationModal();
+    await Swal.fire({ icon: 'success', title: 'Request Submitted', text: 'Your cancellation request is pending review.', timer: 1500, showConfirmButton: false });
+    fetchDesignDetails();
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'Request Failed', text: err.response?.data?.message || err.message || 'Error submitting cancellation request.' });
+  }
 };
 
 const submitModRequest = async () => {
@@ -780,7 +836,7 @@ const handleTrash = async () => {
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: err.message || 'An error occurred while moving to trash'
+        text: err.response?.data?.message || err.message || 'An error occurred while moving to trash'
       });
     }
   }

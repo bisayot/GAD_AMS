@@ -135,14 +135,13 @@ class GpbLiveExportController extends BaseController
 
     private function extractHeaderMeta(array $org, float $otherLinesTotal = 0.0): array
     {
-        $orgOther = (float) ($org['otherSources'] ?? 0);
         return [
             'org_name'         => $org['name'] ?? '',
             'org_category'     => $org['category'] ?? '',
             'org_hierarchy'    => $org['hierarchy'] ?? '',
             'fiscal_year'      => $org['year'] ?? '',
             'total_org_budget' => (float) ($org['totalOrgBudget'] ?? 0),
-            'other_sources'    => $orgOther + $otherLinesTotal,
+            'other_sources'    => $otherLinesTotal,
         ];
     }
 

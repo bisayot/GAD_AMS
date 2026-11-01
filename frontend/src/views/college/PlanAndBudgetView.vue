@@ -40,7 +40,6 @@
           <div class="field"><label>Organization Hierarchy</label><input :disabled="isReadOnly" v-model="state.org.hierarchy" type="text"></div>
           <div class="field"><label>Fiscal Year</label><input :disabled="isReadOnly" v-model="state.org.year" type="number" min="2000" max="2100" step="1" placeholder="YYYY"></div>
           <div class="field"><label>Total Budget / GAA of Organization (₱)</label><input :disabled="isReadOnly" v-model.number="state.org.totalOrgBudget" type="number" step="0.01" min="0"></div>
-          <div class="field"><label>Other Sources of GAD Budget (₱)</label><input :disabled="isReadOnly" v-model.number="state.org.otherSources" type="number" step="0.01" min="0"></div>
         </div>
       </div>
 
@@ -462,8 +461,7 @@ export default {
         }
       });
 
-      const orgOther    = Number(state.value.org.otherSources) || 0;
-      const other       = otherLinesTotal + orgOther;
+      const other       = otherLinesTotal;
       const primary     = gaaTotal;
       const total       = primary + other;
       const totalBudget = Number(state.value.org.totalOrgBudget) || 0;
@@ -482,6 +480,16 @@ export default {
           : '⚠ ' + Math.abs(diff).toFixed(2) + ' pts below the 5% minimum mandate',
       };
     });
+
+    const otherSourcesTotal = computed(() => state.value.items.reduce((total, item) => {
+      const lines = Array.isArray(item.budgetLines) ? item.budgetLines : [];
+      if (lines.length) {
+        return total + lines.reduce((sum, line) => (
+          sum + (String(line.source || '').toLowerCase().trim() === 'other' ? (Number(line.amount) || 0) : 0)
+        ), 0);
+      }
+      return total + (String(item.source || '').toLowerCase().trim() === 'other' ? (Number(item.budget) || 0) : 0);
+    }, 0));
 
     // ─── Filtering ────────────────────────────────────────────────────────────
     function getSectionItems(sec) {
@@ -684,6 +692,14 @@ export default {
 
           if (!json || json.length === 0) throw new Error('Empty Excel file');
 
+          const parseImportedNumber = (value) => {
+             const parsed = parseFloat(String(value ?? '').replace(/[^0-9.-]+/g, ''));
+             return Number.isFinite(parsed) ? parsed : 0;
+          };
+          const fiscalYearMatch = String(worksheet.A1?.v ?? '').match(/\b(20\d{2})\b/);
+          const importedFiscalYear = fiscalYearMatch ? Number(fiscalYearMatch[1]) : (parseInt(state.value.org.year) || new Date().getFullYear());
+          const importedTotalOrgBudget = parseImportedNumber(worksheet.D4?.v ?? worksheet.D4?.w);
+
           const importedItems = [];
           
           let currentSection = 'client';
@@ -815,7 +831,7 @@ export default {
                 indicators: targets,
                 responsible: office,
                 budgetLines: budgetLines,
-                fiscal_year: parseInt(state.value.org.year) || new Date().getFullYear()
+                fiscal_year: importedFiscalYear
              });
           }
 
@@ -823,8 +839,9 @@ export default {
              title: 'Import ' + importedItems.length + ' Items?',
              html: `
                <p style="font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 16px;">This will add the new items to your current plan.</p>
+               <p style="font-size: 14px; color: var(--text); margin-bottom: 16px;">Fiscal year: <b>${importedFiscalYear}</b><br>Total Budget / GAA of Organization: <b>₱${importedTotalOrgBudget.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</b><br>Sections: ${[...new Set(importedItems.map(item => item.section))].join(', ')} · Budget lines: ${importedItems.reduce((sum, item) => sum + item.budgetLines.length, 0)}</p>
                <div style="background: #fef3c7; border: 1px solid #fcd34d; padding: 16px; border-radius: 8px; text-align: center;">
-                  <b style="color: #b45309; font-size: 16px;">Please thoroughly review and double-check all items and budget values after importation.</b>
+                  <b style="color: #b45309; font-size: 16px;">Please double-check the fiscal year, Total Budget / GAA of Organization, and all other imported details before continuing.</b>
                </div>
              `,
              width: 500,
@@ -856,7 +873,10 @@ export default {
                 sort_order: state.value.items.filter(i => i.section === item.section).length + idx + 1
              }));
 
-             const res = await api.post('/gpb/import', dbPayload);
+             const res = await api.post('/gpb/import', {
+                org: { ...state.value.org, year: importedFiscalYear, totalOrgBudget: importedTotalOrgBudget },
+                items: dbPayload
+             });
              if (res.status === 201) {
                 Swal.fire('Success', 'Imported ' + res.data.count + ' items successfully.', 'success');
                 await loadFromAPI(); 
@@ -874,6 +894,16 @@ export default {
     // ─── Excel export ─────────────────────────────────────────────────────────
     function setExportStatus(text, kind) { exportStatus.value = { text, class: kind || '' }; }
     async function exportToExcel() {
+      if (!Array.isArray(state.value.items) || state.value.items.length === 0) {
+       await Swal.fire({
+         title: 'Nothing to export',
+         text: 'There are no plan and budget items available to export.',
+         icon: 'warning',
+         confirmButtonText: 'OK'
+       });
+       return;
+      }
+
       const { isConfirmed } = await Swal.fire({
          title: 'Export to Excel',
          html: `
@@ -908,8 +938,22 @@ export default {
         URL.revokeObjectURL(dlUrl);
         setExportStatus('✓ Downloaded ' + filename, 'success');
       } catch (err) {
-        console.error(err);
-        setExportStatus('Could not reach the backend server. Is php spark serve running?', 'error');
+        if (err.response?.status === 422) {
+          let message = 'There are no plan and budget items available to export.';
+          try {
+            const body = err.response.data instanceof Blob
+              ? await err.response.data.text()
+              : err.response.data;
+            const parsed = typeof body === 'string' ? JSON.parse(body) : body;
+            if (parsed?.error) message = parsed.error;
+          } catch (_) {
+            // Keep the user-friendly fallback when the error body is not JSON.
+          }
+          await Swal.fire('Nothing to export', message, 'warning');
+        } else {
+          console.error(err);
+          setExportStatus('Could not reach the backend server. Is php spark serve running?', 'error');
+        }
       } finally { exporting.value = false; }
     }
 
@@ -951,7 +995,8 @@ export default {
     async function loadFromAPI() {
       try {
         saveStatus.value = 'Loading…';
-        const res = await api.get('/plan');
+        const fiscalYear = new URLSearchParams(window.location.search).get('fiscal_year');
+        const res = await api.get(fiscalYear ? `/plan?fiscal_year=${encodeURIComponent(fiscalYear)}` : '/plan');
         if (res.status === 200) {
           const data = res.data;
           // Prefill with current Philippine year if empty, invalid, or left as 2000 artifact

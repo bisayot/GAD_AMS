@@ -11,6 +11,10 @@
         </h1>
       </div>
       <div>
+        <button @click="toggleFitScreen" class="viewer-fit-btn">
+          <span class="material-symbols-outlined text-[16px]">{{ isFitScreen ? 'open_in_full' : 'fit_screen' }}</span>
+          {{ isFitScreen ? 'Scroll View' : 'Fit to Screen' }}
+        </button>
       </div>
     </div>
 
@@ -43,6 +47,18 @@ const loading = ref(true);
 const error = ref(null);
 const report = ref(null);
 const reportFrame = ref(null);
+const isFitScreen = ref(false);
+
+const applyViewMode = () => {
+  const wrapper = reportFrame.value?.contentWindow?.document?.querySelector('.report-wrapper');
+  if (wrapper) wrapper.classList.toggle('fit-screen', isFitScreen.value);
+  resizeIframe();
+};
+
+const toggleFitScreen = () => {
+  isFitScreen.value = !isFitScreen.value;
+  applyViewMode();
+};
 
 const fetchReport = async () => {
   try {
@@ -91,6 +107,7 @@ const injectHtml = () => {
         </html>
       `);
       doc.close();
+      setTimeout(applyViewMode, 0);
     }
   }, 100);
 };
@@ -125,6 +142,21 @@ onMounted(() => {
 .viewer-back-btn:hover {
   color: #0f172a;
 }
+.viewer-fit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  color: #334155;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.viewer-fit-btn:hover {
+  background: #f8fafc;
+}
 .viewer-frame-wrapper {
   background: #f8fafc;
 }
@@ -151,6 +183,11 @@ html.dark .viewer-back-btn,
 html.dark .viewer-back-btn:hover,
 .dark .viewer-back-btn:hover {
   color: #ffffff !important;
+}
+.dark .viewer-fit-btn {
+  background: #1e293b !important;
+  color: #cbd5e1 !important;
+  border-color: rgba(185, 121, 204, 0.3) !important;
 }
 html.dark .viewer-frame-wrapper,
 .dark .viewer-frame-wrapper {

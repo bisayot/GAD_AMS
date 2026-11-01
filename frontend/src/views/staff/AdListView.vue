@@ -64,7 +64,7 @@
                   <option value="Approved">Approved</option>
                   <option value="Revision Required">Revision Required</option>
                   <option value="Disapproved">Disapproved</option>
-                  <option value="Mod Requests">Modification Requests</option>
+                  <option value="Mod Requests">Modification & Cancellation Requests</option>
                 </select>
                 <span class="select-arrow">▼</span>
               </div>
@@ -164,7 +164,7 @@
             <div v-if="filters.status === 'all' || filters.status === 'Mod Requests'" class="table-section-header table-section-header-bordered">
               <h2 class="table-section-title">
                 <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 0.5rem; color: #fbbf24;">edit_note</span>
-                Modification Requests
+                Modification & Cancellation Requests
               </h2>
             </div>
             <div v-if="filters.status === 'all' || filters.status === 'Mod Requests'" class="table-wrapper">
@@ -181,7 +181,7 @@
                 <tbody class="table-body">
                   <tr v-if="modRequestDesigns.length === 0">
                     <td colspan="5" class="empty-state">
-                      No modification requests found.
+                      No modification or cancellation requests found.
                     </td>
                   </tr>
                   
@@ -195,7 +195,7 @@
                     <td class="table-cell title-cell">
                       <div style="display: flex; align-items: center; gap: 0.5rem;">
                         {{ item.title }}
-                        <span class="status-badge" style="background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 4px;">MOD REQ</span>
+                        <span class="status-badge" :style="item.request_type === 'cancellation' ? 'background: rgba(220,38,38,0.2); color: #f87171; border: 1px solid rgba(220,38,38,0.3); font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 4px;' : 'background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 4px;'">{{ item.request_type === 'cancellation' ? 'CANCEL REQ' : 'MOD REQ' }}</span>
                       </div>
                     </td>
                     <td class="table-cell office-cell">
@@ -211,7 +211,7 @@
                     </td>
                     <td class="table-cell">
                       <button @click.stop="approveModRequest(item.act_design_id)" class="btn-primary" style="background: #4ade80; color: #064e3b; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; transition: all 0.2s;">
-                        Approve Request
+                        Approve {{ item.request_type === 'cancellation' ? 'Cancellation' : 'Modification' }}
                       </button>
                     </td>
                   </tr>

@@ -14,6 +14,8 @@ class ArchivedAnnualReport extends Model
     protected $protectFields    = true;
     protected $allowedFields    = [
         'fiscal_year',
+        'plan_version_id',
+        'version_number',
         'html_content',
         'created_by'
     ];

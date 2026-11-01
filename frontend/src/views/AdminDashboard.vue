@@ -67,7 +67,8 @@ const adminMenu = ref([
       { label: 'Plan and Budget', icon: 'account_balance', href: '/admin/plan-and-budget' },
       { label: 'Budget Distribution by Mandate', icon: 'pie_chart', href: '/admin/budget-distribution' },
       { label: 'Report Monitoring', icon: 'bar_chart', href: '/admin/reports' },
-      { label: 'Budget Monitoring', icon: 'account_balance_wallet', href: '/admin/budget' }
+      { label: 'Budget Monitoring', icon: 'account_balance_wallet', href: '/admin/budget' },
+      { label: 'Budget History', icon: 'history', href: '/admin/budget-history' }
     ]
   },
   {

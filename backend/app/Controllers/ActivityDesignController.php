@@ -284,7 +284,7 @@ class ActivityDesignController extends BaseController
         $db = \Config\Database::connect();
         
         $active = $db->table('activity_design as ad')
-            ->select('ad.act_design_id, ad.status, ad.control_number as control, office_units.office_name as office, users.full_name as submitter_name, ad.activity_title as title, COALESCE(form_types.name, ad.form_type) as formLabel, DATE(ad.created_at) as date, ad.start_date, ad.end_date, ad.modification_request_status, ad.is_modified')
+            ->select('ad.act_design_id, ad.status, ad.control_number as control, office_units.office_name as office, users.full_name as submitter_name, ad.activity_title as title, COALESCE(form_types.name, ad.form_type) as formLabel, DATE(ad.created_at) as date, ad.start_date, ad.end_date, ad.modification_request_status, ad.request_type, ad.is_modified')
             ->join('users', 'users.id = ad.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->join('form_types', 'form_types.id = ad.form_type', 'left')
@@ -349,6 +349,7 @@ class ActivityDesignController extends BaseController
             ->select('(SELECT GROUP_CONCAT(DISTINCT adm.mandate_id SEPARATOR \',\') FROM activity_design_mandates adm WHERE adm.act_design_id = activity_design.act_design_id) as gad_mandate_ids')
             ->select('(SELECT GROUP_CONCAT(DISTINCT adi.issue_id SEPARATOR \',\') FROM activity_design_issues adi WHERE adi.act_design_id = activity_design.act_design_id) as gender_issue_ids')
             ->select('(SELECT COUNT(*) FROM accomplishment_report WHERE accomplishment_report.act_design_id = activity_design.act_design_id AND accomplishment_report.deleted_at IS NULL) as accomplishment_report_count')
+            ->select('(SELECT COUNT(*) FROM accomplishment_report WHERE accomplishment_report.act_design_id = activity_design.act_design_id AND accomplishment_report.status = \'Verified\' AND accomplishment_report.deleted_at IS NULL) as verified_accomplishment_report_count')
             ->join('users', 'users.id = activity_design.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->join('venues', 'venues.venue_id = activity_design.venue_id', 'left')
@@ -976,6 +977,56 @@ class ActivityDesignController extends BaseController
         ]);
     }
 
+    public function cancelDesign($id = null)
+    {
+        if (!$id) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Design ID required'])->setStatusCode(400);
+        }
+
+        $db = \Config\Database::connect();
+        $item = $db->table('activity_design')
+            ->where('act_design_id', $id)
+            ->where('is_archived', 1)
+            ->get()->getRowArray();
+
+        if (!$item) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Stored Activity Design not found'])->setStatusCode(404);
+        }
+
+        if ($item['status'] !== 'Approved') {
+            return $this->response->setJSON(['success' => false, 'message' => 'Only approved Activity Designs can be cancelled'])->setStatusCode(409);
+        }
+
+        $verifiedReport = $db->table('accomplishment_report')
+            ->where('act_design_id', $id)
+            ->where('status', 'Verified')
+            ->where('deleted_at', null)
+            ->countAllResults();
+        if ($verifiedReport > 0) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Cancellation is not allowed because this Activity Design already has a verified Accomplishment Report.'
+            ])->setStatusCode(409);
+        }
+
+        $db->table('activity_design')->where('act_design_id', $id)->update(['status' => 'Cancelled']);
+        if ($db->affectedRows() < 1) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Failed to cancel Activity Design'])->setStatusCode(500);
+        }
+
+        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
+        \App\Models\ActivityLogModel::log($actionUserId, 'Cancel Document', 'cancelled Activity Design: ' . $item['activity_title']);
+        NotificationService::send(
+            $item['user_id'],
+            'Activity Design Cancelled',
+            'Your Activity Design "' . $item['activity_title'] . '" has been cancelled.',
+            '/staff/archive',
+            'warning'
+        );
+
+        return $this->response->setJSON(['success' => true, 'message' => 'Activity Design cancelled successfully']);
+    }
+
     public function revertDecision($id = null)
     {
         if (!$id) {
@@ -1194,6 +1245,17 @@ class ActivityDesignController extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'Cannot trash this document as it is already being processed or viewed by admin.'])->setStatusCode(400);
         }
 
+        $linkedReport = \Config\Database::connect()->table('accomplishment_report')
+            ->where('act_design_id', $id)
+            ->where('deleted_at', null)
+            ->get()->getRowArray();
+        if ($linkedReport) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'This Activity Design cannot be moved to trash because it has a submitted Accomplishment Report linked to it.',
+            ])->setStatusCode(409);
+        }
+
         $model->update($id, ['deleted_by' => $actionUserId]);
 
         if ($model->delete($id)) {
@@ -1215,6 +1277,10 @@ class ActivityDesignController extends BaseController
     public function getGADMandates()
     {
         $db = \Config\Database::connect();
+        $fiscalYear = (int)($this->request->getGet('fiscal_year') ?: date('Y'));
+        $version = $db->tableExists('budget_versions')
+            ? (new \App\Libraries\BudgetVersionService($db))->active($fiscalYear)
+            : null;
         
         $classification_id = $this->request->getGet('classification');
         
@@ -1222,6 +1288,11 @@ class ActivityDesignController extends BaseController
             $expression = "CASE WHEN mandate = '' OR mandate IS NULL THEN CONCAT('N/A (Attributed Program) - ', IFNULL(activity, '')) ELSE mandate END";
             $builder = $db->table('gpb_items')
                 ->select("id, 'GPB' as code, " . $expression . " as title", false);
+            if ($version) {
+                $builder->where('plan_version_id', $version['id']);
+            } else {
+                $builder->where('fiscal_year', $fiscalYear);
+            }
 
             if ($classification_id) {
                 $section = '';
@@ -1277,9 +1348,18 @@ class ActivityDesignController extends BaseController
     public function getGenderIssues($mandate_id = null)
     {
         $db = \Config\Database::connect();
+        $fiscalYear = (int)($this->request->getGet('fiscal_year') ?: date('Y'));
+        $version = $db->tableExists('budget_versions')
+            ? (new \App\Libraries\BudgetVersionService($db))->active($fiscalYear)
+            : null;
         try {
             $expression = "CASE WHEN cause = '' OR cause IS NULL THEN CONCAT('N/A (Attributed Program) - ', IFNULL(activity, '')) ELSE cause END";
             $builder = $db->table('gpb_items')->select("id, " . $expression . " as title", false);
+            if ($version) {
+                $builder->where('plan_version_id', $version['id']);
+            } else {
+                $builder->where('fiscal_year', $fiscalYear);
+            }
             
             $classification_id = $this->request->getGet('classification');
 
@@ -1375,6 +1455,7 @@ class ActivityDesignController extends BaseController
             ->set('modification_count', 'modification_count+1', false)
             ->set([
                 'modification_request_status' => 'pending',
+                'request_type' => 'modification',
                 'modification_remarks' => $body['remarks'] ?? ''
             ])->update();
 
@@ -1387,6 +1468,66 @@ class ActivityDesignController extends BaseController
         return $this->response->setJSON(['success' => true, 'message' => 'Modification requested successfully']);
     }
 
+    public function requestCancellation($id = null)
+    {
+        if (!$id) return $this->response->setJSON(['success' => false, 'message' => 'Design ID required'])->setStatusCode(400);
+        $body = $this->request->getJSON(true) ?? $this->request->getPost();
+        $db = \Config\Database::connect();
+        $design = $db->table('activity_design')->where('act_design_id', $id)->get()->getRowArray();
+
+        if (!$design) return $this->response->setJSON(['success' => false, 'message' => 'Not found'])->setStatusCode(404);
+        $requesterId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
+        $requester = $db->table('users')->select('role')->where('id', $requesterId)->get()->getRowArray();
+        if (!$requester || !in_array($requester['role'], ['twg', 'non-twg'], true)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Only TWG and non-TWG proponents can request cancellation'])->setStatusCode(403);
+        }
+        if ($design['status'] !== 'Approved') {
+            return $this->response->setJSON(['success' => false, 'message' => 'Only approved Activity Designs can be cancelled'])->setStatusCode(409);
+        }
+
+        $verifiedReport = $db->table('accomplishment_report')
+            ->where('act_design_id', $id)
+            ->where('status', 'Verified')
+            ->where('deleted_at', null)
+            ->countAllResults();
+        if ($verifiedReport > 0) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Cancellation is not allowed because this Activity Design already has a verified Accomplishment Report.'
+            ])->setStatusCode(409);
+        }
+
+        if ($design['modification_request_status'] === 'pending') {
+            return $this->response->setJSON(['success' => false, 'message' => 'A request is already pending for this Activity Design'])->setStatusCode(409);
+        }
+
+        $db->table('activity_design')->where('act_design_id', $id)
+            ->set('modification_count', 'modification_count+1', false)
+            ->set([
+                'modification_request_status' => 'pending',
+                'request_type' => 'cancellation',
+                'modification_remarks' => $body['remarks'] ?? ''
+            ])->update();
+
+        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
+        \App\Models\ActivityLogModel::log($actionUserId, 'Request Cancellation', 'requested cancellation for Activity Design: ' . $design['activity_title']);
+        NotificationService::sendToAdmins(
+            'Cancellation Requested',
+            'A cancellation request for Activity Design "' . $design['activity_title'] . '" has been submitted and is pending review.',
+            '/admin/ad-list',
+            'warning'
+        );
+        NotificationService::send(
+            $design['user_id'],
+            'Cancellation Requested',
+            'Your cancellation request for "' . $design['activity_title'] . '" has been sent and is pending review.',
+            '/college/submitted-list',
+            'info'
+        );
+
+        return $this->response->setJSON(['success' => true, 'message' => 'Cancellation request submitted successfully']);
+    }
+
     public function approveModification($id = null)
     {
         if (!$id) return $this->response->setJSON(['success' => false, 'message' => 'Design ID required'])->setStatusCode(400);
@@ -1394,16 +1535,32 @@ class ActivityDesignController extends BaseController
         $design = $db->table('activity_design')->where('act_design_id', $id)->get()->getRowArray();
         if (!$design) return $this->response->setJSON(['success' => false, 'message' => 'Not found'])->setStatusCode(404);
 
-        $db->table('activity_design')->where('act_design_id', $id)->update([
-            'modification_request_status' => 'approved'
-        ]);
+        $isCancellation = ($design['request_type'] ?? 'modification') === 'cancellation';
+        if ($isCancellation) {
+            $verifiedReport = $db->table('accomplishment_report')
+                ->where('act_design_id', $id)
+                ->where('status', 'Verified')
+                ->where('deleted_at', null)
+                ->countAllResults();
+            if ($verifiedReport > 0) {
+                return $this->response->setJSON(['success' => false, 'message' => 'Cancellation is not allowed because this Activity Design already has a verified Accomplishment Report.'])->setStatusCode(409);
+            }
+            $db->table('activity_design')->where('act_design_id', $id)->update([
+                'status' => 'Cancelled',
+                'modification_request_status' => 'approved'
+            ]);
+        } else {
+            $db->table('activity_design')->where('act_design_id', $id)->update([
+                'modification_request_status' => 'approved'
+            ]);
+        }
 
         $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
-        \App\Models\ActivityLogModel::log($actionUserId, 'Approve Modification', 'approved modification request for Activity Design: ' . $design['activity_title']);
+        \App\Models\ActivityLogModel::log($actionUserId, $isCancellation ? 'Approve Cancellation' : 'Approve Modification', ($isCancellation ? 'approved cancellation request for Activity Design: ' : 'approved modification request for Activity Design: ') . $design['activity_title']);
 
-        NotificationService::send($design['user_id'], 'Modification Approved', 'Your modification request for "' . $design['activity_title'] . '" has been approved.', '/staff/activity-designs', 'success');
+        NotificationService::send($design['user_id'], $isCancellation ? 'Cancellation Approved' : 'Modification Approved', 'Your ' . ($isCancellation ? 'cancellation' : 'modification') . ' request for "' . $design['activity_title'] . '" has been approved.', '/staff/activity-designs', 'success');
 
-        return $this->response->setJSON(['success' => true, 'message' => 'Modification request approved']);
+        return $this->response->setJSON(['success' => true, 'message' => $isCancellation ? 'Cancellation request approved' : 'Modification request approved']);
     }
 
     public function rejectModification($id = null)
@@ -1415,17 +1572,18 @@ class ActivityDesignController extends BaseController
         $design = $db->table('activity_design')->where('act_design_id', $id)->get()->getRowArray();
         if (!$design) return $this->response->setJSON(['success' => false, 'message' => 'Not found'])->setStatusCode(404);
 
+        $isCancellation = ($design['request_type'] ?? 'modification') === 'cancellation';
         $db->table('activity_design')->where('act_design_id', $id)->update([
             'modification_request_status' => 'rejected',
             'modification_remarks' => $body['remarks'] ?? ''
         ]);
 
         $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
-        \App\Models\ActivityLogModel::log($actionUserId, 'Reject Modification', 'rejected modification request for Activity Design: ' . $design['activity_title']);
+        \App\Models\ActivityLogModel::log($actionUserId, $isCancellation ? 'Reject Cancellation' : 'Reject Modification', ($isCancellation ? 'rejected cancellation request for Activity Design: ' : 'rejected modification request for Activity Design: ') . $design['activity_title']);
         
-        NotificationService::send($design['user_id'], 'Modification Rejected', 'Your modification request for "' . $design['activity_title'] . '" has been rejected.', '/staff/activity-designs', 'error');
+        NotificationService::send($design['user_id'], $isCancellation ? 'Cancellation Rejected' : 'Modification Rejected', 'Your ' . ($isCancellation ? 'cancellation' : 'modification') . ' request for "' . $design['activity_title'] . '" has been rejected.', '/staff/activity-designs', 'error');
 
-        return $this->response->setJSON(['success' => true, 'message' => 'Modification request rejected']);
+        return $this->response->setJSON(['success' => true, 'message' => $isCancellation ? 'Cancellation request rejected' : 'Modification request rejected']);
     }
 
     private function resolveDraftUserId($fallback = null)

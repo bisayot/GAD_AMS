@@ -1,6 +1,6 @@
 <template>
   <div class="report-wrapper" :class="{ 'fit-screen': isFitScreen }">
-    
+
 
 <div class="masthead">
   <div class="masthead-top">
@@ -149,7 +149,10 @@ onMounted(() => {
           Swal.fire({ icon: 'error', title: 'Error', text: 'Report wrapper not found.' });
           return;
         }
-        
+
+        // Clone the current input values, not only the original HTML attributes.
+        syncInputAttrsForSnapshot();
+
         const clone = originalWrapper.cloneNode(true);
         
         // Clean up the clone's UI elements before saving
@@ -179,6 +182,11 @@ onMounted(() => {
         // Remove the Add Row button row
         const trAdd = clone.querySelector('.tr-add');
         if (trAdd) trAdd.remove();
+        clone.querySelectorAll('.item-add, .item-rm').forEach(el => el.remove());
+        clone.querySelectorAll('input').forEach(el => {
+          el.setAttribute('readonly', 'readonly');
+          el.removeAttribute('placeholder');
+        });
         
         const htmlContent = clone.outerHTML;
         
@@ -985,7 +993,11 @@ function exportCSV(){
           activity: item.activity || '',
           responsible: item.responsible || '',
           indicators: { text: indText, m: m, f: f },
-          actualResult: { text: '', m: item.actualResult_m || '', f: item.actualResult_f || '' },
+          actualResult: {
+            text: item.actualResult || item.actual_result || '',
+            m: item.actualResult_m ?? '',
+            f: item.actualResult_f ?? ''
+          },
           items: (item.budgetLines || []).map(b => {
             const amt = parseFloat(b.amount) || 0;
             const utilized = parseFloat(b.utilized_budget) || 0;
@@ -1929,5 +1941,3 @@ html.dark .report-wrapper tfoot tr.foot-gender td,
   color: #ffffff !important;
 }
 </style>
-
-

@@ -14,6 +14,9 @@
           </div>
         </div>
         <div class="html-modal-actions">
+          <button class="pdf-btn view-mode-btn" @click="toggleFitScreen" :title="isFitScreen ? 'Switch to scrollable view' : 'Fit to screen'">
+            <span class="material-symbols-outlined">{{ isFitScreen ? 'open_in_full' : 'fit_screen' }}</span>
+          </button>
           <button class="pdf-btn action-close" @click="close" title="Close">
             <span class="material-symbols-outlined">close</span>
           </button>
@@ -24,14 +27,14 @@
           <div class="spinner"></div>
           <p>Loading document...</p>
         </div>
-        <div v-else class="html-container" v-html="htmlContent"></div>
+        <div v-else class="html-container" :class="{ 'fit-screen': isFitScreen }" v-html="htmlContent"></div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { watch } from 'vue';
+import { ref } from 'vue';
 
 const props = defineProps({
   isOpen: {
@@ -53,6 +56,11 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['close']);
+const isFitScreen = ref(false);
+
+const toggleFitScreen = () => {
+  isFitScreen.value = !isFitScreen.value;
+};
 
 const close = () => {
   emit('close');
@@ -179,6 +187,36 @@ const close = () => {
   padding: 6px 12px;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.view-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.html-container.fit-screen :deep(.report-wrapper) {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.html-container.fit-screen :deep(.report-wrapper table) {
+  table-layout: fixed !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.html-container.fit-screen :deep(.report-wrapper th),
+.html-container.fit-screen :deep(.report-wrapper td) {
+  padding-left: 6px !important;
+  padding-right: 6px !important;
+  font-size: 0.78rem !important;
+  overflow-wrap: anywhere;
+}
+
+.html-container.fit-screen :deep(.report-wrapper .th-mandate),
+.html-container.fit-screen :deep(.report-wrapper .th-activity) {
+  min-width: 0 !important;
 }
 
 .pdf-btn {

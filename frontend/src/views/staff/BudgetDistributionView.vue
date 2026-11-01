@@ -1,5 +1,5 @@
 <template>
-  <div class="app-wrapper app" style="background: #ffffff; width: 100%; overflow-x: auto;">
+  <div class="app-wrapper app" :class="{ 'fit-screen': isFitScreen }" style="background: #ffffff; width: 100%; overflow-x: auto;">
     <div class="banner-wrapper">
       <header class="topbar">
         <div class="topbar-brand">
@@ -37,6 +37,10 @@
 
         <div class="stats-search-row">
           <div class="table-actions-left">
+            <button @click="toggleFitScreen" class="btn-toggle-all" type="button" :title="isFitScreen ? 'Switch to scrollable view' : 'Fit all table columns to screen'">
+              <span class="material-symbols-outlined text-[16px]">{{ isFitScreen ? 'open_in_full' : 'fit_screen' }}</span>
+              <span>{{ isFitScreen ? 'Scroll View' : 'Fit to Screen' }}</span>
+            </button>
             <button 
               @click="toggleAllRows" 
               class="btn-toggle-all"
@@ -494,6 +498,8 @@ export default {
     const mandateStats = ref([]);
     const mandateStatsFilter = ref('all');
     const searchQuery = ref('');
+    const isFitScreen = ref(false);
+    const toggleFitScreen = () => { isFitScreen.value = !isFitScreen.value; };
 
 
 
@@ -803,7 +809,8 @@ export default {
       showAllocationModal, loadingAllocations, savingAllocations, allocationsData, currentAllocationStat,
       allocationsDirty, openAllocationModal, closeAllocationModal, markAllocationsDirty, onBudgetLineChange,
       getAllocatedElsewhere, isCurrentMandate, validateAllocation, saveAllocations, arVerifiedTotals,
-      isPdfModalOpen, pdfFileUrl, openDocumentPreview, closePdfModal
+      isPdfModalOpen, pdfFileUrl, openDocumentPreview, closePdfModal,
+      isFitScreen, toggleFitScreen
     };
   }
 };
@@ -1188,6 +1195,24 @@ export default {
   background: #ffffff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   margin-top: 8px;
+}
+
+.app-wrapper.fit-screen .mandate-table {
+  table-layout: fixed;
+  min-width: 0;
+}
+
+.app-wrapper.fit-screen .mandate-table th,
+.app-wrapper.fit-screen .mandate-table td {
+  padding-left: 6px;
+  padding-right: 6px;
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+
+.app-wrapper.fit-screen .mandate-table .th-mandate,
+.app-wrapper.fit-screen .mandate-table .th-activity {
+  min-width: 0 !important;
 }
 .mandate-table {
   width: 100%;

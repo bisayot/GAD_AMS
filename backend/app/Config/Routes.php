@@ -178,6 +178,8 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     // Modification requests
     $routes->options('activity-designs/(:num)/request-modification', 'AuthController::handleOptions');
     $routes->post('activity-designs/(:num)/request-modification', 'ActivityDesignController::requestModification/$1');
+    $routes->options('activity-designs/(:num)/request-cancellation', 'AuthController::handleOptions');
+    $routes->post('activity-designs/(:num)/request-cancellation', 'ActivityDesignController::requestCancellation/$1');
     $routes->options('activity-designs/(:num)/approve-modification', 'AuthController::handleOptions');
     $routes->post('activity-designs/(:num)/approve-modification', 'ActivityDesignController::approveModification/$1');
     $routes->options('activity-designs/(:num)/reject-modification', 'AuthController::handleOptions');
@@ -190,6 +192,8 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     // Disapprove and Revert
     $routes->options('disapprove-design/(:num)', 'AuthController::handleOptions');
     $routes->post('disapprove-design/(:num)', 'ActivityDesignController::disapproveDesign/$1');
+    $routes->options('cancel-design/(:num)', 'AuthController::handleOptions');
+    $routes->post('cancel-design/(:num)', 'ActivityDesignController::cancelDesign/$1');
     $routes->options('revert-design/(:num)', 'AuthController::handleOptions');
     $routes->post('revert-design/(:num)', 'ActivityDesignController::revertDecision/$1');
 
@@ -412,8 +416,17 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     // GPB PLAN AND BUDGET ROUTES (new)
     // ----------------------------------------------------------------
     $routes->options('plan', 'AuthController::handleOptions');
-    $routes->get('plan', 'PlanController::getPlan');
-    $routes->post('plan', 'PlanController::savePlan');
+    $routes->get('plan', 'PlanController::getPlan', ['filter' => 'jwtAuth']);
+    $routes->post('plan', 'PlanController::savePlan', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
+    $routes->options('plan/reset', 'AuthController::handleOptions');
+    $routes->post('plan/reset', 'PlanController::resetPlan', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
+
+    $routes->options('budget-history', 'AuthController::handleOptions');
+    $routes->get('budget-history', 'BudgetHistoryController::index', ['filter' => 'jwtAuth']);
+    $routes->options('budget-history/(:num)', 'AuthController::handleOptions');
+    $routes->get('budget-history/(:num)', 'BudgetHistoryController::show/$1', ['filter' => 'jwtAuth']);
+    $routes->options('budget-history/(:num)/restore', 'AuthController::handleOptions');
+    $routes->post('budget-history/(:num)/restore', 'BudgetHistoryController::restore/$1', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
 
     // ----------------------------------------------------------------
     // SETTINGS ROUTES (new)
@@ -448,6 +461,7 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     $routes->options('news-iec', 'AuthController::handleOptions');
     $routes->get('news-iec', 'NewsIecController::index');
     $routes->post('news-iec', 'NewsIecController::create', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
+    $routes->post('news-iec/(:num)', 'NewsIecController::update/$1', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
     $routes->options('news-iec/(:num)', 'AuthController::handleOptions');
     $routes->get('news-iec/(:num)', 'NewsIecController::show/$1');
     $routes->delete('news-iec/(:num)', 'NewsIecController::delete/$1', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
@@ -455,10 +469,10 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
 
 $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     $routes->options('gpb/import', 'AuthController::handleOptions');
-    $routes->post('gpb/import', 'GpbController::import');
+    $routes->post('gpb/import', 'GpbController::import', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
     $routes->options('gpb/item', 'AuthController::handleOptions');
-    $routes->get('gpb/item', 'GpbController::index');
-    $routes->post('gpb/item', 'GpbController::create');
+    $routes->get('gpb/item', 'GpbController::index', ['filter' => 'jwtAuth']);
+    $routes->post('gpb/item', 'GpbController::create', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
     $routes->options('gpb/item/(:segment)', 'AuthController::handleOptions');
     $routes->get('gpb/item/(:segment)', 'GpbController::show/$1');
     $routes->put('gpb/item/(:segment)', 'GpbController::update/$1');
@@ -470,6 +484,7 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     $routes->get('annual-reports/archive', 'AnnualReportArchiveController::index');
     $routes->options('annual-reports/archive/(:num)', 'AuthController::handleOptions');
     $routes->get('annual-reports/archive/(:num)', 'AnnualReportArchiveController::show/$1');
+    $routes->delete('annual-reports/archive/(:num)', 'AnnualReportArchiveController::delete/$1', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
 
     // Holiday API Routes
     $routes->options('holidays', 'AuthController::handleOptions');
