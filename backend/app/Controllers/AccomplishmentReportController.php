@@ -60,8 +60,31 @@ class AccomplishmentReportController extends BaseController
             }
 
             $db = \Config\Database::connect();
-            $controlRecord = $db->table('activity_design')->select('act_design_id')->where('control_number', $this->request->getPost("control_number"))->get()->getRowArray();
+            $controlRecord = $db->table('activity_design')->select('act_design_id, start_date, end_date')->where('control_number', $this->request->getPost("control_number"))->get()->getRowArray();
             $actDesignId = $controlRecord ? $controlRecord['act_design_id'] : null;
+
+            // --- Activity End Date & 15-Working-Day Deadline Guard ---
+            $rawEndDate = ($controlRecord && !empty($controlRecord['end_date'])) ? $controlRecord['end_date'] : $this->request->getPost("end_date");
+            $isLate = 0;
+            $submissionDeadline = null;
+
+            if (!empty($rawEndDate)) {
+                $today = new \DateTime('today');
+                $activityEndDate = new \DateTime(substr($rawEndDate, 0, 10));
+
+                if ($today < $activityEndDate) {
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'message' => 'Accomplishment Report cannot be submitted before the activity has concluded (End Date: ' . $activityEndDate->format('F d, Y') . '). Submission is only allowed within 15 working days following completion.'
+                    ])->setStatusCode(422);
+                }
+
+                $deadlineObj = \App\Libraries\CalendarService::addWorkingDays($activityEndDate, 15);
+                $submissionDeadline = $deadlineObj->format('Y-m-d');
+                if ($today > $deadlineObj) {
+                    $isLate = 1;
+                }
+            }
 
             // --- Duplicate guard: block submission if an active report with the same control_number exists ---
             $existingReport = $db->table('accomplishment_report')
@@ -93,6 +116,8 @@ class AccomplishmentReportController extends BaseController
                 "user_id"        => ($this->request->jwtPayload['sub'] ?? null) ?: $this->request->getPost("user_id"),
                 "attachment"     => json_encode($fileNames),
                 "status"         => "Pending",
+                "is_late"        => (int)($isLate || filter_var($this->request->getPost('is_late'), FILTER_VALIDATE_BOOLEAN)),
+                "submission_deadline" => $submissionDeadline,
             ];
 
             if (empty($data['user_id'])) {
@@ -322,7 +347,7 @@ class AccomplishmentReportController extends BaseController
         $db = \Config\Database::connect();
         
         $reports = $db->table('accomplishment_report as ar')
-            ->select('ar.id, ar.status, ar.control_number as control, ar.activity_title as title, DATE(ar.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, COALESCE(form_types.name, ad.form_type) as formLabel, ar.attachment')
+            ->select('ar.id, ar.status, ar.control_number as control, ar.activity_title as title, DATE(ar.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, COALESCE(form_types.name, ad.form_type) as formLabel, ar.attachment, ar.is_late, ar.submission_deadline')
             ->join('users', 'users.id = ar.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->join('activity_design as ad', 'ad.control_number = ar.control_number', 'left')
@@ -591,7 +616,7 @@ class AccomplishmentReportController extends BaseController
         $db = \Config\Database::connect();
 
         $reports = $db->table('accomplishment_report as ar')
-            ->select('ar.id, ar.status, ar.control_number as control, ar.activity_title as title, DATE(ar.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, COALESCE(form_types.name, ad.form_type) as formLabel')
+            ->select('ar.id, ar.status, ar.control_number as control, ar.activity_title as title, DATE(ar.created_at) as date, office_units.office_name as office, users.full_name as submitter_name, COALESCE(form_types.name, ad.form_type) as formLabel, ar.is_late, ar.submission_deadline')
             ->join('users', 'users.id = ar.user_id', 'left')
             ->join('office_units', 'office_units.office_id = users.office_id', 'left')
             ->join('activity_design as ad', 'ad.control_number = ar.control_number', 'left')

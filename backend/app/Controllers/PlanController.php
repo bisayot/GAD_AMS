@@ -207,6 +207,14 @@ class PlanController extends ResourceController
         if ($year < 2000 || $year > 2100) {
             return $this->failValidationErrors('A valid fiscal year is required.');
         }
+
+        $currentCalendarYear = (int)date('Y');
+        if ($year < $currentCalendarYear) {
+            return $this->failForbidden('Fiscal Year ' . $year . ' is a closed and archived period. You cannot reset past fiscal years.');
+        }
+
+        $isEarlyReset = !empty($input['early_reset']);
+
         try {
             $actorId = isset($payload['uid']) ? (int)$payload['uid'] : (isset($payload['id']) ? (int)$payload['id'] : null);
             $version = (new \App\Libraries\BudgetVersionService())->createReplacement(
@@ -216,6 +224,18 @@ class PlanController extends ResourceController
                 'reset',
                 $actorId
             );
+
+            if ($actorId) {
+                $userModel = new \App\Models\UserModel();
+                $actor = $userModel->find($actorId);
+                $actorName = $actor['full_name'] ?? 'User';
+                $logAction = $isEarlyReset ? 'Early Plan Reset' : 'Plan Reset';
+                $logDetails = $isEarlyReset 
+                    ? "{$actorName} performed an authorized Early Reset on active Fiscal Year {$year} after completing 3 security human verification challenges."
+                    : "{$actorName} reset the plan for Fiscal Year {$year}.";
+                \App\Models\ActivityLogModel::log($actorId, $logAction, $logDetails);
+            }
+
             return $this->respond(['status' => 'success', 'message' => 'A new empty plan version is active.', 'version' => $version]);
         } catch (\Throwable $e) {
             log_message('error', 'Plan reset failed: {message} in {file}:{line}', [

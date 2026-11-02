@@ -884,13 +884,6 @@ class ActivityDesignController extends BaseController
 
         NotificationService::send($item['user_id'], 'Activity Design Approved', 'Your Activity Design "' . $item['activity_title'] . '" has been approved.', '/staff/activity-designs', 'success');
 
-        NotificationService::sendToGadStaff(
-            'Allocate Budget for Approved AD',
-            'The Activity Design "' . $item['activity_title'] . '" has been approved and added to approved documents. Please allocate its budget.',
-            '/staff/budget-distribution',
-            'warning'
-        );
-
         \App\Libraries\FileStorage::moveToArchived($item['attachment']);
 
         return $this->response->setJSON([

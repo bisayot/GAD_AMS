@@ -224,6 +224,12 @@
     <input :disabled="isReadOnly" type="file" ref="excelImport" accept=".xlsx, .xls, .csv" style="display:none" @change="handleExcelImport">
 
     <PdfPreviewModal :isOpen="isPdfModalOpen" :fileUrl="pdfFileUrl" @close="closePdfModal" />
+    <EarlyResetHumanCheckerModal 
+      :isOpen="isHumanCheckerModalOpen" 
+      :fiscalYear="resetTargetYear" 
+      @close="isHumanCheckerModalOpen = false" 
+      @verified="handleHumanCheckerVerified" 
+    />
 
     <!-- BASELINE AMOUNTS MODAL -->
     <div v-if="isBaselineModalOpen" class="modal-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 9999;">
@@ -278,10 +284,11 @@ import * as XLSX from 'xlsx';
 import Chart from 'chart.js/auto';
 import api from '../../api';
 import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
+import EarlyResetHumanCheckerModal from '../../components/EarlyResetHumanCheckerModal.vue';
 
 export default {
   name: 'App',
-  components: { PdfPreviewModal },
+  components: { PdfPreviewModal, EarlyResetHumanCheckerModal },
   setup() {
     const userRole = JSON.parse(localStorage.getItem('user'))?.user_role?.toLowerCase() || '';
     const isReadOnly = false;
@@ -802,6 +809,21 @@ export default {
         try {
           const imported = JSON.parse(evt.target.result);
           if (!imported.org || !Array.isArray(imported.items)) throw new Error('Invalid');
+
+          const currentFiscalYear = new Date().getFullYear();
+          const importedYear = parseInt(imported.org?.year);
+          if (!isNaN(importedYear) && importedYear < currentFiscalYear) {
+            await Swal.fire({
+              title: 'Cannot Import Old Fiscal Year',
+              html: `The file you selected belongs to fiscal year <b>${importedYear}</b>, which is an old/closed fiscal year.<br><br>Importing past fiscal years into the active GAD Plan and Budget is strictly not permitted.`,
+              icon: 'error',
+              confirmButtonColor: '#e11d48',
+              confirmButtonText: 'Understood'
+            });
+            e.target.value = '';
+            return;
+          }
+
           imported.items = imported.items.map(it => ({ ...it, budgetLines: Array.isArray(it.budgetLines) ? it.budgetLines : [] }));
           const { isConfirmed } = await Swal.fire({title: 'Import this data?', text: 'This replaces your current plan.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes'});
           if (isConfirmed) {
@@ -1004,16 +1026,15 @@ export default {
              year: 'numeric'
           }).format(new Date()));
           if (importedFiscalYear < currentFiscalYear) {
-             const pastYearConfirmation = await Swal.fire({
-                title: 'Past fiscal year detected',
-                html: `This Excel file is from fiscal year <b>${importedFiscalYear}</b>, which is earlier than the current fiscal year <b>${currentFiscalYear}</b>.<br><br>Are you sure you want to import this past-year GAD Plan and Budget?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Yes, import past year',
-                cancelButtonText: 'Cancel',
-                confirmButtonColor: '#9333ea'
+             await Swal.fire({
+                title: 'Cannot Import Old Fiscal Year',
+                html: `The Excel file you selected belongs to fiscal year <b>${importedFiscalYear}</b>, which is an old/closed fiscal year.<br><br>Importing past fiscal years into the active GAD Plan and Budget is strictly not permitted.`,
+                icon: 'error',
+                confirmButtonColor: '#e11d48',
+                confirmButtonText: 'Understood'
              });
-             if (!pastYearConfirmation.isConfirmed) return;
+             e.target.value = '';
+             return;
           }
 
           const { isConfirmed } = await Swal.fire({
@@ -1144,10 +1165,78 @@ export default {
     }
 
     // ─── Reset ────────────────────────────────────────────────────────────────
-    async function resetToSeed() {
-      const currentYear = parseInt(state.value.org.year);
-      const yearToSet = isNaN(currentYear) ? new Date().getFullYear() : currentYear;
+    const isHumanCheckerModalOpen = ref(false);
+    const resetTargetYear = ref(new Date().getFullYear());
 
+    async function resetToSeed() {
+      const today = new Date();
+      const currentCalendarYear = today.getFullYear();
+      const currentYear = parseInt(state.value.org.year);
+      const yearToSet = isNaN(currentYear) ? currentCalendarYear : currentYear;
+
+      // Rule A: Past Fiscal Year -> Strictly Prohibited
+      if (yearToSet < currentCalendarYear) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Past Fiscal Year Closed',
+          html: `Fiscal Year <b>${yearToSet}</b> is a closed and archived period.<br><br>Past fiscal years cannot be reset.`,
+          confirmButtonColor: '#e11d48',
+          confirmButtonText: 'Understood'
+        });
+        return;
+      }
+
+      // Rule B: Active / Ongoing Year (yearToSet >= currentCalendarYear)
+      // Check if user wants to request an Early Reset
+      const { isConfirmed } = await Swal.fire({
+        title: `Fiscal Year ${yearToSet} Is Not Yet Finished`,
+        html: `The fiscal year <b>${yearToSet}</b> is currently active and has not concluded yet.<br><br>Normal plan reset is only permitted after the fiscal year has ended.<br><br>Do you want to proceed with an <b>Early Reset</b>?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Request Early Reset',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#9333ea',
+        cancelButtonColor: '#6b7280',
+        reverseButtons: true
+      });
+
+      if (!isConfirmed) return;
+
+      // Open the 3-round Custom Human Checker Modal
+      resetTargetYear.value = yearToSet;
+      isHumanCheckerModalOpen.value = true;
+    }
+
+    async function handleHumanCheckerVerified() {
+      const yearToSet = resetTargetYear.value;
+
+      // SweetAlert 2: Confirmation while within active fiscal year
+      const { isConfirmed } = await Swal.fire({
+        title: 'Confirm Early Reset in Active Fiscal Year?',
+        html: `
+          <div class="text-left text-sm space-y-2 mt-2">
+            <p>You have successfully passed all 3 human verification challenges.</p>
+            <p class="text-red-600 dark:text-red-400 font-bold">However, Fiscal Year ${yearToSet} is STILL actively ongoing.</p>
+            <p>Resetting early will freeze the current active plan into Budget History and clear the active plan while the fiscal year is in progress.</p>
+            <p class="font-semibold text-xs text-amber-600 dark:text-amber-400 mt-2">Do you really want to reset while still within the fiscal year?</p>
+          </div>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Proceed to Plan Reset',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#e11d48',
+        cancelButtonColor: '#6b7280',
+        reverseButtons: true
+      });
+
+      if (!isConfirmed) return;
+
+      // Proceed to SweetAlert 3 (Pre-reset summary dialog)
+      await proceedWithPlanReset(yearToSet, true);
+    }
+
+    async function proceedWithPlanReset(yearToSet, isEarlyReset = false) {
       let summaryHtml = '<p>The current plan will be stored into Budget History, and a new empty version will become active.</p>';
       try {
         const res = await api.get(`/plan/pre-reset-summary?fiscal_year=${yearToSet}`);
@@ -1198,7 +1287,7 @@ export default {
       };
       expandedCards.value = [];
       try { 
-        await api.post('/plan/reset', { year: yearToSet, org: state.value.org }); 
+        await api.post('/plan/reset', { year: yearToSet, org: state.value.org, early_reset: isEarlyReset }); 
         await Swal.fire('Plan Reset', `Version ${yearToSet} stored. New empty plan is active.`, 'success');
         await loadFromAPI(yearToSet);
       }
@@ -1358,6 +1447,7 @@ export default {
       addItemInline, markDirty, saveItem, savePlan,
       deleteItem, addBudgetLine, removeBudgetLine,
       handleFileImport, promptExcelImport, handleExcelImport, exportToExcel, resetToSeed,
+      isHumanCheckerModalOpen, resetTargetYear, handleHumanCheckerVerified,
     };
   }
 };

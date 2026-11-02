@@ -25,6 +25,17 @@ class NotificationController extends ResourceController
             return $this->failUnauthorized('Not logged in');
         }
 
+        // Passive check for AR deadlines (throttled to avoid redundant runs)
+        $cacheKey = 'ar_deadlines_last_checked_' . date('Ymd');
+        if (!cache($cacheKey)) {
+            cache()->save($cacheKey, time(), 3600 * 4);
+            try {
+                \App\Libraries\ArDeadlineService::checkAndDispatchDeadlines();
+            } catch (\Throwable $e) {
+                log_message('error', 'Passive AR deadline check failed: ' . $e->getMessage());
+            }
+        }
+
         $notificationModel = new NotificationModel();
         $notifications = $notificationModel->getUnread($userId);
         

@@ -148,6 +148,9 @@
                       >
                         {{ item.status }}
                       </span>
+                      <span v-if="item.is_late == 1" class="late-badge" title="Submitted after the 15 working days deadline">
+                        LATE
+                      </span>
                     </td>
                   </tr>
                 </tbody>
@@ -760,6 +763,24 @@ onMounted(() => {
 }
 
 :global(.dark) .status-badge-revision {
+  background: rgba(239, 68, 68, 0.25);
+  color: #f87171;
+}
+
+.late-badge {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.15rem 0.45rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 0.375rem;
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  vertical-align: middle;
+}
+
+:global(.dark) .late-badge {
   background: rgba(239, 68, 68, 0.25);
   color: #f87171;
 }

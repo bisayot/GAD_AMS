@@ -28,6 +28,37 @@
                     </select>
                   </div>
 
+                  <!-- Activity End Date & 15-Working-Day Deadline Status Banner -->
+                  <div v-if="form.control_number && isActivityOngoing" class="ar-status-banner ar-status-ongoing">
+                    <div class="ar-status-icon">⏳</div>
+                    <div class="ar-status-body">
+                      <div class="ar-status-title">Activity Not Yet Finished</div>
+                      <div class="ar-status-desc">
+                        This activity is scheduled to conclude on <strong>{{ activityEndDateFormatted }}</strong>. Accomplishment Reports can only be submitted within <strong>15 working days</strong> after activity implementation. Submission is currently locked.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div v-else-if="form.control_number && isSubmissionLate" class="ar-status-banner ar-status-late">
+                    <div class="ar-status-icon">⚠️</div>
+                    <div class="ar-status-body">
+                      <div class="ar-status-title">Late Submission Notice</div>
+                      <div class="ar-status-desc">
+                        The 15 working day deadline for this activity was <strong>{{ submissionDeadlineFormatted }}</strong>. Submitting this report now will be recorded and reviewed as a <strong>Late Submission</strong>.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div v-else-if="form.control_number && submissionDeadlineFormatted" class="ar-status-banner ar-status-open">
+                    <div class="ar-status-icon">📅</div>
+                    <div class="ar-status-body">
+                      <div class="ar-status-title">Submission Window Open</div>
+                      <div class="ar-status-desc">
+                        Activity concluded on <strong>{{ activityEndDateFormatted }}</strong>. You have <strong>{{ workingDaysRemaining }} working day(s)</strong> remaining to submit this report (Deadline: <strong>{{ submissionDeadlineFormatted }}</strong>).
+                      </div>
+                    </div>
+                  </div>
+
                   <div v-if="form.control_number" class="locked-section" @click="showLockedFieldAlert" @keydown.capture.prevent>
                   <div class="input-group-ar">
                     <label class="form-label-ar">Activity Title *</label>
@@ -551,10 +582,11 @@
                 <button 
                   type="submit" 
                   class="submit-action-btn"
-                  
-                  
+                  :disabled="isActivityOngoing"
+                  :class="{ 'btn-disabled': isActivityOngoing }"
+                  :title="isActivityOngoing ? 'Cannot submit report until the activity has finished' : ''"
                 >
-                  Submit Report →
+                  {{ isActivityOngoing ? 'Activity In Progress (Locked)' : (isSubmissionLate ? 'Submit Late Report →' : 'Submit Report →') }}
                 </button>
               </div>
             </form>
@@ -567,13 +599,20 @@
 
 <script setup>
 import { useHolidays } from '../../utils/useHolidays';
-const { isDisabledDate, fetchHolidays } = useHolidays();
+const { isDisabledDate, fetchHolidays, addWorkingDays, getWorkingDaysDiff } = useHolidays();
 import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import Swal from 'sweetalert2';
 import api from '../../api';
 import BudgetBuilder from '../../components/BudgetBuilder.vue';
 import AppTimePicker from '../../components/AppTimePicker.vue';
+
+const isActivityOngoing = ref(false);
+const isSubmissionLate = ref(false);
+const submissionDeadline = ref(null);
+const workingDaysRemaining = ref(null);
+const activityEndDateFormatted = ref('');
+const submissionDeadlineFormatted = ref('');
 
 const router = useRouter();
 const route = useRoute();
@@ -1016,7 +1055,15 @@ const isExceedingLimit = computed(() => {
 });
 
 watch(() => form.value.control_number, async (newVal) => {
-  if (!newVal) return;
+  if (!newVal) {
+    isActivityOngoing.value = false;
+    isSubmissionLate.value = false;
+    submissionDeadline.value = null;
+    workingDaysRemaining.value = null;
+    activityEndDateFormatted.value = '';
+    submissionDeadlineFormatted.value = '';
+    return;
+  }
   const selected = approvedControls.value.find(c => c.control_number === newVal);
   if (selected) {
     form.value.act_design_id = selected.act_design_id;
@@ -1025,6 +1072,52 @@ watch(() => form.value.control_number, async (newVal) => {
     form.value.end_date = selected.end_date;
     form.value.start_time = selected.start_time;
     form.value.end_time = selected.end_time;
+
+    // Check Activity End Date and 15 Working Days Deadline
+    if (selected.end_date) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const endDatePart = selected.end_date.substring(0, 10);
+      const [endY, endM, endD] = endDatePart.split('-').map(Number);
+      const activityEndDate = new Date(endY, endM - 1, endD);
+      activityEndDate.setHours(0, 0, 0, 0);
+
+      activityEndDateFormatted.value = activityEndDate.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      });
+
+      if (today < activityEndDate) {
+        isActivityOngoing.value = true;
+        isSubmissionLate.value = false;
+        submissionDeadline.value = null;
+        workingDaysRemaining.value = null;
+        submissionDeadlineFormatted.value = '';
+
+        Swal.fire({
+          icon: 'warning',
+          title: 'Activity Not Yet Finished',
+          html: `<p>This activity is scheduled to conclude on <strong>${activityEndDateFormatted.value}</strong>.</p><p style="margin-top: 10px; color: #666; font-size: 0.95rem;">Accomplishment Reports can only be submitted after the activity has finished, within <strong>15 working days</strong> following completion.</p>`,
+          confirmButtonText: 'Understood',
+          confirmButtonColor: '#b979cc'
+        });
+      } else {
+        isActivityOngoing.value = false;
+        const deadlineObj = addWorkingDays(activityEndDate, 15);
+        submissionDeadline.value = deadlineObj;
+        submissionDeadlineFormatted.value = deadlineObj.toLocaleDateString('en-US', {
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric'
+        });
+
+        const diffDays = getWorkingDaysDiff(today, deadlineObj);
+        workingDaysRemaining.value = diffDays;
+        isSubmissionLate.value = diffDays < 0;
+      }
+    }
     
     // Carry over schedule type and schedules
     form.value.schedule_type = selected.schedule_type || 'continuous';
@@ -1737,18 +1830,67 @@ const submitReport = async () => {
     return;
   }
 
-  const submitConfirm = await Swal.fire({
-    title: 'Confirm Submission',
-    text: 'Are you sure you want to submit this Accomplishment Report?',
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonText: 'Yes, Submit',
-    cancelButtonText: 'Cancel',
-    confirmButtonColor: '#b979cc'
-  });
-
-  if (!submitConfirm.isConfirmed) {
+  // 1. Guard: Cannot submit if activity has not ended yet
+  if (isActivityOngoing.value) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Cannot Submit Accomplishment Report',
+      html: `<p>The activity has not yet concluded (End Date: <strong>${activityEndDateFormatted.value}</strong>).</p><p style="margin-top: 10px; color: #666;">Accomplishment Reports can only be submitted after the activity has finished, within <strong>15 working days</strong> following completion.</p>`,
+      confirmButtonColor: '#b979cc'
+    });
     return;
+  }
+
+  // 2. Double-check dates directly
+  if (form.value.end_date) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const endDatePart = form.value.end_date.substring(0, 10);
+    const [endY, endM, endD] = endDatePart.split('-').map(Number);
+    const actEndDate = new Date(endY, endM - 1, endD);
+    actEndDate.setHours(0, 0, 0, 0);
+
+    if (today < actEndDate) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Cannot Submit Accomplishment Report',
+        html: `<p>The activity has not yet concluded (End Date: <strong>${activityEndDateFormatted.value || form.value.end_date}</strong>).</p><p style="margin-top: 10px; color: #666;">Accomplishment Reports can only be submitted after the activity has finished, within <strong>15 working days</strong> following completion.</p>`,
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
+  }
+
+  // 3. Option B: Late submission warning if past 15 working days
+  if (isSubmissionLate.value) {
+    const lateConfirm = await Swal.fire({
+      title: 'Late Submission Warning',
+      html: `The 15 working day submission deadline for this activity was <b>${submissionDeadlineFormatted.value}</b>.<br/><br/>Submitting this report now will be recorded and reviewed as a <b>Late Submission</b>.<br/><br/>Do you want to proceed?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Submit as Late',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#b979cc',
+      cancelButtonColor: '#6c757d'
+    });
+
+    if (!lateConfirm.isConfirmed) {
+      return;
+    }
+  } else {
+    const submitConfirm = await Swal.fire({
+      title: 'Confirm Submission',
+      text: 'Are you sure you want to submit this Accomplishment Report?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Submit',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#b979cc'
+    });
+
+    if (!submitConfirm.isConfirmed) {
+      return;
+    }
   }
 
   Swal.fire({
@@ -1837,6 +1979,13 @@ const submitReport = async () => {
     formData.append('female', form.value.female);
     formData.append('rating', form.value.rating);
     formData.append('user_id', user.value.id);
+    formData.append('is_late', isSubmissionLate.value ? 1 : 0);
+    if (submissionDeadline.value) {
+      const dlYear = submissionDeadline.value.getFullYear();
+      const dlMonth = String(submissionDeadline.value.getMonth() + 1).padStart(2, '0');
+      const dlDay = String(submissionDeadline.value.getDate()).padStart(2, '0');
+      formData.append('submission_deadline', `${dlYear}-${dlMonth}-${dlDay}`);
+    }
 
     if (form.value.gad_mandate_id) {
       formData.append('gad_mandate_id', Array.isArray(form.value.gad_mandate_id) ? form.value.gad_mandate_id.join(',') : form.value.gad_mandate_id);
@@ -2080,3 +2229,69 @@ onUnmounted(() => {
 </script>
 
 <style scoped src="../../assets/submit-ar-styles.css"></style>
+
+<style scoped>
+.ar-status-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  transition: all 0.2s ease;
+}
+.ar-status-ongoing {
+  background-color: #fff7ed;
+  border: 1px solid #fdba74;
+  color: #9a3412;
+}
+:deep(.dark) .ar-status-ongoing,
+.dark .ar-status-ongoing {
+  background-color: rgba(234, 88, 12, 0.15) !important;
+  border-color: rgba(251, 146, 60, 0.4) !important;
+  color: #fdba74 !important;
+}
+.ar-status-late {
+  background-color: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+}
+:deep(.dark) .ar-status-late,
+.dark .ar-status-late {
+  background-color: rgba(220, 38, 38, 0.15) !important;
+  border-color: rgba(248, 113, 113, 0.4) !important;
+  color: #fca5a5 !important;
+}
+.ar-status-open {
+  background-color: #f5f3ff;
+  border: 1px solid #c4b5fd;
+  color: #5b21b6;
+}
+:deep(.dark) .ar-status-open,
+.dark .ar-status-open {
+  background-color: rgba(124, 58, 237, 0.15) !important;
+  border-color: rgba(167, 139, 250, 0.4) !important;
+  color: #c4b5fd !important;
+}
+.ar-status-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.ar-status-body {
+  flex: 1;
+}
+.ar-status-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.btn-disabled {
+  opacity: 0.55 !important;
+  cursor: not-allowed !important;
+  background-color: #9ca3af !important;
+  border-color: #9ca3af !important;
+  box-shadow: none !important;
+}
+</style>

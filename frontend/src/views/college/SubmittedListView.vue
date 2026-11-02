@@ -189,6 +189,7 @@
                       <div class="item-title" style="display: flex; align-items: center; gap: 0.5rem;">
                         {{ item.title }}
                         <span v-if="isRush(item)" class="rush-badge">RUSH</span>
+                        <span v-if="item.is_late == 1" class="late-badge" title="Submitted after 15 working days deadline">LATE</span>
                       </div>
                     </td>
                     <td class="table-cell">
@@ -387,7 +388,8 @@ const fetchSubmissions = async () => {
         formClass: 'badge-blue',
         formLabel: 'Accomplishment Report',
         statusClass: `status-${st.replace(' ', '-')}`,
-        statusText: r.status
+        statusText: r.status,
+        is_late: r.is_late
       };
     });
 
@@ -466,3 +468,22 @@ onMounted(() => {
 </script>
 
 <style scoped src="../../assets/college-submitted-list-styles.css"></style>
+
+<style scoped>
+.late-badge {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  border-radius: 0.375rem;
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  vertical-align: middle;
+}
+:deep(.dark) .late-badge,
+.dark .late-badge {
+  background: rgba(239, 68, 68, 0.25);
+  color: #f87171;
+}
+</style>
