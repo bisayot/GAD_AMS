@@ -604,14 +604,48 @@ class BackupController extends ResourceController
 
     private function getPublicUploadDirectories(): array
     {
-        $publicRoot = rtrim(FCPATH, DIRECTORY_SEPARATOR);
-        $directories = [$publicRoot . DIRECTORY_SEPARATOR . 'uploads'];
+        $candidates = [];
 
+        // 1. Direct FCPATH uploads (e.g. when web request runs from api/ or public/)
+        $publicRoot = rtrim(FCPATH, DIRECTORY_SEPARATOR);
+        $candidates[] = $publicRoot . DIRECTORY_SEPARATOR . 'uploads';
         if (strtolower(basename($publicRoot)) !== 'api') {
-            $directories[] = $publicRoot . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . 'uploads';
+            $candidates[] = $publicRoot . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . 'uploads';
         }
 
-        return array_values(array_unique($directories));
+        // 2. Relative to ROOTPATH (backend/)
+        // In CLI/cron (spark backups:run) on Hostinger or local, FCPATH defaults to backend/public.
+        // The real 'api' folder lives as a sibling/parent directory to 'backend'.
+        $backendParent = dirname(rtrim(ROOTPATH, DIRECTORY_SEPARATOR));
+        $backendGrandparent = dirname($backendParent);
+
+        $candidates[] = $backendParent . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . 'uploads';
+        $candidates[] = $backendParent . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . 'uploads';
+        $candidates[] = $backendParent . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'uploads';
+        $candidates[] = $backendParent . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'uploads';
+        $candidates[] = $backendParent . DIRECTORY_SEPARATOR . 'uploads';
+
+        $candidates[] = $backendGrandparent . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . 'uploads';
+        $candidates[] = $backendGrandparent . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . 'uploads';
+        $candidates[] = $backendGrandparent . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'uploads';
+
+        // 3. Filter only directories that actually exist on the filesystem
+        $existing = [];
+        foreach ($candidates as $dir) {
+            $real = realpath($dir);
+            if ($real && is_dir($real)) {
+                $existing[] = $real;
+            } elseif (is_dir($dir)) {
+                $existing[] = $dir;
+            }
+        }
+
+        // Fallback to default if no directories physically exist yet
+        if (empty($existing)) {
+            $existing[] = $publicRoot . DIRECTORY_SEPARATOR . 'uploads';
+        }
+
+        return array_values(array_unique($existing));
     }
 
     private function backupDateFromId($id): string
