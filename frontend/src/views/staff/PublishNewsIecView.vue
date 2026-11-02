@@ -874,7 +874,6 @@ const deleteItem = (id) => {
    ========================================================================== */
 .preview-modal-backdrop {
   background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(4px);
 }
 
 .preview-modal-title {

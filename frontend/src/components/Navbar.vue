@@ -211,7 +211,7 @@ const navItems = [
   .mobile-menu-header { display: flex; justify-content: space-between; align-items: center; width: 100%; border-bottom: 1px solid var(--color-outline-variant); padding-bottom: 20px; }
   .mobile-menu-brand { display: flex; align-items: center; gap: 12px; }
   .close-menu-btn { background: transparent; border: none; color: var(--color-on-surface); font-size: 24px; cursor: pointer; padding: 0; font-weight: bold; }
-  .mobile-backdrop { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 51; backdrop-filter: blur(4px); }
+  .mobile-backdrop { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 51; }
   
   .mobile-menu-footer { margin-top: auto; width: 100%; border-top: 1px solid var(--color-outline-variant); padding-top: 24px; }
   .mobile-portal-btn { width: 100%; justify-content: center; }

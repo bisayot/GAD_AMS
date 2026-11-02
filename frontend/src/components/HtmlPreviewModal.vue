@@ -75,8 +75,6 @@ const close = () => {
   right: 0;
   bottom: 0;
   background: radial-gradient(circle at center, rgba(15, 23, 42, 0.8) 0%, rgba(0, 0, 0, 0.95) 100%);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -106,13 +104,7 @@ const close = () => {
   border-radius: 26px;
   z-index: -1;
   opacity: 0.3;
-  filter: blur(15px);
-  animation: glow-pulse 4s infinite alternate;
-}
-
-@keyframes glow-pulse {
-  0% { opacity: 0.2; transform: scale(0.99); filter: blur(10px); }
-  100% { opacity: 0.5; transform: scale(1.01); filter: blur(20px); }
+  /* Keep the preview glow static; animating a large blurred layer is costly. */
 }
 
 @keyframes modal-float-in {

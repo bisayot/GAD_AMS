@@ -208,7 +208,6 @@ watch(() => props.userId, (newVal) => {
   inset: 0;
   z-index: 9999;
   background-color: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;

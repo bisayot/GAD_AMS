@@ -1971,7 +1971,6 @@ footer.note {
 .modal-backdrop {
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.75);
-  backdrop-filter: blur(6px);
   z-index: 200;
   display: flex; align-items: flex-start; justify-content: center;
   padding: 40px 20px;
