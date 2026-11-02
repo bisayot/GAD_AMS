@@ -86,8 +86,8 @@ class UserManagementController extends ResourceController
                 $profileModel->insert($profileData);
             }
 
-            $actionUserId = $this->request->getHeaderLine('X-User-Id');
-            if ($actionUserId) {
+            $actionUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+            if ($actionUserId > 0) {
                 \App\Models\ActivityLogModel::log($actionUserId, 'Register User', 'created a new user: ' . $data['full_name']);
             }
 
@@ -179,8 +179,8 @@ class UserManagementController extends ResourceController
             }
         }
 
-        $actionUserId = $this->request->getHeaderLine('X-User-Id');
-        if ($actionUserId) {
+        $actionUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        if ($actionUserId > 0) {
             \App\Models\ActivityLogModel::log($actionUserId, 'Update User', 'updated user account: ' . $data['full_name']);
         }
 
@@ -202,11 +202,11 @@ class UserManagementController extends ResourceController
             return $this->fail('Cannot suspend an Administrator account.');
         }
 
-        $actionUserId = $callerId ?: $this->request->getHeaderLine('X-User-Id');
+        $actionUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
 
         $db->table('users')->where('id', $id)->update(['deleted_at' => date('Y-m-d H:i:s')]);
         
-        if ($actionUserId) {
+        if ($actionUserId > 0) {
             \App\Models\ActivityLogModel::log($actionUserId, 'Suspend User', 'suspended user account: ' . $user['full_name']);
         }
         
@@ -221,12 +221,11 @@ class UserManagementController extends ResourceController
         $user = $db->table('users')->where('id', $id)->get()->getRowArray();
         if (!$user) return $this->failNotFound('User not found');
 
-        $payload = $this->request->jwtPayload ?? null;
-        $actionUserId = $payload['sub'] ?? $this->request->getHeaderLine('X-User-Id');
+        $actionUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
 
         $db->table('users')->where('id', $id)->update(['deleted_at' => null]);
         
-        if ($actionUserId) {
+        if ($actionUserId > 0) {
             \App\Models\ActivityLogModel::log($actionUserId, 'Restore User', 'restored user account: ' . $user['full_name']);
         }
         
@@ -248,7 +247,7 @@ class UserManagementController extends ResourceController
             return $this->fail('Cannot delete an Administrator account.');
         }
 
-        $actionUserId = $callerId ?: $this->request->getHeaderLine('X-User-Id');
+        $actionUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
 
         // Remove login credentials to prevent access but keep the ID and name for data integrity
         $db->table('users')->where('id', $id)->update([
@@ -605,9 +604,8 @@ class UserManagementController extends ResourceController
 
         $userModel->update($id, ['approval_status' => 'approved']);
 
-        $payload = $this->request->jwtPayload ?? null;
-        $actionUserId = $payload['sub'] ?? $this->request->getHeaderLine('X-User-Id');
-        if ($actionUserId) {
+        $actionUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        if ($actionUserId > 0) {
             \App\Models\ActivityLogModel::log($actionUserId, 'Approve User', 'approved the registration of: ' . $user['full_name']);
         }
 
@@ -632,9 +630,8 @@ class UserManagementController extends ResourceController
         if (!$user) return $this->failNotFound('User not found');
 
         // Log the decision before deleting the record
-        $payload = $this->request->jwtPayload ?? null;
-        $actionUserId = $payload['sub'] ?? $this->request->getHeaderLine('X-User-Id');
-        if ($actionUserId) {
+        $actionUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        if ($actionUserId > 0) {
             \App\Models\ActivityLogModel::log($actionUserId, 'Decline User', 'declined and deleted the registration of: ' . $user['full_name'] . ($reason !== '' ? ' — Reason: ' . $reason : ''));
         }
 

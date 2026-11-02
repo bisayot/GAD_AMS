@@ -17,7 +17,8 @@ class AnnualReportArchiveController extends BaseController
             return $this->fail('Fiscal year and HTML content are required');
         }
 
-        $userId = $this->request->getHeaderLine('X-User-Id') ?: null;
+        $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        $userId = $authUserId > 0 ? $authUserId : null;
         $fiscalYear = (int)$data->fiscal_year;
         $db = \Config\Database::connect();
         $version = $db->tableExists('budget_versions')

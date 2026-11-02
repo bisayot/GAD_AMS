@@ -386,10 +386,10 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     // FILE SERVING ROUTES (serve PDFs from writable/uploads)
     // ----------------------------------------------------------------
     $routes->options('files/drafts/(:segment)', 'AuthController::handleOptions');
-    $routes->get('files/drafts/(:segment)', 'FileController::serveDraft/$1');
+    $routes->get('files/drafts/(:segment)', 'FileController::serveDraft/$1', ['filter' => 'jwtAuth']);
 
     $routes->options('files/archived/(:segment)', 'AuthController::handleOptions');
-    $routes->get('files/archived/(:segment)', 'FileController::serveArchived/$1');
+    $routes->get('files/archived/(:segment)', 'FileController::serveArchived/$1', ['filter' => 'jwtAuth']);
 
     $routes->options('files/avatars/(:segment)', 'AuthController::handleOptions');
     $routes->get('files/avatars/(:segment)', 'FileController::serveAvatar/$1');
@@ -425,8 +425,11 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     $routes->get('budget-history', 'BudgetHistoryController::index', ['filter' => 'jwtAuth']);
     $routes->options('budget-history/(:num)', 'AuthController::handleOptions');
     $routes->get('budget-history/(:num)', 'BudgetHistoryController::show/$1', ['filter' => 'jwtAuth']);
-    $routes->options('budget-history/(:num)/restore', 'AuthController::handleOptions');
-    $routes->post('budget-history/(:num)/restore', 'BudgetHistoryController::restore/$1', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
+    $routes->options('budget-history/(:num)/export-html', 'AuthController::handleOptions');
+    $routes->get('budget-history/(:num)/export-html', 'BudgetHistoryController::exportHtml/$1', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
+
+    $routes->options('plan/pre-reset-summary', 'AuthController::handleOptions');
+    $routes->get('plan/pre-reset-summary', 'PlanController::preResetSummary', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
 
     // ----------------------------------------------------------------
     // SETTINGS ROUTES (new)

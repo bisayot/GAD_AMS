@@ -11,7 +11,7 @@ class DocumentTrashController extends BaseController
     public function getTrashedDocuments()
     {
         $db = \Config\Database::connect();
-        $actionUserId = $this->request->getHeaderLine('X-User-Id');
+        $actionUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
         $actionUser = (new \App\Models\UserModel())->find($actionUserId);
         $actionRole = strtolower($actionUser['role'] ?? '');
         $isAdmin = $actionRole === 'admin';
@@ -140,7 +140,7 @@ class DocumentTrashController extends BaseController
             }
         }
         
-        $actionUserId = $this->request->getHeaderLine('X-User-Id');
+        $actionUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
         $userModel = new \App\Models\UserModel();
         $actionUser = $userModel->find($actionUserId);
         $actionRole = strtolower($actionUser['role'] ?? '');
@@ -229,7 +229,7 @@ class DocumentTrashController extends BaseController
             }
         }
 
-        $actionUserId = $this->request->getHeaderLine('X-User-Id');
+        $actionUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
         $userModel = new \App\Models\UserModel();
         $actionUser = $userModel->find($actionUserId);
         $actionRole = strtolower($actionUser['role'] ?? '');

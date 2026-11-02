@@ -70,7 +70,8 @@ class ArchiveController extends Controller
 
         $db->table('activity_design')->where('act_design_id', $id)->update(['is_archived' => 1]);
         
-        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
+        $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        $actionUserId = $authUserId > 0 ? $authUserId : $design['user_id'];
         \App\Models\ActivityLogModel::log($actionUserId, 'Approve Document', 'approved Activity Design: ' . $design['activity_title']);
         return $this->respond(['success' => true, 'message' => 'Design added to approved documents successfully.']);
     }
@@ -94,7 +95,8 @@ class ArchiveController extends Controller
 
         $db->table('accomplishment_report')->where('id', $id)->update(['is_archived' => 1]);
         
-        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $report['user_id'];
+        $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        $actionUserId = $authUserId > 0 ? $authUserId : $report['user_id'];
         \App\Models\ActivityLogModel::log($actionUserId, 'Approve Document', 'approved Accomplishment Report: ' . $report['activity_title']);
         return $this->respond(['success' => true, 'message' => 'Report added to approved documents successfully.']);
     }

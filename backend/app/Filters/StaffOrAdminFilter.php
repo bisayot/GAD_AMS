@@ -20,7 +20,7 @@ use CodeIgniter\HTTP\ResponseInterface;
  */
 class StaffOrAdminFilter implements FilterInterface
 {
-    private const ALLOWED_ROLES = ['admin', 'gad_staff', 'staff', 'superadmin'];
+    private const ALLOWED_ROLES = ['admin', 'director', 'gad_staff', 'staff', 'superadmin'];
 
     public function before(RequestInterface $request, $arguments = null)
     {
@@ -36,7 +36,9 @@ class StaffOrAdminFilter implements FilterInterface
                 ->setJSON(['status' => 401, 'message' => 'Unauthorized. [StaffOrAdminFilter]']);
         }
 
-        if (!in_array($payload['role'] ?? '', self::ALLOWED_ROLES, true)) {
+        $role = strtolower(trim((string)($payload['role'] ?? $payload['user_role'] ?? '')));
+        $normalizedRole = str_replace(['-', ' '], '_', $role);
+        if (!in_array($normalizedRole, self::ALLOWED_ROLES, true) && !in_array($role, self::ALLOWED_ROLES, true)) {
             $method = strtoupper($request->getMethod());
             $uriPath = method_exists($request, 'getPath') ? $request->getPath() : trim($request->getUri()->getPath(), '/');
 

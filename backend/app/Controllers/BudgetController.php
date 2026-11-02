@@ -557,6 +557,13 @@ class BudgetController extends Controller
         }
 
         try {
+            $versionService = new \App\Libraries\BudgetVersionService($db);
+            $versionService->assertItemModifiable((int)$gpbId);
+        } catch (\InvalidArgumentException $e) {
+            return $this->failForbidden($e->getMessage());
+        }
+
+        try {
             $db->transStart();
 
             // Generate reference number

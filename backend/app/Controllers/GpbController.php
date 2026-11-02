@@ -67,6 +67,14 @@ class GpbController extends BaseController
         if (!$item) {
             return $this->failNotFound('Item not found');
         }
+
+        try {
+            $versionService = new \App\Libraries\BudgetVersionService();
+            $versionService->assertItemModifiable((int)$id);
+        } catch (\InvalidArgumentException $e) {
+            return $this->failForbidden($e->getMessage());
+        }
+
         $data = $this->request->getJSON(true);
         $data['id'] = $id;
         if ($model->save($data)) {
@@ -79,9 +87,22 @@ class GpbController extends BaseController
     public function delete($id = null)
     {
         $model = new GpbModel();
+        $item = $model->find($id);
+        if (!$item) {
+            return $this->failNotFound('Item not found');
+        }
+
+        try {
+            $versionService = new \App\Libraries\BudgetVersionService();
+            $versionService->assertItemModifiable((int)$id);
+        } catch (\InvalidArgumentException $e) {
+            return $this->failForbidden($e->getMessage());
+        }
+
         if ($model->delete($id)) {
             return $this->respondDeleted(['success' => true]);
         }
+        return $this->failServerError('Failed to delete item.');
     }
 
     // Bulk import items

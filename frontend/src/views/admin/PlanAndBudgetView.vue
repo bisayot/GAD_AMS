@@ -949,11 +949,42 @@ export default {
 
     // ─── Reset ────────────────────────────────────────────────────────────────
     async function resetToSeed() {
-      const { isConfirmed } = await Swal.fire({title: 'Reset Plan?', text: 'The current plan will be preserved in Budget History and a new empty version will become active.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Create Empty Version'});
-      if (!isConfirmed) return;
-      
       const currentYear = parseInt(state.value.org.year);
       const yearToSet = isNaN(currentYear) ? new Date().getFullYear() : currentYear;
+
+      let summaryHtml = '<p>The current plan will be stored into Budget History, and a new empty version will become active.</p>';
+      try {
+        const res = await api.get(`/plan/pre-reset-summary?fiscal_year=${yearToSet}`);
+        if (res.data) {
+          const s = res.data;
+          const formatP = (n) => '₱' + Number(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 });
+          summaryHtml = `
+            <div class="text-left text-sm space-y-2 mt-2">
+              <p>The current active plan will be stored as <strong>Version ${s.version_number}</strong>, and a new empty <strong>Version ${s.next_version_number}</strong> will become active.</p>
+              <div class="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg space-y-1 text-xs">
+                <p><strong>GPB Items to Store:</strong> ${s.item_count} items (${formatP(s.total_proposed)})</p>
+                <p><strong>Approved Activity Designs:</strong> ${s.ad_count}</p>
+                <p><strong>Verified Accomplishments:</strong> ${s.ar_count} reports (${formatP(s.total_utilized)} utilized)</p>
+              </div>
+              <p class="text-amber-600 dark:text-amber-400 font-semibold text-xs">This action cannot be undone. Are you sure you want to proceed?</p>
+            </div>
+          `;
+        }
+      } catch (err) {
+        console.error('Failed to load pre-reset summary', err);
+      }
+
+      const { isConfirmed } = await Swal.fire({
+        title: `Reset FY ${yearToSet} Plan?`,
+        html: summaryHtml,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Proceed and Store',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#e11d48',
+        reverseButtons: true
+      });
+      if (!isConfirmed) return;
       
       state.value = {
         settings: { apiBaseUrl: '' },
@@ -970,7 +1001,11 @@ export default {
         items: []
       };
       expandedCards.value = [];
-      try { await api.post('/plan/reset', { year: yearToSet, org: state.value.org }); }
+      try { 
+        await api.post('/plan/reset', { year: yearToSet, org: state.value.org }); 
+        await Swal.fire('Plan Reset', `Version ${yearToSet} stored. New empty plan is active.`, 'success');
+        await loadFromAPI(yearToSet);
+      }
       catch(e) { Swal.fire('Reset failed', e.response?.data?.message || 'The plan was not reset.', 'error'); }
     }
 

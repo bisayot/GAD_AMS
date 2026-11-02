@@ -325,7 +325,8 @@ class AuthController extends ResourceController
                 ]);
             }
 
-            $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $newUserId;
+            $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+            $actionUserId = $authUserId > 0 ? $authUserId : $newUserId;
             \App\Models\ActivityLogModel::log($actionUserId, 'Register User', 'registered a new user: ' . $data['fullname']);
 
             // Notify admins and staff

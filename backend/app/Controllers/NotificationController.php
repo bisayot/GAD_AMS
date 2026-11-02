@@ -11,7 +11,8 @@ class NotificationController extends ResourceController
 {
     private function getUserId()
     {
-        return $this->request->getHeaderLine('X-User-Id');
+        $userId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        return $userId > 0 ? (string)$userId : null;
     }
 
     /**

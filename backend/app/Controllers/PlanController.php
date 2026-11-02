@@ -65,17 +65,6 @@ class PlanController extends ResourceController
             ->get()
             ->getResultArray();
 
-        $restoredMonitoringByKey = [];
-        if ($version && ($version['source'] ?? '') === 'restore' && $db->tableExists('budget_version_monitoring_snapshots')) {
-            $snapshot = $db->table('budget_version_monitoring_snapshots')
-                ->where('plan_version_id', $version['id'])->get()->getRowArray();
-            foreach (json_decode($snapshot['rows_data'] ?? '[]', true) ?: [] as $snapshotRow) {
-                if (!empty($snapshotRow['item_key'])) {
-                    $restoredMonitoringByKey[$snapshotRow['item_key']] = $snapshotRow;
-                }
-            }
-        }
-
         // Get actual accomplishment results for each mandate by looking up the linked Activity Designs
         $arDataQuery = $db->table('activity_design_mandates adm')
             ->select('adm.mandate_id as gpb_item_id, ar.id as ar_id, ar.male, ar.female')
@@ -142,16 +131,6 @@ class PlanController extends ResourceController
                 unset($bl);
             }
 
-            $restoredMonitoring = $restoredMonitoringByKey[$item['item_key'] ?? ''] ?? null;
-            if ($restoredMonitoring && $budgetLines) {
-                foreach ($budgetLines as $lineIndex => &$budgetLine) {
-                    $budgetLine['utilized_budget'] = $lineIndex === 0
-                        ? (float)($restoredMonitoring['utilized'] ?? 0)
-                        : 0;
-                }
-                unset($budgetLine);
-            }
-
             $processedItems[] = [
                 'id' => (string) $item['id'],
                 'item_key' => $item['item_key'] ?? null,
@@ -166,12 +145,8 @@ class PlanController extends ResourceController
                 'budgetLines' => $budgetLines,
                 'budget' => (float)($item['budget'] ?? 0),
                 'source' => $item['source'] ?? 'GAA',
-                'actualResult_m' => $restoredMonitoring
-                    ? (int)($restoredMonitoring['actual_result_m'] ?? 0)
-                    : (isset($arHeadcounts[$item['id']]) ? $arHeadcounts[$item['id']]['male'] : 0),
-                'actualResult_f' => $restoredMonitoring
-                    ? (int)($restoredMonitoring['actual_result_f'] ?? 0)
-                    : (isset($arHeadcounts[$item['id']]) ? $arHeadcounts[$item['id']]['female'] : 0),
+                'actualResult_m' => isset($arHeadcounts[$item['id']]) ? (int)$arHeadcounts[$item['id']]['male'] : 0,
+                'actualResult_f' => isset($arHeadcounts[$item['id']]) ? (int)$arHeadcounts[$item['id']]['female'] : 0,
             ];
         }
 
@@ -222,7 +197,9 @@ class PlanController extends ResourceController
     public function resetPlan()
     {
         $payload = $this->request->jwtPayload ?? [];
-        if (!in_array($payload['role'] ?? '', ['admin', 'gad_staff', 'staff', 'superadmin'], true)) {
+        $role = strtolower(trim((string)($payload['role'] ?? $payload['user_role'] ?? '')));
+        $normalizedRole = str_replace(['-', ' '], '_', $role);
+        if (!in_array($normalizedRole, ['admin', 'director', 'gad_staff', 'staff', 'superadmin'], true)) {
             return $this->failForbidden('Staff or Administrator access required to reset the plan.');
         }
         $input = $this->request->getJSON(true) ?: [];
@@ -241,8 +218,12 @@ class PlanController extends ResourceController
             );
             return $this->respond(['status' => 'success', 'message' => 'A new empty plan version is active.', 'version' => $version]);
         } catch (\Throwable $e) {
-            log_message('error', 'Plan reset failed: {message}', ['message' => $e->getMessage()]);
-            return $this->failServerError('Plan reset failed and was rolled back.');
+            log_message('error', 'Plan reset failed: {message} in {file}:{line}', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            return $this->failServerError('Plan reset failed: ' . $e->getMessage());
         }
     }
 
@@ -693,5 +674,69 @@ class PlanController extends ResourceController
         }
 
         return $this->respond(['success' => true]);
+    }
+
+    /**
+     * Get live summary of items and verified accomplishments before resetting plan
+     */
+    public function preResetSummary()
+    {
+        $db = \Config\Database::connect();
+        $requestedYear = (int)($this->request->getGet('fiscal_year') ?: date('Y'));
+        $versionService = new \App\Libraries\BudgetVersionService($db);
+        $activeVersion = $versionService->active($requestedYear);
+
+        $itemCount = 0;
+        $totalProposed = 0.0;
+        $adCount = 0;
+        $arCount = 0;
+        $totalUtilized = 0.0;
+
+        if ($activeVersion) {
+            $items = $db->table('gpb_items')
+                ->where('plan_version_id', $activeVersion['id'])
+                ->get()
+                ->getResultArray();
+            $itemCount = count($items);
+            foreach ($items as $item) {
+                $totalProposed += (float)($item['total_budget'] ?? 0);
+            }
+
+            $adRow = $db->table('activity_design_mandates adm')
+                ->join('gpb_items gi', 'gi.id = adm.mandate_id')
+                ->join('activity_design ad', 'ad.act_design_id = adm.act_design_id')
+                ->where('gi.plan_version_id', $activeVersion['id'])
+                ->where('ad.status', 'Approved')
+                ->where('ad.deleted_at', null)
+                ->select('COUNT(DISTINCT ad.act_design_id) as ad_count')
+                ->get()
+                ->getRowArray();
+            $adCount = (int)($adRow['ad_count'] ?? 0);
+
+            $arRow = $db->table('budget_item_mandate_allocations bima')
+                ->join('gpb_items gi', 'gi.id = bima.mandate_id')
+                ->join('accomplishment_budget_items abi', 'abi.id = bima.budget_item_id')
+                ->join('accomplishment_report ar', 'ar.id = abi.accomplishment_report_id')
+                ->where('gi.plan_version_id', $activeVersion['id'])
+                ->where('bima.item_type', 'AR')
+                ->where('ar.status', 'Verified')
+                ->where('ar.deleted_at', null)
+                ->select('COUNT(DISTINCT ar.id) as ar_count, COALESCE(SUM(bima.allocated_amount), 0) as total_utilized')
+                ->get()
+                ->getRowArray();
+            $arCount = (int)($arRow['ar_count'] ?? 0);
+            $totalUtilized = (float)($arRow['total_utilized'] ?? 0.0);
+        }
+
+        return $this->respond([
+            'fiscal_year' => $requestedYear,
+            'version_number' => (int)($activeVersion['version_number'] ?? 1),
+            'next_version_number' => (int)(($activeVersion['version_number'] ?? 1) + 1),
+            'item_count' => $itemCount,
+            'ad_count' => $adCount,
+            'total_proposed' => $totalProposed,
+            'ar_count' => $arCount,
+            'total_utilized' => $totalUtilized,
+        ]);
     }
 }

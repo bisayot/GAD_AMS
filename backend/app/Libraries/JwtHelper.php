@@ -2,12 +2,27 @@
 
 namespace App\Libraries;
 
+use CodeIgniter\HTTP\RequestInterface;
+
 /**
  * Pure-PHP JWT Helper (HS256)
  * No external libraries needed — uses PHP built-in hash_hmac + base64.
  */
 class JwtHelper
 {
+    /**
+     * Extract authenticated user ID from JWT payload 'sub' claim.
+     * Returns 0 if payload is missing or invalid.
+     */
+    public static function getAuthUserId(RequestInterface $request): int
+    {
+        $payload = $request->jwtPayload ?? null;
+        if (!is_array($payload) || !isset($payload['sub'])) {
+            return 0;
+        }
+        return (int)$payload['sub'];
+    }
+
     private static function getSecret(): string
     {
         $secret = env('JWT_SECRET') ?: getenv('JWT_SECRET');

@@ -95,7 +95,7 @@ class MessageController extends ResourceController
         }
 
         if ($insertedCount > 0) {
-            $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $senderId;
+            $actionUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request) ?: $senderId;
             \App\Models\ActivityLogModel::log($actionUserId, 'Send Message', 'sent a message: ' . $title);
 
             return $this->response->setJSON([
@@ -233,7 +233,7 @@ class MessageController extends ResourceController
                     NotificationService::sendMassEmailBcc($chunk, 'New Announcement', 'There is a new announcement from ' . $sName . '.', '/staff/messages');
                 }
             }
-            $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $senderId;
+            $actionUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request) ?: $senderId;
             \App\Models\ActivityLogModel::log($actionUserId, 'Make Announcement', 'sent an announcement');
 
             return $this->response->setJSON([
@@ -472,7 +472,7 @@ class MessageController extends ResourceController
             ->groupStart()->where('id', $threadId)->orWhere('parent_id', $threadId)->groupEnd()
             ->update(['deleted_by_recipient_at' => $now]);
 
-        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $userId;
+        $actionUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request) ?: $userId;
         \App\Models\ActivityLogModel::log($actionUserId, 'Trash Message', 'moved a message thread to trash');
 
         return $this->response->setJSON(['success' => true]);
@@ -592,8 +592,8 @@ class MessageController extends ResourceController
         
         $rootId = $msg['parent_id'] ? $msg['parent_id'] : $msg['id'];
         
-        $userId = $this->request->getHeaderLine('X-User-Id');
-        if ($userId) {
+        $userId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        if ($userId > 0) {
             $db->table('messages')->where('recipient_id', $userId)
                ->groupStart()->where('id', $rootId)->orWhere('parent_id', $rootId)->groupEnd()
                ->update(['is_read' => 1]);

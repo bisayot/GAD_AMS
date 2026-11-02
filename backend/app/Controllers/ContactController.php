@@ -137,7 +137,7 @@ class ContactController extends BaseController
         }
 
         // Identify who is replying
-        $actionUserId = $this->request->getHeaderLine('X-User-Id');
+        $actionUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
         $repliedByStatus = 'replied_staff';
         $replierName = 'GAD Staff';
         

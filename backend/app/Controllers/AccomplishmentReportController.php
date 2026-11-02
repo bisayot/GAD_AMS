@@ -1019,7 +1019,8 @@ class AccomplishmentReportController extends BaseController
             FileStorage::moveToArchived($item['attachment']);
         }
 
-        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
+        $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        $actionUserId = $authUserId > 0 ? $authUserId : $item['user_id'];
         \App\Models\ActivityLogModel::log($actionUserId, 'Approve Document', 'verified Accomplishment Report: ' . $item['activity_title']);
 
         NotificationService::send($item['user_id'], 'Accomplishment Report Verified', 'Your Accomplishment Report "' . $item['activity_title'] . '" has been verified and added to approved documents.', '/staff/accomplishment-reports', 'success');
@@ -1065,7 +1066,8 @@ class AccomplishmentReportController extends BaseController
 
         $item = $db->table('accomplishment_report')->where('id', $id)->get()->getRowArray();
         if ($item) {
-            $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
+            $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+            $actionUserId = $authUserId > 0 ? $authUserId : $item['user_id'];
             \App\Models\ActivityLogModel::log($actionUserId, 'Update Status', 'requested revision for Accomplishment Report: ' . $item['activity_title']);
             
             NotificationService::send($item['user_id'], 'Revision Required', 'Your Accomplishment Report "' . $item['activity_title'] . '" requires revision. Remarks: ' . $remarks, '/staff/accomplishment-reports', 'warning');
@@ -1154,7 +1156,8 @@ class AccomplishmentReportController extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'Accomplishment report not found'])->setStatusCode(404);
         }
 
-        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $report['user_id'];
+        $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        $actionUserId = $authUserId > 0 ? $authUserId : $report['user_id'];
         
         $userModel = new \App\Models\UserModel();
         $actionUser = $userModel->find($actionUserId);

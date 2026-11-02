@@ -878,7 +878,8 @@ class ActivityDesignController extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'Failed to approve design'])->setStatusCode(500);
         }
 
-        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
+        $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        $actionUserId = $authUserId > 0 ? $authUserId : $item['user_id'];
         \App\Models\ActivityLogModel::log($actionUserId, 'Approve Document', 'approved Activity Design: ' . $item['activity_title']);
 
         NotificationService::send($item['user_id'], 'Activity Design Approved', 'Your Activity Design "' . $item['activity_title'] . '" has been approved.', '/staff/activity-designs', 'success');
@@ -929,7 +930,8 @@ class ActivityDesignController extends BaseController
 
         $item = $db->table('activity_design')->where('act_design_id', $id)->get()->getRowArray();
         if ($item) {
-            $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
+            $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+            $actionUserId = $authUserId > 0 ? $authUserId : $item['user_id'];
             \App\Models\ActivityLogModel::log($actionUserId, 'Update Status', 'requested revision for Activity Design: ' . $item['activity_title']);
             
             NotificationService::send($item['user_id'], 'Revision Required', 'Your Activity Design "' . $item['activity_title'] . '" requires revision. Remarks: ' . $remarks, '/staff/activity-designs', 'warning');
@@ -965,7 +967,8 @@ class ActivityDesignController extends BaseController
 
         $item = $db->table('activity_design')->where('act_design_id', $id)->get()->getRowArray();
         if ($item) {
-            $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
+            $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+            $actionUserId = $authUserId > 0 ? $authUserId : $item['user_id'];
             \App\Models\ActivityLogModel::log($actionUserId, 'Disapprove Document', 'disapproved Activity Design: ' . $item['activity_title']);
             
             NotificationService::send($item['user_id'], 'Activity Design Disapproved', 'Your Activity Design "' . $item['activity_title'] . '" has been disapproved. Remarks: ' . $remarks, '/staff/activity-designs', 'error');
@@ -1014,7 +1017,8 @@ class ActivityDesignController extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'Failed to cancel Activity Design'])->setStatusCode(500);
         }
 
-        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
+        $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        $actionUserId = $authUserId > 0 ? $authUserId : $item['user_id'];
         \App\Models\ActivityLogModel::log($actionUserId, 'Cancel Document', 'cancelled Activity Design: ' . $item['activity_title']);
         NotificationService::send(
             $item['user_id'],
@@ -1048,7 +1052,8 @@ class ActivityDesignController extends BaseController
                     $db->table('activity_design')->where('act_design_id', $id)->update(['status' => 'Pending']);
                 }
 
-                $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $activeItem['user_id'];
+                $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+                $actionUserId = $authUserId > 0 ? $authUserId : $activeItem['user_id'];
                 \App\Models\ActivityLogModel::log($actionUserId, 'Revert Decision', 'reverted decision for Activity Design: ' . $activeItem['activity_title']);
 
                 return $this->response->setJSON(['success' => true, 'message' => 'Decision reverted successfully']);
@@ -1107,7 +1112,8 @@ class ActivityDesignController extends BaseController
                 return $this->response->setJSON(['success' => false, 'message' => 'Failed to revert and restore design'])->setStatusCode(500);
             }
 
-            $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $archivedItem['user_id'];
+            $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+            $actionUserId = $authUserId > 0 ? $authUserId : $archivedItem['user_id'];
             \App\Models\ActivityLogModel::log($actionUserId, 'Revert Decision', 'reverted decision and restored Activity Design: ' . $archivedItem['activity_title']);
 
             return $this->response->setJSON(['success' => true, 'message' => 'Decision reverted successfully']);
@@ -1139,7 +1145,8 @@ class ActivityDesignController extends BaseController
             if ($updated) {
                 $item = $db->table($table)->where($idColumn, $id)->get()->getRowArray();
                 if ($item) {
-                    $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $item['user_id'];
+                    $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+                    $actionUserId = $authUserId > 0 ? $authUserId : $item['user_id'];
                     \App\Models\ActivityLogModel::log($actionUserId, 'Update Deadline', 'updated accomplishment deadline for Activity Design: ' . $item['activity_title']);
                 }
                 return $this->response->setJSON(['success' => true, 'message' => 'Deadline updated successfully']);
@@ -1227,7 +1234,8 @@ class ActivityDesignController extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'Activity design not found'])->setStatusCode(404);
         }
 
-        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
+        $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        $actionUserId = $authUserId > 0 ? $authUserId : $design['user_id'];
         
         $userModel = new \App\Models\UserModel();
         $actionUser = $userModel->find($actionUserId);
@@ -1459,7 +1467,8 @@ class ActivityDesignController extends BaseController
                 'modification_remarks' => $body['remarks'] ?? ''
             ])->update();
 
-        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
+        $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        $actionUserId = $authUserId > 0 ? $authUserId : $design['user_id'];
         \App\Models\ActivityLogModel::log($actionUserId, 'Request Modification', 'requested modification for Activity Design: ' . $design['activity_title']);
 
         NotificationService::sendToAdmins('Modification Requested', 'A modification request for Activity Design "' . $design['activity_title'] . '" has been submitted and is pending review.', '/admin/activity-designs', 'info');
@@ -1476,7 +1485,8 @@ class ActivityDesignController extends BaseController
         $design = $db->table('activity_design')->where('act_design_id', $id)->get()->getRowArray();
 
         if (!$design) return $this->response->setJSON(['success' => false, 'message' => 'Not found'])->setStatusCode(404);
-        $requesterId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
+        $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        $requesterId = $authUserId > 0 ? $authUserId : $design['user_id'];
         $requester = $db->table('users')->select('role')->where('id', $requesterId)->get()->getRowArray();
         if (!$requester || !in_array($requester['role'], ['twg', 'non-twg'], true)) {
             return $this->response->setJSON(['success' => false, 'message' => 'Only TWG and non-TWG proponents can request cancellation'])->setStatusCode(403);
@@ -1509,7 +1519,7 @@ class ActivityDesignController extends BaseController
                 'modification_remarks' => $body['remarks'] ?? ''
             ])->update();
 
-        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
+        $actionUserId = $authUserId > 0 ? $authUserId : $design['user_id'];
         \App\Models\ActivityLogModel::log($actionUserId, 'Request Cancellation', 'requested cancellation for Activity Design: ' . $design['activity_title']);
         NotificationService::sendToAdmins(
             'Cancellation Requested',
@@ -1555,7 +1565,8 @@ class ActivityDesignController extends BaseController
             ]);
         }
 
-        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
+        $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        $actionUserId = $authUserId > 0 ? $authUserId : $design['user_id'];
         \App\Models\ActivityLogModel::log($actionUserId, $isCancellation ? 'Approve Cancellation' : 'Approve Modification', ($isCancellation ? 'approved cancellation request for Activity Design: ' : 'approved modification request for Activity Design: ') . $design['activity_title']);
 
         NotificationService::send($design['user_id'], $isCancellation ? 'Cancellation Approved' : 'Modification Approved', 'Your ' . ($isCancellation ? 'cancellation' : 'modification') . ' request for "' . $design['activity_title'] . '" has been approved.', '/staff/activity-designs', 'success');
@@ -1578,7 +1589,8 @@ class ActivityDesignController extends BaseController
             'modification_remarks' => $body['remarks'] ?? ''
         ]);
 
-        $actionUserId = $this->request->getHeaderLine('X-User-Id') ?: $design['user_id'];
+        $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        $actionUserId = $authUserId > 0 ? $authUserId : $design['user_id'];
         \App\Models\ActivityLogModel::log($actionUserId, $isCancellation ? 'Reject Cancellation' : 'Reject Modification', ($isCancellation ? 'rejected cancellation request for Activity Design: ' : 'rejected modification request for Activity Design: ') . $design['activity_title']);
         
         NotificationService::send($design['user_id'], $isCancellation ? 'Cancellation Rejected' : 'Modification Rejected', 'Your ' . ($isCancellation ? 'cancellation' : 'modification') . ' request for "' . $design['activity_title'] . '" has been rejected.', '/staff/activity-designs', 'error');
@@ -1589,14 +1601,17 @@ class ActivityDesignController extends BaseController
     private function resolveDraftUserId($fallback = null)
     {
         if ($fallback) return $fallback;
+        $authId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        if ($authId > 0) return $authId;
         $body = $this->request->getJSON(true) ?? $this->request->getPost();
-        return $body['user_id'] ?? ($this->request->getHeaderLine('X-User-Id') ?: null);
+        return $body['user_id'] ?? null;
     }
 
     public function saveDraft()
     {
         $body = $this->request->getJSON(true) ?? $this->request->getPost();
-        $userId = $body['user_id'] ?? $this->request->getHeaderLine('X-User-Id');
+        $authId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        $userId = $authId > 0 ? $authId : ($body['user_id'] ?? null);
         $payload = $body['payload'] ?? null;
 
         if (!$userId || $payload === null || $payload === '') {
