@@ -94,12 +94,12 @@
       </div>
 
       <div v-if="loadingStats" class="state-message-box">
-        Loading statistics...
+        Loading budget distribution...
       </div>
       <div v-else-if="mandateStats.length === 0" class="empty-state-card">
         <span class="empty-icon">📭</span>
         <h3 class="empty-title">No Mandate Data Available</h3>
-        <p class="empty-desc">The statistics are generated from your saved GAD Plan.<br>Please go to <router-link to="/admin/plan-and-budget" class="plan-link">Plan & Budget</router-link> and click <b>"Save Plan"</b> first to generate statistics.</p>
+        <p class="empty-desc">This distribution is generated from your saved GAD Plan.<br>Please go to <router-link to="/admin/plan-and-budget" class="plan-link">Plan & Budget</router-link> and click <b>"Save Plan"</b> first to view the budget distribution.</p>
       </div>
       <div v-else>
          <div v-if="filteredMandateStats.length === 0" class="state-message-box">
