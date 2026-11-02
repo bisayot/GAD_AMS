@@ -69,8 +69,30 @@ class GpbTemplateWriter
     ];
     private const BUDGET_COLUMN = 'L'; // merged L:M, handled separately (numeric vs display text)
 
-    private const ROW_COLUMNS = ['A', 'B', 'C', 'E', 'H', 'J', 'K', 'L', 'N', 'O'];
-    private const ROW_MERGES  = ['C:D', 'E:G', 'H:I', 'L:M'];
+    private const ROW_COLUMNS     = ['A', 'B', 'C', 'E', 'H', 'J', 'K', 'L', 'N', 'O'];
+    private const ALL_ROW_COLUMNS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'];
+    private const ROW_MERGES      = ['C:D', 'E:G', 'H:I', 'L:M'];
+
+    /**
+     * Conservative word-wrap character widths per field (accounting for merged
+     * column spans in gpb_template.xlsx) used to size row heights dynamically
+     * because Excel auto-fit ignores horizontally merged cells like L:M.
+     */
+    private const FIELD_WRAP_WIDTHS = [
+        'mandate'   => 26, // B (30.22)
+        'cause'     => 20, // C:D (23.11)
+        'objective' => 20, // E:G (23.10)
+        'ppa'       => 20, // H:I (23.33)
+        'activity'  => 23, // J (26.66)
+        'targets'   => 21, // K (24.44)
+        'budget'    => 14, // L:M (18.44)
+        'source'    => 9,  // N (11.55)
+        'office'    => 15, // O (18.66)
+    ];
+
+    private const MIN_DATA_ROW_HEIGHT = 60.0;
+    private const POINTS_PER_LINE     = 16.5;
+    private const ROW_VERTICAL_PAD    = 18.0;
 
     public const SECTION_ORDER = ['client_focused', 'organization_focused', 'attributed_program'];
 
@@ -159,15 +181,92 @@ class GpbTemplateWriter
             $sheet->getStyle($budgetCell)->getNumberFormat()->setFormatCode('#,##0.00');
         }
 
-        foreach (self::ROW_COLUMNS as $column) {
+        foreach (self::ALL_ROW_COLUMNS as $column) {
             $style = $sheet->getStyle("{$column}{$rowIndex}");
             $style->getAlignment()->setWrapText(true);
             $style->getAlignment()->setVertical(Alignment::VERTICAL_TOP);
         }
+
+        $existingHeight = (float) $sheet->getRowDimension($rowIndex)->getRowHeight();
+        $requiredHeight = $this->estimateRequiredRowHeight($item);
+        $sheet->getRowDimension($rowIndex)->setRowHeight(max($existingHeight, $requiredHeight));
+    }
+
+    /**
+     * Estimate required row height in points across all columns (including
+     * horizontally merged cells like L:M that Excel auto-fit ignores).
+     *
+     * @param array<string, mixed> $item
+     */
+    private function estimateRequiredRowHeight(array $item): float
+    {
+        $budgetText = '';
+        $sourceText = (string) ($item['source'] ?? '');
+
+        if (! empty($item['budget_lines_raw']) && is_array($item['budget_lines_raw'])) {
+            $bLines = [];
+            $sLines = [];
+            foreach ($item['budget_lines_raw'] as $line) {
+                $label    = trim((string) ($line['label'] ?? '')) ?: 'Budget line';
+                $amount   = (float) ($line['amount'] ?? 0);
+                $bLines[] = $label . ' - ' . number_format($amount, 2);
+
+                $src      = (string) ($line['source'] ?? '');
+                $spec     = trim((string) ($line['sourceOther'] ?? ''));
+                $isOther  = strtolower(trim($src)) === 'other';
+                $sLines[] = ($isOther && $spec) ? "Other ($spec)" : $src;
+            }
+            $budgetText = implode("\n", $bLines);
+            $sourceText = implode("\n", $sLines);
+        } elseif (! empty($item['budget_display'])) {
+            $budgetText = (string) $item['budget_display'];
+        } else {
+            $budgetText = number_format((float) ($item['budget_value'] ?? 0), 2);
+        }
+
+        $textsByField = [
+            'mandate'   => (string) ($item['mandate'] ?? ''),
+            'cause'     => (string) ($item['cause'] ?? ''),
+            'objective' => (string) ($item['objective'] ?? ''),
+            'ppa'       => (string) ($item['ppa'] ?? ''),
+            'activity'  => (string) ($item['activity'] ?? ''),
+            'targets'   => (string) ($item['targets'] ?? ''),
+            'budget'    => $budgetText,
+            'source'    => $sourceText,
+            'office'    => (string) ($item['office'] ?? ''),
+        ];
+
+        $maxLines = 1;
+        foreach (self::FIELD_WRAP_WIDTHS as $field => $wrapWidth) {
+            $raw = trim($textsByField[$field] ?? '');
+            if ($raw === '') {
+                continue;
+            }
+            $paragraphs = preg_split('/\r\n|\r|\n/', $raw) ?: [$raw];
+            $lineCount  = 0;
+            foreach ($paragraphs as $para) {
+                $para = trim($para);
+                if ($para === '') {
+                    $lineCount += 1;
+                    continue;
+                }
+                $wrapped    = wordwrap($para, $wrapWidth, "\n", true);
+                $lineCount += substr_count($wrapped, "\n") + 1;
+            }
+            if ($lineCount > $maxLines) {
+                $maxLines = $lineCount;
+            }
+        }
+
+        return max(self::MIN_DATA_ROW_HEIGHT, ($maxLines * self::POINTS_PER_LINE) + self::ROW_VERTICAL_PAD);
     }
 
     private function writeRichTextLines(Worksheet $sheet, string $cellCoordinate, array $lines, string $type): void
     {
+        $baseFont = $sheet->getStyle($cellCoordinate)->getFont();
+        $fontName = $baseFont->getName() ?: 'Arial';
+        $fontSize = $baseFont->getSize() ?: 9.5;
+
         $richText = new RichText();
         $count = count($lines);
 
@@ -190,6 +289,8 @@ class GpbTemplateWriter
             }
 
             $run = $richText->createTextRun($text);
+            $run->getFont()->setName($fontName);
+            $run->getFont()->setSize($fontSize);
             if ($isOther) {
                 // Color for "Other" items: Dark Red (CC0000)
                 $run->getFont()->setColor(new Color('FFCC0000'));
@@ -202,7 +303,7 @@ class GpbTemplateWriter
 
     private function cloneRowStyle(Worksheet $sheet, int $fromRow, int $toRow): void
     {
-        foreach (self::ROW_COLUMNS as $column) {
+        foreach (self::ALL_ROW_COLUMNS as $column) {
             $styleArray = $sheet->getStyle("{$column}{$fromRow}")->exportArray();
             $sheet->getStyle("{$column}{$toRow}")->applyFromArray($styleArray);
         }
@@ -223,6 +324,10 @@ class GpbTemplateWriter
             $row = $baseRow + $totalShift;
             $sheet->setCellValue("L{$row}", $grandTotal);
             $sheet->getStyle("L{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
+            $sheet->getRowDimension($row)->setRowHeight(28);
+            foreach (self::ALL_ROW_COLUMNS as $column) {
+                $sheet->getStyle("{$column}{$row}")->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+            }
         }
     }
 

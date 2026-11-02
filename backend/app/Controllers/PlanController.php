@@ -284,7 +284,12 @@ class PlanController extends ResourceController
             $lineageIds = [$item['id']];
             if (!empty($item['item_key'])) {
                 $lineageIds = array_column(
-                    $db->table('gpb_items')->select('id')->where('item_key', $item['item_key'])->get()->getResultArray(),
+                    $db->table('gpb_items')
+                        ->select('id')
+                        ->where('item_key', $item['item_key'])
+                        ->where('fiscal_year', $fiscalYear)
+                        ->get()
+                        ->getResultArray(),
                     'id'
                 );
             }
@@ -449,11 +454,17 @@ class PlanController extends ResourceController
         $gpbIds = explode(',', $gpbIds);
 
         $db = \Config\Database::connect();
-        $selectedRows = $db->table('gpb_items')->select('item_key')->whereIn('id', $gpbIds)->get()->getResultArray();
+        $selectedRows = $db->table('gpb_items')->select('item_key, fiscal_year')->whereIn('id', $gpbIds)->get()->getResultArray();
         $lineageKeys = array_values(array_filter(array_column($selectedRows, 'item_key')));
+        $selectedYears = array_values(array_unique(array_filter(array_map('intval', array_column($selectedRows, 'fiscal_year')))));
         $lineageQuery = $db->table('gpb_items')->select('id')->whereIn('id', $gpbIds);
         if ($lineageKeys) {
-            $lineageQuery->orWhereIn('item_key', $lineageKeys);
+            $lineageQuery->orGroupStart()
+                ->whereIn('item_key', $lineageKeys);
+            if ($selectedYears) {
+                $lineageQuery->whereIn('fiscal_year', $selectedYears);
+            }
+            $lineageQuery->groupEnd();
         }
         $lineageIds = $lineageQuery->get()->getResultArray();
         $lineageIds = array_values(array_unique(array_map('intval', array_column($lineageIds, 'id'))));

@@ -458,6 +458,11 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     $routes->options('gpb/export-live', 'AuthController::handleOptions');
     $routes->post('gpb/export-live', 'GpbLiveExportController::export');
 
+    $routes->options('gad-ar/fiscal-years', 'AuthController::handleOptions');
+    $routes->get('gad-ar/fiscal-years', 'GadArExportController::fiscalYears', ['filter' => 'jwtAuth']);
+    $routes->options('gad-ar/export', 'AuthController::handleOptions');
+    $routes->get('gad-ar/export', 'GadArExportController::export', ['filter' => 'jwtAuth']);
+
     // ----------------------------------------------------------------
     // NEWS & IEC ROUTES (new)
     // ----------------------------------------------------------------

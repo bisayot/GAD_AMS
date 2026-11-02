@@ -7,7 +7,27 @@
           <h1 class="topbar-title">Budget Distribution by Mandate</h1>
         </div>
         <div class="topbar-actions">
-
+          <div class="topbar-fy-wrap">
+            <label class="topbar-fy-label" for="admin-dist-fy">Fiscal Year:</label>
+            <select
+              id="admin-dist-fy"
+              v-model.number="selectedFiscalYear"
+              @change="onFiscalYearChange"
+              class="filter-select topbar-fy-select"
+              :disabled="loadingStats || exportingExcel"
+            >
+              <option v-for="yr in availableFiscalYears" :key="yr" :value="yr">FY {{ yr }}</option>
+            </select>
+          </div>
+          <button
+            type="button"
+            class="topbar-btn export-excel-btn"
+            @click="exportExcel"
+            :disabled="exportingExcel"
+            title="Export Annual GAD Budget Utilization Excel"
+          >
+            <span>{{ exportingExcel ? '⏳ Exporting...' : '📥 Export Excel' }}</span>
+          </button>
           <router-link to="/admin/budget">
             <button class="topbar-btn outline">📊 Budget Monitoring</button>
           </router-link>
@@ -587,11 +607,31 @@ export default {
     });
 
     const loadingStats = ref(true);
-    
+    const currentYear = new Date().getFullYear();
+    const selectedFiscalYear = ref(currentYear);
+    const availableFiscalYears = ref([currentYear]);
+    const exportingExcel = ref(false);
+
+    const fetchFiscalYears = async () => {
+      try {
+        const res = await api.get('/gad-ar/fiscal-years');
+        if (res.data?.success && Array.isArray(res.data.years) && res.data.years.length > 0) {
+          availableFiscalYears.value = res.data.years;
+          if (!availableFiscalYears.value.includes(selectedFiscalYear.value)) {
+            selectedFiscalYear.value = availableFiscalYears.value[0];
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch fiscal years', err);
+      }
+    };
+
     const fetchMandateStats = async () => {
       loadingStats.value = true;
       try {
-        const response = await api.get('/plan/mandate-statistics');
+        const response = await api.get('/plan/mandate-statistics', {
+          params: { fiscal_year: selectedFiscalYear.value }
+        });
         if (response.data.success) {
           mandateStats.value = response.data.data;
         }
@@ -599,6 +639,45 @@ export default {
         console.error('Failed to fetch mandate stats', err);
       } finally {
         loadingStats.value = false;
+      }
+    };
+
+    const onFiscalYearChange = () => {
+      expandedRows.value = new Set();
+      fetchMandateStats();
+    };
+
+    const exportExcel = async () => {
+      if (exportingExcel.value) return;
+      exportingExcel.value = true;
+      try {
+        const response = await api.get('/gad-ar/export', {
+          params: { fiscal_year: selectedFiscalYear.value },
+          responseType: 'blob'
+        });
+        const blob = new Blob([response.data], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `GAD_Budget_Utilization_FY${selectedFiscalYear.value}.xlsx`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      } catch (err) {
+        let message = 'Failed to export Excel file. Please try again.';
+        if (err.response?.data instanceof Blob) {
+          try {
+            const text = await err.response.data.text();
+            const parsed = JSON.parse(text);
+            message = parsed?.messages?.error || parsed?.message || message;
+          } catch (_) {}
+        }
+        Swal.fire({ icon: 'error', title: 'Export Failed', text: message });
+      } finally {
+        exportingExcel.value = false;
       }
     };
 
@@ -804,11 +883,13 @@ export default {
     };
 
     onMounted(async () => {
+      await fetchFiscalYears();
       fetchMandateStats();
     });
 
     return {
       mandateStats, mandateStatsFilter, searchQuery, filteredMandateStats, loadingStats,
+      selectedFiscalYear, availableFiscalYears, exportingExcel, onFiscalYearChange, exportExcel,
       expandedRows, toggleRow, isExpanded, allExpanded, toggleAllRows, formatCurrency,
       getClassificationLabel, getClassificationClass, totalBudget, totalUtilized, totalPending,
       totalRemaining, totalApprovedAds, totalApprovedArs,
@@ -917,6 +998,59 @@ export default {
   background: #f8fafc;
   border-color: #94a3b8;
   color: #0f172a;
+}
+.topbar-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.topbar-btn.export-excel-btn {
+  background: linear-gradient(135deg, #990dd1, #b979cc);
+  border: 1px solid transparent;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(153, 13, 209, 0.25);
+}
+.topbar-btn.export-excel-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #7e22ce, #a855f7);
+  border-color: transparent;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(153, 13, 209, 0.35);
+}
+.topbar-fy-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.topbar-fy-label {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #475569;
+  white-space: nowrap;
+}
+.topbar-fy-select {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+html.dark .topbar-fy-label,
+.dark .topbar-fy-label {
+  color: #94a3b8;
+}
+html.dark .topbar-btn.export-excel-btn,
+.dark .topbar-btn.export-excel-btn {
+  background: rgba(147, 51, 234, 0.25) !important;
+  border: 1px solid #c084fc !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.3) !important;
+}
+html.dark .topbar-btn.export-excel-btn:hover:not(:disabled),
+.dark .topbar-btn.export-excel-btn:hover:not(:disabled) {
+  background: #c084fc !important;
+  border-color: #c084fc !important;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(168, 85, 247, 0.4) !important;
 }
 
 /* Main Card */
