@@ -152,11 +152,14 @@ const exportHtmlZip = async () => {
 };
 
 onMounted(async () => {
-  try { versions.value = (await api.get('/budget-history')).data; }
-  catch (e) {
-    const message = e.response?.data?.message || 'Budget History is available only to the Director and GAD Staff.';
-    error.value = message;
-    await Swal.fire('Budget History unavailable', message, 'error');
+  try { 
+    versions.value = (await api.get('/budget-history')).data; 
+  } catch (e) {
+    const defaultMsg = e.response?.status === 403
+      ? 'Budget History is available only to the Director and GAD Staff.'
+      : (e.response?.data?.message || 'Failed to load Budget History. Please try again.');
+    error.value = defaultMsg;
+    await Swal.fire('Budget History unavailable', defaultMsg, 'error');
   }
 });
 </script>

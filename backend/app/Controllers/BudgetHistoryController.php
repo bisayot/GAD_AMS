@@ -27,21 +27,40 @@ class BudgetHistoryController extends BaseController
         return false;
     }
 
+    private function ensureSchema($db): void
+    {
+        if (!$db->tableExists('budget_versions') || ($db->tableExists('gpb_items') && !$db->fieldExists('plan_version_id', 'gpb_items'))) {
+            try {
+                $migrations = \Config\Services::migrations();
+                $migrations->latest();
+            } catch (\Throwable $e) {
+                log_message('error', 'BudgetHistory migration check failed: ' . $e->getMessage());
+            }
+        }
+    }
+
     public function index()
     {
         if (!$this->allowed()) return $this->failForbidden('Only the Director or GAD Staff may view Budget History.');
         $db = \Config\Database::connect();
-        
+        $this->ensureSchema($db);
+
         // Single batch query for item counts to eliminate N+1 queries
         $countsByVersion = [];
-        $countRows = $db->table('gpb_items')
-            ->select('plan_version_id, COUNT(*) as cnt')
-            ->where('plan_version_id IS NOT NULL')
-            ->groupBy('plan_version_id')
-            ->get()
-            ->getResultArray();
-        foreach ($countRows as $cr) {
-            $countsByVersion[$cr['plan_version_id']] = (int)$cr['cnt'];
+        if ($db->tableExists('gpb_items') && $db->fieldExists('plan_version_id', 'gpb_items')) {
+            $countRows = $db->table('gpb_items')
+                ->select('plan_version_id, COUNT(*) as cnt')
+                ->where('plan_version_id IS NOT NULL')
+                ->groupBy('plan_version_id')
+                ->get()
+                ->getResultArray();
+            foreach ($countRows as $cr) {
+                $countsByVersion[$cr['plan_version_id']] = (int)$cr['cnt'];
+            }
+        }
+
+        if (!$db->tableExists('budget_versions')) {
+            return $this->respond([]);
         }
 
         $rows = $db->table('budget_versions')
@@ -62,6 +81,9 @@ class BudgetHistoryController extends BaseController
     {
         if (!$this->allowed()) return $this->failForbidden('Only the Director or GAD Staff may view Budget History.');
         $db = \Config\Database::connect();
+        $this->ensureSchema($db);
+
+        if (!$db->tableExists('budget_versions')) return $this->failNotFound('Budget version not found.');
         $version = $db->table('budget_versions')->where('id', $id)->get()->getRowArray();
         if (!$version) return $this->failNotFound('Budget version not found.');
         
@@ -94,7 +116,19 @@ class BudgetHistoryController extends BaseController
         }
         $version['organization'] = $orgData;
 
-        $items = $db->table('gpb_items')->where('plan_version_id', $id)->orderBy('sort_order')->get()->getResultArray();
+        $items = [];
+        if ($db->tableExists('gpb_items')) {
+            $itemsBuilder = $db->table('gpb_items');
+            if ($db->fieldExists('plan_version_id', 'gpb_items')) {
+                $itemsBuilder->where('plan_version_id', $id);
+            } else {
+                $itemsBuilder->where('fiscal_year', $fiscalYear);
+            }
+            if ($db->fieldExists('sort_order', 'gpb_items')) {
+                $itemsBuilder->orderBy('sort_order');
+            }
+            $items = $itemsBuilder->get()->getResultArray();
+        }
         $version['items'] = $items;
         $itemIds = array_column($items, 'id');
         
@@ -196,6 +230,9 @@ class BudgetHistoryController extends BaseController
         }
 
         $db = \Config\Database::connect();
+        $this->ensureSchema($db);
+
+        if (!$db->tableExists('budget_versions')) return $this->failNotFound('Budget version not found.');
         $version = $db->table('budget_versions')->where('id', $id)->get()->getRowArray();
         if (!$version) return $this->failNotFound('Budget version not found.');
 
@@ -234,7 +271,19 @@ class BudgetHistoryController extends BaseController
             $orgData = array_merge($orgData, $versionOrg);
         }
 
-        $items = $db->table('gpb_items')->where('plan_version_id', $id)->orderBy('sort_order')->get()->getResultArray();
+        $items = [];
+        if ($db->tableExists('gpb_items')) {
+            $itemsBuilder = $db->table('gpb_items');
+            if ($db->fieldExists('plan_version_id', 'gpb_items')) {
+                $itemsBuilder->where('plan_version_id', $id);
+            } else {
+                $itemsBuilder->where('fiscal_year', $fiscalYear);
+            }
+            if ($db->fieldExists('sort_order', 'gpb_items')) {
+                $itemsBuilder->orderBy('sort_order');
+            }
+            $items = $itemsBuilder->get()->getResultArray();
+        }
 
         // Monitoring snapshot
         $snapshotRows = [];
