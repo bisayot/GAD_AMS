@@ -63,7 +63,7 @@
             <div class="flex flex-col gap-2">
               <label class="text-xs uppercase tracking-widest font-label font-bold text-on-surface-variant">Role <span class="text-red-500">*</span></label>
               <div class="relative">
-                <select v-model="form.user_role" class="w-full bg-surface-container border border-outline-variant rounded-lg pl-4 pr-12 py-3 text-on-surface focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all appearance-none cursor-pointer">
+                <select v-model="form.user_role" @change="handleRoleChange" class="w-full bg-surface-container border border-outline-variant rounded-lg pl-4 pr-12 py-3 text-on-surface focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all appearance-none cursor-pointer">
                   <option value="Non-TWG">Proponent</option>
                   <option value="TWG">TWG</option>
                 </select>
@@ -87,7 +87,7 @@
             <!-- College / Office -->
             <div class="flex flex-col gap-2 md:col-span-2">
               <div class="flex items-center justify-between">
-                <label class="text-xs uppercase tracking-widest font-label font-bold text-on-surface-variant">College / Office</label>
+                <label class="text-xs uppercase tracking-widest font-label font-bold text-on-surface-variant">College / Office <span class="text-red-500">*</span></label>
                 <button 
                   type="button" 
                   @click="showOfficeNotice = !showOfficeNotice" 
@@ -131,6 +131,7 @@
                     @input="handleSearchInput"
                     placeholder="Search or Select college / office"
                     class="w-full bg-surface-container border border-outline-variant rounded-lg pl-4 pr-12 py-3 text-on-surface focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all placeholder:text-on-surface-variant/60 truncate cursor-pointer text-sm sm:text-base"
+                    :required="!form.office_unit_id && !isAddingNew"
                   />
                   <span 
                     class="material-symbols-outlined absolute right-5 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none transition-transform duration-200"
@@ -175,7 +176,7 @@
                   <div class="flex items-center justify-between">
                     <label class="text-[11px] uppercase tracking-wider font-label font-bold text-purple-700 dark:text-purple-300 flex items-center gap-1.5">
                       <span class="material-symbols-outlined text-sm">domain_add</span>
-                      New College / Office Name
+                      New College / Office Name <span class="text-red-500">*</span>
                     </label>
                     <button 
                       type="button" 
@@ -191,6 +192,7 @@
                     v-model="newOfficeName" 
                     placeholder="Enter full official office name (e.g. College of Veterinary Medicine)" 
                     class="w-full bg-surface-container border rounded-lg px-4 py-3 text-on-surface outline-none transition-all placeholder:text-on-surface-variant/60"
+                    :required="isAddingNew"
                     :class="{
                       'border-amber-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500': officeCheckResult.hasMatch,
                       'border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500': !officeCheckResult.hasMatch && officeCheckResult.isAbbreviation,
@@ -244,39 +246,38 @@
               </div>
             </div>
 
-            <!-- Department (Optional) -->
+            <!-- Department -->
             <div class="flex flex-col gap-2 md:col-span-2">
               <label class="text-xs uppercase tracking-widest font-label font-bold text-on-surface-variant flex items-center gap-2">
-                <span>Department</span>
+                <span>Department <span class="text-red-500">*</span></span>
               </label>
-              <input v-model="form.department" placeholder="e.g. Department of Information Technology" class="w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-3 text-on-surface focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all placeholder:text-on-surface-variant/60" />
+              <input v-model="form.department" placeholder="e.g. Department of Information Technology" class="w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-3 text-on-surface focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all placeholder:text-on-surface-variant/60" required />
             </div>
 
-            <!-- Student ID & Year Level (For Proponents) -->
-            <template v-if="form.user_role === 'Non-TWG'">
-              <div class="flex flex-col gap-2">
-                <label class="text-xs uppercase tracking-widest font-label font-bold text-on-surface-variant flex items-center gap-2">
-                  <span>Student ID / ID Number</span>
-                </label>
-                <input v-model="form.student_id" placeholder="e.g. 2022-12345" class="w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-3 text-on-surface focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all placeholder:text-on-surface-variant/60" />
+            <!-- Student ID & Year Level -->
+            <div class="flex flex-col gap-2">
+              <label class="text-xs uppercase tracking-widest font-label font-bold text-on-surface-variant flex items-center gap-2">
+                <span>Student ID / ID Number <span class="text-red-500">*</span></span>
+              </label>
+              <input v-model="form.student_id" placeholder="e.g. 2022-12345" class="w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-3 text-on-surface focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all placeholder:text-on-surface-variant/60" required />
+            </div>
+            <div class="flex flex-col gap-2">
+              <label class="text-xs uppercase tracking-widest font-label font-bold text-on-surface-variant flex items-center gap-2">
+                <span>Year Level <span class="text-red-500">*</span></span>
+              </label>
+              <div class="relative">
+                <select v-model="form.year_level" class="w-full bg-surface-container border border-outline-variant rounded-lg pl-4 pr-12 py-3 text-on-surface focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all appearance-none cursor-pointer" required>
+                  <option value="" disabled>Select Year Level</option>
+                  <option value="1st Year">1st Year</option>
+                  <option value="2nd Year">2nd Year</option>
+                  <option value="3rd Year">3rd Year</option>
+                  <option value="4th Year">4th Year</option>
+                  <option value="Graduate">Graduate Student</option>
+                  <option value="Faculty / Staff">Faculty / Staff</option>
+                </select>
+                <span class="material-symbols-outlined absolute right-5 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
               </div>
-              <div class="flex flex-col gap-2">
-                <label class="text-xs uppercase tracking-widest font-label font-bold text-on-surface-variant flex items-center gap-2">
-                  <span>Year Level</span>
-                </label>
-                <div class="relative">
-                  <select v-model="form.year_level" class="w-full bg-surface-container border border-outline-variant rounded-lg pl-4 pr-12 py-3 text-on-surface focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all appearance-none cursor-pointer">
-                    <option value="">None / Faculty / Staff</option>
-                    <option value="1st Year">1st Year</option>
-                    <option value="2nd Year">2nd Year</option>
-                    <option value="3rd Year">3rd Year</option>
-                    <option value="4th Year">4th Year</option>
-                    <option value="Graduate">Graduate Student</option>
-                  </select>
-                  <span class="material-symbols-outlined absolute right-5 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
-                </div>
-              </div>
-            </template>
+            </div>
 
             <div class="flex flex-col gap-2 md:col-span-2">
               <label class="text-xs uppercase tracking-widest font-label font-bold text-on-surface-variant flex items-center justify-between">
@@ -548,9 +549,39 @@ onUnmounted(() => {
   document.removeEventListener('mousedown', handleClickOutside);
 });
 
+const handleRoleChange = () => {
+  if (form.user_role === 'TWG' && !form.year_level) {
+    form.year_level = 'Faculty / Staff';
+  }
+};
+
 const handleRegister = async () => {
+  if (!form.first_name || !form.first_name.trim()) {
+    return error.value = 'First Name is required.';
+  }
+  if (!form.last_name || !form.last_name.trim()) {
+    return error.value = 'Last Name is required.';
+  }
+  if (!isAddingNew.value && !form.office_unit_id && (!officeSearchQuery.value || !officeSearchQuery.value.trim())) {
+    return error.value = 'Please select or enter your College / Office.';
+  }
+  if (isAddingNew.value && (!newOfficeName.value || !newOfficeName.value.trim())) {
+    return error.value = 'Please enter the full name for the new college or office.';
+  }
+  if (!form.department || !form.department.trim()) {
+    return error.value = 'Please enter your Department.';
+  }
+  if (!form.student_id || !form.student_id.trim()) {
+    return error.value = 'Please enter your Student ID / ID Number.';
+  }
+  if (!form.year_level || !form.year_level.trim()) {
+    return error.value = 'Please select your Year Level.';
+  }
   if (form.user_role === 'TWG' && !form.email.trim().toLowerCase().endsWith('@bsu.edu.ph')) {
     return error.value = 'TWG accounts require a valid institutional email (@bsu.edu.ph).';
+  }
+  if (!form.email || !form.email.trim()) {
+    return error.value = 'Email Address is required.';
   }
   if (form.password.length < 8) {
     return error.value = 'Password must be at least 8 characters long.';
@@ -633,6 +664,11 @@ const handleRegister = async () => {
       }
     }
 
+    if (!departmentId) {
+      loading.value = false;
+      return error.value = 'Please select or enter a valid College / Office.';
+    }
+
     if (form.department && isAbbreviationPattern(form.department.trim())) {
       loading.value = false;
       return error.value = `Department "${form.department.trim()}" looks like an abbreviation. Please type the full academic department name (e.g. "Department of Information Technology").`;
@@ -640,13 +676,14 @@ const handleRegister = async () => {
 
     const payload = {
       fullname: `${form.first_name} ${form.middle_name} ${form.last_name}`.replace(/\s+/g, ' ').trim(),
-      first_name: form.first_name,
-      middle_name: form.middle_name,
-      last_name: form.last_name,
-      department: departmentId || null, 
+      first_name: form.first_name.trim(),
+      middle_name: form.middle_name ? form.middle_name.trim() : null,
+      last_name: form.last_name.trim(),
+      department: departmentId, 
       department_name: form.department ? form.department.trim() : null,
-      university_id: form.student_id || null,
-      year_level: form.year_level || null,
+      university_id: form.student_id ? form.student_id.trim() : null,
+      student_id: form.student_id ? form.student_id.trim() : null,
+      year_level: form.year_level ? form.year_level.trim() : null,
       email: form.email.trim(),
       password: form.password,
       confirm_password: form.confirm_password,

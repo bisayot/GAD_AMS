@@ -172,12 +172,65 @@ class AuthController extends ResourceController
         }
 
         $rules = [
-            'fullname' => 'required',
-            'department' => 'permit_empty',
-            'email' => 'required|valid_email',
-            'password' => ['label' => 'Password', 'rules' => 'required|min_length[8]|regex_match[/[A-Z]/]|regex_match[/[a-z]/]|regex_match[/[0-9]/]|regex_match[/[^A-Za-z0-9]/]'],
-            'confirm_password' => 'required|matches[password]'
+            'fullname' => [
+                'label' => 'Full Name',
+                'rules' => 'required',
+                'errors' => ['required' => 'Full Name is required.']
+            ],
+            'department' => [
+                'label' => 'College / Office',
+                'rules' => 'required',
+                'errors' => ['required' => 'Please select or specify your College / Office.']
+            ],
+            'department_name' => [
+                'label' => 'Department',
+                'rules' => 'required',
+                'errors' => ['required' => 'Department is required.']
+            ],
+            'university_id' => [
+                'label' => 'Student ID / ID Number',
+                'rules' => 'required',
+                'errors' => ['required' => 'Student ID / ID Number is required.']
+            ],
+            'year_level' => [
+                'label' => 'Year Level',
+                'rules' => 'required',
+                'errors' => ['required' => 'Year Level is required.']
+            ],
+            'email' => [
+                'label' => 'Email',
+                'rules' => 'required|valid_email',
+                'errors' => [
+                    'required' => 'Email is required.',
+                    'valid_email' => 'Please provide a valid email address.'
+                ]
+            ],
+            'password' => [
+                'label' => 'Password',
+                'rules' => 'required|min_length[8]|regex_match[/[A-Z]/]|regex_match[/[a-z]/]|regex_match[/[0-9]/]|regex_match[/[^A-Za-z0-9]/]',
+                'errors' => [
+                    'required' => 'Password is required.',
+                    'min_length' => 'Password must be at least 8 characters long.',
+                    'regex_match' => 'Password must contain uppercase, lowercase, number, and special character.'
+                ]
+            ],
+            'confirm_password' => [
+                'label' => 'Confirm Password',
+                'rules' => 'required|matches[password]',
+                'errors' => [
+                    'required' => 'Confirm password is required.',
+                    'matches' => 'Passwords do not match.'
+                ]
+            ]
         ];
+
+        // Ensure aliases are populated before validation
+        if (empty($data['department']) && !empty($data['office_id'])) {
+            $data['department'] = $data['office_id'];
+        }
+        if (empty($data['university_id']) && !empty($data['student_id'])) {
+            $data['university_id'] = $data['student_id'];
+        }
 
         if (!$this->validateData($data, $rules)) {
             return $this->fail($this->validator->getErrors());
@@ -271,8 +324,8 @@ class AuthController extends ResourceController
             $officeNameDisplay = $officeRow ? $officeRow['office_name'] : 'Unknown Office';
         }
 
-        $studentId = ($role === 'non-twg') ? ($data['university_id'] ?? $data['student_id'] ?? null) : null;
-        $yearLevel = ($role === 'non-twg') ? ($data['year_level'] ?? null) : null;
+        $studentId = trim($data['university_id'] ?? $data['student_id'] ?? '') ?: null;
+        $yearLevel = trim($data['year_level'] ?? '') ?: null;
         $departmentName = !empty($data['department_name']) ? trim($data['department_name']) : null;
         $position = !empty($data['position']) ? trim($data['position']) : null;
 
