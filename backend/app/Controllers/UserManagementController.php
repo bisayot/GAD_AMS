@@ -315,6 +315,15 @@ class UserManagementController extends ResourceController
     {
         if (!$id) return $this->fail('User ID required');
 
+        $payload = $this->request->jwtPayload ?? null;
+        $callerId = (int)($payload['sub'] ?? ($payload['id'] ?? \App\Libraries\JwtHelper::getAuthUserId($this->request)));
+        $callerRole = strtolower($payload['role'] ?? '');
+        $isStaffOrAdmin = in_array($callerRole, ['admin', 'gad_staff', 'superadmin'], true);
+
+        if (!$isStaffOrAdmin && $callerId !== (int)$id) {
+            return $this->failForbidden('You are not authorized to view another user\'s profile.');
+        }
+
         $db = \Config\Database::connect();
         $user = $db->table('users')
             ->select('users.id, users.username, users.email, users.full_name, users.role, users.profile_role, users.office_id, users.student_id as user_student_id, users.year_level as user_year_level, office_units.office_name, office_units.location as campus_location, office_units.office_acronym')
@@ -628,6 +637,16 @@ class UserManagementController extends ResourceController
         $userModel = new \App\Models\UserModel();
         $user = $userModel->find($id);
         if (!$user) return $this->failNotFound('User not found');
+
+        $targetRole = strtolower(trim((string)($user['role'] ?? '')));
+        if (in_array($targetRole, ['admin', 'superadmin'], true)) {
+            return $this->failForbidden('Cannot decline or delete an administrator account.');
+        }
+
+        $approvalStatus = strtolower(trim((string)($user['approval_status'] ?? 'approved')));
+        if ($approvalStatus !== 'pending') {
+            return $this->failValidationErrors('Only pending registrations can be declined.');
+        }
 
         // Log the decision before deleting the record
         $actionUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);

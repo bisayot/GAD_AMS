@@ -898,10 +898,6 @@ const fetchBaselineSettings = async () => {
   }
 };
 
-onMounted(() => {
-  fetchBaselineSettings();
-});
-
 // Meal-time mismatch warning helper (non-blocking)
 const checkMealTimeMismatch = async () => {
   const allSchedules = activeSchedules.value || [];
@@ -1156,7 +1152,7 @@ const fetchDesignDetails = async () => {
           text: 'You are not authorized to view or edit this document.',
           confirmButtonColor: '#b979cc'
         }).then(() => {
-          router.push('/college/ad-list');
+          router.push('/college/submitted-list');
         });
         return;
       }
@@ -1520,54 +1516,7 @@ watch(() => computedStartDate.value, (newDate, oldDate) => {
     }
   });
   
-  // Disable the old duration check since it's computed dynamically now
-  watch(() => 'dummy', () => {
-  if (loadingData.value) return;
-  if (newDate) {
-    const validation = isValidActivityDate(newDate, true);
-    if (!validation.valid) {
-      document.activeElement?.blur();
-      Swal.fire({
-        icon: 'warning',
-        title: 'Invalid Date',
-        text: validation.reason,
-        confirmButtonColor: '#b979cc'
-      });
-      formData.value.start_date = '';
-      return;
-    } else if (validation.isWarning) {
-      document.activeElement?.blur();
-      Swal.fire({
-        icon: 'info',
-        title: 'Lead Time Warning',
-        text: validation.reason,
-        confirmButtonText: 'Accept',
-        confirmButtonColor: '#b979cc'
-      });
-    }
-    if (formData.value.end_date) {
-      const durationValidation = isValidActivityDuration(newDate, formData.value.end_date);
-      if (!durationValidation.valid) {
-        document.activeElement?.blur();
-        Swal.fire({
-          icon: 'warning',
-          title: 'Invalid Duration',
-          text: durationValidation.reason,
-          confirmButtonColor: '#b979cc'
-        });
-        formData.value.start_date = '';
-      } else if (durationValidation.isWarning) {
-        document.activeElement?.blur();
-        Swal.fire({
-          icon: 'info',
-          title: 'Long Duration',
-          text: durationValidation.reason,
-          confirmButtonColor: '#b979cc'
-        });
-      }
-    }
-  }
-});
+
 
 // watch(() => formData.value.end_date, (newDate) => {
 //   if (loadingData.value) return;

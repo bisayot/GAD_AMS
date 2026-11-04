@@ -126,7 +126,7 @@
                   
                   <tr 
                     v-else
-                    v-for="item in regularDesigns" 
+                    v-for="item in paginatedRegularDesigns" 
                     :key="item.act_design_id"
                     @click="viewDetails(item.act_design_id, item.status)"
                     class="table-row"
@@ -256,7 +256,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import api from '../../api';
@@ -277,7 +277,6 @@ const officeOptions = ref([]);
 const activityDesigns = ref([]);
 const currentPage = ref(1);
 const perPage = ref(10);
-const paginationMeta = ref({ total: 0, from: 0, to: 0, last_page: 1 });
 
 const metricsStats = ref([
   { label: 'Total Designs', value: '0', icon: 'description', iconColor: 'text-purple-400', bgClass: 'bg-purple-500/10' },
@@ -330,6 +329,23 @@ const regularDesigns = computed(() => {
   return filteredDesigns.value.filter(i => i.modification_request_status !== 'pending');
 });
 
+const paginatedRegularDesigns = computed(() => {
+  const start = (currentPage.value - 1) * perPage.value;
+  return regularDesigns.value.slice(start, start + perPage.value);
+});
+
+const paginationMeta = computed(() => {
+  const total = regularDesigns.value.length;
+  const last_page = Math.max(1, Math.ceil(total / perPage.value));
+  const from = total > 0 ? (currentPage.value - 1) * perPage.value + 1 : 0;
+  const to = Math.min(currentPage.value * perPage.value, total);
+  return { total, from, to, last_page };
+});
+
+watch([() => filters.value.search, () => filters.value.office, () => filters.value.status, () => filters.value.sort], () => {
+  currentPage.value = 1;
+});
+
 const modRequestDesigns = computed(() => {
   return filteredDesigns.value.filter(i => i.modification_request_status === 'pending');
 });
@@ -376,7 +392,6 @@ const fetchDesigns = async () => {
       metricsStats.value[2].value = String(approved);
       metricsStats.value[3].value = String(revision);
       metricsStats.value[4].value = String(disapproved);
-      paginationMeta.value = { total, from: total > 0 ? 1 : 0, to: total, last_page: 1 };
     }
   } catch (err) {
     console.error('Failed to fetch activity designs:', err);

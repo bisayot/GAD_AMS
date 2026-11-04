@@ -5,7 +5,13 @@ use CodeIgniter\Router\RouteCollection;
 /**
  * @var RouteCollection $routes
  */
-$routes->get('/', 'Home::index');
+$routes->get('/', function() {
+    return service('response')->setJSON([
+        'status'  => 'online',
+        'service' => 'GAD AMS API',
+        'version' => '1.0'
+    ]);
+});
 
 $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
 
@@ -24,13 +30,15 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     $routes->options('reset-password', 'AuthController::handleOptions');
     $routes->get('human-challenge', 'AuthController::getHumanChallenge');
     $routes->options('human-challenge', 'AuthController::handleOptions');
+    $routes->post('verify-human-challenge', 'AuthController::verifyHumanChallengeEndpoint');
+    $routes->options('verify-human-challenge', 'AuthController::handleOptions');
 
     // CORS preflight routes (existing)
     $routes->options('login', 'AuthController::handleOptions');
     $routes->options('register', 'AuthController::handleOptions');
     $routes->options('logout', 'AuthController::handleOptions');
     $routes->get('office_units', 'AuthController::getOffices');
-    $routes->post('add_office', 'AuthController::addOffice');
+    $routes->post('add_office', 'AuthController::addOffice', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
     $routes->options('office_units', 'AuthController::handleOptions');
     $routes->options('add_office', 'AuthController::handleOptions');
 
@@ -161,18 +169,18 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     $routes->options('get-next-control-number', 'AuthController::handleOptions');
     $routes->get('get-next-control-number', 'ActivityDesignController::getNextControlNumber');
 
-    $routes->options('activity-designs', 'ActivityDesignController::index');
+    $routes->options('activity-designs', 'AuthController::handleOptions');
     $routes->get('activity-designs', 'ActivityDesignController::index');
 
-    $routes->options('activity-design/(:num)', 'ActivityDesignController::show/$1');
+    $routes->options('activity-design/(:num)', 'AuthController::handleOptions');
     $routes->get('activity-design/(:num)', 'ActivityDesignController::show/$1');
 
     // User-specific designs list
-    $routes->options('activity-designs/(:num)', 'ActivityDesignController::getUserDesigns/$1');
+    $routes->options('activity-designs/(:num)', 'AuthController::handleOptions');
     $routes->get('activity-designs/(:num)', 'ActivityDesignController::getUserDesigns/$1');
 
     // Update/revision
-    $routes->options('update-design/(:num)', 'ActivityDesignController::updateDesign/$1');
+    $routes->options('update-design/(:num)', 'AuthController::handleOptions');
     $routes->post('update-design/(:num)', 'ActivityDesignController::updateDesign/$1');
 
     // Modification requests
@@ -197,21 +205,6 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     $routes->options('revert-design/(:num)', 'AuthController::handleOptions');
     $routes->post('revert-design/(:num)', 'ActivityDesignController::revertDecision/$1');
 
-    // ----------------------------------------------------------------
-    // MANDATES & GENDER ISSUES ROUTES
-    // ----------------------------------------------------------------
-    $routes->options('mandates', 'AuthController::handleOptions');
-    $routes->get('mandates', 'MandateController::index');
-    $routes->post('mandates', 'MandateController::storeMandate');
-    $routes->options('mandates/(:num)', 'AuthController::handleOptions');
-    $routes->put('mandates/(:num)', 'MandateController::updateMandate/$1');
-    $routes->delete('mandates/(:num)', 'MandateController::deleteMandate/$1');
-
-    $routes->options('gender-issues', 'AuthController::handleOptions');
-    $routes->post('gender-issues', 'MandateController::storeIssue');
-    $routes->options('gender-issues/(:num)', 'AuthController::handleOptions');
-    $routes->put('gender-issues/(:num)', 'MandateController::updateIssue/$1');
-    $routes->delete('gender-issues/(:num)', 'MandateController::deleteIssue/$1');
 
     // ----------------------------------------------------------------
     // ACCOMPLISHMENT REPORT ROUTES (new)
@@ -223,21 +216,21 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     $routes->options('accomplishment-reports/trash/(:num)', 'AuthController::handleOptions');
     $routes->delete('accomplishment-reports/trash/(:num)', 'AccomplishmentReportController::trash/$1');
 
-    $routes->options('activity-reports', 'AccomplishmentReportController::index');
+    $routes->options('activity-reports', 'AuthController::handleOptions');
     $routes->get('activity-reports', 'AccomplishmentReportController::index');
 
     $routes->options('verified-reports', 'AuthController::handleOptions');
     $routes->get('verified-reports', 'AccomplishmentReportController::getVerifiedReports');
 
-    $routes->options('activity-report/(:num)', 'AccomplishmentReportController::show/$1');
+    $routes->options('activity-report/(:num)', 'AuthController::handleOptions');
     $routes->get('activity-report/(:num)', 'AccomplishmentReportController::show/$1');
 
     // User-specific reports list
-    $routes->options('activity-reports/(:num)', 'AccomplishmentReportController::getUserReports/$1');
+    $routes->options('activity-reports/(:num)', 'AuthController::handleOptions');
     $routes->get('activity-reports/(:num)', 'AccomplishmentReportController::getUserReports/$1');
 
     // Update/revision
-    $routes->options('update-report/(:num)', 'AccomplishmentReportController::updateReport/$1');
+    $routes->options('update-report/(:num)', 'AuthController::handleOptions');
     $routes->post('update-report/(:num)', 'AccomplishmentReportController::updateReport/$1');
 
     // ----------------------------------------------------------------
@@ -245,16 +238,12 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     // ----------------------------------------------------------------
     $routes->options('approved-controls/(:num)', 'AuthController::handleOptions');
     $routes->get('approved-controls/(:num)', 'ApprovedControlsController::index/$1');
-    $routes->options('get-next-control-number', 'AuthController::handleOptions');
-    $routes->get('get-next-control-number', 'ActivityDesignController::getNextControlNumber');
 
     // ----------------------------------------------------------------
     // ARCHIVE ROUTES (new)
     // ----------------------------------------------------------------
-    $routes->options('archives', 'ArchiveController::index');
+    $routes->options('archives', 'AuthController::handleOptions');
     $routes->get('archives', 'ArchiveController::index');
-    $routes->options('venues', 'AuthController::handleOptions');
-    $routes->get('venues', 'VenueController::index');
     $routes->post('archive-design/(:num)', 'ArchiveController::archiveDesign/$1');
     $routes->post('archive-report/(:num)', 'ArchiveController::archiveReport/$1');
 
@@ -373,23 +362,17 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     $routes->options('staff/budget/available-mandates', 'BudgetController::optionsHandler');
     $routes->get('staff/budget/available-mandates', 'BudgetController::getAvailableMandates');
     
-    $routes->options('staff/budget/realignment-logs', 'BudgetController::optionsHandler');
-    $routes->get('staff/budget/realignment-logs', 'BudgetController::getRealignmentLogs');
-    
     $routes->options('staff/budget/financial-meta', 'BudgetController::optionsHandler');
     $routes->get('staff/budget/financial-meta', 'BudgetController::getFinancialMeta');
-    
-    $routes->options('staff/budget/realign', 'BudgetController::optionsHandler');
-    $routes->post('staff/budget/realign', 'BudgetController::executeRealignment');
 
     // ----------------------------------------------------------------
     // FILE SERVING ROUTES (serve PDFs from writable/uploads)
     // ----------------------------------------------------------------
     $routes->options('files/drafts/(:segment)', 'AuthController::handleOptions');
-    $routes->get('files/drafts/(:segment)', 'FileController::serveDraft/$1', ['filter' => 'jwtAuth']);
+    $routes->get('files/drafts/(:segment)', 'FileController::serveDraft/$1');
 
     $routes->options('files/archived/(:segment)', 'AuthController::handleOptions');
-    $routes->get('files/archived/(:segment)', 'FileController::serveArchived/$1', ['filter' => 'jwtAuth']);
+    $routes->get('files/archived/(:segment)', 'FileController::serveArchived/$1');
 
     $routes->options('files/avatars/(:segment)', 'AuthController::handleOptions');
     $routes->get('files/avatars/(:segment)', 'FileController::serveAvatar/$1');
@@ -482,9 +465,9 @@ $routes->group((ENVIRONMENT === 'production' ? '' : 'api'), function($routes) {
     $routes->get('gpb/item', 'GpbController::index', ['filter' => 'jwtAuth']);
     $routes->post('gpb/item', 'GpbController::create', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
     $routes->options('gpb/item/(:segment)', 'AuthController::handleOptions');
-    $routes->get('gpb/item/(:segment)', 'GpbController::show/$1');
-    $routes->put('gpb/item/(:segment)', 'GpbController::update/$1');
-    $routes->delete('gpb/item/(:segment)', 'GpbController::delete/$1');
+    $routes->get('gpb/item/(:segment)', 'GpbController::show/$1', ['filter' => 'jwtAuth']);
+    $routes->put('gpb/item/(:segment)', 'GpbController::update/$1', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
+    $routes->delete('gpb/item/(:segment)', 'GpbController::delete/$1', ['filter' => ['jwtAuth', 'staffOrAdmin']]);
 
     // Annual Report Archives
     $routes->options('annual-reports/archive', 'AuthController::handleOptions');

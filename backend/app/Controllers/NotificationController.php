@@ -25,10 +25,11 @@ class NotificationController extends ResourceController
             return $this->failUnauthorized('Not logged in');
         }
 
-        // Passive check for AR deadlines (throttled to avoid redundant runs)
-        $cacheKey = 'ar_deadlines_last_checked_' . date('Ymd');
-        if (!cache($cacheKey)) {
-            cache()->save($cacheKey, time(), 3600 * 4);
+        // Passive check for AR deadlines (throttled to run at most once every 4 hours via file lock)
+        $lockFile = WRITEPATH . 'cache/ar_deadline.lock';
+        $shouldRun = !file_exists($lockFile) || (time() - filemtime($lockFile) > 14400);
+        if ($shouldRun) {
+            @touch($lockFile);
             try {
                 \App\Libraries\ArDeadlineService::checkAndDispatchDeadlines();
             } catch (\Throwable $e) {

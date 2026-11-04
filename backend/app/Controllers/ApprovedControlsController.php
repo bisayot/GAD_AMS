@@ -19,6 +19,15 @@ class ApprovedControlsController extends Controller
      */
     public function index(int $userId)
     {
+        $payload = $this->request->jwtPayload ?? null;
+        $callerId = (int)($payload['sub'] ?? ($payload['id'] ?? \App\Libraries\JwtHelper::getAuthUserId($this->request)));
+        $callerRole = strtolower($payload['role'] ?? '');
+        $isStaffOrAdmin = in_array($callerRole, ['admin', 'gad_staff', 'superadmin'], true);
+
+        if (!$isStaffOrAdmin && $callerId !== (int)$userId) {
+            return $this->failForbidden('You are not authorized to view approved controls for another user.');
+        }
+
         $model = new ApprovedControlModel();
         $controls = $model->getApprovedControlsWithActivityDetails($userId);
 
@@ -32,9 +41,17 @@ class ApprovedControlsController extends Controller
 
         $allBudgetItems = [];
         $allSchedules = [];
+        $allMandates = [];
+        $allIssues = [];
+        $allVenues = [];
+
+        $db = \Config\Database::connect();
+
         if (!empty($designIds)) {
+            $uniqueDesignIds = array_values(array_unique($designIds));
+
             $budgetModel = new ActivityBudgetItemsModel();
-            $budgetResults = $budgetModel->whereIn('act_design_id', array_unique($designIds))->findAll();
+            $budgetResults = $budgetModel->whereIn('act_design_id', $uniqueDesignIds)->findAll();
             
             // Group them by act_design_id
             foreach ($budgetResults as $item) {
@@ -42,41 +59,49 @@ class ApprovedControlsController extends Controller
             }
 
             $scheduleModel = new \App\Models\ActivityScheduleModel();
-            $scheduleResults = $scheduleModel->whereIn('act_design_id', array_unique($designIds))->orderBy('schedule_date', 'ASC')->findAll();
+            $scheduleResults = $scheduleModel->whereIn('act_design_id', $uniqueDesignIds)->orderBy('schedule_date', 'ASC')->findAll();
             foreach ($scheduleResults as $sched) {
                 $allSchedules[$sched['act_design_id']][] = $sched;
             }
-        }
 
-        
-        $db = \Config\Database::connect();
+            // Bulk pre-fetch mandates, issues, and venues in 3 single queries
+            $mandateRows = $db->table('activity_design_mandates')->whereIn('act_design_id', $uniqueDesignIds)->get()->getResultArray();
+            foreach ($mandateRows as $m) {
+                $allMandates[$m['act_design_id']][] = $m['mandate_id'];
+            }
+
+            $issueRows = $db->table('activity_design_issues')->whereIn('act_design_id', $uniqueDesignIds)->get()->getResultArray();
+            foreach ($issueRows as $i) {
+                $allIssues[$i['act_design_id']][] = $i['issue_id'];
+            }
+
+            $venueRows = $db->table('activity_design_venues adv')
+                ->select('adv.act_design_id, adv.venue_id, v.venue_name, v.is_inside_bsu')
+                ->join('venues v', 'v.venue_id = adv.venue_id', 'left')
+                ->whereIn('adv.act_design_id', $uniqueDesignIds)
+                ->get()->getResultArray();
+            foreach ($venueRows as $v) {
+                $allVenues[$v['act_design_id']][] = [
+                    'venue_id'     => $v['venue_id'],
+                    'venue_name'   => $v['venue_name'] ?? 'Unknown Venue',
+                    'is_inside_bsu'=> $v['is_inside_bsu'] ?? 1,
+                ];
+            }
+        }
         
         foreach ($controls as &$control) {
             $id = $control['act_design_id'] ?? null;
             
             if ($id) {
-                // Fetch mandates, issues, and venues
-                $mandates = $db->table('activity_design_mandates')->where('act_design_id', $id)->get()->getResultArray();
-                $issues = $db->table('activity_design_issues')->where('act_design_id', $id)->get()->getResultArray();
-                $venues = $db->table('activity_design_venues adv')
-                    ->select('adv.venue_id, v.venue_name, v.is_inside_bsu')
-                    ->join('venues v', 'v.venue_id = adv.venue_id', 'left')
-                    ->where('adv.act_design_id', $id)
-                    ->get()->getResultArray();
+                $mandates = $allMandates[$id] ?? [];
+                $issues = $allIssues[$id] ?? [];
+                $venues = $allVenues[$id] ?? [];
                 
-                $control['gad_mandate_ids'] = implode(',', array_column($mandates, 'mandate_id'));
-                $control['gender_issue_ids'] = implode(',', array_column($issues, 'issue_id'));
-                $control['venues_list'] = array_map(function($v) {
-                    return [
-                        'venue_id'     => $v['venue_id'],
-                        'venue_name'   => $v['venue_name'] ?? 'Unknown Venue',
-                        'is_inside_bsu'=> $v['is_inside_bsu'] ?? 1,
-                    ];
-                }, $venues);
+                $control['gad_mandate_ids'] = implode(',', $mandates);
+                $control['gender_issue_ids'] = implode(',', $issues);
+                $control['venues_list'] = $venues;
             }
 
-            $id = $control['act_design_id'] ?? null;
-            
             // Initialize defaults
             $control['meals_total'] = 0;
             $control['breakfast_selected'] = 0;

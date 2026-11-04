@@ -133,7 +133,11 @@ class NewsIecController extends ResourceController
             return $this->fail('Failed to update post');
         }
 
-        return $this->respond(['success' => true, 'message' => 'Post updated successfully']);
+        return $this->respond([
+            'success' => true,
+            'message' => 'Post updated successfully',
+            'id'      => (int)$id,
+        ]);
     }
 
     public function delete($id = null)

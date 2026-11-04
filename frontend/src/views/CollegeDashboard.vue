@@ -91,7 +91,7 @@ onMounted(() => {
   
   const role = (user.value.role || user.value.user_role || '').toLowerCase();
   
-  if (!user.value.id || !['twg', 'non-twg'].includes(role)) {
+  if (!user.value.id || !['twg', 'non-twg', 'college'].includes(role)) {
     router.push('/login');
   }
 });

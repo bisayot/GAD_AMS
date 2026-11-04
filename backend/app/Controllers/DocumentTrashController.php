@@ -97,7 +97,13 @@ class DocumentTrashController extends BaseController
         foreach ($oldRecords as $record) {
             $idsToDelete[] = $record[$idColumn];
             if (!empty($record['attachment'])) {
-                FileStorage::deleteFromDrafts($record['attachment']);
+                $decoded = json_decode($record['attachment'], true);
+                $files = is_array($decoded) ? $decoded : [$record['attachment']];
+                foreach ($files as $f) {
+                    if (is_string($f) && trim($f) !== '') {
+                        FileStorage::deleteFromDrafts($f);
+                    }
+                }
             }
         }
 
@@ -109,7 +115,7 @@ class DocumentTrashController extends BaseController
                 $db->table('activity_schedules')->whereIn('act_design_id', $idsToDelete)->delete();
             } else if ($table === 'accomplishment_report') {
                 $db->table('accomplishment_budget_items')->whereIn('accomplishment_report_id', $idsToDelete)->delete();
-                $db->table('accomplishment_evaluation_results')->whereIn('accomplishment_report_id', $idsToDelete)->delete();
+                $db->table('evaluation_results')->whereIn('accomplishment_report_id', $idsToDelete)->delete();
                 $db->table('accomplishment_schedules')->whereIn('accomplishment_report_id', $idsToDelete)->delete();
             }
 
@@ -162,7 +168,13 @@ class DocumentTrashController extends BaseController
             $validDesignIds = array_column($records, 'act_design_id');
             foreach ($records as $record) {
                 if (!empty($record['attachment'])) {
-                    FileStorage::deleteFromDrafts($record['attachment']);
+                    $decoded = json_decode($record['attachment'], true);
+                    $files = is_array($decoded) ? $decoded : [$record['attachment']];
+                    foreach ($files as $f) {
+                        if (is_string($f) && trim($f) !== '') {
+                            FileStorage::deleteFromDrafts($f);
+                        }
+                    }
                 }
             }
             if (!empty($validDesignIds)) {
@@ -191,13 +203,19 @@ class DocumentTrashController extends BaseController
             $validReportIds = array_column($records, 'id');
             foreach ($records as $record) {
                 if (!empty($record['attachment'])) {
-                    FileStorage::deleteFromDrafts($record['attachment']);
+                    $decoded = json_decode($record['attachment'], true);
+                    $files = is_array($decoded) ? $decoded : [$record['attachment']];
+                    foreach ($files as $f) {
+                        if (is_string($f) && trim($f) !== '') {
+                            FileStorage::deleteFromDrafts($f);
+                        }
+                    }
                 }
             }
             if (!empty($validReportIds)) {
                 $db = \Config\Database::connect();
                 $db->table('accomplishment_budget_items')->whereIn('accomplishment_report_id', $validReportIds)->delete();
-                $db->table('accomplishment_evaluation_results')->whereIn('accomplishment_report_id', $validReportIds)->delete();
+                $db->table('evaluation_results')->whereIn('accomplishment_report_id', $validReportIds)->delete();
                 $db->table('accomplishment_schedules')->whereIn('accomplishment_report_id', $validReportIds)->delete();
                 
                 $arModel->delete($validReportIds, true);

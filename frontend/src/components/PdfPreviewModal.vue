@@ -55,12 +55,17 @@ const props = defineProps({
 const emit = defineEmits(['close']);
 const isLoaded = ref(false);
 
-const user = JSON.parse(localStorage.getItem('user') || '{}');
-const userRole = user?.role || user?.user_role || '';
-
 const pdfViewerUrl = computed(() => {
   if (!props.fileUrl) return '';
-  return `/pdfjs/web/viewer.html?file=${encodeURIComponent(props.fileUrl)}&role=${encodeURIComponent(userRole)}`;
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const userRole = user?.role || user?.user_role || '';
+  const token = localStorage.getItem('authToken') || localStorage.getItem('token') || '';
+
+  let url = props.fileUrl;
+  if (token && !url.includes('token=')) {
+    url += (url.includes('?') ? '&' : '?') + `token=${encodeURIComponent(token)}`;
+  }
+  return `/pdfjs/web/viewer.html?file=${encodeURIComponent(url)}&role=${encodeURIComponent(userRole)}`;
 });
 
 watch(() => props.fileUrl, () => {

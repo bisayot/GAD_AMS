@@ -49,7 +49,7 @@ class NotificationService
         return $link;
     }
 
-    public static function send($userId, $title, $message, $link = null, $type = 'info', $skipEmail = false)
+    public static function send($userId, $title, $message, $link = null, $type = 'info')
     {
         $userModel = new UserModel();
         $user = $userModel->find($userId);
@@ -70,7 +70,7 @@ class NotificationService
         ]);
 
         // 2. Send email
-        if (!$skipEmail && $user && !empty($user['email'])) {
+        if ($user && !empty($user['email'])) {
             self::sendEmail($user['email'], $user['first_name'], $title, $message, $link);
         }
 
@@ -228,7 +228,11 @@ class NotificationService
     public static function sendToAdmins($title, $message, $link = null, $type = 'info')
     {
         $db = \Config\Database::connect();
-        $admins = $db->table('users')->where('role', 'admin')->orWhere('role', 'gad_staff')->get()->getResultArray();
+        $admins = $db->table('users')
+            ->whereIn('role', ['admin', 'gad_staff'])
+            ->where('deleted_at', null)
+            ->get()
+            ->getResultArray();
         
         foreach ($admins as $admin) {
             self::send($admin['id'], $title, $message, $link, $type);
@@ -247,7 +251,11 @@ class NotificationService
     public static function sendToGadStaff($title, $message, $link = null, $type = 'info')
     {
         $db = \Config\Database::connect();
-        $staffMembers = $db->table('users')->where('role', 'gad_staff')->get()->getResultArray();
+        $staffMembers = $db->table('users')
+            ->where('role', 'gad_staff')
+            ->where('deleted_at', null)
+            ->get()
+            ->getResultArray();
         
         foreach ($staffMembers as $staff) {
             self::send($staff['id'], $title, $message, $link, $type);

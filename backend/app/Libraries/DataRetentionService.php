@@ -143,10 +143,16 @@ class DataRetentionService
                 foreach ($oldARs as $ar) {
                     $detailedLogs[] = "Automatically permanently deleted Accomplishment Report: " . ($ar['activity_title'] ?? 'Untitled');
                     if (!empty($ar['attachment'])) {
-                        if (isset($ar['is_archived']) && $ar['is_archived'] == 1) {
-                            \App\Libraries\FileStorage::deleteFromArchived($ar['attachment']);
-                        } else {
-                            \App\Libraries\FileStorage::deleteFromDrafts($ar['attachment']);
+                        $decoded = json_decode($ar['attachment'], true);
+                        $files = is_array($decoded) ? $decoded : [$ar['attachment']];
+                        foreach ($files as $f) {
+                            if (is_string($f) && trim($f) !== '') {
+                                if (isset($ar['is_archived']) && $ar['is_archived'] == 1) {
+                                    \App\Libraries\FileStorage::deleteFromArchived($f);
+                                } else {
+                                    \App\Libraries\FileStorage::deleteFromDrafts($f);
+                                }
+                            }
                         }
                     }
                 }
@@ -241,7 +247,13 @@ class DataRetentionService
                 foreach ($oldDraftARs as $ar) {
                     $detailedLogs[] = "Automatically deleted Draft Accomplishment Report: " . ($ar['activity_title'] ?? 'Untitled');
                     if (!empty($ar['attachment'])) {
-                        \App\Libraries\FileStorage::deleteFromDrafts($ar['attachment']);
+                        $decoded = json_decode($ar['attachment'], true);
+                        $files = is_array($decoded) ? $decoded : [$ar['attachment']];
+                        foreach ($files as $f) {
+                            if (is_string($f) && trim($f) !== '') {
+                                \App\Libraries\FileStorage::deleteFromDrafts($f);
+                            }
+                        }
                     }
                 }
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="holiday-card p-6 rounded-2xl shadow-sm border transition-colors">
+  <div class="holiday-card holidays-mgmt-scope p-6 rounded-2xl shadow-sm border transition-colors">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
       <div>
         <h2 class="section-title text-xl font-bold">Holidays & Working Days</h2>
@@ -451,178 +451,178 @@ onMounted(() => {
 
 <style>
 /* ==========================================================================
-   Dark Mode Overrides for Holidays Management
+   Dark Mode Overrides for Holidays Management (Scoped to .holidays-mgmt-scope)
    Outer background remains white; ONLY the cards and modals darken!
    ========================================================================== */
-html.dark .holiday-card,
-.dark .holiday-card {
+html.dark .holidays-mgmt-scope,
+.dark .holidays-mgmt-scope {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
   border-color: rgba(185, 121, 204, 0.25) !important;
   box-shadow: 0 20px 40px rgba(0,0,0,0.25) !important;
 }
 
-html.dark .section-title,
-.dark .section-title {
+html.dark .holidays-mgmt-scope .section-title,
+.dark .holidays-mgmt-scope .section-title {
   color: #ffffff !important;
 }
 
-html.dark .section-subtitle,
-.dark .section-subtitle {
+html.dark .holidays-mgmt-scope .section-subtitle,
+.dark .holidays-mgmt-scope .section-subtitle {
   color: #94a3b8 !important;
 }
 
-html.dark .year-select,
-.dark .year-select {
+html.dark .holidays-mgmt-scope .year-select,
+.dark .holidays-mgmt-scope .year-select {
   background: rgba(0, 0, 0, 0.3) !important;
   border-color: rgba(185, 121, 204, 0.3) !important;
   color: #ffffff !important;
 }
-html.dark .year-select option,
-.dark .year-select option {
+html.dark .holidays-mgmt-scope .year-select option,
+.dark .holidays-mgmt-scope .year-select option {
   background: #1e293b !important;
   color: #ffffff !important;
 }
 
-html.dark .btn-sync,
-.dark .btn-sync {
+html.dark .holidays-mgmt-scope .btn-sync,
+.dark .holidays-mgmt-scope .btn-sync {
   background: rgba(255, 255, 255, 0.08) !important;
   border-color: rgba(255, 255, 255, 0.15) !important;
   color: #e2e8f0 !important;
 }
-html.dark .btn-sync:hover:not(:disabled),
-.dark .btn-sync:hover:not(:disabled) {
+html.dark .holidays-mgmt-scope .btn-sync:hover:not(:disabled),
+.dark .holidays-mgmt-scope .btn-sync:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.15) !important;
 }
 
-html.dark .holiday-table-container,
-.dark .holiday-table-container {
+html.dark .holidays-mgmt-scope .holiday-table-container,
+.dark .holidays-mgmt-scope .holiday-table-container {
   background: rgba(0, 0, 0, 0.2) !important;
   border-color: rgba(185, 121, 204, 0.2) !important;
 }
 
-html.dark .table-header-row,
-.dark .table-header-row {
+html.dark .holidays-mgmt-scope .table-header-row,
+.dark .holidays-mgmt-scope .table-header-row {
   background: rgba(0, 0, 0, 0.25) !important;
   border-bottom: 1px solid rgba(185, 121, 204, 0.2) !important;
 }
 
-html.dark .th-cell,
-.dark .th-cell {
+html.dark .holidays-mgmt-scope .th-cell,
+.dark .holidays-mgmt-scope .th-cell {
   color: #ffffff !important;
 }
 
-html.dark .table-row,
-.dark .table-row {
+html.dark .holidays-mgmt-scope .table-row,
+.dark .holidays-mgmt-scope .table-row {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
-html.dark .table-row:hover,
-.dark .table-row:hover {
+html.dark .holidays-mgmt-scope .table-row:hover,
+.dark .holidays-mgmt-scope .table-row:hover {
   background: rgba(255, 255, 255, 0.05) !important;
 }
 
-html.dark .date-cell,
-.dark .date-cell {
+html.dark .holidays-mgmt-scope .date-cell,
+.dark .holidays-mgmt-scope .date-cell {
   color: #cbd5e1 !important;
 }
 
-html.dark .name-cell,
-.dark .name-cell {
+html.dark .holidays-mgmt-scope .name-cell,
+.dark .holidays-mgmt-scope .name-cell {
   color: #f8fafc !important;
 }
 
-html.dark .empty-state,
-.dark .empty-state {
+html.dark .holidays-mgmt-scope .empty-state,
+.dark .holidays-mgmt-scope .empty-state {
   color: #94a3b8 !important;
 }
 
-html.dark .badge-public,
-.dark .badge-public {
+html.dark .holidays-mgmt-scope .badge-public,
+.dark .holidays-mgmt-scope .badge-public {
   background: rgba(59, 130, 246, 0.2) !important;
   color: #60a5fa !important;
   border-color: rgba(59, 130, 246, 0.3) !important;
 }
 
-html.dark .badge-school,
-.dark .badge-school {
+html.dark .holidays-mgmt-scope .badge-school,
+.dark .holidays-mgmt-scope .badge-school {
   background: rgba(168, 85, 247, 0.2) !important;
   color: #c084fc !important;
   border-color: rgba(168, 85, 247, 0.3) !important;
 }
 
-html.dark .badge-custom,
-.dark .badge-custom {
+html.dark .holidays-mgmt-scope .badge-custom,
+.dark .holidays-mgmt-scope .badge-custom {
   background: rgba(16, 185, 129, 0.2) !important;
   color: #34d399 !important;
   border-color: rgba(16, 185, 129, 0.3) !important;
 }
 
-html.dark .btn-icon-edit,
-.dark .btn-icon-edit {
+html.dark .holidays-mgmt-scope .btn-icon-edit,
+.dark .holidays-mgmt-scope .btn-icon-edit {
   color: #c084fc !important;
   background: rgba(168, 85, 247, 0.15) !important;
 }
-html.dark .btn-icon-edit:hover,
-.dark .btn-icon-edit:hover {
+html.dark .holidays-mgmt-scope .btn-icon-edit:hover,
+.dark .holidays-mgmt-scope .btn-icon-edit:hover {
   background: rgba(168, 85, 247, 0.3) !important;
 }
 
-html.dark .btn-icon-delete,
-.dark .btn-icon-delete {
+html.dark .holidays-mgmt-scope .btn-icon-delete,
+.dark .holidays-mgmt-scope .btn-icon-delete {
   color: #f87171 !important;
   background: rgba(239, 68, 68, 0.15) !important;
 }
-html.dark .btn-icon-delete:hover,
-.dark .btn-icon-delete:hover {
+html.dark .holidays-mgmt-scope .btn-icon-delete:hover,
+.dark .holidays-mgmt-scope .btn-icon-delete:hover {
   background: rgba(239, 68, 68, 0.3) !important;
 }
 
-html.dark .modal-container,
-.dark .modal-container {
+html.dark .holidays-mgmt-scope .modal-container,
+.dark .holidays-mgmt-scope .modal-container {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
   border-color: rgba(185, 121, 204, 0.3) !important;
   box-shadow: 0 20px 40px rgba(0,0,0,0.5) !important;
 }
 
-html.dark .modal-header,
-.dark .modal-header {
+html.dark .holidays-mgmt-scope .modal-header,
+.dark .holidays-mgmt-scope .modal-header {
   border-bottom: 1px solid rgba(185, 121, 204, 0.2) !important;
   background: rgba(0, 0, 0, 0.2) !important;
 }
 
-html.dark .modal-title,
-.dark .modal-title {
+html.dark .holidays-mgmt-scope .modal-title,
+.dark .holidays-mgmt-scope .modal-title {
   color: #ffffff !important;
 }
 
-html.dark .modal-close-btn,
-.dark .modal-close-btn {
+html.dark .holidays-mgmt-scope .modal-close-btn,
+.dark .holidays-mgmt-scope .modal-close-btn {
   color: #94a3b8 !important;
 }
-html.dark .modal-close-btn:hover,
-.dark .modal-close-btn:hover {
+html.dark .holidays-mgmt-scope .modal-close-btn:hover,
+.dark .holidays-mgmt-scope .modal-close-btn:hover {
   color: #ffffff !important;
 }
 
-html.dark .form-label,
-.dark .form-label {
+html.dark .holidays-mgmt-scope .form-label,
+.dark .holidays-mgmt-scope .form-label {
   color: #cbd5e1 !important;
 }
 
-html.dark .form-input,
-.dark .form-input {
+html.dark .holidays-mgmt-scope .form-input,
+.dark .holidays-mgmt-scope .form-input {
   background: rgba(0, 0, 0, 0.3) !important;
   border-color: rgba(185, 121, 204, 0.3) !important;
   color: #ffffff !important;
 }
 
-html.dark .btn-cancel,
-.dark .btn-cancel {
+html.dark .holidays-mgmt-scope .btn-cancel,
+.dark .holidays-mgmt-scope .btn-cancel {
   background: rgba(255, 255, 255, 0.1) !important;
   border-color: rgba(255, 255, 255, 0.2) !important;
   color: #cbd5e1 !important;
 }
-html.dark .btn-cancel:hover,
-.dark .btn-cancel:hover {
+html.dark .holidays-mgmt-scope .btn-cancel:hover,
+.dark .holidays-mgmt-scope .btn-cancel:hover {
   background: rgba(255, 255, 255, 0.15) !important;
   color: #ffffff !important;
 }

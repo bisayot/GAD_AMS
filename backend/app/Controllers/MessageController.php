@@ -33,6 +33,10 @@ class MessageController extends ResourceController
         }
 
         $senderId = $this->request->getVar('sender_id');
+        $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        if ($authUserId > 0) {
+            $senderId = $authUserId;
+        }
         $to = $this->request->getVar('to'); // Expected array of user IDs
         $title = $this->request->getVar('title') ?? '';
         $messageText = $this->request->getVar('message');
@@ -127,6 +131,10 @@ class MessageController extends ResourceController
         }
 
         $senderId = $this->request->getVar('sender_id');
+        $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        if ($authUserId > 0) {
+            $senderId = $authUserId;
+        }
         $targetType = $this->request->getVar('target_type');
         $targetValue = $this->request->getVar('target_value');
         $messageText = $this->request->getVar('message');
@@ -162,7 +170,10 @@ class MessageController extends ResourceController
         // Find existing master announcement thread for this sender
         $existingMaster = $db->table('messages')
             ->where('sender_id', $senderId)
-            ->where('recipient_id', 0)
+            ->groupStart()
+                ->where('recipient_id', $senderId)
+                ->orWhere('recipient_id', 0)
+            ->groupEnd()
             ->where('is_announcement', 1)
             ->orderBy('created_at', 'ASC')
             ->get()
@@ -170,10 +181,10 @@ class MessageController extends ResourceController
         
         $masterParentId = $existingMaster ? ($existingMaster['parent_id'] ?: $existingMaster['id']) : null;
 
-        // Insert Master Announcement Record for the Sender's UI
+        // Insert Master Announcement Record for the Sender's UI (self-addressed to satisfy fk_msg_recipient)
         $masterData = [
             'sender_id'     => $senderId,
-            'recipient_id'  => 0, // Dummy recipient
+            'recipient_id'  => $senderId,
             'parent_id'     => $masterParentId,
             'message_text'  => $messageText,
             'is_read'       => 1,
@@ -269,7 +280,7 @@ class MessageController extends ResourceController
             INNER JOIN (
                 SELECT MAX(id) as max_id
                 FROM messages
-                WHERE recipient_id = ? AND deleted_by_recipient_at IS NULL
+                WHERE recipient_id = ? AND deleted_by_recipient_at IS NULL AND NOT (is_announcement = 1 AND sender_id = recipient_id)
                 GROUP BY IFNULL(parent_id, id)
             ) latest ON messages.id = latest.max_id
             JOIN users ON users.id = messages.sender_id
@@ -332,7 +343,7 @@ class MessageController extends ResourceController
             INNER JOIN (
                 SELECT MAX(id) as max_id
                 FROM messages
-                WHERE sender_id = ? AND deleted_by_sender_at IS NULL AND (is_announcement = 0 OR recipient_id = 0)
+                WHERE sender_id = ? AND deleted_by_sender_at IS NULL AND (is_announcement = 0 OR recipient_id = 0 OR recipient_id = sender_id)
                 GROUP BY IFNULL(parent_id, id)
             ) latest ON messages.id = latest.max_id
             LEFT JOIN users ON users.id = messages.recipient_id
@@ -396,8 +407,8 @@ class MessageController extends ResourceController
 
         $db = \Config\Database::connect();
         
-        // Auto-cleanup: Permanently delete messages in trash older than 30 days
-        $db->query("DELETE FROM messages WHERE (deleted_by_sender_at IS NOT NULL AND deleted_by_sender_at < DATE_SUB(NOW(), INTERVAL 30 DAY)) OR (deleted_by_recipient_at IS NOT NULL AND deleted_by_recipient_at < DATE_SUB(NOW(), INTERVAL 30 DAY))");
+        // Auto-cleanup: Permanently delete messages in trash older than 30 days only when deleted by both parties (or self-addressed master announcements)
+        $db->query("DELETE FROM messages WHERE deleted_by_sender_at IS NOT NULL AND deleted_by_sender_at < DATE_SUB(NOW(), INTERVAL 30 DAY) AND ((deleted_by_recipient_at IS NOT NULL AND deleted_by_recipient_at < DATE_SUB(NOW(), INTERVAL 30 DAY)) OR (is_announcement = 1 AND (recipient_id = 0 OR recipient_id = sender_id)))");
 
         $sql = "
             SELECT messages.*, users.full_name, users.username, users.email, COALESCE(users.profile_role, users.role) as role, users.office_id, IF(messages.sender_id = ?, 'sent', 'received') as direction
@@ -591,8 +602,29 @@ class MessageController extends ResourceController
         if (!$msg) return $this->response->setJSON(['success' => false])->setStatusCode(404);
         
         $rootId = $msg['parent_id'] ? $msg['parent_id'] : $msg['id'];
-        
+        $rootMsg = ($rootId == $msg['id']) ? $msg : $this->messageModel->find($rootId);
+
+        $payload = $this->request->jwtPayload ?? null;
+        $role = strtolower(trim((string)($payload['role'] ?? $payload['user_role'] ?? '')));
+        $isPrivileged = in_array($role, ['admin', 'director', 'gad_staff', 'staff', 'superadmin'], true);
+
         $userId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        if ($userId > 0 && !$isPrivileged) {
+            $isParticipant = ((int)($rootMsg['sender_id'] ?? 0) === (int)$userId || (int)($rootMsg['recipient_id'] ?? 0) === (int)$userId);
+            if (!$isParticipant) {
+                $checkCount = $db->table('messages')
+                    ->groupStart()->where('id', $rootId)->orWhere('parent_id', $rootId)->groupEnd()
+                    ->groupStart()->where('sender_id', $userId)->orWhere('recipient_id', $userId)->groupEnd()
+                    ->countAllResults();
+                if ($checkCount === 0) {
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'message' => 'Forbidden: You do not have access to this thread.'
+                    ])->setStatusCode(403);
+                }
+            }
+        }
+
         if ($userId > 0) {
             $db->table('messages')->where('recipient_id', $userId)
                ->groupStart()->where('id', $rootId)->orWhere('parent_id', $rootId)->groupEnd()

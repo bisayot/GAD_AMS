@@ -1442,6 +1442,10 @@ const filteredExistingAttachments = computed(() => {
 });
 
 const removeFile = (index) => {
+  const file = uploadedFiles.value[index];
+  if (file && file._previewUrl) {
+    URL.revokeObjectURL(file._previewUrl);
+  }
   uploadedFiles.value.splice(index, 1);
   if (uploadedFiles.value.length === 0 && fileInput.value) {
     fileInput.value.value = '';
@@ -1488,21 +1492,80 @@ const handleScheduleTypeChange = (newType) => {
     meals_and_snacks: { breakfast: false, am_snack: false, lunch: false, pm_snack: false, dinner: false }
   };
 
-  const handleScheduleDateChange = (date, index) => {
-    if (scheduleType.value !== 'staggered' || !date) return;
-    const duplicate = form.value.schedules.some((schedule, scheduleIndex) => scheduleIndex !== index && schedule.date === date);
-    if (duplicate) {
-      form.value.schedules[index].date = '';
-      Swal.fire({ icon: 'warning', title: 'Duplicate Schedule Date', text: 'Each non-consecutive schedule must use a different date.', confirmButtonColor: '#b979cc' });
-    }
-  };
-
-  form.schedules = [{
+  form.value.schedules = [{
     date: '',
     start_time: '',
     end_time: '',
     meals_and_snacks: { breakfast: false, am_snack: false, lunch: false, pm_snack: false, dinner: false }
   }];
+};
+
+const handleScheduleDateChange = (date, index) => {
+  if (scheduleType.value !== 'staggered' || !date) return;
+  const duplicate = form.value.schedules.some((schedule, scheduleIndex) => scheduleIndex !== index && schedule.date === date);
+  if (duplicate) {
+    form.value.schedules[index].date = '';
+    Swal.fire({ icon: 'warning', title: 'Duplicate Schedule Date', text: 'Each non-consecutive schedule must use a different date.', confirmButtonColor: '#b979cc' });
+  }
+};
+
+const validateTimeBounds = (timeStr, fieldName, schObj, fieldKey) => {
+  if (!timeStr) return true;
+  const [h, m] = timeStr.split(':').map(Number);
+  if (h < 4 || h > 20 || (h === 20 && m > 0)) {
+    document.activeElement?.blur();
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Time',
+      text: `${fieldName} must be between 04:00 AM and 08:00 PM.`,
+      confirmButtonColor: '#b979cc'
+    });
+    schObj[fieldKey] = '';
+    return false;
+  }
+  return true;
+};
+
+const handleTimeChange = (sch) => {
+  if (!sch) return;
+  if (sch.start_time && !validateTimeBounds(sch.start_time, 'Start Time', sch, 'start_time')) return;
+  if (sch.end_time && !validateTimeBounds(sch.end_time, 'End Time', sch, 'end_time')) return;
+
+  if (sch.start_time && sch.end_time) {
+    const [sh, sm] = sch.start_time.split(':').map(Number);
+    const [eh, em] = sch.end_time.split(':').map(Number);
+    const startMinutes = sh * 60 + sm;
+    const endMinutes = eh * 60 + em;
+
+    if (endMinutes <= startMinutes) {
+      document.activeElement?.blur();
+      Swal.fire({ icon: 'warning', title: 'Invalid Time Range', text: 'End time must be after start time.', confirmButtonColor: '#b979cc' });
+      sch.end_time = '';
+      return;
+    } else if ((endMinutes - startMinutes) < 60) {
+      document.activeElement?.blur();
+      Swal.fire({ icon: 'warning', title: 'Invalid Time Range', text: 'The activity duration must be at least 1 hour.', confirmButtonColor: '#b979cc' });
+      sch.end_time = '';
+      return;
+    }
+  }
+
+  if (!sch.start_time || !sch.end_time || !sch.meals_and_snacks) return;
+  const [startH] = sch.start_time.split(':').map(Number);
+  const [endH, endM] = sch.end_time.split(':').map(Number);
+  if (startH >= 13) {
+    sch.meals_and_snacks.breakfast = false;
+    sch.meals_and_snacks.am_snack = false;
+  }
+  if (endH < 12 || (endH === 12 && endM === 0)) {
+    sch.meals_and_snacks.pm_snack = false;
+    sch.meals_and_snacks.dinner = false;
+  }
+};
+
+const validateScheduleTime = (index) => {
+  const sch = form.value.schedules[index];
+  if (sch) handleTimeChange(sch);
 };
 
 
@@ -1888,11 +1951,27 @@ const submitReport = async () => {
   isSubmitting.value = false;
     } catch (error) {
       isSubmitting.value = false;
-    console.error('Submission error:', error);
-        loading.value = false;
-    alert('Failed to submit report. Please try again.');
+      console.error('Submission error:', error);
+      loading.value = false;
+      Swal.fire({
+        icon: 'error',
+        title: 'Submission Failed',
+        text: error?.response?.data?.message || error?.message || 'Failed to submit report. Please try again.',
+        confirmButtonColor: '#b979cc'
+      });
   }
 };
+
+const minStartDate = computed(() => {
+  const adStart = existingReport.value?.activity_design?.start_date;
+  if (adStart) return String(adStart).substring(0, 10);
+  const currentYear = new Date().getFullYear();
+  return `${currentYear}-01-01`;
+});
+const maxDateLimit = computed(() => {
+  const currentYear = new Date().getFullYear();
+  return `${currentYear}-12-31`;
+});
 
 const handleLogout = async () => {
   try {
@@ -1929,17 +2008,24 @@ const isPdfModalOpen = ref(false);
 const pdfFileUrl = ref('');
 
 const closePdfModal = () => {
+  if (pdfFileUrl.value && pdfFileUrl.value.startsWith('blob:')) {
+    URL.revokeObjectURL(pdfFileUrl.value);
+    pdfFileUrl.value = '';
+  }
   isPdfModalOpen.value = false;
 };
 
 const getFileURL = (file) => {
   if (!file) return '';
-  return URL.createObjectURL(file);
+  if (!file._previewUrl) {
+    file._previewUrl = URL.createObjectURL(file);
+  }
+  return file._previewUrl;
 };
 
 const getExistingFileURL = (filename) => {
   if (!filename) return '';
-  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : 'https://gad-ams-2-1.onrender.com');
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : (typeof window !== 'undefined' ? window.location.origin : ''));
   // Ensuring no double slashes before api
   const formattedBase = base.endsWith('/') ? base.slice(0, -1) : base;
   return `${formattedBase}/api/files/drafts/${filename}`;
@@ -1947,20 +2033,23 @@ const getExistingFileURL = (filename) => {
 
 const previewFile = (filename, folder) => {
   if (!filename) return;
-  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : 'https://gad-ams-2-1.onrender.com');
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : (typeof window !== 'undefined' ? window.location.origin : ''));
   pdfFileUrl.value = `${base}/api/files/${folder}/${filename}`;
   isPdfModalOpen.value = true;
 };
 
 const previewNewFile = (file) => {
   if (!file) return;
+  if (pdfFileUrl.value && pdfFileUrl.value.startsWith('blob:')) {
+    URL.revokeObjectURL(pdfFileUrl.value);
+  }
   pdfFileUrl.value = URL.createObjectURL(file);
   isPdfModalOpen.value = true;
 };
 
 const downloadFile = (filename, folder, prefix) => {
   if (!filename) return;
-  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : 'https://gad-ams-2-1.onrender.com');
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : (typeof window !== 'undefined' ? window.location.origin : ''));
   const url = `${base}/api/files/${folder}/${filename}`;
   window.open(url, '_blank');
 };
@@ -2384,6 +2473,11 @@ onMounted(async () => {
 onUnmounted(() => {
   if (themeObserver) themeObserver.disconnect();
   document.removeEventListener('click', closeAllHelp);
+  uploadedFiles.value.forEach(f => {
+    if (f && f._previewUrl) {
+      URL.revokeObjectURL(f._previewUrl);
+    }
+  });
 });
 
 </script>

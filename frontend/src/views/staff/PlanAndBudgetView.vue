@@ -280,7 +280,7 @@
 <script>
 import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue';
 import Swal from 'sweetalert2';
-import * as XLSX from 'xlsx';
+import XLSX from 'xlsx-js-style';
 import Chart from 'chart.js/auto';
 import api from '../../api';
 import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
@@ -758,7 +758,10 @@ export default {
           res = await api.post('/gpb/item', dbPayload);
           if (res.status === 200 || res.status === 201) {
             const created = res.data;
-            if (created?.id) item._dbId = created.id;
+            if (created?.id) {
+              item._dbId = created.id;
+              item.id = created.id;
+            }
           }
         }
         item._isNew  = false;
@@ -1067,8 +1070,8 @@ export default {
                 activity: item.activity,
                 targets: item.indicators,
                 indicators: item.indicators,
-                budget: item.budgetLines[0].amount,
-                source: item.budgetLines[0].source,
+                budget: item.budgetLines.reduce((sum, l) => sum + (Number(l.amount) || 0), 0),
+                source: [...new Set(item.budgetLines.map(l => l.source).filter(Boolean))].join(', ') || 'GAA',
                 office: item.responsible,
                 responsible: item.responsible,
                 budget_lines: JSON.stringify(item.budgetLines),
@@ -1297,8 +1300,13 @@ export default {
     async function savePlan() {
       const { isConfirmed } = await Swal.fire({title: 'Save Changes?', text: 'Are you sure you want to save your changes?', icon: 'question', showCancelButton: true, confirmButtonText: 'Yes, Save'});
       if (!isConfirmed) return;
-      await saveToAPI();
-      Swal.fire('Saved!', 'Your changes have been successfully saved.', 'success');
+      const ok = await saveToAPI();
+      if (ok) {
+        await loadFromAPI();
+        Swal.fire('Saved!', 'Your changes have been successfully saved.', 'success');
+      } else {
+        Swal.fire('Save Failed', 'Could not save plan changes to the database. Please try again.', 'error');
+      }
     }
 
     async function loadFromAPI(yearOverride = null) {
@@ -1326,7 +1334,10 @@ export default {
     async function saveToAPI(cleanState) {
       const payload = cleanState || (() => {
         const c = JSON.parse(JSON.stringify(state.value));
-        c.items = c.items.map(({ _isNew, _dirty, _saving, _saved, _dbId, ...rest }) => rest);
+        c.items = c.items.map(({ _isNew, _dirty, _saving, _saved, _dbId, ...rest }) => ({
+          ...rest,
+          id: _dbId || rest.id
+        }));
         return c;
       })();
       try {
@@ -1334,11 +1345,13 @@ export default {
         if (res.status === 200 || res.status === 201) {
           saveStatus.value = 'Saved';
           fetchMandateStats();
+          return true;
         } else throw new Error('fail');
-      } catch {
+      } catch (err) {
         // Could not reach backend
         saveStatus.value = 'Error saving';
-        console.error('Could not save plan to database.');
+        console.error('Could not save plan to database:', err);
+        return false;
       }
     }
 

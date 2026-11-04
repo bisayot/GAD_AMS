@@ -18,7 +18,10 @@ class HolidayController extends ResourceController
         $model = new HolidayModel();
         
         if ($year) {
-            $holidays = $model->where('YEAR(date)', $year)->orderBy('date', 'ASC')->findAll();
+            $holidays = $model->where('date >=', "{$year}-01-01")
+                              ->where('date <=', "{$year}-12-31")
+                              ->orderBy('date', 'ASC')
+                              ->findAll();
         } else {
             $holidays = $model->orderBy('date', 'ASC')->findAll();
         }
@@ -26,6 +29,20 @@ class HolidayController extends ResourceController
         return $this->respond([
             'status' => 'success',
             'data'   => $holidays
+        ]);
+    }
+
+    // Get single holiday
+    public function show($id = null)
+    {
+        $model = new HolidayModel();
+        $holiday = $model->find($id);
+        if (!$holiday) {
+            return $this->failNotFound('Holiday not found');
+        }
+        return $this->respond([
+            'status' => 'success',
+            'data'   => $holiday
         ]);
     }
 

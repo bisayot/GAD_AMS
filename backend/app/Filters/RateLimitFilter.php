@@ -23,7 +23,11 @@ class RateLimitFilter implements FilterInterface
     public function before(RequestInterface $request, $arguments = null)
     {
         $throttler = \Config\Services::throttler();
-        $ip        = $request->getIPAddress();
+        $rawForwarded = $request->getServer('HTTP_X_FORWARDED_FOR');
+        $firstForwarded = $rawForwarded ? trim(explode(',', (string)$rawForwarded)[0]) : null;
+        $ip = $request->getServer('HTTP_CF_CONNECTING_IP')
+            ?: ($firstForwarded ?: $request->getIPAddress());
+        $ip = trim((string)$ip);
         $key       = 'auth_ratelimit_' . md5($ip);
 
         if ($throttler->check($key, self::MAX_ATTEMPTS, self::WINDOW_SECONDS) === false) {

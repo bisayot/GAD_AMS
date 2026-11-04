@@ -57,11 +57,31 @@ class ActivityLogController extends ResourceController
             }
         }
 
-        $logs = $builder->get()->getResultArray();
+        $limitParam = $this->request->getGet('limit');
+        $pageParam = (int) ($this->request->getGet('page') ?? 1);
+        if ($pageParam < 1) $pageParam = 1;
+
+        // Default limit is 250, maximum limit is 1000
+        $limit = $limitParam !== null ? (int)$limitParam : 250;
+        if ($limit <= 0) $limit = 250;
+        if ($limit > 1000) $limit = 1000;
+
+        $offset = ($pageParam - 1) * $limit;
+
+        $countBuilder = clone $builder;
+        $totalCount = $countBuilder->countAllResults(false);
+
+        $logs = $builder->limit($limit, $offset)->get()->getResultArray();
 
         return $this->respond([
             'success' => true,
-            'data' => $logs
+            'data' => $logs,
+            'pagination' => [
+                'total' => $totalCount,
+                'page' => $pageParam,
+                'limit' => $limit,
+                'last_page' => (int) ceil($totalCount / $limit)
+            ]
         ]);
     }
 }

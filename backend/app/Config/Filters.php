@@ -124,7 +124,7 @@ class Filters extends BaseFilters
                 'api/register',
                 'api/forgot-password',
                 'api/reset-password',
-                'api/add_office',
+                'api/verify-human-challenge',
             ]
         ],
 
@@ -136,14 +136,19 @@ class Filters extends BaseFilters
             'before' => [
                 'api/users*',
                 'api/offices*',
+                'api/add_office',
                 'api/activity-logs',
                 'api/backups*',
                 'api/submit-activity-design',
+                'api/save-ad-draft',
+                'api/get-ad-draft*',
+                'api/delete-ad-draft*',
                 'api/activity-designs*',
                 'api/activity-design*',
                 'api/update-design*',
                 'api/approve-design*',
                 'api/disapprove-design*',
+                'api/cancel-design*',
                 'api/revert-design*',
                 'api/revision-design*',
                 'api/update-deadline*',
@@ -163,13 +168,12 @@ class Filters extends BaseFilters
                 'api/update-report*',
                 'api/approve-report*',
                 'api/revision-report*',
-                'api/mandates*',
-                'api/gender-issues*',
                 'api/messages*',
                 'api/notifications*',
                 'api/budget*',
                 'api/staff/budget*',
                 'api/staff/budget-monitoring*',
+                'api/college/budget-monitoring',
                 'api/plan*',
                 'api/gpb*',
                 'api/settings*',
@@ -182,6 +186,7 @@ class Filters extends BaseFilters
                 'api/venues*',
                 'api/contact-inquiries*',
                 'api/storage*',
+                'api/analytics/participants/user*',
             ]
         ],
 
@@ -198,32 +203,43 @@ class Filters extends BaseFilters
                 'api/users/suspend*',
                 'api/users/restore*',
                 'api/users/delete*',
+                'api/users/approval*',
+                'api/users/approve*',
+                'api/users/decline*',
                 // Document approval / revision workflow
                 'api/approve-design*',
                 'api/disapprove-design*',
+                'api/cancel-design*',
                 'api/revert-design*',
                 'api/revision-design*',
                 'api/approve-report*',
                 'api/revision-report*',
                 'api/update-deadline*',
+                'api/activity-designs/*/approve-modification',
+                'api/activity-designs/*/reject-modification',
+                'api/activity-design/mark-viewed*',
+                'api/activity-design/unmark-viewed*',
+                'api/accomplishment-report/mark-viewed*',
+                'api/accomplishment-report/unmark-viewed*',
                 // Viewing all submissions across all users
                 'api/activity-designs',
                 'api/activity-reports',
                 'api/admin/twg-submissions',
+                // Broadcast announcements
+                'api/messages/announce',
                 // Contact inquiries
                 'api/contact-inquiries*',
                 // Archiving
                 'api/archive-design*',
                 'api/archive-report*',
                 // Budget management
+                'api/staff/budget*',
                 'api/staff/budget-monitoring*',
                 'api/budget/gad-plan',
-                // Mandates & gender issues (create/update/delete)
-                'api/mandates',
-                'api/gender-issues*',
                 // Campus Resources (venues, offices, holidays)
                 'api/venues*',
                 'api/offices*',
+                'api/add_office',
                 // System-wide settings
                 'api/settings*',
                 // Plan & budget configuration

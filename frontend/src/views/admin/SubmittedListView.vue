@@ -290,9 +290,7 @@ const changePage = (page) => {
   }
 };
 
-const viewDetails = (unitId) => {
-  router.push(`/admin/twg-details/${unitId}`);
-};
+
 
 const handleLogout = async () => {
   try {

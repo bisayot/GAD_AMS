@@ -177,93 +177,112 @@ class ActivityDesignController extends BaseController
                 ])->setStatusCode(409);
             }
 
-            if ($activityDesignModel->insert($data)) {
-                $actDesignId = $activityDesignModel->getInsertID();
+            $db = \Config\Database::connect();
+            $db->transStart();
 
-                $db = \Config\Database::connect();
-                foreach ($finalMandates as $mandateId) {
-                    $db->table('activity_design_mandates')->insert([
-                        'act_design_id' => $actDesignId,
-                        'mandate_id' => $mandateId
-                    ]);
+            if (!$activityDesignModel->insert($data)) {
+                $db->transRollback();
+                if (!empty($fileName)) {
+                    FileStorage::deleteFromDrafts($fileName);
                 }
-                foreach ($finalIssues as $issueId) {
-                    $db->table('activity_design_issues')->insert([
-                        'act_design_id' => $actDesignId,
-                        'issue_id' => $issueId
-                    ]);
-                }
-
-                foreach ($finalVenues as $vId) {
-                    $db->table('activity_design_venues')->insert([
-                        'act_design_id' => $actDesignId,
-                        'venue_id' => $vId
-                    ]);
-                }
-
-                // Save budget items
-                // Save staggered schedules if any
-                $schedulesStr = $this->request->getPost("schedules");
-                if ($schedulesStr) {
-                    $schedules = json_decode($schedulesStr, true);
-                    if (is_array($schedules) && count($schedules) > 0) {
-                        $scheduleModel = new \App\Models\ActivityScheduleModel();
-                        foreach ($schedules as &$sch) {
-                            $sch['act_design_id'] = $actDesignId;
-                            if (isset($sch['date'])) {
-                                $sch['schedule_date'] = $sch['date'];
-                            }
-                            // meals_and_snacks is an array — not stored; remove to avoid "Array to string conversion"
-                            unset($sch['meals_and_snacks']);
-                            unset($sch['date']); // remove frontend-only key
-                        }
-                        $scheduleModel->insertBatch($schedules);
-                    }
-                }
-
-                $budgetItemsStr = $this->request->getPost("budget_items");
-                $budgetError = $this->validateBudgetPayload($budgetItemsStr);
-                if ($budgetError !== null) {
-                    return $this->response->setJSON(['success' => false, 'message' => $budgetError])->setStatusCode(422);
-                }
-                if ($budgetItemsStr) {
-                    $budgetItems = json_decode($budgetItemsStr, true);
-                    if (is_array($budgetItems) && count($budgetItems) > 0) {
-                        $budgetItemsModel = new \App\Models\ActivityBudgetItemsModel();
-                        if (isset($budgetItems[0])) {
-                            foreach ($budgetItems as &$item) {
-                                $item['act_design_id'] = $actDesignId;
-                                if (isset($item['venue_id']) && isset($tempToRealVenueIdMap[$item['venue_id']])) {
-                                    $item['venue_id'] = $tempToRealVenueIdMap[$item['venue_id']];
-                                }
-                                if (isset($item['multipliers']) && is_array($item['multipliers'])) {
-                                    $item['multipliers'] = json_encode($item['multipliers']);
-                                }
-                            }
-                            $budgetItemsModel->insertBatch($budgetItems);
-                        } else {
-                            $budgetItems['act_design_id'] = $actDesignId;
-                            if (isset($budgetItems['venue_id']) && isset($tempToRealVenueIdMap[$budgetItems['venue_id']])) {
-                                $budgetItems['venue_id'] = $tempToRealVenueIdMap[$budgetItems['venue_id']];
-                            }
-                            if (isset($budgetItems['multipliers']) && is_array($budgetItems['multipliers'])) {
-                                $budgetItems['multipliers'] = json_encode($budgetItems['multipliers']);
-                            }
-                            $budgetItemsModel->insert($budgetItems);
-                        }
-                    }
-                }
-
-                \App\Models\ActivityLogModel::log($data['user_id'], 'Submit Document', 'submitted Activity Design: ' . $data['activity_title']);
-
-                NotificationService::send($data['user_id'], 'Activity Design Submitted', 'Your Activity Design "' . $data['activity_title'] . '" has been successfully submitted and is pending review.', '/staff/activity-designs', 'info');
-                NotificationService::sendToAdmins('New Activity Design Submitted', 'A new Activity Design "' . $data['activity_title'] . '" has been submitted and is pending review.', '/admin/activity-designs', 'info');
-
                 return $this->response->setJSON([
-                    "success" => true,
-                    "message" => "Data saved successfully"
+                    "success" => false,
+                    "message" => "Failed to save data into database.",
+                    "errors"  => $activityDesignModel->errors()
+                ])->setStatusCode(500);
+            }
+
+            $actDesignId = $activityDesignModel->getInsertID();
+
+            foreach ($finalMandates as $mandateId) {
+                $db->table('activity_design_mandates')->insert([
+                    'act_design_id' => $actDesignId,
+                    'mandate_id' => $mandateId
                 ]);
             }
+            foreach ($finalIssues as $issueId) {
+                $db->table('activity_design_issues')->insert([
+                    'act_design_id' => $actDesignId,
+                    'issue_id' => $issueId
+                ]);
+            }
+
+            foreach ($finalVenues as $vId) {
+                $db->table('activity_design_venues')->insert([
+                    'act_design_id' => $actDesignId,
+                    'venue_id' => $vId
+                ]);
+            }
+
+            // Save staggered schedules if any
+            $schedulesStr = $this->request->getPost("schedules");
+            if ($schedulesStr) {
+                $schedules = json_decode($schedulesStr, true);
+                if (is_array($schedules) && count($schedules) > 0) {
+                    $scheduleModel = new \App\Models\ActivityScheduleModel();
+                    foreach ($schedules as &$sch) {
+                        $sch['act_design_id'] = $actDesignId;
+                        if (isset($sch['date'])) {
+                            $sch['schedule_date'] = $sch['date'];
+                        }
+                        // meals_and_snacks is an array — not stored; remove to avoid "Array to string conversion"
+                        unset($sch['meals_and_snacks']);
+                        unset($sch['date']); // remove frontend-only key
+                    }
+                    $scheduleModel->insertBatch($schedules);
+                }
+            }
+
+            $budgetItemsStr = $this->request->getPost("budget_items");
+            if ($budgetItemsStr) {
+                $budgetItems = json_decode($budgetItemsStr, true);
+                if (is_array($budgetItems) && count($budgetItems) > 0) {
+                    $budgetItemsModel = new \App\Models\ActivityBudgetItemsModel();
+                    if (isset($budgetItems[0])) {
+                        foreach ($budgetItems as &$item) {
+                            $item['act_design_id'] = $actDesignId;
+                            if (isset($item['venue_id']) && isset($tempToRealVenueIdMap[$item['venue_id']])) {
+                                $item['venue_id'] = $tempToRealVenueIdMap[$item['venue_id']];
+                            }
+                            if (isset($item['multipliers']) && is_array($item['multipliers'])) {
+                                $item['multipliers'] = json_encode($item['multipliers']);
+                            }
+                        }
+                        $budgetItemsModel->insertBatch($budgetItems);
+                    } else {
+                        $budgetItems['act_design_id'] = $actDesignId;
+                        if (isset($budgetItems['venue_id']) && isset($tempToRealVenueIdMap[$budgetItems['venue_id']])) {
+                            $budgetItems['venue_id'] = $tempToRealVenueIdMap[$budgetItems['venue_id']];
+                        }
+                        if (isset($budgetItems['multipliers']) && is_array($budgetItems['multipliers'])) {
+                            $budgetItems['multipliers'] = json_encode($budgetItems['multipliers']);
+                        }
+                        $budgetItemsModel->insert($budgetItems);
+                    }
+                }
+            }
+
+            $db->transComplete();
+
+            if ($db->transStatus() === false) {
+                if (!empty($fileName)) {
+                    FileStorage::deleteFromDrafts($fileName);
+                }
+                return $this->response->setJSON([
+                    "success" => false,
+                    "message" => "Database transaction failed while saving Activity Design."
+                ])->setStatusCode(500);
+            }
+
+            \App\Models\ActivityLogModel::log($data['user_id'], 'Submit Document', 'submitted Activity Design: ' . $data['activity_title']);
+
+            NotificationService::send($data['user_id'], 'Activity Design Submitted', 'Your Activity Design "' . $data['activity_title'] . '" has been successfully submitted and is pending review.', '/staff/activity-designs', 'info');
+            NotificationService::sendToAdmins('New Activity Design Submitted', 'A new Activity Design "' . $data['activity_title'] . '" has been submitted and is pending review.', '/admin/activity-designs', 'info');
+
+            return $this->response->setJSON([
+                "success" => true,
+                "message" => "Data saved successfully"
+            ]);
 
             return $this->response->setJSON([
                 "success" => false,
@@ -310,6 +329,15 @@ class ActivityDesignController extends BaseController
     {
         if (!$userId) {
             return $this->response->setJSON(['success' => false, 'message' => 'User ID required'])->setStatusCode(400);
+        }
+
+        $payload = $this->request->jwtPayload ?? null;
+        $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        $role = strtolower(trim((string)($payload['role'] ?? $payload['user_role'] ?? '')));
+        $isStaffOrAdmin = in_array($role, ['admin', 'director', 'gad_staff', 'staff', 'superadmin'], true);
+
+        if (!$isStaffOrAdmin && ($authUserId <= 0 || (int)$userId !== (int)$authUserId)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Forbidden: You can only view your own Activity Designs.'])->setStatusCode(403);
         }
 
         $db = \Config\Database::connect();
@@ -360,6 +388,15 @@ class ActivityDesignController extends BaseController
 
         if (!$design) {
             return $this->response->setJSON(['success' => false, 'message' => 'Activity design not found'])->setStatusCode(404);
+        }
+
+        $payload = $this->request->jwtPayload ?? null;
+        $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        $role = strtolower(trim((string)($payload['role'] ?? $payload['user_role'] ?? '')));
+        $isStaffOrAdmin = in_array($role, ['admin', 'director', 'gad_staff', 'staff', 'superadmin'], true);
+
+        if (!$isStaffOrAdmin && ($authUserId <= 0 || (int)($design['user_id'] ?? 0) !== (int)$authUserId)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Forbidden: You can only view your own Activity Design.'])->setStatusCode(403);
         }
 
         $design['is_archived'] = $design['is_archived'] == 1;
@@ -599,6 +636,18 @@ class ActivityDesignController extends BaseController
             ])->setStatusCode(404);
         }
 
+        $payload = $this->request->jwtPayload ?? null;
+        $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        $role = strtolower(trim((string)($payload['role'] ?? $payload['user_role'] ?? '')));
+        $isStaffOrAdmin = in_array($role, ['admin', 'director', 'gad_staff', 'staff', 'superadmin'], true);
+
+        if (!$isStaffOrAdmin && ($authUserId <= 0 || (int)($design['user_id'] ?? 0) !== (int)$authUserId)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Forbidden: You can only update your own Activity Design.'
+            ])->setStatusCode(403);
+        }
+
         // 2. Collect only the fields that were sent in the request
         // Using array_filter ensures we don't overwrite existing data with nulls
         $gadMandateStr = $this->request->getPost('gad_mandate_id');
@@ -686,11 +735,14 @@ class ActivityDesignController extends BaseController
             'schedule_type'       => $this->request->getPost('schedule_type'),
         ];
         
-        $status = $this->request->getPost('status') ?? 'Pending';
         if ($design['status'] === 'Approved') {
             $status = 'Approved';
             $data['modification_request_status'] = 'none';
             $data['is_modified'] = 1;
+        } elseif ($isStaffOrAdmin) {
+            $status = $this->request->getPost('status') ?? 'Pending';
+        } else {
+            $status = 'Pending';
         }
         $data['status'] = $status;
 
@@ -710,116 +762,129 @@ class ActivityDesignController extends BaseController
             $updateData['attachment'] = $newName;
         }
 
+        $budgetItemsStr = $this->request->getPost("budget_items");
+        if ($budgetItemsStr) {
+            $budgetError = $this->validateBudgetPayload($budgetItemsStr);
+            if ($budgetError !== null) {
+                return $this->response->setJSON(['success' => false, 'message' => $budgetError])->setStatusCode(422);
+            }
+        }
+
         // 4. Execute Update
         try {
-            if ($model->update($id, $updateData)) {
-                $db = \Config\Database::connect();
-                
-                if (!empty($finalMandates)) {
-                    $db->table('activity_design_mandates')->where('act_design_id', $id)->delete();
-                    foreach ($finalMandates as $mandateId) {
-                        $db->table('activity_design_mandates')->insert([
-                            'act_design_id' => $id,
-                            'mandate_id' => $mandateId
-                        ]);
-                    }
-                }
+            $db = \Config\Database::connect();
+            $db->transStart();
 
-                if (!empty($finalIssues)) {
-                    $db->table('activity_design_issues')->where('act_design_id', $id)->delete();
-                    foreach ($finalIssues as $issueId) {
-                        $db->table('activity_design_issues')->insert([
-                            'act_design_id' => $id,
-                            'issue_id' => $issueId
-                        ]);
-                    }
-                }
-
-                if (!empty($finalVenues)) {
-                    $db->table('activity_design_venues')->where('act_design_id', $id)->delete();
-                    foreach ($finalVenues as $vId) {
-                        $db->table('activity_design_venues')->insert([
-                            'act_design_id' => $id,
-                            'venue_id' => $vId
-                        ]);
-                    }
-                }
-
-                // Update or Insert budget items
-                // 2.5 Update staggered schedules
-                $schedulesStr = $this->request->getPost("schedules");
-                if ($schedulesStr) {
-                    $schedules = json_decode($schedulesStr, true);
-                    $scheduleModel = new \App\Models\ActivityScheduleModel();
-                    $scheduleModel->where('act_design_id', $id)->delete();
-                    if (is_array($schedules) && count($schedules) > 0) {
-                        foreach ($schedules as &$sch) {
-                            $sch['act_design_id'] = $id;
-                            if (isset($sch['date'])) {
-                                $sch['schedule_date'] = $sch['date'];
-                            }
-                            unset($sch['meals_and_snacks']);
-                            unset($sch['date']);
-                        }
-                        $scheduleModel->insertBatch($schedules);
-                    }
-                }
-
-                $budgetItemsStr = $this->request->getPost("budget_items");
-                $budgetError = $this->validateBudgetPayload($budgetItemsStr);
-                if ($budgetError !== null) {
-                    return $this->response->setJSON(['success' => false, 'message' => $budgetError])->setStatusCode(422);
-                }
-                if ($budgetItemsStr) {
-                    $budgetItems = json_decode($budgetItemsStr, true);
-                    if (is_array($budgetItems) && count($budgetItems) > 0) {
-                        $budgetItemsModel = new \App\Models\ActivityBudgetItemsModel();
-                        $budgetItemsModel->where('act_design_id', $id)->delete();
-                        if (isset($budgetItems[0])) {
-                            foreach ($budgetItems as &$item) {
-                                $item['act_design_id'] = $id;
-                                if (isset($item['venue_id']) && isset($tempToRealVenueIdMap[$item['venue_id']])) {
-                                    $item['venue_id'] = $tempToRealVenueIdMap[$item['venue_id']];
-                                }
-                                if (isset($item['multipliers']) && is_array($item['multipliers'])) {
-                                    $item['multipliers'] = json_encode($item['multipliers']);
-                                }
-                            }
-                            $budgetItemsModel->insertBatch($budgetItems);
-                        } else {
-                            $budgetItems['act_design_id'] = $id;
-                            if (isset($budgetItems['venue_id']) && isset($tempToRealVenueIdMap[$budgetItems['venue_id']])) {
-                                $budgetItems['venue_id'] = $tempToRealVenueIdMap[$budgetItems['venue_id']];
-                            }
-                            if (isset($budgetItems['multipliers']) && is_array($budgetItems['multipliers'])) {
-                                $budgetItems['multipliers'] = json_encode($budgetItems['multipliers']);
-                            }
-                            $budgetItemsModel->insert($budgetItems);
-                        }
-                    }
-                }
-
-                $title = $updateData['activity_title'] ?? $design['activity_title'];
-                \App\Models\ActivityLogModel::log($design['user_id'], 'Update Document', 'resubmitted Activity Design: ' . $title);
-                
-                if ($design['status'] === 'Approved') {
-                    $submitterName = $db->table('users')->select('full_name')->where('id', $design['user_id'])->get()->getRow()->full_name ?? 'A user';
-                    NotificationService::sendToAdmins('Activity Design Modified', $submitterName . ' modified the approved Activity Design "' . $title . '".', '/admin/ad-list', 'info');
-                } else {
-                    NotificationService::sendToAdmins('Activity Design Resubmitted', 'Activity Design "' . $title . '" has been resubmitted and is pending review.', '/admin/ad-list', 'info');
-                }
-
-                return $this->response->setJSON([
-                    'success' => true,
-                    'message' => 'Activity Design updated and resubmitted successfully.'
-                ]);
-            } else {
+            if (!$model->update($id, $updateData)) {
+                $db->transRollback();
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Database update failed.',
                     'errors'  => $model->errors()
                 ])->setStatusCode(400);
             }
+                
+            if (!empty($finalMandates)) {
+                $db->table('activity_design_mandates')->where('act_design_id', $id)->delete();
+                foreach ($finalMandates as $mandateId) {
+                    $db->table('activity_design_mandates')->insert([
+                        'act_design_id' => $id,
+                        'mandate_id' => $mandateId
+                    ]);
+                }
+            }
+
+            if (!empty($finalIssues)) {
+                $db->table('activity_design_issues')->where('act_design_id', $id)->delete();
+                foreach ($finalIssues as $issueId) {
+                    $db->table('activity_design_issues')->insert([
+                        'act_design_id' => $id,
+                        'issue_id' => $issueId
+                    ]);
+                }
+            }
+
+            if (!empty($finalVenues)) {
+                $db->table('activity_design_venues')->where('act_design_id', $id)->delete();
+                foreach ($finalVenues as $vId) {
+                    $db->table('activity_design_venues')->insert([
+                        'act_design_id' => $id,
+                        'venue_id' => $vId
+                    ]);
+                }
+            }
+
+            // Update staggered schedules
+            $schedulesStr = $this->request->getPost("schedules");
+            if ($schedulesStr) {
+                $schedules = json_decode($schedulesStr, true);
+                $scheduleModel = new \App\Models\ActivityScheduleModel();
+                $scheduleModel->where('act_design_id', $id)->delete();
+                if (is_array($schedules) && count($schedules) > 0) {
+                    foreach ($schedules as &$sch) {
+                        $sch['act_design_id'] = $id;
+                        if (isset($sch['date'])) {
+                            $sch['schedule_date'] = $sch['date'];
+                        }
+                        unset($sch['meals_and_snacks']);
+                        unset($sch['date']);
+                    }
+                    $scheduleModel->insertBatch($schedules);
+                }
+            }
+
+            if ($budgetItemsStr) {
+                $budgetItems = json_decode($budgetItemsStr, true);
+                if (is_array($budgetItems) && count($budgetItems) > 0) {
+                    $budgetItemsModel = new \App\Models\ActivityBudgetItemsModel();
+                    $budgetItemsModel->where('act_design_id', $id)->delete();
+                    if (isset($budgetItems[0])) {
+                        foreach ($budgetItems as &$item) {
+                            $item['act_design_id'] = $id;
+                            if (isset($item['venue_id']) && isset($tempToRealVenueIdMap[$item['venue_id']])) {
+                                $item['venue_id'] = $tempToRealVenueIdMap[$item['venue_id']];
+                            }
+                            if (isset($item['multipliers']) && is_array($item['multipliers'])) {
+                                $item['multipliers'] = json_encode($item['multipliers']);
+                            }
+                        }
+                        $budgetItemsModel->insertBatch($budgetItems);
+                    } else {
+                        $budgetItems['act_design_id'] = $id;
+                        if (isset($budgetItems['venue_id']) && isset($tempToRealVenueIdMap[$budgetItems['venue_id']])) {
+                            $budgetItems['venue_id'] = $tempToRealVenueIdMap[$budgetItems['venue_id']];
+                        }
+                        if (isset($budgetItems['multipliers']) && is_array($budgetItems['multipliers'])) {
+                            $budgetItems['multipliers'] = json_encode($budgetItems['multipliers']);
+                        }
+                        $budgetItemsModel->insert($budgetItems);
+                    }
+                }
+            }
+
+            $db->transComplete();
+
+            if ($db->transStatus() === false) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Database transaction failed while updating Activity Design.'
+                ])->setStatusCode(500);
+            }
+
+            $title = $updateData['activity_title'] ?? $design['activity_title'];
+            \App\Models\ActivityLogModel::log($design['user_id'], 'Update Document', 'resubmitted Activity Design: ' . $title);
+            
+            if ($design['status'] === 'Approved') {
+                $submitterName = $db->table('users')->select('full_name')->where('id', $design['user_id'])->get()->getRow()->full_name ?? 'A user';
+                NotificationService::sendToAdmins('Activity Design Modified', $submitterName . ' modified the approved Activity Design "' . $title . '".', '/admin/ad-list', 'info');
+            } else {
+                NotificationService::sendToAdmins('Activity Design Resubmitted', 'Activity Design "' . $title . '" has been resubmitted and is pending review.', '/admin/ad-list', 'info');
+            }
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Activity Design updated and resubmitted successfully.'
+            ]);
         } catch (\Exception $e) {
             return $this->response->setJSON([
                 'success' => false,
@@ -1031,88 +1096,59 @@ class ActivityDesignController extends BaseController
         }
 
         $db = \Config\Database::connect();
-        
-        // Check active table first (for Disapproved or Revision Required)
+
         $activeItem = $db->table('activity_design')->where('act_design_id', $id)->get()->getRowArray();
-        if ($activeItem) {
-            if (in_array($activeItem['status'], ['Disapproved', 'Revision Required'])) {
-                try {
-                    $db->table('activity_design')->where('act_design_id', $id)->update([
-                        'status' => 'Pending',
-                        'remarks' => null
-                    ]);
-                } catch (\Exception $e) {
-                    $db->table('activity_design')->where('act_design_id', $id)->update(['status' => 'Pending']);
-                }
-
-                $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
-                $actionUserId = $authUserId > 0 ? $authUserId : $activeItem['user_id'];
-                \App\Models\ActivityLogModel::log($actionUserId, 'Revert Decision', 'reverted decision for Activity Design: ' . $activeItem['activity_title']);
-
-                return $this->response->setJSON(['success' => true, 'message' => 'Decision reverted successfully']);
-            }
-            return $this->response->setJSON(['success' => false, 'message' => 'Cannot revert this design status from active list'])->setStatusCode(400);
+        if (!$activeItem) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Design not found'])->setStatusCode(404);
         }
 
-        // Check archived table (for Approved or Cancelled)
-        $archivedItem = $db->table('archived_activity_designs')->where('original_act_design_id', $id)->get()->getRowArray();
-        if ($archivedItem) {
-            $db->transStart();
-            
-            // Build data for moving back
-            $restoreData = $archivedItem;
-            $restoreData['act_design_id'] = $restoreData['original_act_design_id'];
-            unset($restoreData['original_act_design_id']);
-            unset($restoreData['archived_at']);
-            
-            // Reset status and remarks
-            $restoreData['status'] = 'Pending';
-            $restoreData['remarks'] = null;
-            
-            $db->table('activity_design')->insert($restoreData);
-            
-            // Revert mandates
-            $archivedMandates = $db->table('archived_activity_design_mandates')->where('archive_id', $archivedItem['archive_id'])->get()->getResultArray();
-            if (!empty($archivedMandates)) {
-                $mandates = array_map(function($m) use ($id) {
-                    return [
-                        'act_design_id' => $id,
-                        'mandate_id' => $m['mandate_id']
-                    ];
-                }, $archivedMandates);
-                $db->table('activity_design_mandates')->insertBatch($mandates);
-            }
-
-            // Revert issues
-            $archivedIssues = $db->table('archived_activity_design_issues')->where('archive_id', $archivedItem['archive_id'])->get()->getResultArray();
-            if (!empty($archivedIssues)) {
-                $issues = array_map(function($i) use ($id) {
-                    return [
-                        'act_design_id' => $id,
-                        'issue_id' => $i['issue_id']
-                    ];
-                }, $archivedIssues);
-                $db->table('activity_design_issues')->insertBatch($issues);
-            }
-
-            $db->table('archived_activity_design_mandates')->where('archive_id', $archivedItem['archive_id'])->delete();
-            $db->table('archived_activity_design_issues')->where('archive_id', $archivedItem['archive_id'])->delete();
-            $db->table('archived_activity_designs')->where('original_act_design_id', $id)->delete();
-            
-            $db->transComplete();
-
-            if ($db->transStatus() === false) {
-                return $this->response->setJSON(['success' => false, 'message' => 'Failed to revert and restore design'])->setStatusCode(500);
-            }
-
-            $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
-            $actionUserId = $authUserId > 0 ? $authUserId : $archivedItem['user_id'];
-            \App\Models\ActivityLogModel::log($actionUserId, 'Revert Decision', 'reverted decision and restored Activity Design: ' . $archivedItem['activity_title']);
-
-            return $this->response->setJSON(['success' => true, 'message' => 'Decision reverted successfully']);
+        $revertibleStatuses = ['Disapproved', 'Revision Required', 'Approved', 'Cancelled'];
+        if (!in_array($activeItem['status'] ?? '', $revertibleStatuses, true)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Cannot revert this design status'])->setStatusCode(400);
         }
 
-        return $this->response->setJSON(['success' => false, 'message' => 'Design not found in active or approved-document lists'])->setStatusCode(404);
+        $wasArchived = !empty($activeItem['is_archived']) || in_array($activeItem['status'], ['Approved', 'Cancelled'], true);
+        if ($wasArchived) {
+            $verifiedReport = $db->table('accomplishment_report')
+                ->where('act_design_id', $id)
+                ->where('status', 'Verified')
+                ->where('deleted_at', null)
+                ->countAllResults();
+            if ($verifiedReport > 0) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Cannot revert decision because this Activity Design already has a verified Accomplishment Report.'
+                ])->setStatusCode(409);
+            }
+        }
+
+        $revertData = [
+            'status'  => 'Pending',
+            'remarks' => null,
+        ];
+        if ($wasArchived) {
+            $revertData['is_archived']             = 0;
+            $revertData['archived_at']             = null;
+            $revertData['control_number']          = null;
+            $revertData['assessment_date']         = null;
+            $revertData['accomplishment_deadline'] = null;
+        }
+
+        try {
+            $db->table('activity_design')->where('act_design_id', $id)->update($revertData);
+        } catch (\Exception $e) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Failed to revert design: ' . $e->getMessage()])->setStatusCode(500);
+        }
+
+        if (!empty($activeItem['is_archived']) && !empty($activeItem['attachment'])) {
+            \App\Libraries\FileStorage::moveToDrafts($activeItem['attachment']);
+        }
+
+        $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        $actionUserId = $authUserId > 0 ? $authUserId : $activeItem['user_id'];
+        \App\Models\ActivityLogModel::log($actionUserId, 'Revert Decision', 'reverted decision for Activity Design: ' . $activeItem['activity_title']);
+
+        return $this->response->setJSON(['success' => true, 'message' => 'Decision reverted successfully']);
     }
 
     public function updateDeadline($id = null)
@@ -1123,28 +1159,26 @@ class ActivityDesignController extends BaseController
 
         $body = $this->request->getJSON(true) ?? $this->request->getPost();
         $deadline = $body['deadline'] ?? null;
-        $isArchived = filter_var($body['is_archived'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
         if (!$deadline) {
             return $this->response->setJSON(['success' => false, 'message' => 'Deadline required'])->setStatusCode(400);
         }
 
         $db = \Config\Database::connect();
-        $table = $isArchived ? 'archived_activity_designs' : 'activity_design';
-        $idColumn = $isArchived ? 'original_act_design_id' : 'act_design_id';
 
         try {
-            $updated = $db->table($table)->where($idColumn, $id)->update(['accomplishment_deadline' => $deadline]);
-            if ($updated) {
-                $item = $db->table($table)->where($idColumn, $id)->get()->getRowArray();
-                if ($item) {
-                    $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
-                    $actionUserId = $authUserId > 0 ? $authUserId : $item['user_id'];
-                    \App\Models\ActivityLogModel::log($actionUserId, 'Update Deadline', 'updated accomplishment deadline for Activity Design: ' . $item['activity_title']);
-                }
-                return $this->response->setJSON(['success' => true, 'message' => 'Deadline updated successfully']);
+            $item = $db->table('activity_design')->where('act_design_id', $id)->get()->getRowArray();
+            if (!$item) {
+                return $this->response->setJSON(['success' => false, 'message' => 'Activity design not found'])->setStatusCode(404);
             }
-            return $this->response->setJSON(['success' => false, 'message' => 'No changes made or record not found']);
+
+            $db->table('activity_design')->where('act_design_id', $id)->update(['accomplishment_deadline' => $deadline]);
+
+            $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+            $actionUserId = $authUserId > 0 ? $authUserId : $item['user_id'];
+            \App\Models\ActivityLogModel::log($actionUserId, 'Update Deadline', 'updated accomplishment deadline for Activity Design: ' . $item['activity_title']);
+
+            return $this->response->setJSON(['success' => true, 'message' => 'Deadline updated successfully']);
         } catch (\Exception $e) {
             return $this->response->setJSON(['success' => false, 'message' => 'Server Error: ' . $e->getMessage()])->setStatusCode(500);
         }
@@ -1225,6 +1259,15 @@ class ActivityDesignController extends BaseController
         $design = $model->find($id);
         if (!$design) {
             return $this->response->setJSON(['success' => false, 'message' => 'Activity design not found'])->setStatusCode(404);
+        }
+
+        $payload = $this->request->jwtPayload ?? null;
+        $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        $role = strtolower(trim((string)($payload['role'] ?? $payload['user_role'] ?? '')));
+        $isStaffOrAdmin = in_array($role, ['admin', 'director', 'gad_staff', 'staff', 'superadmin'], true);
+
+        if (!$isStaffOrAdmin && ($authUserId <= 0 || (int)($design['user_id'] ?? 0) !== (int)$authUserId)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Forbidden: You can only view your own Activity Design.'])->setStatusCode(403);
         }
 
         $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
@@ -1593,8 +1636,15 @@ class ActivityDesignController extends BaseController
 
     private function resolveDraftUserId($fallback = null)
     {
-        if ($fallback) return $fallback;
+        $payload = $this->request->jwtPayload ?? null;
         $authId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        $role = strtolower(trim((string)($payload['role'] ?? $payload['user_role'] ?? '')));
+        $isPrivileged = in_array($role, ['admin', 'director', 'gad_staff', 'staff', 'superadmin'], true);
+
+        if ($authId > 0 && !$isPrivileged) {
+            return $authId;
+        }
+        if ($fallback) return $fallback;
         if ($authId > 0) return $authId;
         $body = $this->request->getJSON(true) ?? $this->request->getPost();
         return $body['user_id'] ?? null;
@@ -1603,8 +1653,7 @@ class ActivityDesignController extends BaseController
     public function saveDraft()
     {
         $body = $this->request->getJSON(true) ?? $this->request->getPost();
-        $authId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
-        $userId = $authId > 0 ? $authId : ($body['user_id'] ?? null);
+        $userId = $this->resolveDraftUserId($body['user_id'] ?? null);
         $payload = $body['payload'] ?? null;
 
         if (!$userId || $payload === null || $payload === '') {

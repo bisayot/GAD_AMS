@@ -10,14 +10,9 @@ class GpbController extends BaseController
 {
     use ResponseTrait;
 
-    private const ALLOWED_ORIGIN = '*';
-
     public function initController(\CodeIgniter\HTTP\RequestInterface $request, \CodeIgniter\HTTP\ResponseInterface $response, \Psr\Log\LoggerInterface $logger)
     {
         parent::initController($request, $response, $logger);
-        $this->response->setHeader('Access-Control-Allow-Origin', self::ALLOWED_ORIGIN);
-        $this->response->setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        $this->response->setHeader('Access-Control-Allow-Headers', 'Content-Type');
     }
 
     public function options()
@@ -53,6 +48,19 @@ class GpbController extends BaseController
     {
         $model = new GpbModel();
         $data = $this->request->getJSON(true);
+        $fiscalYear = (int)($data['fiscal_year'] ?? date('Y'));
+
+        $db = \Config\Database::connect();
+        $versionService = new \App\Libraries\BudgetVersionService($db);
+        $activeVersion = $versionService->active($fiscalYear);
+        if ($activeVersion && !empty($activeVersion['id'])) {
+            $data['plan_version_id'] = (int)$activeVersion['id'];
+        }
+
+        if (empty($data['item_key'])) {
+            $data['item_key'] = $versionService->generateItemKey($data);
+        }
+
         if ($model->save($data)) {
             return $this->respondCreated(['id' => $model->getInsertID()]);
         }
@@ -119,7 +127,7 @@ class GpbController extends BaseController
             $organization = is_array($data['org'] ?? null) ? $data['org'] : ['year' => $year];
             $items = isset($data['items']) && is_array($data['items']) ? $data['items'] : $data;
             $payload = $this->request->jwtPayload ?? [];
-            $actorId = isset($payload['uid']) ? (int)$payload['uid'] : (isset($payload['id']) ? (int)$payload['id'] : null);
+            $actorId = isset($payload['sub']) ? (int)$payload['sub'] : (isset($payload['uid']) ? (int)$payload['uid'] : (isset($payload['id']) ? (int)$payload['id'] : null));
             $versionService = new \App\Libraries\BudgetVersionService();
             if ($versionService->hasDuplicateVersion($year, $organization, $items)) {
                 throw new \InvalidArgumentException('This fiscal year already has a budget version with the same imported details. The duplicate import was not allowed.');

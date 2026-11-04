@@ -133,7 +133,7 @@ class App extends BaseConfig
      * @see https://www.php.net/manual/en/timezones.php for list of timezones
      *      supported by PHP.
      */
-    public string $appTimezone = 'UTC';
+    public string $appTimezone = 'Asia/Manila';
 
     /**
      * --------------------------------------------------------------------------
@@ -180,7 +180,9 @@ class App extends BaseConfig
      *
      * @var array<string, string>
      */
-    public array $proxyIPs = [];
+    public array $proxyIPs = [
+        '0.0.0.0/0' => 'X-Forwarded-For',
+    ];
 
     /**
      * --------------------------------------------------------------------------

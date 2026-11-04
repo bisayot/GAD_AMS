@@ -82,29 +82,43 @@ class BudgetController extends Controller
         $utilized = 0.0;
         $pendingApproved = 0.0;
 
-        foreach ($approvedDesigns as $design) {
+        $controlNumbers = array_values(array_filter(array_unique(array_column($approvedDesigns, 'control_number'))));
+        $reportsByControl = [];
+        $reportIds = [];
 
-            // Check for completed/verified accomplishment report (active or archived)
-            $report = $db->table('accomplishment_report')
-                ->where('control_number', $design['control_number'])
+        if (!empty($controlNumbers)) {
+            $reportRows = $db->table('accomplishment_report')
+                ->whereIn('control_number', $controlNumbers)
                 ->whereIn('status', ['Completed', 'Verified', 'Approved'])
                 ->where('deleted_at', null)
                 ->get()
-                ->getRowArray();
+                ->getResultArray();
+            foreach ($reportRows as $r) {
+                $reportsByControl[$r['control_number']] = $r;
+                $reportIds[] = (int)$r['id'];
+            }
+        }
 
-            if ($report) {
-                $reportId = $report['id'];
-                $table = 'accomplishment_budget_items';
+        $sumsByReportId = [];
+        if (!empty($reportIds)) {
+            $sumRows = $db->table('accomplishment_budget_items')
+                ->select('accomplishment_report_id, SUM(amount) as total_amount')
+                ->whereIn('accomplishment_report_id', array_unique($reportIds))
+                ->groupBy('accomplishment_report_id')
+                ->get()
+                ->getResultArray();
+            foreach ($sumRows as $sr) {
+                $sumsByReportId[(int)$sr['accomplishment_report_id']] = (float)$sr['total_amount'];
+            }
+        }
 
-                $sum = $db->table($table)
-                    ->selectSum('amount')
-                    ->where('accomplishment_report_id', $reportId)
-                    ->get()
-                    ->getRow()->amount ?? 0.0;
-
-                $utilized += (float) $sum;
+        foreach ($approvedDesigns as $design) {
+            $ctrl = $design['control_number'] ?? '';
+            if (!empty($ctrl) && isset($reportsByControl[$ctrl])) {
+                $repId = (int)$reportsByControl[$ctrl]['id'];
+                $utilized += $sumsByReportId[$repId] ?? 0.0;
             } else {
-                $pendingApproved += (float) $design['proposed_budget'];
+                $pendingApproved += (float) ($design['proposed_budget'] ?? 0);
             }
         }
 
@@ -461,37 +475,6 @@ class BudgetController extends Controller
     }
 
     /**
-     * Get recent budget realignment logs.
-     *
-     * @return \CodeIgniter\HTTP\ResponseInterface
-     */
-    public function getRealignmentLogs()
-    {
-        $db = \Config\Database::connect();
-        $logs = $db->table('budget_realignment_logs brl')
-            ->select('brl.*, gpb.activity as mandate_title')
-            ->join('gpb_items gpb', 'gpb.id = brl.gpb_id', 'left')
-            ->orderBy('brl.created_at', 'DESC')
-            ->get()
-            ->getResultArray();
-
-        $formattedLogs = [];
-        foreach ($logs as $log) {
-            $formattedLogs[] = [
-                'id' => $log['id'],
-                'reference_no' => $log['reference_no'],
-                'mandate_title' => $log['mandate_title'] ?: 'General Fund Pool',
-                'type' => $log['type'],
-                'amount' => (float) $log['amount'],
-                'justification' => $log['justification'],
-                'created_at' => date('M d, Y h:i A', strtotime($log['created_at']))
-            ];
-        }
-
-        return $this->respond($formattedLogs);
-    }
-
-    /**
      * Get global GAD financial meta summary.
      *
      * @return \CodeIgniter\HTTP\ResponseInterface
@@ -532,83 +515,6 @@ class BudgetController extends Controller
             'totalUtilized' => $totalUtilized,
             'utilizationRate' => $utilizationRate
         ]);
-    }
-
-    /**
-     * Execute a budget realignment or augmentation transaction.
-     *
-     * @return \CodeIgniter\HTTP\ResponseInterface
-     */
-    public function executeRealignment()
-    {
-        $db = \Config\Database::connect();
-        $gpbId = $this->request->getPost('mandate_id');
-        $type = $this->request->getPost('type'); // 'augmentation' or 'realignment'
-        $amount = (float) $this->request->getPost('amount');
-        $justification = $this->request->getPost('justification');
-
-        if (!$gpbId || !$type || !$amount || !$justification) {
-            return $this->fail('All adjustment parameters are required.');
-        }
-
-        $gpb = $db->table('gpb_items')->where('id', $gpbId)->get()->getRowArray();
-        if (!$gpb) {
-            return $this->fail('Target mandate activity not found.');
-        }
-
-        try {
-            $versionService = new \App\Libraries\BudgetVersionService($db);
-            $versionService->assertItemModifiable((int)$gpbId);
-        } catch (\InvalidArgumentException $e) {
-            return $this->failForbidden($e->getMessage());
-        }
-
-        try {
-            $db->transStart();
-
-            // Generate reference number
-            $refNo = 'REF-' . strtoupper(bin2hex(random_bytes(3)));
-
-            // 1. Record in logs
-            $db->table('budget_realignment_logs')->insert([
-                'reference_no' => $refNo,
-                'gpb_id' => $gpbId,
-                'type' => $type,
-                'amount' => $amount,
-                'justification' => $justification
-            ]);
-
-            // 2. Adjust target GPB activity budget
-            $currentBudget = (float) $gpb['budget'];
-            $newBudget = $currentBudget;
-
-            if ($type === 'augmentation') {
-                $newBudget += $amount;
-            } else if ($type === 'realignment') {
-                $newBudget -= $amount;
-                if ($newBudget < 0) {
-                    throw new \Exception('Realignment exceeds current available budget balance.');
-                }
-            }
-
-            $db->table('gpb_items')
-                ->where('id', $gpbId)
-                ->update(['budget' => $newBudget]);
-
-            $db->transComplete();
-
-            if ($db->transStatus() === false) {
-                return $this->fail('Failed to process realignment transaction.');
-            }
-
-            return $this->respond([
-                'success' => true,
-                'message' => 'Financial adjustment committed successfully'
-            ]);
-
-        } catch (\Exception $e) {
-            return $this->fail($e->getMessage());
-        }
     }
 
     /**

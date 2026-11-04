@@ -125,7 +125,7 @@ const routes = [
       { path: 'publish-news-iec', name: 'staff-publish-news-iec', component: () => import('../views/staff/PublishNewsIecView.vue') },
     ]
   },
-  
+
   // Catch-all route for 404 Not Found
   { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('../views/NotFoundView.vue') },
 ]
@@ -152,13 +152,13 @@ const router = createRouter({
 // ---------------------------------------------------------------------------
 router.beforeEach((to, from, next) => {
   const userStr = localStorage.getItem('user');
-  const token   = localStorage.getItem('authToken');
-  const user    = userStr ? JSON.parse(userStr) : null;
+  const token = localStorage.getItem('authToken');
+  const user = userStr ? JSON.parse(userStr) : null;
 
   const isLoggedIn = !!(user && user.id && token);
 
-  const isAdminRoute   = to.path.startsWith('/admin');
-  const isStaffRoute   = to.path.startsWith('/staff');
+  const isAdminRoute = to.path.startsWith('/admin');
+  const isStaffRoute = to.path.startsWith('/staff');
   const isCollegeRoute = to.path.startsWith('/college');
   const isApprovalRoute = to.path.startsWith('/user-approval');
 
@@ -179,9 +179,13 @@ router.beforeEach((to, from, next) => {
     // Already logged in? Redirect away from login/register
     if (isLoggedIn && (to.path === '/login' || to.path === '/register')) {
       const safeRole = (user.role || '').toLowerCase();
-      if (safeRole === 'admin')     return next('/admin/dashboard');
+      if (safeRole === 'admin') return next('/admin/dashboard');
       if (safeRole === 'gad_staff') return next('/staff/dashboard');
-      return next('/college/dashboard');
+      if (['twg', 'non-twg', 'college'].includes(safeRole)) return next('/college/dashboard');
+
+      localStorage.removeItem('user');
+      localStorage.removeItem('authToken');
+      return next();
     }
     return next();
   }

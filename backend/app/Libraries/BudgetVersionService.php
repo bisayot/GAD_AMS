@@ -220,6 +220,186 @@ class BudgetVersionService
         return $this->active($fiscalYear) ?: ['id' => $versionId, 'version_number' => $nextVersion];
     }
 
+    /**
+     * Save edits to the active plan version (or legacy fiscal-year items) in place,
+     * preserving existing gpb_items primary keys so linked Activity Designs and
+     * mandate budget allocations remain intact.
+     */
+    public function saveInPlace(
+        int $fiscalYear,
+        array $organization,
+        array $items,
+        ?int $actorId = null
+    ): ?array {
+        $this->db->transStart();
+
+        $hasVersionsTable = $this->db->tableExists('budget_versions');
+        $activeVersion = $hasVersionsTable ? $this->active($fiscalYear) : null;
+        $versionId = $activeVersion ? (int)$activeVersion['id'] : null;
+
+        if ($hasVersionsTable) {
+            $contentHash = $this->computeContentHash($organization, $items);
+            $versionFields = $this->db->getFieldNames('budget_versions');
+
+            if ($activeVersion) {
+                $updateVersion = [
+                    'organization_data' => json_encode($organization),
+                ];
+                if (in_array('content_hash', $versionFields, true)) {
+                    $updateVersion['content_hash'] = $contentHash;
+                }
+                if (in_array('updated_at', $versionFields, true)) {
+                    $updateVersion['updated_at'] = date('Y-m-d H:i:s');
+                }
+                $this->db->table('budget_versions')
+                    ->where('id', $versionId)
+                    ->update($updateVersion);
+            } else {
+                $nextVersion = $this->nextVersionNumber($fiscalYear);
+                $insertVersionData = [
+                    'fiscal_year'       => $fiscalYear,
+                    'version_number'    => $nextVersion,
+                    'status'            => 'active',
+                    'source'            => 'manual',
+                    'organization_data' => json_encode($organization),
+                    'created_by'        => $actorId,
+                    'created_at'        => date('Y-m-d H:i:s'),
+                ];
+                if (in_array('content_hash', $versionFields, true)) {
+                    $insertVersionData['content_hash'] = $contentHash;
+                }
+                $this->db->table('budget_versions')->insert($insertVersionData);
+                $versionId = (int)$this->db->insertID();
+
+                // Attach any existing unversioned items for this fiscal year to this initial version
+                $gpbFieldsInit = $this->db->getFieldNames('gpb_items');
+                if (in_array('plan_version_id', $gpbFieldsInit, true)) {
+                    $this->db->table('gpb_items')
+                        ->where('fiscal_year', $fiscalYear)
+                        ->where('plan_version_id', null)
+                        ->update(['plan_version_id' => $versionId]);
+                }
+            }
+        }
+
+        if ($this->db->tableExists('settings')) {
+            $settingModel = new \App\Models\SettingModel();
+            foreach ($organization as $key => $val) {
+                if ($key !== 'otherSources') {
+                    $settingModel->saveSetting((string)$key, $val, $fiscalYear);
+                }
+            }
+        }
+
+        $gpbFields = $this->db->getFieldNames('gpb_items');
+        $hasPlanVersionCol = in_array('plan_version_id', $gpbFields, true);
+
+        $existingQuery = $this->db->table('gpb_items')->select('id');
+        if ($hasPlanVersionCol && $versionId !== null) {
+            $existingQuery->where('plan_version_id', $versionId);
+        } else {
+            $existingQuery->where('fiscal_year', $fiscalYear);
+        }
+        $existingIds = array_map('intval', array_column($existingQuery->get()->getResultArray(), 'id'));
+        $existingIdSet = array_flip($existingIds);
+        $keptIds = [];
+        $now = date('Y-m-d H:i:s');
+
+        foreach ($items as $idx => $item) {
+            $rawLines = $item['budget_lines'] ?? $item['budgetLines'] ?? null;
+            $linesArray = is_array($rawLines)
+                ? $rawLines
+                : (is_string($rawLines) ? (json_decode($rawLines, true) ?: []) : []);
+
+            $linesSum = 0.0;
+            $sources = [];
+            foreach ($linesArray as $line) {
+                $linesSum += (float)($line['amount'] ?? 0);
+                if (!empty($line['source'])) {
+                    $sources[] = (string)$line['source'];
+                }
+            }
+            $resolvedBudget = !empty($linesArray)
+                ? $linesSum
+                : (float)($item['budget'] ?? $item['total_budget'] ?? $item['raw_budget'] ?? 0);
+            $resolvedSource = !empty($sources)
+                ? implode(', ', array_unique($sources))
+                : ($item['source'] ?? 'GAA');
+
+            $itemKey = $item['item_key'] ?? null;
+            if (empty($itemKey)) {
+                $itemKey = $this->generateItemKey([
+                    'section'      => $item['section'] ?? '',
+                    'mandate'      => $item['mandate'] ?? '',
+                    'gad_activity' => $item['activity'] ?? $item['gad_activity'] ?? '',
+                ]);
+            }
+
+            $candidateRow = [
+                'plan_version_id' => $versionId,
+                'fiscal_year'     => $fiscalYear,
+                'sort_order'      => $item['sort_order'] ?? ($idx + 1),
+                'item_key'        => $itemKey,
+                'section'         => $item['section'] ?? 'client',
+                'mandate'         => $item['mandate'] ?? null,
+                'cause'           => $item['cause'] ?? null,
+                'objective'       => $item['objective'] ?? $item['result'] ?? $item['gad_objective'] ?? null,
+                'result'          => $item['result'] ?? $item['objective'] ?? null,
+                'ppa'             => $item['ppa'] ?? $item['mfo'] ?? $item['relevant_org'] ?? null,
+                'mfo'             => $item['mfo'] ?? $item['ppa'] ?? null,
+                'activity'        => $item['activity'] ?? $item['gad_activity'] ?? null,
+                'targets'         => $item['targets'] ?? $item['indicators'] ?? $item['target'] ?? null,
+                'indicators'      => $item['indicators'] ?? $item['targets'] ?? null,
+                'budget'          => $resolvedBudget,
+                'budget_lines'    => is_array($rawLines) ? json_encode($rawLines) : $rawLines,
+                'source'          => $resolvedSource,
+                'office'          => $item['office'] ?? $item['responsible'] ?? null,
+                'responsible'     => $item['responsible'] ?? $item['office'] ?? null,
+                'updated_at'      => $now,
+            ];
+
+            $cleanRow = [];
+            foreach ($candidateRow as $col => $val) {
+                if (in_array($col, $gpbFields, true)) {
+                    $cleanRow[$col] = $val;
+                }
+            }
+
+            $rawId = $item['id'] ?? null;
+            $numericId = (is_numeric($rawId) && (int)$rawId > 0) ? (int)$rawId : null;
+
+            if ($numericId !== null && isset($existingIdSet[$numericId])) {
+                $this->db->table('gpb_items')->where('id', $numericId)->update($cleanRow);
+                $keptIds[] = $numericId;
+            } else {
+                if (in_array('created_at', $gpbFields, true)) {
+                    $cleanRow['created_at'] = $now;
+                }
+                $this->db->table('gpb_items')->insert($cleanRow);
+                $keptIds[] = (int)$this->db->insertID();
+            }
+        }
+
+        $idsToDelete = array_values(array_diff($existingIds, $keptIds));
+        if (!empty($idsToDelete)) {
+            $deleteQuery = $this->db->table('gpb_items')->whereIn('id', $idsToDelete);
+            if ($hasPlanVersionCol && $versionId !== null) {
+                $deleteQuery->where('plan_version_id', $versionId);
+            } else {
+                $deleteQuery->where('fiscal_year', $fiscalYear);
+            }
+            $deleteQuery->delete();
+        }
+
+        $this->db->transComplete();
+
+        if ($this->db->transStatus() === false) {
+            throw new \RuntimeException('Failed to save GPB plan changes.');
+        }
+
+        return $hasVersionsTable ? $this->active($fiscalYear) : null;
+    }
+
     public function generateItemKey(array $item): string
     {
         $fingerprint = implode('|', [

@@ -80,7 +80,7 @@
                 <p class="text-sm md:text-base text-slate-600 leading-relaxed line-clamp-3 mb-6" v-html="linkify(item.description)"></p>
                 
                 <div v-if="item.tags" class="mt-auto pt-4 flex flex-wrap justify-center gap-2 w-full">
-                  <button v-for="tag in item.tags.split(',').filter(t => t.trim())" :key="tag" @click.stop="searchNewsQuery = tag.trim(); document.getElementById('news-section').scrollIntoView({behavior:'smooth'})" class="text-xs font-label font-medium text-slate-500 hover:text-purple-600 bg-slate-50 hover:bg-purple-50 px-3 py-1 rounded-full transition-colors z-30 relative">
+                  <button v-for="tag in item.tags.split(',').filter(t => t.trim())" :key="tag" @click.stop="searchNewsQuery = tag.trim(); document.getElementById('bulletin')?.scrollIntoView({ behavior: 'smooth' })" class="text-xs font-label font-medium text-slate-500 hover:text-purple-600 bg-slate-50 hover:bg-purple-50 px-3 py-1 rounded-full transition-colors z-30 relative">
                     #{{ tag.trim() }}
                   </button>
                 </div>

@@ -1265,7 +1265,6 @@ watch(() => form.value.control_number, async (newVal) => {
     form.value.activity_classification = '';
     form.value.gad_mandate_id = [];
     form.value.gender_issue_id = [];
-    othersList.value = [];
   }
 });
 
@@ -1554,7 +1553,7 @@ const handleScheduleTypeChange = (newType) => {
     meals_and_snacks: { breakfast: false, am_snack: false, lunch: false, pm_snack: false, dinner: false }
   };
   
-  form.schedules = [{
+  form.value.schedules = [{
     date: '',
     start_time: '',
     end_time: '',
@@ -1642,6 +1641,65 @@ const addSchedule = () => {
 const removeSchedule = (index) => {
   form.value.schedules.splice(index, 1);
   recalculateSchedules();
+};
+
+const validateTimeBounds = (timeStr, fieldName, schObj, fieldKey) => {
+  if (!timeStr) return true;
+  const [h, m] = timeStr.split(':').map(Number);
+  if (h < 4 || h > 20 || (h === 20 && m > 0)) {
+    document.activeElement?.blur();
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid Time',
+      text: `${fieldName} must be between 04:00 AM and 08:00 PM.`,
+      confirmButtonColor: '#b979cc'
+    });
+    schObj[fieldKey] = '';
+    return false;
+  }
+  return true;
+};
+
+const handleTimeChange = (sch) => {
+  if (!sch) return;
+  if (sch.start_time && !validateTimeBounds(sch.start_time, 'Start Time', sch, 'start_time')) return;
+  if (sch.end_time && !validateTimeBounds(sch.end_time, 'End Time', sch, 'end_time')) return;
+
+  if (sch.start_time && sch.end_time) {
+    const [sh, sm] = sch.start_time.split(':').map(Number);
+    const [eh, em] = sch.end_time.split(':').map(Number);
+    const startMinutes = sh * 60 + sm;
+    const endMinutes = eh * 60 + em;
+
+    if (endMinutes <= startMinutes) {
+      document.activeElement?.blur();
+      Swal.fire({ icon: 'warning', title: 'Invalid Time Range', text: 'End time must be after start time.', confirmButtonColor: '#b979cc' });
+      sch.end_time = '';
+      return;
+    } else if ((endMinutes - startMinutes) < 60) {
+      document.activeElement?.blur();
+      Swal.fire({ icon: 'warning', title: 'Invalid Time Range', text: 'The activity duration must be at least 1 hour.', confirmButtonColor: '#b979cc' });
+      sch.end_time = '';
+      return;
+    }
+  }
+
+  if (!sch.start_time || !sch.end_time || !sch.meals_and_snacks) return;
+  const [startH] = sch.start_time.split(':').map(Number);
+  const [endH, endM] = sch.end_time.split(':').map(Number);
+  if (startH >= 13) {
+    sch.meals_and_snacks.breakfast = false;
+    sch.meals_and_snacks.am_snack = false;
+  }
+  if (endH < 12 || (endH === 12 && endM === 0)) {
+    sch.meals_and_snacks.pm_snack = false;
+    sch.meals_and_snacks.dinner = false;
+  }
+};
+
+const validateScheduleTime = (index) => {
+  const sch = form.value.schedules[index];
+  if (sch) handleTimeChange(sch);
 };
 
 watch(() => form.value.schedules, () => {
@@ -2020,7 +2078,12 @@ const submitReport = async () => {
     }
   } catch (error) {
     console.error('Submission error:', error);
-    alert('Failed to submit report. Please try again.');
+    Swal.fire({
+      icon: 'error',
+      title: 'Submission Failed',
+      text: error?.response?.data?.message || error?.message || 'Failed to submit report. Please try again.',
+      confirmButtonColor: '#b979cc'
+    });
   }
 };
 
@@ -2051,6 +2114,8 @@ const maxDate = computed(() => {
   const currentYear = new Date().getFullYear();
   return `${currentYear}-12-31`;
 });
+const minStartDate = minDate;
+const maxDateLimit = maxDate;
 
 const isCurrentYear = (dateString) => {
   const date = new Date(dateString + 'T00:00:00');

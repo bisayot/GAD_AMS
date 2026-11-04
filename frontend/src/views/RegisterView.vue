@@ -601,6 +601,9 @@ const handleRegister = async () => {
   if (form.password !== form.confirm_password) {
     return error.value = 'Passwords do not match.';
   }
+  if (!form.privacyAccepted) {
+    return error.value = 'You must agree to the Privacy Policy.';
+  }
   if (!turnstileToken.value) {
     if (turnstileRef.value?.waitForToken) {
       loading.value = true;
@@ -614,9 +617,6 @@ const handleRegister = async () => {
         return error.value = 'Security verification is still loading. Please check your internet connection and try again.';
       }
     }
-  }
-  if (!form.privacyAccepted) {
-    return error.value = 'You must agree to the Privacy Policy.';
   }
   
   loading.value = true;
@@ -640,11 +640,7 @@ const handleRegister = async () => {
         return error.value = `Abbreviations are not allowed. Please enter the full official name without acronyms (e.g., "College of Agriculture" instead of "${newOfficeName.value.trim()}").`;
       }
 
-      const res = await api.post('add_office', { 
-        unit_name: newOfficeName.value.trim(),
-        location: form.campus_location
-      });
-      departmentId = res.data.new_id;
+      departmentId = newOfficeName.value.trim();
     } else if (!departmentId && officeSearchQuery.value && officeSearchQuery.value.trim()) {
       const q = officeSearchQuery.value.trim();
       const check = checkOfficeName(q, officeUnits.value, form.campus_location);
@@ -680,6 +676,7 @@ const handleRegister = async () => {
       middle_name: form.middle_name ? form.middle_name.trim() : null,
       last_name: form.last_name.trim(),
       department: departmentId, 
+      campus_location: form.campus_location,
       department_name: form.department ? form.department.trim() : null,
       university_id: form.student_id ? form.student_id.trim() : null,
       student_id: form.student_id ? form.student_id.trim() : null,

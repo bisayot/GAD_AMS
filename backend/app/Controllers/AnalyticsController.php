@@ -13,18 +13,21 @@ class AnalyticsController extends Controller
     {
         $db = \Config\Database::connect();
         
+        $startDate = "{$year}-01-01 00:00:00";
+        $endDate = "{$year}-12-31 23:59:59";
+
         $sql = "
             SELECT 
                 MONTH(start_date) as month,
                 SUM(male) as total_male,
                 SUM(female) as total_female
             FROM accomplishment_report
-            WHERE YEAR(start_date) = ? AND is_archived = 1 AND status = 'Verified'
+            WHERE start_date >= ? AND start_date <= ? AND is_archived = 1 AND status = 'Verified'
             GROUP BY MONTH(start_date)
             ORDER BY MONTH(start_date) ASC
         ";
 
-        $results = $db->query($sql, [$year])->getResultArray();
+        $results = $db->query($sql, [$startDate, $endDate])->getResultArray();
 
         $monthsData = array_fill(1, 12, ['male' => 0, 'female' => 0]);
 
@@ -46,10 +49,10 @@ class AnalyticsController extends Controller
             FROM accomplishment_report
             LEFT JOIN users ON users.id = accomplishment_report.user_id
             LEFT JOIN office_units ON office_units.office_id = users.office_id
-            WHERE YEAR(accomplishment_report.start_date) = ? AND accomplishment_report.is_archived = 1 AND accomplishment_report.status = 'Verified'
+            WHERE accomplishment_report.start_date >= ? AND accomplishment_report.start_date <= ? AND accomplishment_report.is_archived = 1 AND accomplishment_report.status = 'Verified'
             GROUP BY office_units.office_id, office_units.office_name
         ";
-        $officeResults = $db->query($officeSql, [$year])->getResultArray();
+        $officeResults = $db->query($officeSql, [$startDate, $endDate])->getResultArray();
 
         $officeData = [];
         foreach ($officeResults as $row) {
@@ -72,18 +75,21 @@ class AnalyticsController extends Controller
     {
         $db = \Config\Database::connect();
         
+        $startDate = "{$year}-01-01 00:00:00";
+        $endDate = "{$year}-12-31 23:59:59";
+
         $sql = "
             SELECT 
                 MONTH(start_date) as month,
                 SUM(male) as total_male,
                 SUM(female) as total_female
             FROM accomplishment_report
-            WHERE YEAR(start_date) = ? AND user_id = ? AND is_archived = 1 AND status = 'Verified'
+            WHERE start_date >= ? AND start_date <= ? AND user_id = ? AND is_archived = 1 AND status = 'Verified'
             GROUP BY MONTH(start_date)
             ORDER BY MONTH(start_date) ASC
         ";
 
-        $results = $db->query($sql, [$year, $userId])->getResultArray();
+        $results = $db->query($sql, [$startDate, $endDate, $userId])->getResultArray();
 
         $monthsData = array_fill(1, 12, ['male' => 0, 'female' => 0]);
 

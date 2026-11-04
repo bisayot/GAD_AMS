@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="page-container office-mgmt-scope">
     <div v-if="!isNested" class="header-section">
       <div class="flex justify-between items-center w-full">
         <div>
@@ -565,147 +565,147 @@ onMounted(() => {
 
 <style>
 /* ==========================================================================
-   Dark Mode Overrides for Office Management
+   Dark Mode Overrides for Office Management (Scoped to .office-mgmt-scope)
    Outer background remains white; ONLY the cards and modals darken!
    ========================================================================== */
-html.dark .glass-card,
-.dark .glass-card {
+html.dark .office-mgmt-scope .glass-card,
+.dark .office-mgmt-scope .glass-card {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
   border-color: rgba(185, 121, 204, 0.25) !important;
   box-shadow: 0 20px 40px rgba(0,0,0,0.25) !important;
 }
 
-html.dark .search-input,
-.dark .search-input {
+html.dark .office-mgmt-scope .search-input,
+.dark .office-mgmt-scope .search-input {
   background: rgba(0, 0, 0, 0.3) !important;
   border-color: rgba(185, 121, 204, 0.3) !important;
   color: #ffffff !important;
 }
-html.dark .search-input:focus,
-.dark .search-input:focus {
+html.dark .office-mgmt-scope .search-input:focus,
+.dark .office-mgmt-scope .search-input:focus {
   border-color: rgba(185, 121, 204, 0.6) !important;
 }
 
-html.dark .sort-label,
-.dark .sort-label {
+html.dark .office-mgmt-scope .sort-label,
+.dark .office-mgmt-scope .sort-label {
   color: #cbd5e1 !important;
 }
 
-html.dark .sort-select,
-.dark .sort-select {
+html.dark .office-mgmt-scope .sort-select,
+.dark .office-mgmt-scope .sort-select {
   background: rgba(0, 0, 0, 0.3) !important;
   border-color: rgba(185, 121, 204, 0.3) !important;
   color: #ffffff !important;
 }
-html.dark .sort-select option,
-.dark .sort-select option {
+html.dark .office-mgmt-scope .sort-select option,
+.dark .office-mgmt-scope .sort-select option {
   background: #1e293b !important;
   color: #ffffff !important;
 }
 
-html.dark .th-cell,
-.dark .th-cell {
+html.dark .office-mgmt-scope .th-cell,
+.dark .office-mgmt-scope .th-cell {
   background: rgba(0, 0, 0, 0.2) !important;
   border-bottom: 1px solid rgba(185, 121, 204, 0.2) !important;
   color: #ffffff !important;
 }
 
-html.dark .table-row,
-.dark .table-row {
+html.dark .office-mgmt-scope .table-row,
+.dark .office-mgmt-scope .table-row {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
-html.dark .table-row:hover,
-.dark .table-row:hover {
+html.dark .office-mgmt-scope .table-row:hover,
+.dark .office-mgmt-scope .table-row:hover {
   background: rgba(255, 255, 255, 0.05) !important;
 }
 
-html.dark .id-cell,
-.dark .id-cell {
+html.dark .office-mgmt-scope .id-cell,
+.dark .office-mgmt-scope .id-cell {
   color: #94a3b8 !important;
 }
 
-html.dark .name-cell,
-.dark .name-cell {
+html.dark .office-mgmt-scope .name-cell,
+.dark .office-mgmt-scope .name-cell {
   color: #f8fafc !important;
 }
 
-html.dark .empty-state,
-.dark .empty-state {
+html.dark .office-mgmt-scope .empty-state,
+.dark .office-mgmt-scope .empty-state {
   color: #94a3b8 !important;
 }
 
-html.dark .btn-icon-edit,
-.dark .btn-icon-edit {
+html.dark .office-mgmt-scope .btn-icon-edit,
+.dark .office-mgmt-scope .btn-icon-edit {
   color: #c084fc !important;
   background: rgba(168, 85, 247, 0.15) !important;
 }
-html.dark .btn-icon-edit:hover,
-.dark .btn-icon-edit:hover {
+html.dark .office-mgmt-scope .btn-icon-edit:hover,
+.dark .office-mgmt-scope .btn-icon-edit:hover {
   background: rgba(168, 85, 247, 0.3) !important;
 }
 
-html.dark .btn-icon-delete,
-.dark .btn-icon-delete {
+html.dark .office-mgmt-scope .btn-icon-delete,
+.dark .office-mgmt-scope .btn-icon-delete {
   color: #f87171 !important;
   background: rgba(239, 68, 68, 0.15) !important;
 }
-html.dark .btn-icon-delete:hover,
-.dark .btn-icon-delete:hover {
+html.dark .office-mgmt-scope .btn-icon-delete:hover,
+.dark .office-mgmt-scope .btn-icon-delete:hover {
   background: rgba(239, 68, 68, 0.3) !important;
 }
 
-html.dark .modal-container,
-.dark .modal-container {
+html.dark .office-mgmt-scope .modal-container,
+.dark .office-mgmt-scope .modal-container {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
   border-color: rgba(185, 121, 204, 0.3) !important;
   box-shadow: 0 20px 40px rgba(0,0,0,0.5) !important;
 }
 
-html.dark .modal-title,
-.dark .modal-title {
+html.dark .office-mgmt-scope .modal-title,
+.dark .office-mgmt-scope .modal-title {
   color: #ffffff !important;
 }
 
-html.dark .modal-close-btn,
-.dark .modal-close-btn {
+html.dark .office-mgmt-scope .modal-close-btn,
+.dark .office-mgmt-scope .modal-close-btn {
   color: #94a3b8 !important;
 }
-html.dark .modal-close-btn:hover,
-.dark .modal-close-btn:hover {
+html.dark .office-mgmt-scope .modal-close-btn:hover,
+.dark .office-mgmt-scope .modal-close-btn:hover {
   color: #ffffff !important;
 }
 
-html.dark .form-label,
-.dark .form-label {
+html.dark .office-mgmt-scope .form-label,
+.dark .office-mgmt-scope .form-label {
   color: #cbd5e1 !important;
 }
 
-html.dark .form-input,
-.dark .form-input {
+html.dark .office-mgmt-scope .form-input,
+.dark .office-mgmt-scope .form-input {
   background: rgba(0, 0, 0, 0.3) !important;
   border-color: rgba(185, 121, 204, 0.3) !important;
   color: #ffffff !important;
 }
 
-html.dark .btn-cancel,
-.dark .btn-cancel {
+html.dark .office-mgmt-scope .btn-cancel,
+.dark .office-mgmt-scope .btn-cancel {
   background: rgba(255, 255, 255, 0.1) !important;
   border-color: rgba(255, 255, 255, 0.2) !important;
   color: #cbd5e1 !important;
 }
-html.dark .btn-cancel:hover,
-.dark .btn-cancel:hover {
+html.dark .office-mgmt-scope .btn-cancel:hover,
+.dark .office-mgmt-scope .btn-cancel:hover {
   background: rgba(255, 255, 255, 0.15) !important;
   color: #ffffff !important;
 }
 
-html.dark .page-title,
-.dark .page-title {
+html.dark .office-mgmt-scope .page-title,
+.dark .office-mgmt-scope .page-title {
   color: #0f172a !important;
 }
 
-html.dark .page-subtitle,
-.dark .page-subtitle {
+html.dark .office-mgmt-scope .page-subtitle,
+.dark .office-mgmt-scope .page-subtitle {
   color: #64748b !important;
 }
 </style>

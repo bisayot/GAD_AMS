@@ -27,7 +27,7 @@ class GpbModel extends Model
     protected $table            = 'gpb_items';
     protected $primaryKey       = 'id';
     protected $allowedFields    = [
-        'fiscal_year', 'section', 'sort_order', 'mandate', 'cause',
+        'plan_version_id', 'item_key', 'fiscal_year', 'section', 'sort_order', 'mandate', 'cause',
         'objective', 'ppa', 'activity', 'targets', 'budget', 'source', 'office',
         'result', 'mfo', 'indicators', 'responsible', 'budget_lines',
     ];
@@ -35,6 +35,16 @@ class GpbModel extends Model
 
     /** Sections in the exact top-to-bottom order they appear in the template. */
     public const SECTION_ORDER = ['client_focused', 'organization_focused', 'attributed_program'];
+
+    /** Map between database section keys ('client', 'org', 'attributed') and template section names. */
+    public const SECTION_MAP = [
+        'client'                => 'client_focused',
+        'client_focused'        => 'client_focused',
+        'org'                   => 'organization_focused',
+        'organization_focused'  => 'organization_focused',
+        'attributed'            => 'attributed_program',
+        'attributed_program'    => 'attributed_program',
+    ];
 
     /**
      * Fetch every GPB row for a fiscal year in a single query, then group it
@@ -54,8 +64,9 @@ class GpbModel extends Model
         $grouped = array_fill_keys(self::SECTION_ORDER, []);
 
         foreach ($rows as $row) {
-            if (isset($grouped[$row['section']])) {
-                $grouped[$row['section']][] = $row;
+            $canonicalSection = self::SECTION_MAP[$row['section']] ?? $row['section'];
+            if (isset($grouped[$canonicalSection])) {
+                $grouped[$canonicalSection][] = $row;
             }
         }
 

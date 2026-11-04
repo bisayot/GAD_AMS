@@ -220,10 +220,9 @@
 </template>
 
 <script>
-import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue';
+import { ref, reactive, computed, watch, onMounted } from 'vue';
 import Swal from 'sweetalert2';
-import * as XLSX from 'xlsx';
-import Chart from 'chart.js/auto';
+import XLSX from 'xlsx-js-style';
 import api from '../../api';
 import PdfPreviewModal from '../../components/PdfPreviewModal.vue';
 
@@ -240,98 +239,9 @@ export default {
     const SOURCE_OPTIONS = ['GAA', 'Other'];
     const EXPORT_URL     = '/gpb/export-live'; // Vite proxy → http://localhost:8080
 
-    const mandateStats = ref([]);
-    const mandateStatsFilter = ref('all');
-    const filteredMandateStats = computed(() => {
-      if (mandateStatsFilter.value === 'all') return mandateStats.value;
-      return mandateStats.value.filter(s => s.classification === mandateStatsFilter.value);
-    });
-    const loadingStats = ref(true);
-    const statsChartCanvas = ref(null);
-    let statsChartInstance = null;
+
     
-    const scrollToStats = () => {
-      const el = document.getElementById('mandate-statistics-section');
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-      }
-    };
-    
-    const fetchMandateStats = async () => {
-      loadingStats.value = true;
-      try {
-        const response = await api.get('/plan/mandate-statistics');
-        if (response.data.success) {
-          mandateStats.value = response.data.data;
-        }
-      } catch (err) {
-        console.error('Failed to fetch mandate stats', err);
-      } finally {
-        loadingStats.value = false;
-        nextTick(() => {
-          renderStatsChart();
-        });
-      }
-    };
-    
-    const renderStatsChart = () => {
-      if (statsChartInstance) {
-        statsChartInstance.destroy();
-      }
-      if (!statsChartCanvas.value || mandateStats.value.length === 0) return;
-      
-      const labels = mandateStats.value.map(s => {
-         let title = s.activity || s.mandate || 'Untitled';
-         return title.length > 25 ? title.substring(0, 25) + '...' : title;
-      });
-      const budgetData = mandateStats.value.map(s => s.budget);
-      const utilizedData = mandateStats.value.map(s => s.utilized_budget);
-      const remainingData = mandateStats.value.map(s => s.remaining_budget);
-      
-      const textColor = getComputedStyle(document.body).getPropertyValue('--text-secondary').trim() || 'rgba(255,255,255,0.7)';
-      const gridColor = 'rgba(255,255,255,0.05)';
-      
-      const bgColors = mandateStats.value.map((_, i) => `hsl(${(i * 360) / Math.max(1, mandateStats.value.length)}, 70%, 60%)`);
-      
-      statsChartInstance = new Chart(statsChartCanvas.value, {
-        type: 'pie',
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              data: budgetData,
-              backgroundColor: bgColors,
-              borderWidth: 3,
-              borderColor: 'rgba(0,0,0,0.6)'
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            tooltip: {
-              callbacks: {
-                 label: (context) => {
-                   const value = context.raw;
-                   return ' ₱' + Number(value).toLocaleString('en-US', {minimumFractionDigits: 2});
-                 },
-                 title: (context) => {
-                   const item = mandateStats.value[context[0].dataIndex];
-                   return `Activity: ${item.activity}\nMandate: ${item.mandate}\nCause: ${item.cause}`;
-                 }
-              }
-            },
-            legend: {
-              position: 'right',
-              labels: {
-                color: textColor
-              }
-            }
-          }
-        }
-      });
-    };
+
 
 
     // ─── Seed ───────────────────────────────────────────────────────────────
@@ -865,8 +775,8 @@ export default {
                 activity: item.activity,
                 targets: item.indicators,
                 indicators: item.indicators,
-                budget: item.budgetLines[0].amount,
-                source: item.budgetLines[0].source,
+                budget: item.budgetLines.reduce((sum, l) => sum + (Number(l.amount) || 0), 0),
+                source: [...new Set(item.budgetLines.map(l => l.source).filter(Boolean))].join(', ') || 'GAA',
                 office: item.responsible,
                 responsible: item.responsible,
                 budget_lines: JSON.stringify(item.budgetLines),
@@ -1033,7 +943,6 @@ export default {
     }
 
     onMounted(async () => {
-      fetchMandateStats();
       loadFromAPI();
       try {
         const res = await api.get('/budget/summary');
@@ -1066,7 +975,6 @@ export default {
     };
 
     return {
-      mandateStats, mandateStatsFilter, filteredMandateStats, loadingStats, statsChartCanvas, scrollToStats,
       isReadOnly,
 
       SECTION_ORDER, SECTION_LABELS, SECTION_SHORT, SOURCE_OPTIONS,

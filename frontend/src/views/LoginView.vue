@@ -220,7 +220,7 @@ const handleLogin = async () => {
     console.log("Login successful. Detected role:", role, "redirectTo:", redirectTo);
 
     const getTargetRoute = () => {
-      if (redirectTo) {
+      if (redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//')) {
         return { path: redirectTo };
       }
 

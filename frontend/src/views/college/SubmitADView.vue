@@ -540,9 +540,16 @@ const continuousConfig = ref({
   start_date: '',
   end_date: '',
   start_time: '',
-  end_time: '' });
+  end_time: '',
+  meals_and_snacks: { breakfast: false, am_snack: false, pm_snack: false, dinner: false }
+});
 
-const schedules = ref([{ date: '', start_time: '', end_time: '' }]);
+const schedules = ref([{
+  date: '',
+  start_time: '',
+  end_time: '',
+  meals_and_snacks: { breakfast: false, am_snack: false, pm_snack: false, dinner: false }
+}]);
 
 
 const validateTimeBounds = (timeStr, fieldName, schObj, fieldKey) => {
@@ -585,7 +592,7 @@ const handleTimeChange = (sch) => {
     }
   }
 
-  if (!sch.start_time || !sch.end_time) return;
+  if (!sch.start_time || !sch.end_time || !sch.meals_and_snacks) return;
   const [startH] = sch.start_time.split(':').map(Number);
   const [endH, endM] = sch.end_time.split(':').map(Number);
   if (startH >= 13) {
@@ -698,7 +705,12 @@ const computedEndDate = computed(() => {
 
 
 const addSchedule = () => {
-  schedules.value.push({ date: '', start_time: '', end_time: '' });
+  schedules.value.push({
+    date: '',
+    start_time: '',
+    end_time: '',
+    meals_and_snacks: { breakfast: false, am_snack: false, pm_snack: false, dinner: false }
+  });
 };
 
 const removeSchedule = (index) => {
@@ -1157,48 +1169,8 @@ watch(() => computedStartDate.value, (newDate, oldDate) => {
       }
     }
   });
-  
-  // Disable the old duration check since it's computed dynamically now
-  watch(() => 'dummy', () => {
-  if (newDate) {
-    const validation = isValidActivityDate(newDate, true);
-    if (!validation.valid) {
-      document.activeElement?.blur();
-      Swal.fire({
-        icon: 'warning',
-        title: 'Invalid Date',
-        text: validation.reason,
-        confirmButtonColor: '#b979cc'
-      });
-      form.value.start_date = '';
-      return;
-    } else if (validation.isWarning) {
-      document.activeElement?.blur();
-      Swal.fire({
-        icon: 'info',
-        title: 'Lead Time Warning',
-        text: validation.reason,
-        confirmButtonText: 'Accept',
-        confirmButtonColor: '#b979cc'
-      });
-    }
-    if (form.value.end_date) {
-      const durationValidation = isValidActivityDuration(newDate, form.value.end_date);
-      if (!durationValidation.valid) {
-        document.activeElement?.blur();
-        Swal.fire({
-          icon: 'warning',
-          title: 'Invalid Duration',
-          text: durationValidation.reason,
-          confirmButtonColor: '#b979cc'
-        });
-        form.value.start_date = '';
-      }
-    }
-  }
-});
 
-watch(() => form.value.end_date, (newDate) => {
+  watch(() => form.value.end_date, (newDate) => {
   if (newDate) {
     const validation = isValidActivityDate(newDate, false);
     if (!validation.valid) {
@@ -1618,6 +1590,16 @@ const submitActivityDesign = async () => {
         });
       });
     });
+
+    if (exceedsTransportLimit) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Limit Exceeded',
+        text: `Transportation budget cannot exceed the maximum limit of ₱${Number(baselineSettings.value.transportation_limit).toLocaleString('en-US')}.`,
+        confirmButtonColor: '#b979cc'
+      });
+      return;
+    }
 
     formData.append('budget_items', JSON.stringify(normalizedBudgetItems));
 

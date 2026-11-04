@@ -652,8 +652,14 @@ const validateRevisionDeadline = () => {
 
 const handleBeforeUnload = () => {
   if (report.value && report.value.id && report.value.status === 'Pending') {
-    const url = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/'}accomplishment-report/unmark-viewed/${report.value.id}`;
-    navigator.sendBeacon(url);
+    const base = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/').replace(/\/?$/, '/');
+    const url = `${base}accomplishment-report/unmark-viewed/${report.value.id}`;
+    const token = localStorage.getItem('authToken');
+    fetch(url, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      keepalive: true
+    }).catch(() => {});
   }
 };
 
@@ -1054,7 +1060,7 @@ const getPdfjsUrl = () => {
   if (attachments.length === 0) return '#';
   const firstFile = attachments[0];
   const folder = Number(report.value.is_archived) === 1 ? 'archived' : 'drafts';
-  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : 'https://gad-ams-2-1.onrender.com');
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : (typeof window !== 'undefined' ? window.location.origin : ''));
   const fileUrl = `${base}/api/files/${folder}/${firstFile}`;
   const userRole = user.value?.role || user.value?.user_role || '';
   return `/pdfjs/web/viewer.html?file=${encodeURIComponent(fileUrl)}&role=${encodeURIComponent(userRole)}`;
@@ -1062,14 +1068,14 @@ const getPdfjsUrl = () => {
 
 const previewFile = (filename, folder) => {
   if (!filename) return;
-  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : 'https://gad-ams-2-1.onrender.com');
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : (typeof window !== 'undefined' ? window.location.origin : ''));
   pdfFileUrl.value = `${base}/api/files/${folder}/${filename}`;
   isPdfModalOpen.value = true;
 };
 
 const downloadFile = (filename, folder, prefix) => {
   if (!filename) return;
-  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : 'https://gad-ams-2-1.onrender.com');
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : (typeof window !== 'undefined' ? window.location.origin : ''));
   const url = `${base}/api/files/${folder}/${filename}`;
   window.open(url, '_blank');
 };

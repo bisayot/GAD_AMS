@@ -71,10 +71,17 @@
 
       <!-- CHALLENGE ACTIVE STATE -->
       <div v-else class="space-y-3">
-        <!-- Visual Word Canvas Display -->
+        <!-- Visual Word Canvas / Image Display -->
         <div class="relative flex items-center justify-between bg-surface-container/90 dark:bg-zinc-900/90 border border-outline-variant/80 rounded-xl p-2.5 overflow-hidden shadow-inner">
-          <div class="canvas-wrapper flex-1 flex justify-center items-center select-none overflow-hidden">
+          <div class="canvas-wrapper flex-1 flex justify-center items-center select-none overflow-hidden min-h-[60px]">
+            <img 
+              v-if="challengeImage" 
+              :src="challengeImage" 
+              alt="Security Challenge" 
+              class="rounded pointer-events-none select-none max-w-full h-[60px] object-contain shadow-inner"
+            />
             <canvas 
+              v-else
               ref="wordCanvas" 
               class="rounded pointer-events-none select-none max-w-full"
               height="60"
@@ -86,7 +93,7 @@
           <button 
             type="button" 
             @click="fetchNewChallenge" 
-            :disabled="fetchingWords"
+            :disabled="fetchingWords || isVerifyingChallenge"
             title="Get new words"
             class="ml-2 shrink-0 p-2 rounded-lg bg-surface-variant hover:bg-purple-500/20 text-on-surface-variant hover:text-purple-500 transition-all cursor-pointer disabled:opacity-50"
           >
@@ -129,9 +136,10 @@
           <button 
             type="button" 
             @click="verifyWordsStrictly" 
-            class="mt-2 w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs rounded-xl transition-all shadow-sm active:scale-95 cursor-pointer"
+            :disabled="isVerifyingChallenge"
+            class="mt-2 w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs rounded-xl transition-all shadow-sm active:scale-95 cursor-pointer disabled:opacity-50"
           >
-            Verify
+            {{ isVerifyingChallenge ? 'Verifying...' : 'Verify' }}
           </button>
         </div>
       </div>
@@ -158,10 +166,12 @@ const isHumanChecker = ref(false);
 const triggerReason = ref('');
 const isVerified = ref(false);
 const fetchingWords = ref(false);
+const isVerifyingChallenge = ref(false);
 const userInput = ref('');
 const inputError = ref('');
 const showWeakInternetHint = ref(false);
 
+const challengeImage = ref('');
 const challengeWords = ref('');
 const challengeKey = ref('');
 
@@ -234,9 +244,15 @@ const fetchNewChallenge = async () => {
 
   try {
     const res = await api.get('human-challenge', { timeout: 7000 });
-    if (res.data && res.data.words && res.data.challenge_key) {
-      challengeWords.value = res.data.words;
+    if (res.data && res.data.challenge_key) {
       challengeKey.value = res.data.challenge_key;
+      if (res.data.image) {
+        challengeImage.value = res.data.image;
+        challengeWords.value = '';
+      } else if (res.data.words) {
+        challengeImage.value = '';
+        challengeWords.value = res.data.words;
+      }
     } else {
       useLocalFallbackChallenge();
     }
@@ -246,11 +262,14 @@ const fetchNewChallenge = async () => {
   } finally {
     fetchingWords.value = false;
     await nextTick();
-    drawWordsOnCanvas();
+    if (!challengeImage.value) {
+      drawWordsOnCanvas();
+    }
   }
 };
 
 const useLocalFallbackChallenge = () => {
+  challengeImage.value = '';
   const k1 = Math.floor(Math.random() * localWordBank.length);
   let k2 = Math.floor(Math.random() * localWordBank.length);
   if (k2 === k1) k2 = (k1 + 1) % localWordBank.length;
@@ -337,23 +356,53 @@ const drawWordsOnCanvas = () => {
 /**
  * Strict Verification of user input against challenge words
  */
-const verifyWordsStrictly = () => {
+const verifyWordsStrictly = async () => {
   inputError.value = '';
   const trimmedInput = userInput.value.trim();
-  const targetWords = challengeWords.value.trim();
 
   if (!trimmedInput) {
     inputError.value = 'Please type the words shown above.';
     return;
   }
 
-  // Strict exact comparison (case-sensitive, exact characters)
+  // If server-side CAPTCHA image was delivered
+  if (challengeImage.value) {
+    isVerifyingChallenge.value = true;
+    try {
+      const res = await api.post('verify-human-challenge', {
+        key: challengeKey.value,
+        answer: trimmedInput
+      });
+
+      if (res.data?.success && res.data?.verified_token) {
+        isVerified.value = true;
+        hasToken.value = true;
+        inputError.value = '';
+
+        emit('verify', res.data.verified_token);
+        tokenWaitResolvers.forEach(resolve => resolve(res.data.verified_token));
+        tokenWaitResolvers = [];
+      } else {
+        inputError.value = res.data?.message || 'Words do not match. Please verify spelling, spaces, and UPPERCASE letters.';
+        await fetchNewChallenge();
+      }
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Words do not match strictly. Please check spelling, spaces, and UPPERCASE letters.';
+      inputError.value = msg;
+      await fetchNewChallenge();
+    } finally {
+      isVerifyingChallenge.value = false;
+    }
+    return;
+  }
+
+  // Local fallback (offline mode)
+  const targetWords = challengeWords.value.trim();
   if (trimmedInput === targetWords) {
     isVerified.value = true;
     hasToken.value = true;
     inputError.value = '';
 
-    // Generate verified fallback token for backend authentication
     const payload = btoa(JSON.stringify({
       key: challengeKey.value,
       answer: trimmedInput
@@ -361,8 +410,6 @@ const verifyWordsStrictly = () => {
     const fallbackToken = `hc_fallback:${payload}`;
 
     emit('verify', fallbackToken);
-
-    // Resolve any pending wait promises
     tokenWaitResolvers.forEach(resolve => resolve(fallbackToken));
     tokenWaitResolvers = [];
   } else {
@@ -371,8 +418,7 @@ const verifyWordsStrictly = () => {
 };
 
 const onInputChange = () => {
-  // If user has typed the exact words strictly, auto-verify for smooth UX!
-  if (userInput.value.trim() === challengeWords.value.trim()) {
+  if (challengeWords.value && userInput.value.trim() === challengeWords.value.trim()) {
     verifyWordsStrictly();
   } else if (inputError.value) {
     inputError.value = '';

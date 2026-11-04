@@ -109,12 +109,17 @@ class AuthController extends ResourceController
 
         \App\Models\ActivityLogModel::log($user['id'], 'Login', $user['full_name'] . " logged in");
 
-        // Trigger automated data retention cleanup (Pseudo-Cron)
+        // Trigger automated data retention cleanup (Pseudo-Cron, throttled to once every 24 hours via file lock)
         if (in_array(strtolower($user['role']), ['admin', 'gad_staff', 'superadmin'])) {
-            try {
-                \App\Libraries\DataRetentionService::runCleanup();
-            } catch (\Throwable $e) {
-                log_message('error', 'Auto-cleanup failed during login: ' . $e->getMessage());
+            $cleanupLock = WRITEPATH . 'cache/data_retention_cleanup.lock';
+            $shouldCleanup = !file_exists($cleanupLock) || (time() - filemtime($cleanupLock) > 86400);
+            if ($shouldCleanup) {
+                @touch($cleanupLock);
+                try {
+                    \App\Libraries\DataRetentionService::runCleanup();
+                } catch (\Throwable $e) {
+                    log_message('error', 'Auto-cleanup failed during login: ' . $e->getMessage());
+                }
             }
         }
 
@@ -264,6 +269,16 @@ class AuthController extends ResourceController
         $db = \Config\Database::connect();
         $departmentInput = !empty($data['department']) ? $data['department'] : (!empty($data['office_id']) ? $data['office_id'] : null);
         $officeId = null;
+        $cleanOfficeName = null;
+
+        $studentId = trim($data['university_id'] ?? $data['student_id'] ?? '') ?: null;
+        $yearLevel = trim($data['year_level'] ?? '') ?: null;
+        $departmentName = !empty($data['department_name']) ? trim($data['department_name']) : null;
+        $position = !empty($data['position']) ? trim($data['position']) : null;
+
+        if ($departmentName && (strlen($departmentName) <= 3 || preg_match('/^(dept|it|cs|hrm|educ|agri)\.?$/i', $departmentName))) {
+            return $this->fail(['department_name' => "Abbreviations such as '{$departmentName}' are not allowed for department. Please enter the full name."]);
+        }
 
         if (!empty($departmentInput)) {
             if (is_numeric($departmentInput)) {
@@ -310,55 +325,60 @@ class AuthController extends ResourceController
                         if (strlen($cleanName) <= 5 || preg_match('/^[a-zA-Z](\.[a-zA-Z])+\.?$/', $cleanName) || preg_match('/^(dept|coll|off|admin|tech|univ|chet|ca|cte|cas|cis|hrmo|spmo)\.?$/i', $cleanName)) {
                             return $this->fail(['department' => "Abbreviations such as '{$cleanName}' are not allowed. Please select the full official College / Office name."]);
                         }
-
-                        $db->table('office_units')->insert(['office_name' => $cleanName]);
-                        $officeId = $db->insertID();
+                        $cleanOfficeName = $cleanName;
                     }
                 }
             }
         }
 
-        $officeNameDisplay = 'None / Unspecified';
-        if ($officeId) {
-            $officeRow = $db->table('office_units')->where('office_id', $officeId)->get()->getRowArray();
-            $officeNameDisplay = $officeRow ? $officeRow['office_name'] : 'Unknown Office';
-        }
-
-        $studentId = trim($data['university_id'] ?? $data['student_id'] ?? '') ?: null;
-        $yearLevel = trim($data['year_level'] ?? '') ?: null;
-        $departmentName = !empty($data['department_name']) ? trim($data['department_name']) : null;
-        $position = !empty($data['position']) ? trim($data['position']) : null;
-
-        if ($departmentName && (strlen($departmentName) <= 3 || preg_match('/^(dept|it|cs|hrm|educ|agri)\.?$/i', $departmentName))) {
-            return $this->fail(['department_name' => "Abbreviations such as '{$departmentName}' are not allowed for department. Please enter the full name."]);
-        }
-
-        if ($departmentName) {
-            if ($officeNameDisplay !== 'None / Unspecified') {
-                $officeNameDisplay .= " ({$departmentName})";
-            } else {
-                $officeNameDisplay = $departmentName;
+        // Atomic registration transaction: office creation, user record, and profile record
+        $db->transStart();
+        try {
+            if (!$officeId && !empty($cleanOfficeName)) {
+                $location = !empty($data['campus_location']) ? trim($data['campus_location']) : 'La Trinidad Campus';
+                $db->table('office_units')->insert([
+                    'office_name' => $cleanOfficeName,
+                    'location' => $location
+                ]);
+                $officeId = $db->insertID();
             }
-        }
 
-        $userData = [
-            'username' => $username,
-            'email' => $email,
-            'password' => password_hash($data['password'], PASSWORD_DEFAULT),
-            'role' => $role,
-            'full_name' => $data['fullname'],
-            'first_name' => $data['first_name'] ?? '',
-            'middle_name' => $data['middle_name'] ?? null,
-            'last_name' => $data['last_name'] ?? '',
-            'profile_role' => $data['user_role'] ?? 'Non-TWG',
-            'student_id' => $studentId,
-            'year_level' => $yearLevel,
-            'office_id' => $officeId,
-            // New self-registrations must be approved by GAD staff before login.
-            'approval_status' => 'pending'
-        ];
+            $officeNameDisplay = 'None / Unspecified';
+            if ($officeId) {
+                $officeRow = $db->table('office_units')->where('office_id', $officeId)->get()->getRowArray();
+                $officeNameDisplay = $officeRow ? $officeRow['office_name'] : 'Unknown Office';
+            }
 
-        if ($userModel->insert($userData)) {
+            if ($departmentName) {
+                if ($officeNameDisplay !== 'None / Unspecified') {
+                    $officeNameDisplay .= " ({$departmentName})";
+                } else {
+                    $officeNameDisplay = $departmentName;
+                }
+            }
+
+            $userData = [
+                'username' => $username,
+                'email' => $email,
+                'password' => password_hash($data['password'], PASSWORD_DEFAULT),
+                'role' => $role,
+                'full_name' => $data['fullname'],
+                'first_name' => $data['first_name'] ?? '',
+                'middle_name' => $data['middle_name'] ?? null,
+                'last_name' => $data['last_name'] ?? '',
+                'profile_role' => $data['user_role'] ?? 'Non-TWG',
+                'student_id' => $studentId,
+                'year_level' => $yearLevel,
+                'office_id' => $officeId,
+                // New self-registrations must be approved by GAD staff before login.
+                'approval_status' => 'pending'
+            ];
+
+            if (!$userModel->insert($userData)) {
+                $db->transRollback();
+                return $this->fail('Unable to create account. Please try again later.');
+            }
+
             $newUserId = $userModel->insertID();
 
             // Create 1-to-1 Profile if user_profiles table exists
@@ -378,67 +398,86 @@ class AuthController extends ResourceController
                 ]);
             }
 
-            $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
-            $actionUserId = $authUserId > 0 ? $authUserId : $newUserId;
-            \App\Models\ActivityLogModel::log($actionUserId, 'Register User', 'registered a new user: ' . $data['fullname']);
+            $db->transComplete();
 
-            // Notify admins and staff
-            try {
-                $notificationModel = new \App\Models\NotificationModel();
-                $adminsAndStaff = $userModel->whereIn('role', ['admin', 'gad_staff'])->findAll();
-                $frontendUrl = rtrim(getenv('FRONTEND_URL') ?: env('FRONTEND_URL') ?: getenv('app.baseURL') ?: env('app.baseURL') ?: 'http://localhost:5173', '/');
-
-                foreach ($adminsAndStaff as $notifUser) {
-                    // Staff review page where the sign-up details are shown with
-                    // an Approve / Decline decision below.
-                    $manageLink = '/user-approval/' . $newUserId;
-
-                    // 1. In-site Notification
-                    $notificationModel->insert([
-                        'user_id' => $notifUser['id'],
-                        'title' => 'New User Registration — Action Required',
-                        'message' => "A new user {$data['fullname']} ({$email}) has registered and is awaiting approval. Role: {$data['user_role']}, Office: {$officeNameDisplay}. Please approve or decline.",
-                        'type' => 'info',
-                        'link' => $manageLink,
-                        'is_read' => 0
-                    ]);
-
-                    // 2. Email Notification
-                    if (!empty($notifUser['email'])) {
-                        $emailService = \Config\Services::email(false); // get new instance for each email
-                        $emailService->setTo($notifUser['email']);
-                        $emailService->setSubject('New User Registration — Approval Required');
-                        
-                        $emailMessage = "
-                        <html>
-                        <head><title>New User Registration</title></head>
-                        <body>
-                            <h2>New User Registration</h2>
-                            <p>A new user has registered in the GAD AMS system and is awaiting your approval.</p>
-                            <ul>
-                                <li><strong>Name:</strong> {$data['fullname']}</li>
-                                <li><strong>Email:</strong> {$email}</li>
-                                <li><strong>Role:</strong> {$data['user_role']}</li>
-                                <li><strong>Department/Office:</strong> {$officeNameDisplay}</li>
-                            </ul>
-                            <p>Please review the registration and choose to <strong>Approve</strong> or <strong>Decline</strong> it here:</p>
-                            <p><a href='{$frontendUrl}{$manageLink}' style='background-color: #9333ea; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Review Registration</a></p>
-                        </body>
-                        </html>
-                        ";
-                        
-                        $emailService->setMessage($emailMessage);
-                        @$emailService->send(); 
-                    }
-                }
-            } catch (\Exception $e) {
-                log_message('error', 'Error sending registration notifications: ' . $e->getMessage());
+            if ($db->transStatus() === false) {
+                return $this->fail('Unable to create account. Please try again later.');
             }
-
-            return $this->respondCreated(['message' => 'Your account has been created and is pending approval by the GAD staff. You will receive an email once your account has been approved.']);
+        } catch (\Throwable $e) {
+            $db->transRollback();
+            log_message('error', 'Registration transaction error: ' . $e->getMessage());
+            return $this->fail('Unable to create account. Please try again later.');
         }
 
-        return $this->fail('Unable to create account. Please try again later.');
+        $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        $actionUserId = $authUserId > 0 ? $authUserId : $newUserId;
+        \App\Models\ActivityLogModel::log($actionUserId, 'Register User', 'registered a new user: ' . $data['fullname']);
+
+        // Notify admins and staff
+        try {
+            $notificationModel = new \App\Models\NotificationModel();
+            $adminsAndStaff = $userModel->whereIn('role', ['admin', 'gad_staff'])->findAll();
+            $frontendUrl = rtrim(getenv('FRONTEND_URL') ?: env('FRONTEND_URL') ?: getenv('app.baseURL') ?: env('app.baseURL') ?: 'http://localhost:5173', '/');
+
+            $fromEmail = env('FROM_EMAIL') ?: getenv('FROM_EMAIL') ?: 'gadims.bsu.bsit@gmail.com';
+            $fromEmail = trim($fromEmail, '"\'');
+
+            $escName = esc($data['fullname']);
+            $escEmail = esc($email);
+            $escRole = esc($data['user_role']);
+            $escOffice = esc($officeNameDisplay);
+
+            foreach ($adminsAndStaff as $notifUser) {
+                // 1. In-site Notification
+                $notificationModel->insert([
+                    'user_id' => $notifUser['id'],
+                    'title' => 'New User Registration — Action Required',
+                    'message' => "A new user {$data['fullname']} ({$email}) has registered and is awaiting approval. Role: {$data['user_role']}, Office: {$officeNameDisplay}. Please approve or decline.",
+                    'type' => 'info',
+                    'link' => $manageLink,
+                    'is_read' => 0
+                ]);
+
+                // 2. Direct Personalized Email Notification
+                if (!empty($notifUser['email'])) {
+                    $recipientName = esc($notifUser['first_name'] ?? $notifUser['full_name'] ?? 'Colleague');
+                    $emailService = \Config\Services::email(false);
+                    $emailService->setTo($notifUser['email']);
+                    $emailService->setFrom($fromEmail, 'GAD AMS System');
+                    $emailService->setSubject('New User Registration — Approval Required');
+
+                    $emailMessage = "
+                    <html>
+                    <head><title>New User Registration</title></head>
+                    <body style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;'>
+                        <h2 style='color: #9333ea;'>New User Registration</h2>
+                        <p>Hello <strong>{$recipientName}</strong>,</p>
+                        <p>A new user has registered in the GAD AMS system and is awaiting your approval.</p>
+                        <ul>
+                            <li><strong>Name:</strong> {$escName}</li>
+                            <li><strong>Email:</strong> {$escEmail}</li>
+                            <li><strong>Role:</strong> {$escRole}</li>
+                            <li><strong>Department/Office:</strong> {$escOffice}</li>
+                        </ul>
+                        <p>Please review the registration and choose to <strong>Approve</strong> or <strong>Decline</strong> it here:</p>
+                        <p><a href='{$frontendUrl}{$manageLink}' style='display: inline-block; background-color: #9333ea; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Review Registration</a></p>
+                    </body>
+                    </html>
+                    ";
+
+                    $emailService->setMessage($emailMessage);
+                    try {
+                        @$emailService->send();
+                    } catch (\Throwable $e) {
+                        log_message('error', 'Failed sending registration email to ' . $notifUser['email'] . ': ' . $e->getMessage());
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            log_message('error', 'Error sending registration notifications: ' . $e->getMessage());
+        }
+
+        return $this->respondCreated(['message' => 'Your account has been created and is pending approval by the GAD staff. You will receive an email once your account has been approved.']);
     }
 
     public function forgotPassword()
@@ -714,9 +753,145 @@ class AuthController extends ResourceController
             's' => $sig
         ]));
 
+        $imageBase64 = $this->renderCaptchaImage($words);
+
         return $this->respond([
             'challenge_key' => $challengeKey,
-            'words' => $words
+            'image'         => $imageBase64
+        ]);
+    }
+
+    /**
+     * Render distorted CAPTCHA image using PHP GD
+     */
+    private function renderCaptchaImage(string $text): string
+    {
+        $width = 260;
+        $height = 60;
+        $image = imagecreatetruecolor($width, $height);
+
+        // Dark background (#121218)
+        $bgColor = imagecolorallocate($image, 18, 18, 24);
+        imagefill($image, 0, 0, $bgColor);
+
+        // Add subtle anti-bot noise lines
+        for ($i = 0; $i < 5; $i++) {
+            $lineColor = imagecolorallocatealpha($image, rand(120, 200), rand(80, 160), rand(200, 255), rand(75, 95));
+            imagesetthickness($image, rand(1, 2));
+            imageline($image, rand(0, $width), rand(0, $height), rand(0, $width), rand(0, $height), $lineColor);
+        }
+
+        // Add scattered noise dots
+        for ($i = 0; $i < 50; $i++) {
+            $dotColor = imagecolorallocatealpha($image, rand(140, 220), rand(100, 180), rand(210, 255), rand(60, 90));
+            imagesetpixel($image, rand(0, $width - 1), rand(0, $height - 1), $dotColor);
+        }
+
+        // Palette of neon/pastel colors
+        $colors = [
+            imagecolorallocate($image, 192, 132, 252), // purple
+            imagecolorallocate($image, 129, 140, 248), // indigo
+            imagecolorallocate($image, 56, 189, 248),  // sky
+            imagecolorallocate($image, 244, 114, 182), // pink
+            imagecolorallocate($image, 167, 139, 250), // violet
+            imagecolorallocate($image, 232, 121, 249), // fuchsia
+            imagecolorallocate($image, 96, 165, 250),  // blue
+        ];
+
+        $ttfPath = defined('APPPATH') ? realpath(APPPATH . '../../frontend/public/pdfjs/web/standard_fonts/LiberationSans-Bold.ttf') : false;
+        $hasTtf = function_exists('imagettftext') && $ttfPath && file_exists($ttfPath);
+
+        $len = strlen($text);
+        $charSpacing = (int)($width / ($len + 2));
+        $startX = (int)($charSpacing * 0.9);
+
+        for ($i = 0; $i < $len; $i++) {
+            $char = $text[$i];
+            $color = $colors[$i % count($colors)];
+
+            if ($hasTtf) {
+                $angle = rand(-12, 12);
+                $fontSize = 17;
+                $y = rand(38, 44);
+                imagettftext($image, $fontSize, $angle, $startX, $y, $color, $ttfPath, $char);
+            } else {
+                $y = rand(20, 25);
+                imagechar($image, 5, $startX, $y, $char, $color);
+            }
+            $startX += $charSpacing;
+        }
+
+        ob_start();
+        imagepng($image);
+        $pngData = ob_get_clean();
+        imagedestroy($image);
+
+        return 'data:image/png;base64,' . base64_encode($pngData);
+    }
+
+    /**
+     * Verify human challenge answer and return a single-use verified token
+     */
+    public function verifyHumanChallengeEndpoint()
+    {
+        $body = $this->request->getJSON(true) ?? $this->request->getPost();
+        $challengeKey = $body['key'] ?? null;
+        $answer = trim((string)($body['answer'] ?? ''));
+
+        if (!$challengeKey || empty($answer)) {
+            return $this->respond([
+                'success' => false,
+                'message' => 'Challenge key and answer are required.'
+            ], 400);
+        }
+
+        $keyData = json_decode(base64_decode($challengeKey), true);
+        if (!$keyData || !isset($keyData['t'], $keyData['s'])) {
+            return $this->respond([
+                'success' => false,
+                'message' => 'Invalid challenge key.'
+            ], 400);
+        }
+
+        $time = (int)$keyData['t'];
+        $sig = $keyData['s'];
+        $currentTime = time();
+
+        // 10 minutes expiry window (600s), allow 60s future drift
+        if (($currentTime - $time) > 600 || ($time - $currentTime) > 60) {
+            return $this->respond([
+                'success' => false,
+                'message' => 'Human verification expired. Please refresh the challenge.'
+            ], 400);
+        }
+
+        $secret = env('JWT_SECRET') ?: env('TURNSTILE_SECRET_KEY') ?: 'gad_ams_secret_fallback_key';
+        $expectedSig = hash_hmac('sha256', "{$answer}|{$time}", $secret);
+
+        if (!hash_equals($expectedSig, $sig)) {
+            return $this->respond([
+                'success' => false,
+                'message' => 'Words do not match. Please verify spelling, spaces, and UPPERCASE letters strictly.'
+            ], 400);
+        }
+
+        // Issue a single-use verified token signed by backend
+        $nonce = bin2hex(random_bytes(16));
+        $verifiedAt = time();
+        $verifiedSig = hash_hmac('sha256', "{$nonce}|{$verifiedAt}", $secret);
+
+        $tokenPayload = base64_encode(json_encode([
+            'n' => $nonce,
+            't' => $verifiedAt,
+            's' => $verifiedSig
+        ]));
+
+        $verifiedToken = 'hc_verified:' . $tokenPayload;
+
+        return $this->respond([
+            'success' => true,
+            'message' => 'Human verification passed.',
+            'verified_token' => $verifiedToken
         ]);
     }
 
@@ -725,7 +900,7 @@ class AuthController extends ResourceController
         if (empty($token)) return ['success' => false, 'error' => 'Token is empty'];
 
         // Fallback custom human checker token
-        if (strpos($token, 'hc_fallback:') === 0) {
+        if (strpos($token, 'hc_verified:') === 0 || strpos($token, 'hc_fallback:') === 0) {
             return $this->verifyHumanChallenge($token);
         }
 
@@ -776,6 +951,42 @@ class AuthController extends ResourceController
 
     protected function verifyHumanChallenge($token)
     {
+        $secret = env('JWT_SECRET') ?: env('TURNSTILE_SECRET_KEY') ?: 'gad_ams_secret_fallback_key';
+
+        if (strpos($token, 'hc_verified:') === 0) {
+            $payloadStr = substr($token, strlen('hc_verified:'));
+            $payload = json_decode(base64_decode($payloadStr), true);
+
+            if (!$payload || !isset($payload['n'], $payload['t'], $payload['s'])) {
+                return ['success' => false, 'error' => 'Malformed human verification token'];
+            }
+
+            $nonce = $payload['n'];
+            $time  = (int)$payload['t'];
+            $sig   = $payload['s'];
+            $currentTime = time();
+
+            // 10 minutes expiry window (600s), allow 60s future drift
+            if (($currentTime - $time) > 600 || ($time - $currentTime) > 60) {
+                return ['success' => false, 'error' => 'Human verification token expired. Please refresh.'];
+            }
+
+            $expectedSig = hash_hmac('sha256', "{$nonce}|{$time}", $secret);
+            if (!hash_equals($expectedSig, $sig)) {
+                return ['success' => false, 'error' => 'Human verification signature mismatch.'];
+            }
+
+            // Single-use replay protection: check if nonce was already used
+            $cacheKey = 'hc_nonce_' . $nonce;
+            if (cache($cacheKey)) {
+                return ['success' => false, 'error' => 'Human verification token has already been used. Please refresh.'];
+            }
+            cache()->save($cacheKey, 1, 600);
+
+            return ['success' => true];
+        }
+
+        // Legacy format fallback: hc_fallback:
         $payloadStr = substr($token, strlen('hc_fallback:'));
         $payload = json_decode(base64_decode($payloadStr), true);
 
@@ -792,20 +1003,23 @@ class AuthController extends ResourceController
         $sig = $keyData['s'];
         $currentTime = time();
 
-        // 10 minutes expiry window (600s), allow 60s future drift
         if (($currentTime - $time) > 600 || ($time - $currentTime) > 60) {
             return ['success' => false, 'error' => 'Human verification expired. Please refresh and try again.'];
         }
 
-        $secret = env('JWT_SECRET') ?: env('TURNSTILE_SECRET_KEY') ?: 'gad_ams_secret_fallback_key';
-        
-        // Strict comparison of the words (as required: "type those words as is strictly")
         $userAnswer = trim($payload['answer']);
         $expectedSig = hash_hmac('sha256', "{$userAnswer}|{$time}", $secret);
 
         if (!hash_equals($expectedSig, $sig)) {
             return ['success' => false, 'error' => 'Human verification mismatch. Words must match strictly.'];
         }
+
+        // Single-use replay protection on signature
+        $cacheKey = 'hc_sig_' . $sig;
+        if (cache($cacheKey)) {
+            return ['success' => false, 'error' => 'Human verification challenge has already been used. Please refresh.'];
+        }
+        cache()->save($cacheKey, 1, 600);
 
         return [
             'success' => true

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // || 'https://gad-ams-2-1.onrender.com/api/';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -24,7 +24,7 @@ api.interceptors.request.use(
         if (user && user.id) {
           config.headers['X-User-Id'] = user.id;
         }
-      } catch(e) {}
+      } catch (e) { }
     }
     return config;
   },
@@ -36,6 +36,15 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response) {
+      const errPayload = (error.response.data && typeof error.response.data === 'object')
+        ? error.response.data
+        : { message: error.response.statusText || 'An error occurred' };
+      Object.defineProperty(errPayload, 'response', {
+        value: error.response,
+        enumerable: false,
+        configurable: true
+      });
+
       // 401 Unauthorized — token missing, invalid, or expired.
       // Clear local storage and redirect to login automatically.
       if (error.response.status === 401) {
@@ -48,10 +57,10 @@ api.interceptors.response.use(
         if (!isPublic) {
           window.location.href = '/login';
         }
-        return Promise.reject(error.response.data);
+        return Promise.reject(errPayload);
       }
 
-      return Promise.reject(error.response.data);
+      return Promise.reject(errPayload);
     } else if (error.request) {
       // Request made but no response
       return Promise.reject({

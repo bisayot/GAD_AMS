@@ -455,10 +455,6 @@ const currentMonthYear = computed(() => {
   return calendarBaseDate.value.toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase();
 });
 
-onMounted(() => {
-  fetchAnalyticsData();
-});
-
 const calendarDays = computed(() => {
   const currentDate = calendarBaseDate.value;
   const year = currentDate.getFullYear();

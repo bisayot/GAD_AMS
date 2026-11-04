@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="page-container college-activity-logs-scope">
     <div class="header-section">
       <h1 class="page-title">My Activity Logs</h1>
       <p class="page-subtitle">Track and monitor your recent activities within the system.</p>
@@ -493,192 +493,192 @@ onMounted(() => {
 
 <style>
 /* ==========================================================================
-   Dark Mode Overrides for Activity Logs
+   Dark Mode Overrides for Activity Logs (Scoped to .college-activity-logs-scope)
    Outer background remains white; ONLY the cards darken!
    ========================================================================== */
-html.dark .page-title,
-.dark .page-title {
+html.dark .college-activity-logs-scope .page-title,
+.dark .college-activity-logs-scope .page-title {
   color: #0f172a !important;
 }
 
-html.dark .page-subtitle,
-.dark .page-subtitle {
+html.dark .college-activity-logs-scope .page-subtitle,
+.dark .college-activity-logs-scope .page-subtitle {
   color: #64748b !important;
 }
 
-html.dark .stat-card,
-.dark .stat-card {
+html.dark .college-activity-logs-scope .stat-card,
+.dark .college-activity-logs-scope .stat-card {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
   border-color: rgba(185, 121, 204, 0.25) !important;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25) !important;
 }
 
-html.dark .stat-label,
-.dark .stat-label {
+html.dark .college-activity-logs-scope .stat-label,
+.dark .college-activity-logs-scope .stat-label {
   color: #cbd5e1 !important;
 }
 
-html.dark .stat-value,
-.dark .stat-value {
+html.dark .college-activity-logs-scope .stat-value,
+.dark .college-activity-logs-scope .stat-value {
   color: #ffffff !important;
 }
 
-html.dark .stat-icon-purple,
-.dark .stat-icon-purple {
+html.dark .college-activity-logs-scope .stat-icon-purple,
+.dark .college-activity-logs-scope .stat-icon-purple {
   background: rgba(168, 85, 247, 0.2) !important;
   color: #c084fc !important;
   border-color: rgba(168, 85, 247, 0.3) !important;
 }
 
-html.dark .glass-card,
-.dark .glass-card {
+html.dark .college-activity-logs-scope .glass-card,
+.dark .college-activity-logs-scope .glass-card {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
   border-color: rgba(185, 121, 204, 0.25) !important;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25) !important;
 }
 
-html.dark .card-header,
-.dark .card-header {
+html.dark .college-activity-logs-scope .card-header,
+.dark .college-activity-logs-scope .card-header {
   border-bottom: 1px solid rgba(185, 121, 204, 0.2) !important;
   background: rgba(0, 0, 0, 0.2) !important;
 }
 
-html.dark .card-title,
-.dark .card-title {
+html.dark .college-activity-logs-scope .card-title,
+.dark .college-activity-logs-scope .card-title {
   color: #ffffff !important;
 }
 
-html.dark .card-subtitle,
-.dark .card-subtitle {
+html.dark .college-activity-logs-scope .card-subtitle,
+.dark .college-activity-logs-scope .card-subtitle {
   color: #94a3b8 !important;
 }
 
-html.dark .log-tabs-bar,
-.dark .log-tabs-bar {
+html.dark .college-activity-logs-scope .log-tabs-bar,
+.dark .college-activity-logs-scope .log-tabs-bar {
   border-bottom: 1px solid rgba(185, 121, 204, 0.2) !important;
   background: rgba(0, 0, 0, 0.25) !important;
 }
 
-html.dark .log-tab-btn,
-.dark .log-tab-btn {
+html.dark .college-activity-logs-scope .log-tab-btn,
+.dark .college-activity-logs-scope .log-tab-btn {
   color: #94a3b8 !important;
 }
-html.dark .log-tab-btn:hover,
-.dark .log-tab-btn:hover {
+html.dark .college-activity-logs-scope .log-tab-btn:hover,
+.dark .college-activity-logs-scope .log-tab-btn:hover {
   background: rgba(255, 255, 255, 0.05) !important;
   color: #ffffff !important;
 }
-html.dark .log-tab-btn.active-main,
-.dark .log-tab-btn.active-main {
+html.dark .college-activity-logs-scope .log-tab-btn.active-main,
+.dark .college-activity-logs-scope .log-tab-btn.active-main {
   color: #ffffff !important;
   border-bottom-color: #c084fc !important;
   background: rgba(168, 85, 247, 0.25) !important;
 }
-html.dark .log-tab-btn.active-operational,
-.dark .log-tab-btn.active-operational {
+html.dark .college-activity-logs-scope .log-tab-btn.active-operational,
+.dark .college-activity-logs-scope .log-tab-btn.active-operational {
   color: #ffffff !important;
   border-bottom-color: #60a5fa !important;
   background: rgba(59, 130, 246, 0.25) !important;
 }
 
-html.dark .log-item,
-.dark .log-item {
+html.dark .college-activity-logs-scope .log-item,
+.dark .college-activity-logs-scope .log-item {
   background: rgba(0, 0, 0, 0.25) !important;
   border-color: rgba(185, 121, 204, 0.15) !important;
 }
-html.dark .log-item:hover,
-.dark .log-item:hover {
+html.dark .college-activity-logs-scope .log-item:hover,
+.dark .college-activity-logs-scope .log-item:hover {
   background: rgba(0, 0, 0, 0.4) !important;
   border-color: rgba(185, 121, 204, 0.4) !important;
 }
 
-html.dark .log-email,
-.dark .log-email {
+html.dark .college-activity-logs-scope .log-email,
+.dark .college-activity-logs-scope .log-email {
   color: #ffffff !important;
 }
-html.dark .log-action-text,
-.dark .log-action-text {
+html.dark .college-activity-logs-scope .log-action-text,
+.dark .college-activity-logs-scope .log-action-text {
   color: #cbd5e1 !important;
 }
-html.dark .log-time,
-.dark .log-time {
+html.dark .college-activity-logs-scope .log-time,
+.dark .college-activity-logs-scope .log-time {
   color: #94a3b8 !important;
 }
 
-html.dark .action-green, .dark .action-green {
+html.dark .college-activity-logs-scope .action-green, .dark .college-activity-logs-scope .action-green {
   background: rgba(34, 197, 94, 0.2) !important;
   color: #4ade80 !important;
   border-color: rgba(34, 197, 94, 0.4) !important;
 }
-html.dark .action-blue, .dark .action-blue {
+html.dark .college-activity-logs-scope .action-blue, .dark .college-activity-logs-scope .action-blue {
   background: rgba(59, 130, 246, 0.2) !important;
   color: #60a5fa !important;
   border-color: rgba(59, 130, 246, 0.4) !important;
 }
-html.dark .action-emerald, .dark .action-emerald {
+html.dark .college-activity-logs-scope .action-emerald, .dark .college-activity-logs-scope .action-emerald {
   background: rgba(16, 185, 129, 0.2) !important;
   color: #34d399 !important;
   border-color: rgba(16, 185, 129, 0.4) !important;
 }
-html.dark .action-red, .dark .action-red {
+html.dark .college-activity-logs-scope .action-red, .dark .college-activity-logs-scope .action-red {
   background: rgba(239, 68, 68, 0.2) !important;
   color: #f87171 !important;
   border-color: rgba(239, 68, 68, 0.4) !important;
 }
-html.dark .action-orange, .dark .action-orange {
+html.dark .college-activity-logs-scope .action-orange, .dark .college-activity-logs-scope .action-orange {
   background: rgba(249, 115, 22, 0.2) !important;
   color: #fb923c !important;
   border-color: rgba(249, 115, 22, 0.4) !important;
 }
-html.dark .action-indigo, .dark .action-indigo {
+html.dark .college-activity-logs-scope .action-indigo, .dark .college-activity-logs-scope .action-indigo {
   background: rgba(99, 102, 241, 0.2) !important;
   color: #818cf8 !important;
   border-color: rgba(99, 102, 241, 0.4) !important;
 }
-html.dark .action-teal, .dark .action-teal {
+html.dark .college-activity-logs-scope .action-teal, .dark .college-activity-logs-scope .action-teal {
   background: rgba(20, 184, 166, 0.2) !important;
   color: #2dd4bf !important;
   border-color: rgba(20, 184, 166, 0.4) !important;
 }
-html.dark .action-slate, .dark .action-slate {
+html.dark .college-activity-logs-scope .action-slate, .dark .college-activity-logs-scope .action-slate {
   background: rgba(100, 116, 139, 0.2) !important;
   color: #94a3b8 !important;
   border-color: rgba(100, 116, 139, 0.4) !important;
 }
 
-html.dark .timeline-container,
-.dark .timeline-container {
+html.dark .college-activity-logs-scope .timeline-container,
+.dark .college-activity-logs-scope .timeline-container {
   border-left-color: rgba(185, 121, 204, 0.3) !important;
 }
-html.dark .timeline-dot,
-.dark .timeline-dot {
+html.dark .college-activity-logs-scope .timeline-dot,
+.dark .college-activity-logs-scope .timeline-dot {
   background: #1a1a2e !important;
   border-color: #f472b6 !important;
 }
-html.dark .timeline-time,
-.dark .timeline-time {
+html.dark .college-activity-logs-scope .timeline-time,
+.dark .college-activity-logs-scope .timeline-time {
   color: #94a3b8 !important;
 }
-html.dark .timeline-action,
-.dark .timeline-action {
+html.dark .college-activity-logs-scope .timeline-action,
+.dark .college-activity-logs-scope .timeline-action {
   color: #cbd5e1 !important;
 }
 
-html.dark .empty-state-text,
-.dark .empty-state-text {
+html.dark .college-activity-logs-scope .empty-state-text,
+.dark .college-activity-logs-scope .empty-state-text {
   color: #94a3b8 !important;
 }
 
-html.dark .custom-scrollbar::-webkit-scrollbar-track,
-.dark .custom-scrollbar::-webkit-scrollbar-track {
+html.dark .college-activity-logs-scope .custom-scrollbar::-webkit-scrollbar-track,
+.dark .college-activity-logs-scope .custom-scrollbar::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.2) !important;
 }
-html.dark .custom-scrollbar::-webkit-scrollbar-thumb,
-.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+html.dark .college-activity-logs-scope .custom-scrollbar::-webkit-scrollbar-thumb,
+.dark .college-activity-logs-scope .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(185, 121, 204, 0.3) !important;
 }
-html.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover,
-.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+html.dark .college-activity-logs-scope .custom-scrollbar::-webkit-scrollbar-thumb:hover,
+.dark .college-activity-logs-scope .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(185, 121, 204, 0.5) !important;
 }
 </style>

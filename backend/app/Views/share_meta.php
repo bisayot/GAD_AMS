@@ -9,11 +9,11 @@
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="article">
-    <meta property="og:url" content="<?= $currentUrl ?>">
+    <meta property="og:url" content="<?= esc($currentUrl, 'attr') ?>">
     <meta property="og:title" content="<?= esc($post['title']) ?>">
     <meta property="og:description" content="<?= esc(strip_tags($post['description'])) ?>">
     <?php if ($imageUrl): ?>
-    <meta property="og:image" content="<?= $imageUrl ?>">
+    <meta property="og:image" content="<?= esc($imageUrl, 'attr') ?>">
     <!-- Provide dimensions if needed, FB recommends large images -->
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -21,19 +21,19 @@
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="<?= $currentUrl ?>">
+    <meta property="twitter:url" content="<?= esc($currentUrl, 'attr') ?>">
     <meta property="twitter:title" content="<?= esc($post['title']) ?>">
     <meta property="twitter:description" content="<?= esc(strip_tags($post['description'])) ?>">
     <?php if ($imageUrl): ?>
-    <meta property="twitter:image" content="<?= $imageUrl ?>">
+    <meta property="twitter:image" content="<?= esc($imageUrl, 'attr') ?>">
     <?php endif; ?>
 
     <script>
         // Redirect normal browsers to the Vue frontend immediately
-        window.location.href = "<?= $frontendUrl ?>/gad-corner/<?= $post['id'] ?>";
+        window.location.href = <?= json_encode($frontendUrl . '/gad-corner/' . (int)$post['id']) ?>;
     </script>
 </head>
 <body>
-    <p>Redirecting you to the post... If you are not redirected, <a href="<?= $frontendUrl ?>/gad-corner/<?= $post['id'] ?>">click here</a>.</p>
+    <p>Redirecting you to the post... If you are not redirected, <a href="<?= esc($frontendUrl . '/gad-corner/' . (int)$post['id'], 'attr') ?>">click here</a>.</p>
 </body>
 </html>

@@ -125,207 +125,215 @@ class AccomplishmentReportController extends BaseController
             }
 
 
-            if ($accomplishmentReportModel->insert($data)) {
-                $reportId = $accomplishmentReportModel->getInsertID();
+            $db->transStart();
 
-                // Save schedules
-                $schedulesJson = $this->request->getPost('schedules');
-                if (!empty($schedulesJson)) {
-                    $schedulesData = json_decode($schedulesJson, true);
-                    if (is_array($schedulesData) && count($schedulesData) > 0) {
-                        $scheduleModel = new \App\Models\AccomplishmentScheduleModel();
-                        foreach ($schedulesData as &$sch) {
-                            $sch['accomplishment_report_id'] = $reportId;
-                            if (isset($sch['date'])) {
-                                $sch['schedule_date'] = $sch['date'];
-                            }
-                            if (isset($sch['meals_and_snacks']) && is_array($sch['meals_and_snacks'])) {
-                                $sch['meals_and_snacks'] = json_encode($sch['meals_and_snacks']);
-                            }
-                        }
-                        $scheduleModel->insertBatch($schedulesData);
+            if (!$accomplishmentReportModel->insert($data)) {
+                $db->transRollback();
+                if (!empty($fileNames)) {
+                    foreach ($fileNames as $fn) {
+                        FileStorage::deleteFromDrafts($fn);
                     }
                 }
-
-                // Save custom venues and map temp IDs to real IDs
-                $venuesStr = $this->request->getPost("venues");
-                $customVenuesStr = $this->request->getPost("custom_venues");
-                $venuesArr = $venuesStr ? json_decode($venuesStr, true) : [];
-                $customVenuesArr = $customVenuesStr ? json_decode($customVenuesStr, true) : [];
-                if (!is_array($venuesArr)) $venuesArr = [];
-                if (!is_array($customVenuesArr)) $customVenuesArr = [];
-                
-                $tempToRealVenueIdMap = [];
-                $venueModel = new \App\Models\VenueModel();
-                
-                foreach ($venuesArr as $vid) {
-                    if (is_string($vid) && strpos($vid, 'temp_') === 0) {
-                        $customName = 'Unknown Custom Venue';
-                        foreach ($customVenuesArr as $cv) {
-                            if ($cv['venue_id'] === $vid) {
-                                $customName = $cv['venue_name'];
-                                break;
-                            }
-                        }
-                        $isInsideBsu = $data['is_inside_bsu'] ?? 0;
-                        $venueModel->insert(['venue_name' => $customName, 'is_inside_bsu' => $isInsideBsu]);
-                        $realId = $venueModel->getInsertID();
-                        $tempToRealVenueIdMap[$vid] = $realId;
-                    }
-                }
-
-                // Save budget items
-                $budgetItemsJson = $this->request->getPost('budget_items');
-                $budgetError = $this->validateBudgetPayload($budgetItemsJson);
-                if ($budgetError !== null) {
-                    return $this->response->setJSON(['success' => false, 'message' => $budgetError])->setStatusCode(422);
-                }
-                if (!empty($budgetItemsJson)) {
-                    $budgetData = json_decode($budgetItemsJson, true);
-                    if (is_array($budgetData) && count($budgetData) > 0) {
-                        $budgetModel = new \App\Models\AccomplishmentBudgetItemsModel();
-                        if (isset($budgetData[0])) {
-                            foreach ($budgetData as &$item) {
-                                $item['accomplishment_report_id'] = $reportId;
-                                if (isset($item['venue_id']) && is_string($item['venue_id']) && strpos($item['venue_id'], 'temp_') === 0) {
-                                    $item['venue_id'] = $tempToRealVenueIdMap[$item['venue_id']] ?? $item['venue_id'];
-                                }
-                            }
-                            $budgetModel->insertBatch($budgetData);
-                        } else {
-                            $budgetData['accomplishment_report_id'] = $reportId;
-                            if (isset($budgetData['venue_id']) && is_string($budgetData['venue_id']) && strpos($budgetData['venue_id'], 'temp_') === 0) {
-                                $budgetData['venue_id'] = $tempToRealVenueIdMap[$budgetData['venue_id']] ?? $budgetData['venue_id'];
-                            }
-                            $budgetModel->insert($budgetData);
-                        }
-                    }
-                }
-
-                // Save evaluation results
-                $evalItemsJson = $this->request->getPost('evaluation_results');
-                if (!empty($evalItemsJson)) {
-                    $evalData = json_decode($evalItemsJson, true);
-                    if (is_array($evalData)) {
-                        $evalModel
-             = new \App\Models\AccomplishmentEvaluationResultsModel();
-                        $evalModel->where('accomplishment_report_id', $reportId)->delete();
-                        $inserts = [];
-                        foreach ($evalData as $key => $score) {
-                            $inserts[] = [
-                                'accomplishment_report_id' => $reportId,
-                                'question_key' => $key,
-                                'score' => $score
-                            ];
-                        }
-                        if (!empty($inserts)) {
-                            $evalModel->insertBatch($inserts);
-                        }
-                    }
-                }
-
-                $db = \Config\Database::connect();
-
-                // Update archived_activity_designs if fields are provided
-                $adUpdateData = [];
-                if ($this->request->getPost('activity_classification_id')) {
-                    $adUpdateData['classification_id'] = $this->request->getPost('activity_classification_id');
-                }
-                if ($this->request->getPost('form_type')) {
-                    $rawFt = $this->request->getPost('form_type');
-                    if (is_numeric($rawFt) && (int)$rawFt > 0) {
-                        $adUpdateData['form_type'] = (int)$rawFt;
-                    } else {
-                        $ftRow = $db->table('form_types')->where('name', $rawFt)->get()->getRow();
-                        if ($ftRow) {
-                            $adUpdateData['form_type'] = $ftRow->id;
-                        }
-                    }
-                }
-                
-                $customMandate = $this->request->getPost('custom_gad_mandate');
-                  $mandateIdStr = $this->request->getPost('gad_mandate_id');
-                  $finalMandates = [];
-                  if ($mandateIdStr) {
-                      $mandatesArr = explode(',', $mandateIdStr);
-                      foreach ($mandatesArr as $m) {
-                          if ($m === 'Other' || $m === 'new') {
-                              if ($customMandate && $customMandate !== 'undefined') {
-                                  $db->table('gad_mandates')->insert(['code' => 'CUSTOM', 'title' => $customMandate]);
-                                  $finalMandates[] = $db->insertID();
-                              }
-                          } else {
-                              $finalMandates[] = trim($m);
-                          }
-                      }
-                  }
-                  if (!empty($finalMandates)) {
-                      $adUpdateData['gad_mandate_id'] = $finalMandates[0];
-                  }
-                  
-                  $customIssue = $this->request->getPost('custom_gender_issue');
-                  $issueIdStr = $this->request->getPost('gender_issue_id');
-                  $finalIssues = [];
-                  if ($issueIdStr) {
-                      $issuesArr = explode(',', $issueIdStr);
-                      foreach ($issuesArr as $i) {
-                          if ($i === 'Other' || $i === 'new') {
-                              if ($customIssue && $customIssue !== 'undefined') {
-                                  $db->table('gender_issues')->insert([
-                                      'mandate_id' => !empty($finalMandates) ? $finalMandates[0] : null,
-                                      'title' => $customIssue
-                                  ]);
-                                  $finalIssues[] = $db->insertID();
-                              }
-                          } else {
-                              $finalIssues[] = trim($i);
-                          }
-                      }
-                  }
-                  if (!empty($finalIssues)) {
-                      $adUpdateData['gender_issue_id'] = $finalIssues[0];
-                  }
-
-                  // Junction table update logic will be injected below by another regex
-                  if (!empty($adUpdateData) && !empty($actDesignId)) {
-                    $db->table('activity_design')
-                       ->where('act_design_id', $actDesignId)
-                       ->update($adUpdateData);
-                      
-                      // Update junction tables
-                      $designIdToUpdate = $actDesignId ?? $controlRecord['act_design_id'] ?? null;
-                      if ($designIdToUpdate) {
-                          if (isset($finalMandates) && !empty($finalMandates)) {
-                              $db->table('activity_design_mandates')->where('act_design_id', $designIdToUpdate)->delete();
-                              foreach ($finalMandates as $mId) {
-                                  $db->table('activity_design_mandates')->insert([
-                                      'act_design_id' => $designIdToUpdate,
-                                      'mandate_id' => $mId
-                                  ]);
-                              }
-                          }
-                          if (isset($finalIssues) && !empty($finalIssues)) {
-                              $db->table('activity_design_issues')->where('act_design_id', $designIdToUpdate)->delete();
-                              foreach ($finalIssues as $iId) {
-                                  $db->table('activity_design_issues')->insert([
-                                      'act_design_id' => $designIdToUpdate,
-                                      'issue_id' => $iId
-                                  ]);
-                              }
-                          }
-                      }
-                  }
-
-                \App\Models\ActivityLogModel::log($data['user_id'], 'Submit Document', 'submitted Accomplishment Report: ' . $data['activity_title']);
-
-                NotificationService::send($data['user_id'], 'Accomplishment Report Submitted', 'Your Accomplishment Report "' . $data['activity_title'] . '" has been successfully submitted and is pending review.', '/staff/accomplishment-reports', 'info');
-                NotificationService::sendToAdmins('New Accomplishment Report Submitted', 'A new Accomplishment Report "' . $data['activity_title'] . '" has been submitted and is pending review.', '/admin/accomplishment-reports', 'info');
-
                 return $this->response->setJSON([
-                    "success" => true,
-                    "message" => "Data saved successfully"
-                ]);
+                    "success" => false,
+                    "message" => "Failed to save data into database.",
+                    "errors"  => $accomplishmentReportModel->errors()
+                ])->setStatusCode(500);
             }
+
+            $reportId = $accomplishmentReportModel->getInsertID();
+
+            // Save schedules
+            $schedulesJson = $this->request->getPost('schedules');
+            if (!empty($schedulesJson)) {
+                $schedulesData = json_decode($schedulesJson, true);
+                if (is_array($schedulesData) && count($schedulesData) > 0) {
+                    $scheduleModel = new \App\Models\AccomplishmentScheduleModel();
+                    foreach ($schedulesData as &$sch) {
+                        $sch['accomplishment_report_id'] = $reportId;
+                        if (isset($sch['date'])) {
+                            $sch['schedule_date'] = $sch['date'];
+                        }
+                        if (isset($sch['meals_and_snacks']) && is_array($sch['meals_and_snacks'])) {
+                            $sch['meals_and_snacks'] = json_encode($sch['meals_and_snacks']);
+                        }
+                    }
+                    $scheduleModel->insertBatch($schedulesData);
+                }
+            }
+
+            // Save custom venues and map temp IDs to real IDs
+            $venuesStr = $this->request->getPost("venues");
+            $customVenuesStr = $this->request->getPost("custom_venues");
+            $venuesArr = $venuesStr ? json_decode($venuesStr, true) : [];
+            $customVenuesArr = $customVenuesStr ? json_decode($customVenuesStr, true) : [];
+            if (!is_array($venuesArr)) $venuesArr = [];
+            if (!is_array($customVenuesArr)) $customVenuesArr = [];
+            
+            $tempToRealVenueIdMap = [];
+            $venueModel = new \App\Models\VenueModel();
+            
+            foreach ($venuesArr as $vid) {
+                if (is_string($vid) && strpos($vid, 'temp_') === 0) {
+                    $customName = 'Unknown Custom Venue';
+                    foreach ($customVenuesArr as $cv) {
+                        if ($cv['venue_id'] === $vid) {
+                            $customName = $cv['venue_name'];
+                            break;
+                        }
+                    }
+                    $isInsideBsu = $data['is_inside_bsu'] ?? 0;
+                    $venueModel->insert(['venue_name' => $customName, 'is_inside_bsu' => $isInsideBsu]);
+                    $realId = $venueModel->getInsertID();
+                    $tempToRealVenueIdMap[$vid] = $realId;
+                }
+            }
+
+            // Save budget items
+            $budgetItemsJson = $this->request->getPost('budget_items');
+            if (!empty($budgetItemsJson)) {
+                $budgetData = json_decode($budgetItemsJson, true);
+                if (is_array($budgetData) && count($budgetData) > 0) {
+                    $budgetModel = new \App\Models\AccomplishmentBudgetItemsModel();
+                    if (isset($budgetData[0])) {
+                        foreach ($budgetData as &$item) {
+                            $item['accomplishment_report_id'] = $reportId;
+                            if (isset($item['venue_id']) && is_string($item['venue_id']) && strpos($item['venue_id'], 'temp_') === 0) {
+                                $item['venue_id'] = $tempToRealVenueIdMap[$item['venue_id']] ?? $item['venue_id'];
+                            }
+                        }
+                        $budgetModel->insertBatch($budgetData);
+                    } else {
+                        $budgetData['accomplishment_report_id'] = $reportId;
+                        if (isset($budgetData['venue_id']) && is_string($budgetData['venue_id']) && strpos($budgetData['venue_id'], 'temp_') === 0) {
+                            $budgetData['venue_id'] = $tempToRealVenueIdMap[$budgetData['venue_id']] ?? $budgetData['venue_id'];
+                        }
+                        $budgetModel->insert($budgetData);
+                    }
+                }
+            }
+
+            // Save evaluation results
+            $evalItemsJson = $this->request->getPost('evaluation_results');
+            if (!empty($evalItemsJson)) {
+                $evalData = json_decode($evalItemsJson, true);
+                if (is_array($evalData)) {
+                    $evalModel = new \App\Models\AccomplishmentEvaluationResultsModel();
+                    $evalModel->where('accomplishment_report_id', $reportId)->delete();
+                    $inserts = [];
+                    foreach ($evalData as $key => $score) {
+                        $inserts[] = [
+                            'accomplishment_report_id' => $reportId,
+                            'question_key' => $key,
+                            'score' => $score
+                        ];
+                    }
+                    if (!empty($inserts)) {
+                        $evalModel->insertBatch($inserts);
+                    }
+                }
+            }
+
+            // Update associated activity_design if fields are provided
+            $adUpdateData = [];
+            if ($this->request->getPost('activity_classification_id')) {
+                $adUpdateData['classification_id'] = $this->request->getPost('activity_classification_id');
+            }
+            if ($this->request->getPost('form_type')) {
+                $rawFt = $this->request->getPost('form_type');
+                if (is_numeric($rawFt) && (int)$rawFt > 0) {
+                    $adUpdateData['form_type'] = (int)$rawFt;
+                } else {
+                    $ftRow = $db->table('form_types')->where('name', $rawFt)->get()->getRow();
+                    if ($ftRow) {
+                        $adUpdateData['form_type'] = $ftRow->id;
+                    }
+                }
+            }
+            
+            $customMandate = $this->request->getPost('custom_gad_mandate');
+            $mandateIdStr = $this->request->getPost('gad_mandate_id');
+            $finalMandates = [];
+            if ($mandateIdStr) {
+                $mandatesArr = explode(',', $mandateIdStr);
+                foreach ($mandatesArr as $m) {
+                    $trimmed = trim($m);
+                    if ($trimmed !== 'Other' && $trimmed !== 'new' && is_numeric($trimmed)) {
+                        $finalMandates[] = (int)$trimmed;
+                    }
+                }
+            }
+            if (!empty($finalMandates)) {
+                $adUpdateData['gad_mandate_id'] = $finalMandates[0];
+            }
+            
+            $customIssue = $this->request->getPost('custom_gender_issue');
+            $issueIdStr = $this->request->getPost('gender_issue_id');
+            $finalIssues = [];
+            if ($issueIdStr) {
+                $issuesArr = explode(',', $issueIdStr);
+                foreach ($issuesArr as $i) {
+                    $trimmed = trim($i);
+                    if ($trimmed !== 'Other' && $trimmed !== 'new' && is_numeric($trimmed)) {
+                        $finalIssues[] = (int)$trimmed;
+                    }
+                }
+            }
+            if (!empty($finalIssues)) {
+                $adUpdateData['gender_issue_id'] = $finalIssues[0];
+            }
+
+            if (!empty($adUpdateData) && !empty($actDesignId)) {
+                $db->table('activity_design')
+                   ->where('act_design_id', $actDesignId)
+                   ->update($adUpdateData);
+                
+                $designIdToUpdate = $actDesignId ?? $controlRecord['act_design_id'] ?? null;
+                if ($designIdToUpdate) {
+                    if (isset($finalMandates) && !empty($finalMandates)) {
+                        $db->table('activity_design_mandates')->where('act_design_id', $designIdToUpdate)->delete();
+                        foreach ($finalMandates as $mId) {
+                            $db->table('activity_design_mandates')->insert([
+                                'act_design_id' => $designIdToUpdate,
+                                'mandate_id' => $mId
+                            ]);
+                        }
+                    }
+                    if (isset($finalIssues) && !empty($finalIssues)) {
+                        $db->table('activity_design_issues')->where('act_design_id', $designIdToUpdate)->delete();
+                        foreach ($finalIssues as $iId) {
+                            $db->table('activity_design_issues')->insert([
+                                'act_design_id' => $designIdToUpdate,
+                                'issue_id' => $iId
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            $db->transComplete();
+
+            if ($db->transStatus() === false) {
+                if (!empty($fileNames)) {
+                    foreach ($fileNames as $fn) {
+                        FileStorage::deleteFromDrafts($fn);
+                    }
+                }
+                return $this->response->setJSON([
+                    "success" => false,
+                    "message" => "Database transaction failed while saving Accomplishment Report."
+                ])->setStatusCode(500);
+            }
+
+            \App\Models\ActivityLogModel::log($data['user_id'], 'Submit Document', 'submitted Accomplishment Report: ' . $data['activity_title']);
+
+            NotificationService::send($data['user_id'], 'Accomplishment Report Submitted', 'Your Accomplishment Report "' . $data['activity_title'] . '" has been successfully submitted and is pending review.', '/staff/accomplishment-reports', 'info');
+            NotificationService::sendToAdmins('New Accomplishment Report Submitted', 'A new Accomplishment Report "' . $data['activity_title'] . '" has been submitted and is pending review.', '/admin/accomplishment-reports', 'info');
+
+            return $this->response->setJSON([
+                "success" => true,
+                "message" => "Data saved successfully"
+            ]);
 
 
             return $this->response->setJSON([
@@ -384,6 +392,15 @@ class AccomplishmentReportController extends BaseController
 
         if (!$report) {
             return $this->response->setJSON(['success' => false, 'message' => 'Report not found'])->setStatusCode(404);
+        }
+
+        $payload = $this->request->jwtPayload ?? null;
+        $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        $role = strtolower(trim((string)($payload['role'] ?? $payload['user_role'] ?? '')));
+        $isStaffOrAdmin = in_array($role, ['admin', 'director', 'gad_staff', 'staff', 'superadmin'], true);
+
+        if (!$isStaffOrAdmin && ($authUserId <= 0 || (int)($report['user_id'] ?? 0) !== (int)$authUserId)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Forbidden: You can only view your own Accomplishment Report.'])->setStatusCode(403);
         }
 
 
@@ -613,6 +630,15 @@ class AccomplishmentReportController extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'User ID required'])->setStatusCode(400);
         }
 
+        $payload = $this->request->jwtPayload ?? null;
+        $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        $role = strtolower(trim((string)($payload['role'] ?? $payload['user_role'] ?? '')));
+        $isStaffOrAdmin = in_array($role, ['admin', 'director', 'gad_staff', 'staff', 'superadmin'], true);
+
+        if (!$isStaffOrAdmin && ($authUserId <= 0 || (int)$userId !== (int)$authUserId)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Forbidden: You can only view your own Accomplishment Reports.'])->setStatusCode(403);
+        }
+
         $db = \Config\Database::connect();
 
         $reports = $db->table('accomplishment_report as ar')
@@ -689,6 +715,18 @@ class AccomplishmentReportController extends BaseController
             ])->setStatusCode(404);
         }
 
+        $payload = $this->request->jwtPayload ?? null;
+        $authUserId = \App\Libraries\JwtHelper::getAuthUserId($this->request);
+        $role = strtolower(trim((string)($payload['role'] ?? $payload['user_role'] ?? '')));
+        $isStaffOrAdmin = in_array($role, ['admin', 'director', 'gad_staff', 'staff', 'superadmin'], true);
+
+        if (!$isStaffOrAdmin && ($authUserId <= 0 || (int)($report['user_id'] ?? 0) !== (int)$authUserId)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Forbidden: You can only update your own Accomplishment Report.'
+            ])->setStatusCode(403);
+        }
+
         // Collect only the fields sent in the request
         $data = [
             'activity_title' => $this->request->getPost('activity_title'),
@@ -703,13 +741,20 @@ class AccomplishmentReportController extends BaseController
             'male'           => $this->request->getPost('male'),
             'female'         => $this->request->getPost('female'),
             'rating'         => $this->request->getPost('rating'),
-            'status'         => $this->request->getPost('status') ?? 'Pending',
+            'status'         => $isStaffOrAdmin ? ($this->request->getPost('status') ?? 'Pending') : 'Pending',
         ];
 
         // Remove null/empty values so we only update provided fields
         $updateData = array_filter($data, function($value) {
             return $value !== null && $value !== '';
         });
+
+        // Pre-validate budget items before any mutations
+        $budgetItemsJson = $this->request->getPost('budget_items');
+        $budgetError = $this->validateBudgetPayload($budgetItemsJson);
+        if ($budgetError !== null) {
+            return $this->response->setJSON(['success' => false, 'message' => $budgetError])->setStatusCode(422);
+        }
 
         // Handle new file uploads (if any)
         $files = $this->request->getFileMultiple('attachments');
@@ -733,6 +778,9 @@ class AccomplishmentReportController extends BaseController
             $updateData['attachment'] = json_encode($newNames);
         }
 
+        $db = \Config\Database::connect();
+        $db->transStart();
+
         try {
             if ($model->update($id, $updateData)) {
                     // Update schedules
@@ -754,13 +802,6 @@ class AccomplishmentReportController extends BaseController
                             $scheduleModel->insertBatch($schedulesData);
                         }
                     }
-                
-                // Update or Insert budget items
-                $budgetItemsJson = $this->request->getPost('budget_items');
-                $budgetError = $this->validateBudgetPayload($budgetItemsJson);
-                if ($budgetError !== null) {
-                    return $this->response->setJSON(['success' => false, 'message' => $budgetError])->setStatusCode(422);
-                }
                 
                 // Process custom venues and map temp IDs to real IDs
                 $venuesStr = $this->request->getPost("venues");
@@ -853,47 +894,36 @@ class AccomplishmentReportController extends BaseController
                 }
                 
                 $customMandate = $this->request->getPost('custom_gad_mandate');
-                  $mandateIdStr = $this->request->getPost('gad_mandate_id');
-                  $finalMandates = [];
-                  if ($mandateIdStr) {
-                      $mandatesArr = explode(',', $mandateIdStr);
-                      foreach ($mandatesArr as $m) {
-                          if ($m === 'Other' || $m === 'new') {
-                              if ($customMandate && $customMandate !== 'undefined') {
-                                  $db->table('gad_mandates')->insert(['code' => 'CUSTOM', 'title' => $customMandate]);
-                                  $finalMandates[] = $db->insertID();
-                              }
-                          } else {
-                              $finalMandates[] = trim($m);
-                          }
-                      }
-                  }
-                  if (!empty($finalMandates)) {
-                      $adUpdateData['gad_mandate_id'] = $finalMandates[0];
-                  }
-                  
-                  $customIssue = $this->request->getPost('custom_gender_issue');
-                  $issueIdStr = $this->request->getPost('gender_issue_id');
-                  $finalIssues = [];
-                  if ($issueIdStr) {
-                      $issuesArr = explode(',', $issueIdStr);
-                      foreach ($issuesArr as $i) {
-                          if ($i === 'Other' || $i === 'new') {
-                              if ($customIssue && $customIssue !== 'undefined') {
-                                  $db->table('gender_issues')->insert([
-                                      'mandate_id' => !empty($finalMandates) ? $finalMandates[0] : null,
-                                      'title' => $customIssue
-                                  ]);
-                                  $finalIssues[] = $db->insertID();
-                              }
-                          } else {
-                              $finalIssues[] = trim($i);
-                          }
-                      }
-                  }
-                  if (!empty($finalIssues)) {
-                      $adUpdateData['gender_issue_id'] = $finalIssues[0];
-                  }
+                $mandateIdStr = $this->request->getPost('gad_mandate_id');
+                $finalMandates = [];
+                if ($mandateIdStr) {
+                    $mandatesArr = explode(',', $mandateIdStr);
+                    foreach ($mandatesArr as $m) {
+                        $trimmed = trim($m);
+                        if ($trimmed !== 'Other' && $trimmed !== 'new' && is_numeric($trimmed)) {
+                            $finalMandates[] = (int)$trimmed;
+                        }
+                    }
+                }
+                if (!empty($finalMandates)) {
+                    $adUpdateData['gad_mandate_id'] = $finalMandates[0];
+                }
+                
+                $customIssue = $this->request->getPost('custom_gender_issue');
+                $issueIdStr = $this->request->getPost('gender_issue_id');
+                $finalIssues = [];
+                if ($issueIdStr) {
+                    $issuesArr = explode(',', $issueIdStr);
+                    foreach ($issuesArr as $i) {
+                        $trimmed = trim($i);
+                        if ($trimmed !== 'Other' && $trimmed !== 'new' && is_numeric($trimmed)) {
+                            $finalIssues[] = (int)$trimmed;
+                        }
+                    }
+                }
+                if (!empty($finalIssues)) {
+                    $adUpdateData['gender_issue_id'] = $finalIssues[0];
+                }
 
                   // Junction table update logic will be injected below by another regex
                   if (!empty($adUpdateData) && !empty($report['control_number'])) {
@@ -929,6 +959,14 @@ class AccomplishmentReportController extends BaseController
                   }
                 }
 
+                $db->transComplete();
+                if ($db->transStatus() === false) {
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'message' => 'Transaction failed while updating accomplishment report.'
+                    ])->setStatusCode(500);
+                }
+
                 $title = $updateData['activity_title'] ?? $report['activity_title'];
                 \App\Models\ActivityLogModel::log($report['user_id'], 'Update Document', 'resubmitted Accomplishment Report: ' . $title);
                 NotificationService::sendToAdmins('Accomplishment Report Resubmitted', 'Accomplishment Report "' . $title . '" has been resubmitted and is pending review.', '/admin/ar-list', 'info');
@@ -938,6 +976,7 @@ class AccomplishmentReportController extends BaseController
                     'message' => 'Accomplishment Report updated and resubmitted successfully.'
                 ]);
             } else {
+                $db->transRollback();
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'Database update failed.',
@@ -945,6 +984,7 @@ class AccomplishmentReportController extends BaseController
                 ])->setStatusCode(400);
             }
         } catch (\Exception $e) {
+            $db->transRollback();
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'An error occurred: ' . $e->getMessage()

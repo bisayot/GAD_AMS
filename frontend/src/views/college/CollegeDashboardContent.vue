@@ -337,9 +337,9 @@ const formatStatus = (status) => {
   return status.charAt(0).toUpperCase() + status.slice(1);
 };
 
-const fetchSubmissions = async () => {
+const fetchSubmissions = async (preloaded = null) => {
   try {
-    const [adRes, arRes, archiveRes] = await Promise.all([
+    const [adRes, arRes, archiveRes] = preloaded ? [preloaded.adRes, preloaded.arRes, preloaded.archiveRes] : await Promise.all([
       api.get(`activity-designs/${user.value.id}`),
       api.get(`activity-reports/${user.value.id}`),
       api.get(`archives?user_id=${user.value.id}&role=${user.value.role}`)
@@ -416,9 +416,9 @@ const fetchSubmissions = async () => {
   }
 };
 
-const fetchDeadlines = async () => {
+const fetchDeadlines = async (preloaded = null) => {
   try {
-    const [adRes, arRes, archiveRes] = await Promise.all([
+    const [adRes, arRes, archiveRes] = preloaded ? [preloaded.adRes, preloaded.arRes, preloaded.archiveRes] : await Promise.all([
       api.get(`activity-designs/${user.value.id}`),
       api.get(`activity-reports/${user.value.id}`),
       api.get(`archives?user_id=${user.value.id}&role=${user.value.role || 'twg'}`)
@@ -518,7 +518,26 @@ const fetchDeadlines = async () => {
 };
 
 const loadDashboardData = async () => {
-  await Promise.all([fetchSubmissions(), fetchDeadlines(), fetchAnalyticsData()]);
+  try {
+    const [docResponses] = await Promise.all([
+      Promise.all([
+        api.get(`activity-designs/${user.value.id}`),
+        api.get(`activity-reports/${user.value.id}`),
+        api.get(`archives?user_id=${user.value.id}&role=${user.value.role || 'twg'}`)
+      ]),
+      fetchAnalyticsData()
+    ]);
+
+    const preloaded = {
+      adRes: docResponses[0],
+      arRes: docResponses[1],
+      archiveRes: docResponses[2]
+    };
+
+    await Promise.all([fetchSubmissions(preloaded), fetchDeadlines(preloaded)]);
+  } catch (err) {
+    console.error("Dashboard data load error:", err);
+  }
 };
 
 const getPHYear = () => {

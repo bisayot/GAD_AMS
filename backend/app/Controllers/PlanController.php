@@ -56,6 +56,12 @@ class PlanController extends ResourceController
 
         $itemQuery = $db->table('gpb_items');
         if ($version) {
+            // Self-heal: ensure any unversioned items created for this fiscal year are linked to active version
+            $db->table('gpb_items')
+                ->where('fiscal_year', $requestedYear)
+                ->where('plan_version_id', null)
+                ->update(['plan_version_id' => $version['id']]);
+
             $itemQuery->where('plan_version_id', $version['id']);
         } else {
             $itemQuery->where('fiscal_year', $requestedYear);
@@ -184,14 +190,19 @@ class PlanController extends ResourceController
         }
         try {
             $service = new \App\Libraries\BudgetVersionService($db);
-            $actorId = isset($payload['uid']) ? (int)$payload['uid'] : (isset($payload['id']) ? (int)$payload['id'] : null);
+            $actorId = isset($payload['sub']) ? (int)$payload['sub'] : (isset($payload['uid']) ? (int)$payload['uid'] : (isset($payload['id']) ? (int)$payload['id'] : null));
             $version = $service->saveInPlace($year, $input['org'], $input['items'], $actorId);
             return $this->respond(['status' => 'success', 'message' => 'Plan saved successfully', 'version' => $version]);
         } catch (\InvalidArgumentException|\RuntimeException $e) {
             return $this->failValidationErrors($e->getMessage());
+        } catch (\Throwable $e) {
+            log_message('error', 'Plan save failed: {message} in {file}:{line}', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            return $this->failServerError('Plan save did not complete: ' . $e->getMessage());
         }
-
-        return $this->failServerError('Plan save did not complete.');
     }
 
     public function resetPlan()
@@ -216,7 +227,7 @@ class PlanController extends ResourceController
         $isEarlyReset = !empty($input['early_reset']);
 
         try {
-            $actorId = isset($payload['uid']) ? (int)$payload['uid'] : (isset($payload['id']) ? (int)$payload['id'] : null);
+            $actorId = isset($payload['sub']) ? (int)$payload['sub'] : (isset($payload['uid']) ? (int)$payload['uid'] : (isset($payload['id']) ? (int)$payload['id'] : null));
             $version = (new \App\Libraries\BudgetVersionService())->createReplacement(
                 $year,
                 is_array($input['org'] ?? null) ? $input['org'] : ['year' => $year],
@@ -255,16 +266,40 @@ class PlanController extends ResourceController
             ? (new \App\Libraries\BudgetVersionService($db))->active($fiscalYear)
             : null;
         
-        // 1. Get all GPB Items
+        // 1. Get all GPB Items ordered by classification sequence, plan sort order, and ID
         $gpbQuery = $db->table('gpb_items');
         if ($version) {
             $gpbQuery->where('plan_version_id', $version['id']);
         } else {
             $gpbQuery->where('fiscal_year', $fiscalYear);
         }
-        $gpbItems = $gpbQuery->get()->getResultArray();
+        $gpbItems = $gpbQuery->orderBy("CASE 
+            WHEN section IN ('client', 'client_focused') THEN 1 
+            WHEN section IN ('org', 'organization_focused') THEN 2 
+            WHEN section IN ('attributed', 'attributed_program') THEN 3 
+            ELSE 4 
+        END", 'ASC', false)
+        ->orderBy('sort_order', 'ASC')
+        ->orderBy('id', 'ASC')
+        ->get()
+        ->getResultArray();
         
         $mandateStats = [];
+
+        // Pre-fetch all lineage IDs by item_key in 1 query to avoid N+1 queries in loop
+        $allItemKeys = array_values(array_filter(array_unique(array_column($gpbItems, 'item_key'))));
+        $lineageKeyMap = [];
+        if (!empty($allItemKeys)) {
+            $keyRows = $db->table('gpb_items')
+                ->select('id, item_key')
+                ->whereIn('item_key', $allItemKeys)
+                ->where('fiscal_year', $fiscalYear)
+                ->get()
+                ->getResultArray();
+            foreach ($keyRows as $kr) {
+                $lineageKeyMap[$kr['item_key']][] = (int)$kr['id'];
+            }
+        }
         
         // Group by mandate + cause + activity to ensure distinct entries
         foreach($gpbItems as $item) {
@@ -302,16 +337,8 @@ class PlanController extends ResourceController
             $mandateStats[$groupKey]['budget'] += (float)$item['budget'];
             $mandateStats[$groupKey]['gpb_ids'][] = (int)$item['id'];
             $lineageIds = [$item['id']];
-            if (!empty($item['item_key'])) {
-                $lineageIds = array_column(
-                    $db->table('gpb_items')
-                        ->select('id')
-                        ->where('item_key', $item['item_key'])
-                        ->where('fiscal_year', $fiscalYear)
-                        ->get()
-                        ->getResultArray(),
-                    'id'
-                );
+            if (!empty($item['item_key']) && isset($lineageKeyMap[$item['item_key']])) {
+                $lineageIds = $lineageKeyMap[$item['item_key']];
             }
             $mandateStats[$groupKey]['lineage_ids'] = array_values(array_unique(array_merge(
                 $mandateStats[$groupKey]['lineage_ids'],
@@ -329,130 +356,192 @@ class PlanController extends ResourceController
             }
         }
         
-        // Now calculate AD and AR for each group
+        // Collect all unique lineage IDs across all mandate groups for bulk querying
+        $allLineageIds = [];
+        foreach ($mandateStats as $stat) {
+            $ids = $stat['lineage_ids'] ?: $stat['gpb_ids'];
+            foreach ($ids as $id) {
+                $allLineageIds[(int)$id] = true;
+            }
+        }
+        $allLineageIds = array_keys($allLineageIds);
+
+        // Bulk Query 1: Get all Approved ADs linked to ANY of these lineage IDs
+        $allAdLinks = [];
+        if (!empty($allLineageIds)) {
+            $allAdLinks = $db->table('activity_design_mandates adm')
+                ->select('adm.mandate_id, ad.act_design_id, ad.proposed_budget, ad.control_number')
+                ->join('activity_design ad', 'ad.act_design_id = adm.act_design_id')
+                ->join('activity_design_issues adi', 'adi.act_design_id = ad.act_design_id AND adi.issue_id = adm.mandate_id')
+                ->whereIn('adm.mandate_id', $allLineageIds)
+                ->where('ad.status', 'Approved')
+                ->where('ad.deleted_at', null)
+                ->get()
+                ->getResultArray();
+        }
+
+        // Bulk Query 2: Get all Verified ARs for these AD control numbers
+        $allControlNumbers = array_values(array_filter(array_unique(array_column($allAdLinks, 'control_number'))));
+        $verifiedArsByControl = [];
+        $allArIds = [];
+        if (!empty($allControlNumbers)) {
+            $arRows = $db->table('accomplishment_report')
+                ->select('id, control_number')
+                ->whereIn('control_number', $allControlNumbers)
+                ->where('status', 'Verified')
+                ->where('deleted_at', null)
+                ->get()
+                ->getResultArray();
+            foreach ($arRows as $ar) {
+                $verifiedArsByControl[$ar['control_number']] = $ar;
+                $allArIds[] = (int)$ar['id'];
+            }
+        }
+        $allArIds = array_unique($allArIds);
+        $allAdIds = array_values(array_unique(array_map('intval', array_column($allAdLinks, 'act_design_id'))));
+
+        // Bulk Query 3: Pre-fetch all AR manual allocations
+        $arAllocations = [];
+        if (!empty($allArIds) && !empty($allLineageIds)) {
+            $rows = $db->table('budget_item_mandate_allocations bima')
+                ->select('abi.accomplishment_report_id, bima.mandate_id, bima.gpb_budget_line_id, bima.allocated_amount')
+                ->join('accomplishment_budget_items abi', 'abi.id = bima.budget_item_id')
+                ->where('bima.item_type', 'AR')
+                ->whereIn('abi.accomplishment_report_id', $allArIds)
+                ->whereIn('bima.mandate_id', $allLineageIds)
+                ->get()
+                ->getResultArray();
+            foreach ($rows as $r) {
+                $arAllocations[(int)$r['accomplishment_report_id']][] = $r;
+            }
+        }
+
+        // Bulk Query 4: Pre-fetch all AD manual allocations
+        $adAllocations = [];
+        if (!empty($allAdIds) && !empty($allLineageIds)) {
+            $rows = $db->table('budget_item_mandate_allocations bima')
+                ->select('abi.act_design_id, bima.mandate_id, bima.gpb_budget_line_id, bima.allocated_amount')
+                ->join('activity_budget_items abi', 'abi.id = bima.budget_item_id')
+                ->where('bima.item_type', 'AD')
+                ->whereIn('abi.act_design_id', $allAdIds)
+                ->whereIn('bima.mandate_id', $allLineageIds)
+                ->get()
+                ->getResultArray();
+            foreach ($rows as $r) {
+                $adAllocations[(int)$r['act_design_id']][] = $r;
+            }
+        }
+
+        // Bulk Query 5: Pre-fetch per-budget-line totals for ARs
+        $arLineCosts = [];
+        if (!empty($allLineageIds)) {
+            $rows = $db->table('budget_item_mandate_allocations bima')
+                ->select('bima.mandate_id, bima.gpb_budget_line_id, SUM(bima.allocated_amount) as total_utilized')
+                ->join('accomplishment_budget_items abi', 'abi.id = bima.budget_item_id')
+                ->join('accomplishment_report ar', 'ar.id = abi.accomplishment_report_id')
+                ->where('bima.item_type', 'AR')
+                ->whereIn('bima.mandate_id', $allLineageIds)
+                ->where('ar.status', 'Verified')
+                ->where('ar.deleted_at', null)
+                ->where('bima.gpb_budget_line_id !=', null)
+                ->groupBy('bima.mandate_id, bima.gpb_budget_line_id')
+                ->get()
+                ->getResultArray();
+            foreach ($rows as $r) {
+                $arLineCosts[(int)$r['mandate_id']][$r['gpb_budget_line_id']] = (float)$r['total_utilized'];
+            }
+        }
+
+        // Bulk Query 6: Pre-fetch per-budget-line totals for ADs (where AD has no verified AR)
+        $adLineCosts = [];
+        if (!empty($allLineageIds)) {
+            $rows = $db->table('budget_item_mandate_allocations bima')
+                ->select('bima.mandate_id, bima.gpb_budget_line_id, ad.control_number, bima.allocated_amount')
+                ->join('activity_budget_items abi', 'abi.id = bima.budget_item_id')
+                ->join('activity_design ad', 'ad.act_design_id = abi.act_design_id')
+                ->where('bima.item_type', 'AD')
+                ->whereIn('bima.mandate_id', $allLineageIds)
+                ->where('ad.status', 'Approved')
+                ->where('ad.deleted_at', null)
+                ->where('bima.gpb_budget_line_id !=', null)
+                ->get()
+                ->getResultArray();
+            foreach ($rows as $r) {
+                $ctrl = $r['control_number'] ?? '';
+                if (empty($ctrl) || !isset($verifiedArsByControl[$ctrl])) {
+                    $mId = (int)$r['mandate_id'];
+                    $blId = $r['gpb_budget_line_id'];
+                    $adLineCosts[$mId][$blId] = ($adLineCosts[$mId][$blId] ?? 0.0) + (float)$r['allocated_amount'];
+                }
+            }
+        }
+
+        // Now calculate AD and AR for each group in memory (0 queries in loop)
         foreach($mandateStats as &$stat) {
             if (empty($stat['gpb_ids'])) {
                 continue;
             }
             $lineageIds = $stat['lineage_ids'] ?: $stat['gpb_ids'];
+            $lineageLookup = array_flip($lineageIds);
             
-            // Get all Approved ADs linked to these gpb_ids
-            $adLinks = $db->table('activity_design_mandates adm')
-                ->select('ad.act_design_id, ad.proposed_budget, ad.control_number')
-                ->join('activity_design ad', 'ad.act_design_id = adm.act_design_id')
-                ->join('activity_design_issues adi', 'adi.act_design_id = ad.act_design_id AND adi.issue_id = adm.mandate_id')
-                ->whereIn('adm.mandate_id', $lineageIds)
-                ->where('ad.status', 'Approved')
-                ->where('ad.deleted_at', null)
-                ->groupBy('ad.act_design_id')
-                ->get()->getResultArray();
-                
-            $stat['approved_ad_count'] = count($adLinks);
+            // Filter unique ADs for this group
+            $groupAds = [];
+            foreach ($allAdLinks as $link) {
+                if (isset($lineageLookup[(int)$link['mandate_id']])) {
+                    $groupAds[$link['act_design_id']] = $link;
+                }
+            }
+            $stat['approved_ad_count'] = count($groupAds);
             
-            foreach($adLinks as $ad) {
-                // Check AR
-                $ar = $db->table('accomplishment_report')
-                    ->where('control_number', $ad['control_number'])
-                    ->where('status', 'Verified')
-                    ->where('deleted_at', null)
-                    ->get()->getRowArray();
+            foreach($groupAds as $adId => $ad) {
+                $ctrl = $ad['control_number'] ?? '';
+                $ar = (!empty($ctrl) && isset($verifiedArsByControl[$ctrl])) ? $verifiedArsByControl[$ctrl] : null;
                     
                 if ($ar) {
                     $stat['approved_ar_count']++;
+                    $arId = (int)$ar['id'];
+                    $arItems = $arAllocations[$arId] ?? [];
                     
-                    $arAllocationsExist = $db->table('budget_item_mandate_allocations bima')
-                        ->join('accomplishment_budget_items abi', 'abi.id = bima.budget_item_id')
-                        ->where('bima.item_type', 'AR')
-                        ->where('abi.accomplishment_report_id', $ar['id'])
-                        ->countAllResults() > 0;
-                        
-                    if ($arAllocationsExist) {
-                        $manualCostRow = $db->table('budget_item_mandate_allocations bima')
-                            ->selectSum('bima.allocated_amount')
-                            ->join('accomplishment_budget_items abi', 'abi.id = bima.budget_item_id')
-                            ->where('bima.item_type', 'AR')
-                            ->where('abi.accomplishment_report_id', $ar['id'])
-                            ->whereIn('bima.mandate_id', $lineageIds)
-                            ->get()->getRowArray();
-                        $actualCost = $manualCostRow ? (float)$manualCostRow['allocated_amount'] : 0.0;
+                    if (!empty($arItems)) {
+                        foreach ($arItems as $item) {
+                            if (isset($lineageLookup[(int)$item['mandate_id']])) {
+                                $stat['utilized_budget'] += (float)$item['allocated_amount'];
+                            }
+                        }
                     } else {
                         // Fallback to AD allocations if AR is unassigned
-                        $manualPendingRow = $db->table('budget_item_mandate_allocations bima')
-                            ->selectSum('bima.allocated_amount')
-                            ->join('activity_budget_items abi', 'abi.id = bima.budget_item_id')
-                            ->where('bima.item_type', 'AD')
-                            ->where('abi.act_design_id', $ad['act_design_id'])
-                            ->whereIn('bima.mandate_id', $lineageIds)
-                            ->get()->getRowArray();
-                        $actualCost = $manualPendingRow ? (float)$manualPendingRow['allocated_amount'] : 0.0;
+                        $adItems = $adAllocations[(int)$adId] ?? [];
+                        foreach ($adItems as $item) {
+                            if (isset($lineageLookup[(int)$item['mandate_id']])) {
+                                $stat['utilized_budget'] += (float)$item['allocated_amount'];
+                            }
+                        }
                     }
-                    
-                    $stat['utilized_budget'] += $actualCost;
                 } else {
-                    // Sum only manually allocated activity_budget_items for this specific group of mandates
-                    $manualPendingRow = $db->table('budget_item_mandate_allocations bima')
-                        ->selectSum('bima.allocated_amount')
-                        ->join('activity_budget_items abi', 'abi.id = bima.budget_item_id')
-                        ->where('bima.item_type', 'AD')
-                        ->where('abi.act_design_id', $ad['act_design_id'])
-                        ->whereIn('bima.mandate_id', $lineageIds)
-                        ->get()->getRowArray();
-                        
-                    $pendingCost = $manualPendingRow ? (float)$manualPendingRow['allocated_amount'] : 0.0;
-                    $stat['pending_budget'] += $pendingCost;
-                }
-            }
-            // Now, populate per-budget-line totals
-            // For ARs (Utilized)
-            $arLineCosts = $db->table('budget_item_mandate_allocations bima')
-                ->select('bima.gpb_budget_line_id, SUM(bima.allocated_amount) as total_utilized')
-                ->join('accomplishment_budget_items abi', 'abi.id = bima.budget_item_id')
-                ->join('accomplishment_report ar', 'ar.id = abi.accomplishment_report_id')
-                ->where('bima.item_type', 'AR')
-                ->whereIn('bima.mandate_id', $lineageIds)
-                ->where('ar.status', 'Verified')
-                ->where('ar.deleted_at', null)
-                ->where('bima.gpb_budget_line_id !=', null)
-                ->groupBy('bima.gpb_budget_line_id')
-                ->get()->getResultArray();
-
-            foreach ($arLineCosts as $row) {
-                foreach ($stat['budget_lines'] as &$bl) {
-                    if ($bl['id'] === $row['gpb_budget_line_id']) {
-                        $bl['utilized_budget'] += (float)$row['total_utilized'];
-                    }
-                }
-            }
-
-            // For ADs (Pending)
-            // Note: AD is considered pending if there is NO verified AR for it.
-            $adLineCosts = $db->table('budget_item_mandate_allocations bima')
-                ->select('bima.gpb_budget_line_id, ad.control_number, bima.allocated_amount')
-                ->join('activity_budget_items abi', 'abi.id = bima.budget_item_id')
-                ->join('activity_design ad', 'ad.act_design_id = abi.act_design_id')
-                ->where('bima.item_type', 'AD')
-                ->whereIn('bima.mandate_id', $lineageIds)
-                ->where('ad.status', 'Approved')
-                ->where('ad.deleted_at', null)
-                ->where('bima.gpb_budget_line_id !=', null)
-                ->get()->getResultArray();
-
-            foreach ($adLineCosts as $row) {
-                // Check if this AD has a verified AR
-                $hasVerifiedAR = $db->table('accomplishment_report')
-                    ->where('control_number', $row['control_number'])
-                    ->where('status', 'Verified')
-                    ->where('deleted_at', null)
-                    ->countAllResults() > 0;
-
-                if (!$hasVerifiedAR) {
-                    foreach ($stat['budget_lines'] as &$bl) {
-                        if ($bl['id'] === $row['gpb_budget_line_id']) {
-                            $bl['pending_budget'] += (float)$row['allocated_amount'];
+                    $adItems = $adAllocations[(int)$adId] ?? [];
+                    foreach ($adItems as $item) {
+                        if (isset($lineageLookup[(int)$item['mandate_id']])) {
+                            $stat['pending_budget'] += (float)$item['allocated_amount'];
                         }
                     }
                 }
             }
+
+            // Populate per-budget-line totals in memory
+            foreach ($stat['budget_lines'] as &$bl) {
+                $blId = $bl['id'] ?? null;
+                if (!$blId) continue;
+
+                foreach ($lineageIds as $lId) {
+                    if (isset($arLineCosts[$lId][$blId])) {
+                        $bl['utilized_budget'] += $arLineCosts[$lId][$blId];
+                    }
+                    if (isset($adLineCosts[$lId][$blId])) {
+                        $bl['pending_budget'] += $adLineCosts[$lId][$blId];
+                    }
+                }
+            }
+            unset($bl);
 
             $stat['remaining_budget'] = $stat['budget'] - $stat['utilized_budget'] - $stat['pending_budget'];
             // Do not unset gpb_ids; frontend needs it for manual allocations
@@ -503,31 +592,118 @@ class PlanController extends ResourceController
             ->groupBy('ad.act_design_id')
             ->get()->getResultArray();
 
+        $adControls = array_values(array_filter(array_unique(array_column($adLinks, 'control_number'))));
+        $allAdIds = array_values(array_unique(array_map('intval', array_column($adLinks, 'act_design_id'))));
+
+        // Bulk Query 1: Fetch verified ARs for all AD control numbers
+        $verifiedArsByControl = [];
+        $allArIds = [];
+        if (!empty($adControls)) {
+            $arRows = $db->table('accomplishment_report')
+                ->whereIn('control_number', $adControls)
+                ->where('status', 'Verified')
+                ->where('deleted_at', null)
+                ->get()
+                ->getResultArray();
+            foreach ($arRows as $r) {
+                $verifiedArsByControl[$r['control_number']] = $r;
+                $allArIds[] = (int)$r['id'];
+            }
+        }
+        $allArIds = array_unique($allArIds);
+
+        // Bulk Query 2: Fetch accomplishment_budget_items for all verified ARs
+        $arBudgetItemsByArId = [];
+        $allArItemIds = [];
+        if (!empty($allArIds)) {
+            $arItemRows = $db->table('accomplishment_budget_items')
+                ->whereIn('accomplishment_report_id', $allArIds)
+                ->get()
+                ->getResultArray();
+            foreach ($arItemRows as $it) {
+                $arBudgetItemsByArId[(int)$it['accomplishment_report_id']][] = $it;
+                $allArItemIds[] = (int)$it['id'];
+            }
+        }
+        $allArItemIds = array_unique($allArItemIds);
+
+        // Bulk Query 3: Fetch activity_budget_items for all approved ADs
+        $adBudgetItemsByAdId = [];
+        $allAdItemIds = [];
+        if (!empty($allAdIds)) {
+            $adItemRows = $db->table('activity_budget_items')
+                ->whereIn('act_design_id', $allAdIds)
+                ->get()
+                ->getResultArray();
+            foreach ($adItemRows as $it) {
+                $adBudgetItemsByAdId[(int)$it['act_design_id']][] = $it;
+                $allAdItemIds[] = (int)$it['id'];
+            }
+        }
+        $allAdItemIds = array_unique($allAdItemIds);
+
+        // Bulk Query 4: Fetch allocations for AR & AD budget items
+        $arAllocationsByItemId = [];
+        $referencedGpbIds = [];
+        if (!empty($allArItemIds)) {
+            $arAllocRows = $db->table('budget_item_mandate_allocations')
+                ->where('item_type', 'AR')
+                ->whereIn('budget_item_id', $allArItemIds)
+                ->get()
+                ->getResultArray();
+            foreach ($arAllocRows as $al) {
+                $arAllocationsByItemId[(int)$al['budget_item_id']][] = $al;
+                if (!empty($al['mandate_id'])) {
+                    $referencedGpbIds[] = (int)$al['mandate_id'];
+                }
+            }
+        }
+
+        $adAllocationsByItemId = [];
+        if (!empty($allAdItemIds)) {
+            $adAllocRows = $db->table('budget_item_mandate_allocations')
+                ->where('item_type', 'AD')
+                ->whereIn('budget_item_id', $allAdItemIds)
+                ->get()
+                ->getResultArray();
+            foreach ($adAllocRows as $al) {
+                $adAllocationsByItemId[(int)$al['budget_item_id']][] = $al;
+                if (!empty($al['mandate_id'])) {
+                    $referencedGpbIds[] = (int)$al['mandate_id'];
+                }
+            }
+        }
+
+        // Bulk Query 5: Fetch GPB items for mandate name lookup
+        $gpbItemsById = [];
+        $referencedGpbIds = array_values(array_unique($referencedGpbIds));
+        if (!empty($referencedGpbIds)) {
+            $gpbRows = $db->table('gpb_items')
+                ->select('id, mandate, cause, activity')
+                ->whereIn('id', $referencedGpbIds)
+                ->get()
+                ->getResultArray();
+            foreach ($gpbRows as $g) {
+                $gpbItemsById[(int)$g['id']] = $g;
+            }
+        }
+
+        $lineageLookup = array_flip($lineageIds);
         $documents = [];
 
         foreach($adLinks as $ad) {
-            $ar = $db->table('accomplishment_report')
-                ->where('control_number', $ad['control_number'])
-                ->where('status', 'Verified')
-                ->where('deleted_at', null)
-                ->get()->getRowArray();
+            $ctrl = $ad['control_number'] ?? '';
+            $ar = (!empty($ctrl) && isset($verifiedArsByControl[$ctrl])) ? $verifiedArsByControl[$ctrl] : null;
 
             if ($ar) {
-                $items = $db->table('accomplishment_budget_items')
-                    ->where('accomplishment_report_id', $ar['id'])
-                    ->get()->getResultArray();
+                $items = $arBudgetItemsByArId[(int)$ar['id']] ?? [];
                 
                 foreach ($items as &$item) {
-                    $allocations = $db->table('budget_item_mandate_allocations')
-                        ->where('item_type', 'AR')
-                        ->where('budget_item_id', $item['id'])
-                        ->get()->getResultArray();
+                    $allocations = $arAllocationsByItemId[(int)$item['id']] ?? [];
                     
                     foreach ($allocations as &$al) {
-                        $gpbItem = $db->table('gpb_items')
-                            ->select('mandate, cause, activity')
-                            ->where('id', $al['mandate_id'])
-                            ->get()->getRowArray();
+                        $mId = (int)($al['mandate_id'] ?? 0);
+                        $gpbItem = $gpbItemsById[$mId] ?? null;
                         if ($gpbItem) {
                             $mName = trim($gpbItem['mandate']);
                             $al['mandate_name'] = $mName ? $mName : ($gpbItem['activity'] ?: 'Attributed Program');
@@ -539,13 +715,14 @@ class PlanController extends ResourceController
                             $al['activity_name'] = '';
                         }
                     }
+                    unset($al);
                     
                     $item['allocations'] = $allocations;
                     
                     $allocatedToCurrent = 0;
                     $allocatedGpbLineId = null;
                     foreach ($allocations as $al) {
-                        if (in_array($al['mandate_id'], $lineageIds)) {
+                        if (isset($lineageLookup[(int)$al['mandate_id']])) {
                             $allocatedToCurrent += (float)$al['allocated_amount'];
                             if (!empty($al['gpb_budget_line_id'])) {
                                 $allocatedGpbLineId = $al['gpb_budget_line_id'];
@@ -555,6 +732,7 @@ class PlanController extends ResourceController
                     $item['allocated_to_current'] = $allocatedToCurrent;
                     $item['gpb_budget_line_id'] = $allocatedGpbLineId;
                 }
+                unset($item);
 
                 $documents[] = [
                     'type' => 'AR',
@@ -567,24 +745,20 @@ class PlanController extends ResourceController
             } 
             
             // Only show the AD if it does NOT have a verified AND archived AR
-            $hasVerifiedAndArchivedAR = ($ar && $ar['is_archived'] == 1);
+            $hasVerifiedAndArchivedAR = ($ar && isset($ar['is_archived']) && $ar['is_archived'] == 1);
             
             if (!$hasVerifiedAndArchivedAR) {
-                $items = $db->table('activity_budget_items')
-                    ->where('act_design_id', $ad['act_design_id'])
-                    ->get()->getResultArray();
+                $adId = (int)$ad['act_design_id'];
+                $items = $adBudgetItemsByAdId[$adId] ?? [];
 
                 foreach ($items as &$item) {
-                    $allocations = $db->table('budget_item_mandate_allocations')
-                        ->where('item_type', 'AD')
-                        ->where('budget_item_id', $item['id'])
-                        ->get()->getResultArray();
+                    $allocations = $adAllocationsByItemId[(int)$item['id']] ?? [];
                     $item['allocations'] = $allocations;
                     
                     $allocatedToCurrent = 0;
                     $allocatedGpbLineId = null;
                     foreach ($allocations as $al) {
-                        if (in_array($al['mandate_id'], $lineageIds)) {
+                        if (isset($lineageLookup[(int)$al['mandate_id']])) {
                             $allocatedToCurrent += (float)$al['allocated_amount'];
                             if (!empty($al['gpb_budget_line_id'])) {
                                 $allocatedGpbLineId = $al['gpb_budget_line_id'];
@@ -594,6 +768,7 @@ class PlanController extends ResourceController
                     $item['allocated_to_current'] = $allocatedToCurrent;
                     $item['gpb_budget_line_id'] = $allocatedGpbLineId;
                 }
+                unset($item);
 
                 $documents[] = [
                     'type' => 'AD',
@@ -730,7 +905,7 @@ class PlanController extends ResourceController
                 ->getResultArray();
             $itemCount = count($items);
             foreach ($items as $item) {
-                $totalProposed += (float)($item['total_budget'] ?? 0);
+                $totalProposed += (float)($item['budget'] ?? $item['total_budget'] ?? 0);
             }
 
             $adRow = $db->table('activity_design_mandates adm')

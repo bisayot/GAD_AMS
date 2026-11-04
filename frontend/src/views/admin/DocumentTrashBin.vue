@@ -193,8 +193,9 @@ const restoreItems = async (itemsToRestore) => {
     const responseStatus = error?.response?.status;
     const conflicts = responseData?.conflicts;
     if ((responseStatus === 409 || conflicts?.length) && conflicts?.length) {
+      const escapeHtml = (str) => String(str || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
       const conflictList = conflicts
-        .map(c => `<li style="text-align:left; margin-bottom:4px;"><b>${c.title}</b><br><span style="font-size:0.85em; color:#e05c5c;">${c.message}</span></li>`)
+        .map(c => `<li style="text-align:left; margin-bottom:4px;"><b>${escapeHtml(c.title)}</b><br><span style="font-size:0.85em; color:#e05c5c;">${escapeHtml(c.message)}</span></li>`)
         .join('');
       Swal.fire({
         icon: 'warning',

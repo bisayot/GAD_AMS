@@ -160,6 +160,41 @@ class FileStorage
     }
 
     /**
+     * Move a file from archived → drafts.
+     */
+    public static function moveToDrafts(string $fileName): bool
+    {
+        if (empty($fileName)) return true;
+
+        if (self::isCloud()) {
+            $s3 = self::getClient();
+            $bucket = self::getBucket();
+            try {
+                if ($s3->doesObjectExist($bucket, 'archived/' . $fileName)) {
+                    $s3->copyObject([
+                        'Bucket'     => $bucket,
+                        'Key'        => 'drafts/' . $fileName,
+                        'CopySource' => "{$bucket}/archived/{$fileName}"
+                    ]);
+                    $s3->deleteObject([
+                        'Bucket' => $bucket,
+                        'Key'    => 'archived/' . $fileName
+                    ]);
+                }
+                return true;
+            } catch (\Exception $e) {
+                log_message('error', 'R2 Move To Drafts Failed: ' . $e->getMessage());
+                return true;
+            }
+        } else {
+            $src = self::archivedPath() . DIRECTORY_SEPARATOR . $fileName;
+            $dst = self::draftsPath() . DIRECTORY_SEPARATOR . $fileName;
+            if (file_exists($src)) return rename($src, $dst);
+            return true;
+        }
+    }
+
+    /**
      * Delete a file from drafts.
      */
     public static function deleteFromDrafts(string $fileName): void

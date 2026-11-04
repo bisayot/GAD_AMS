@@ -528,6 +528,12 @@ class BackupController extends ResourceController
                 if ($relative === '' || str_contains($relative, '..')) {
                     throw new RuntimeException('Unsafe file path in backup archive.');
                 }
+                $baseName = strtolower(basename($relative));
+                $ext = strtolower(pathinfo($relative, PATHINFO_EXTENSION));
+                $blockedExtensions = ['php', 'phtml', 'php3', 'php4', 'php5', 'php7', 'php8', 'phar', 'htaccess', 'cgi', 'pl', 'sh', 'bat', 'cmd', 'exe'];
+                if ($baseName === '.htaccess' || in_array($ext, $blockedExtensions, true)) {
+                    throw new RuntimeException('Disallowed executable file type in backup archive: ' . $baseName);
+                }
                 $contents = $zip->getFromIndex($index);
                 if ($contents === false) {
                     throw new RuntimeException('Unable to read uploaded file from backup.');
@@ -763,26 +769,133 @@ class BackupController extends ResourceController
 
     private function removeProtectedTableStatements(string $sql): string
     {
-        foreach (self::PROTECTED_TABLES as $table) {
-            $identifier = preg_quote($table, '/');
-            $sql = preg_replace(
-                '/^DROP TABLE IF EXISTS [`"]?' . $identifier . '[`"]?\\s*;\\s*$/mi',
-                '',
-                $sql
-            );
-            $sql = preg_replace(
-                '/^CREATE TABLE [`"]?' . $identifier . '[`"]?.*?;\\s*$/mis',
-                '',
-                $sql
-            );
-            $sql = preg_replace(
-                '/^INSERT INTO [`"]?' . $identifier . '[`"]?.*?;\\s*$/mi',
-                '',
-                $sql
-            );
+        $statements = $this->splitSqlStatements($sql);
+        $cleanStatements = [];
+
+        foreach ($statements as $stmt) {
+            $trimmed = trim($stmt);
+            if ($trimmed === '') {
+                continue;
+            }
+
+            if ($this->statementTargetsProtectedTable($trimmed)) {
+                if (function_exists('log_message')) {
+                    log_message('info', 'Backup restore: Skipped statement targeting protected table.');
+                }
+                continue;
+            }
+
+            $cleanStatements[] = $trimmed;
         }
 
-        return $sql;
+        return empty($cleanStatements) ? '' : implode(";\n", $cleanStatements) . ";\n";
+    }
+
+    /**
+     * Splits SQL by semicolon while respecting string literals, backticks, and comments.
+     */
+    private function splitSqlStatements(string $sql): array
+    {
+        $statements = [];
+        $len = strlen($sql);
+        $current = '';
+        $inSingleQuote = false;
+        $inDoubleQuote = false;
+        $inBacktick = false;
+        $inLineComment = false;
+        $inBlockComment = false;
+
+        for ($i = 0; $i < $len; $i++) {
+            $char = $sql[$i];
+            $nextChar = ($i + 1 < $len) ? $sql[$i + 1] : '';
+
+            // Handle line comments: -- or #
+            if (!$inSingleQuote && !$inDoubleQuote && !$inBacktick && !$inBlockComment) {
+                if (!$inLineComment && (($char === '-' && $nextChar === '-') || $char === '#')) {
+                    $inLineComment = true;
+                }
+            }
+            if ($inLineComment) {
+                $current .= $char;
+                if ($char === "\n") {
+                    $inLineComment = false;
+                }
+                continue;
+            }
+
+            // Handle block comments: /* ... */
+            if (!$inSingleQuote && !$inDoubleQuote && !$inBacktick && !$inLineComment) {
+                if (!$inBlockComment && $char === '/' && $nextChar === '*') {
+                    $inBlockComment = true;
+                }
+            }
+            if ($inBlockComment) {
+                $current .= $char;
+                if ($char === '*' && $nextChar === '/') {
+                    $current .= $nextChar;
+                    $i++;
+                    $inBlockComment = false;
+                }
+                continue;
+            }
+
+            // Handle escapes in strings
+            if ($char === '\\' && ($inSingleQuote || $inDoubleQuote)) {
+                $current .= $char . $nextChar;
+                $i++;
+                continue;
+            }
+
+            if ($char === "'" && !$inDoubleQuote && !$inBacktick) {
+                $inSingleQuote = !$inSingleQuote;
+            } elseif ($char === '"' && !$inSingleQuote && !$inBacktick) {
+                $inDoubleQuote = !$inDoubleQuote;
+            } elseif ($char === '`' && !$inSingleQuote && !$inDoubleQuote) {
+                $inBacktick = !$inBacktick;
+            }
+
+            if ($char === ';' && !$inSingleQuote && !$inDoubleQuote && !$inBacktick) {
+                $trimmed = trim($current);
+                if ($trimmed !== '') {
+                    $statements[] = $trimmed;
+                }
+                $current = '';
+                continue;
+            }
+
+            $current .= $char;
+        }
+
+        $trimmed = trim($current);
+        if ($trimmed !== '') {
+            $statements[] = $trimmed;
+        }
+
+        return $statements;
+    }
+
+    /**
+     * Checks if a statement targets any table in PROTECTED_TABLES.
+     */
+    private function statementTargetsProtectedTable(string $stmt): bool
+    {
+        $clean = preg_replace('/\/\*.*?\*\//s', ' ', $stmt);
+        $clean = preg_replace('/(--|#)[^\r\n]*/', ' ', $clean);
+        $clean = trim(preg_replace('/\s+/', ' ', $clean));
+
+        foreach (self::PROTECTED_TABLES as $table) {
+            $escaped = preg_quote($table, '/');
+            if (preg_match('/^DROP\s+(TABLE|VIEW)(\s+IF\s+EXISTS)?\s+[`"]?' . $escaped . '[`"]?(\s|;|$)/i', $clean)) return true;
+            if (preg_match('/^CREATE\s+(TABLE|VIEW)(\s+IF\s+NOT\s+EXISTS)?\s+[`"]?' . $escaped . '[`"]?(\s|\(|;|$)/i', $clean)) return true;
+            if (preg_match('/^INSERT(\s+IGNORE)?\s+INTO\s+[`"]?' . $escaped . '[`"]?(\s|\(|;|$)/i', $clean)) return true;
+            if (preg_match('/^REPLACE(\s+INTO)?\s+[`"]?' . $escaped . '[`"]?(\s|\(|;|$)/i', $clean)) return true;
+            if (preg_match('/^TRUNCATE(\s+TABLE)?\s+[`"]?' . $escaped . '[`"]?(\s|;|$)/i', $clean)) return true;
+            if (preg_match('/^ALTER\s+TABLE\s+[`"]?' . $escaped . '[`"]?(\s|;|$)/i', $clean)) return true;
+            if (preg_match('/^DELETE\s+FROM\s+[`"]?' . $escaped . '[`"]?(\s|;|$)/i', $clean)) return true;
+            if (preg_match('/^UPDATE\s+[`"]?' . $escaped . '[`"]?\s+SET\s+/i', $clean)) return true;
+        }
+
+        return false;
     }
 
     private function addDirectoryToArchive(ZipArchive $archive, string $directory, string $archiveRoot): void

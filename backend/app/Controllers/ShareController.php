@@ -28,8 +28,7 @@ class ShareController extends ResourceController
             }
         }
 
-        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
-        $currentUrl = $protocol . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+        $currentUrl = base_url('api/share/news-iec/' . (int)$post['id']);
 
         $data = [
             'post' => $post,

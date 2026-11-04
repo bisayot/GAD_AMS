@@ -708,8 +708,14 @@ const validateRevisionDeadline = () => {
 
 const handleBeforeUnload = () => {
   if (design.value && design.value.act_design_id && design.value.status === 'Pending') {
-    const url = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/'}activity-design/unmark-viewed/${design.value.act_design_id}`;
-    navigator.sendBeacon(url);
+    const base = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/').replace(/\/?$/, '/');
+    const url = `${base}activity-design/unmark-viewed/${design.value.act_design_id}`;
+    const token = localStorage.getItem('authToken');
+    fetch(url, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      keepalive: true
+    }).catch(() => {});
   }
 };
 
@@ -1360,7 +1366,7 @@ const pdfFileUrl = ref('');
 
 const getPdfjsUrl = () => {
   if (!design.value || !design.value.attachment) return '#';
-  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : 'https://gad-ams-2-1.onrender.com');
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : (typeof window !== 'undefined' ? window.location.origin : ''));
   const fileUrl = `${base}/api/files/drafts/${design.value.attachment}`;
   const userRole = user.value?.role || user.value?.user_role || '';
   return `/pdfjs/web/viewer.html?file=${encodeURIComponent(fileUrl)}&role=${encodeURIComponent(userRole)}`;
@@ -1368,7 +1374,7 @@ const getPdfjsUrl = () => {
 
 const previewFile = (fileName) => {
   if (!fileName) return;
-  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : 'https://gad-ams-2-1.onrender.com');
+  const base = (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '') : (typeof window !== 'undefined' ? window.location.origin : ''));
   pdfFileUrl.value = `${base}/api/files/drafts/${fileName}`;
   isPdfModalOpen.value = true;
 };

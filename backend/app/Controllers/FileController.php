@@ -184,13 +184,40 @@ class FileController extends BaseController
         // Sanitize filename to prevent directory traversal
         $cleanName = basename($filename);
 
+        if ($cleanFolder === 'drafts' && !in_array($role, ['admin', 'director', 'gad_staff', 'staff', 'superadmin'], true)) {
+            $db = \Config\Database::connect();
+            $hasAd = $db->table('activity_design')
+                ->where('user_id', $userId)
+                ->where('attachment', $cleanName)
+                ->countAllResults();
+
+            $hasAr = false;
+            if ($hasAd === 0) {
+                $hasAr = $db->table('accomplishment_report')
+                    ->where('user_id', $userId)
+                    ->like('attachment', $cleanName)
+                    ->countAllResults() > 0;
+            }
+
+            if ($hasAd === 0 && !$hasAr) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Forbidden: You do not have permission to overwrite this draft file.'
+                ])->setStatusCode(403);
+            }
+        }
+
         $success = FileStorage::overwrite($cleanFolder, $cleanName, $file->getTempName(), $file->getMimeType());
 
         if ($success) {
+            $fileUrl = FileStorage::isCloud()
+                ? (($cleanFolder === 'drafts') ? FileStorage::getCloudDraftUrl($cleanName) : FileStorage::getCloudArchivedUrl($cleanName))
+                : base_url("api/files/{$cleanFolder}/{$cleanName}");
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'File overwritten successfully',
-                'url' => ($cleanFolder === 'drafts') ? FileStorage::getCloudDraftUrl($cleanName) : FileStorage::getCloudArchivedUrl($cleanName)
+                'url' => $fileUrl
             ]);
         }
 

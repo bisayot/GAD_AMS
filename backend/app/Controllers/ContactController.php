@@ -44,11 +44,15 @@ class ContactController extends BaseController
             
             $adminEmail = 'gad.office@bsu.edu.ph'; // Replace with actual recipient if needed
             
+            $escName = esc($data['name']);
+            $escEmail = esc($data['email']);
+            $escSubject = esc($data['subject']);
+
             $htmlMessage = "
                 <h2>New Contact Inquiry</h2>
-                <p><strong>Name:</strong> {$data['name']}</p>
-                <p><strong>Email:</strong> {$data['email']}</p>
-                <p><strong>Subject:</strong> {$data['subject']}</p>
+                <p><strong>Name:</strong> {$escName}</p>
+                <p><strong>Email:</strong> {$escEmail}</p>
+                <p><strong>Subject:</strong> {$escSubject}</p>
                 <br/>
                 <p><strong>Message:</strong></p>
                 <p>" . nl2br(esc($data['message'])) . "</p>
@@ -75,6 +79,8 @@ class ContactController extends BaseController
             
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, ENVIRONMENT === 'production');
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, ENVIRONMENT === 'production' ? 2 : 0);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
             
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
