@@ -6,7 +6,6 @@
     </main>
     <Footer v-if="!isDashboard" />
     <BackToTop />
-    <FloatingFeedback />
   </div>
 </template>
 
@@ -16,7 +15,6 @@ import { useRoute } from 'vue-router';
 import Navbar from './components/Navbar.vue';
 import Footer from './components/Footer.vue';
 import BackToTop from './components/BackToTop.vue';
-import FloatingFeedback from './components/FloatingFeedback.vue';
 import { useHolidays } from './utils/useHolidays';
 
 const route = useRoute();
