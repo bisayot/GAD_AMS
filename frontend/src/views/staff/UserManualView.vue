@@ -15,14 +15,14 @@
           </p>
         </div>
 
-        <!-- Mode Switcher Tabs -->
+        <!-- Mode Switcher Tabs & Fast Direct Links -->
         <div class="tab-controls-wrapper">
           <div class="mode-tabs">
             <button
               type="button"
               class="tab-btn"
               :class="{ active: activeMode === 'slide' }"
-              @click="activeMode = 'slide'"
+              @click="switchMode('slide')"
             >
               <span class="material-symbols-outlined text-[18px]">auto_stories</span>
               <span>Interactive Slides</span>
@@ -31,76 +31,88 @@
               type="button"
               class="tab-btn"
               :class="{ active: activeMode === 'video' }"
-              @click="activeMode = 'video'"
+              @click="switchMode('video')"
             >
               <span class="material-symbols-outlined text-[18px]">smart_display</span>
               <span>Video Walkthrough</span>
             </button>
-            <button
-              type="button"
-              class="tab-btn"
-              :class="{ active: activeMode === 'both' }"
-              @click="activeMode = 'both'"
-            >
-              <span class="material-symbols-outlined text-[18px]">view_agenda</span>
-              <span>View Both</span>
-            </button>
           </div>
 
+          <!-- Direct Link for Instant Loading -->
           <a
             :href="activeMode === 'video' ? videoSrc : slideSrc"
             target="_blank"
             rel="noopener noreferrer"
             class="open-external-btn"
-            title="Open in new window"
+            title="Open directly in Scribe for fastest performance & full-screen view"
           >
             <span class="material-symbols-outlined text-[18px]">open_in_new</span>
-            <span class="hidden sm:inline">Fullscreen</span>
+            <span>Open in Scribe (Fastest Fullscreen)</span>
           </a>
         </div>
       </div>
 
-      <!-- Main Viewer Area -->
+      <!-- Main Viewer Area with Skeleton Loader -->
       <div class="manual-content-wrapper">
-        <!-- Slide Mode -->
-        <div v-show="activeMode === 'slide' || activeMode === 'both'" class="viewer-section">
-          <div v-if="activeMode === 'both'" class="section-subheading">
-            <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-purple-600 dark:text-purple-400">auto_stories</span>
-              <h2 class="text-lg font-bold text-slate-800 dark:text-white">Interactive Slide Guide</h2>
+        <!-- Interactive Slide Mode -->
+        <div v-if="activeMode === 'slide'" class="viewer-section">
+          <div class="iframe-container slide-container relative">
+            <!-- Loading Skeleton -->
+            <div v-if="isSlideLoading" class="iframe-skeleton">
+              <div class="spinner-wrapper">
+                <span class="material-symbols-outlined animate-spin text-purple-600 text-3xl">progress_activity</span>
+                <p class="text-sm font-semibold text-slate-700 dark:text-slate-200 mt-2">Connecting to Scribe guide...</p>
+                <p class="text-xs text-slate-400">Loading interactive screenshots and instructions</p>
+              </div>
             </div>
-            <p class="text-sm text-slate-500 dark:text-slate-400">Step through GAD staff workflows, document reviews, and administrative tools.</p>
-          </div>
-          <div class="iframe-container slide-container">
+
             <iframe
               :src="slideSrc"
               width="800"
               height="679"
               allow="fullscreen"
+              loading="lazy"
               class="manual-iframe"
+              :class="{ 'opacity-0': isSlideLoading, 'opacity-100': !isSlideLoading }"
               style="aspect-ratio: 1 / 1; border: 0; min-height: 480px; width: 100%; max-width: 900px;"
+              @load="isSlideLoading = false"
             ></iframe>
           </div>
         </div>
 
         <!-- Video Mode -->
-        <div v-show="activeMode === 'video' || activeMode === 'both'" class="viewer-section" :class="{ 'mt-10 pt-10 border-t border-slate-200 dark:border-white/10': activeMode === 'both' }">
-          <div v-if="activeMode === 'both'" class="section-subheading">
-            <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-purple-600 dark:text-purple-400">smart_display</span>
-              <h2 class="text-lg font-bold text-slate-800 dark:text-white">Video Walkthrough</h2>
+        <div v-if="activeMode === 'video'" class="viewer-section">
+          <div class="iframe-container video-container relative">
+            <!-- Loading Skeleton -->
+            <div v-if="isVideoLoading" class="iframe-skeleton video-skeleton">
+              <div class="spinner-wrapper">
+                <span class="material-symbols-outlined animate-spin text-purple-600 text-3xl">progress_activity</span>
+                <p class="text-sm font-semibold text-slate-700 dark:text-slate-200 mt-2">Loading video walkthrough...</p>
+                <p class="text-xs text-slate-400">Streaming media from Scribe</p>
+              </div>
             </div>
-            <p class="text-sm text-slate-500 dark:text-slate-400">Watch the complete video demonstration of the GAD Staff features and processes.</p>
-          </div>
-          <div class="iframe-container video-container">
+
             <iframe
               :src="videoSrc"
               width="100%"
               height="800"
               allow="fullscreen"
+              loading="lazy"
               class="manual-iframe"
+              :class="{ 'opacity-0': isVideoLoading, 'opacity-100': !isVideoLoading }"
               style="aspect-ratio: 16 / 12; border: 0; min-height: 480px; width: 100%; max-width: 1100px;"
+              @load="isVideoLoading = false"
             ></iframe>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Tips Card: Embed vs Direct Link -->
+      <div class="tips-card">
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined text-purple-600 dark:text-purple-400 text-xl flex-shrink-0 mt-0.5">tips_and_updates</span>
+          <div class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+            <strong>Tip:</strong> If the embedded guide is slow due to network conditions, click <strong>“Open in Scribe (Fastest Fullscreen)”</strong> above to launch Scribe directly in a dedicated tab with native caching.
           </div>
         </div>
       </div>
@@ -136,9 +148,20 @@ const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
 
 const activeMode = ref('slide');
+const isSlideLoading = ref(true);
+const attendsToVideo = ref(false);
+const isVideoLoading = ref(true);
 
 const slideSrc = 'https://scribehow.com/embed/GAD_Staff_User_Manual__SElm2OgoTmCz099KmkPGQw';
 const videoSrc = 'https://scribehow.com/embed/GAD_Staff_User_Manual__SElm2OgoTmCz099KmkPGQw?as=video';
+
+const switchMode = (mode) => {
+  activeMode.value = mode;
+  if (mode === 'video' && !attendsToVideo.value) {
+    attendsToVideo.value = true;
+    isVideoLoading.value = true;
+  }
+};
 
 onMounted(() => {
   if (!user.value.id || user.value.role !== 'gad_staff') {
@@ -159,7 +182,7 @@ onMounted(() => {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 /* Header Card */
@@ -253,22 +276,24 @@ onMounted(() => {
 .open-external-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.5rem 0.875rem;
-  border-radius: 0.5rem;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.625rem;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #475569;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  color: #ffffff;
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  border: none;
   text-decoration: none;
+  box-shadow: 0 2px 8px rgba(109, 40, 217, 0.25);
   transition: all 0.2s ease;
 }
 
 .open-external-btn:hover {
-  background: #f8fafc;
-  color: #7e22ce;
-  border-color: #cbd5e1;
+  background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
+  box-shadow: 0 4px 14px rgba(109, 40, 217, 0.35);
+  transform: translateY(-1px);
+  color: #ffffff;
 }
 
 /* Viewer Content Wrapper */
@@ -277,7 +302,9 @@ onMounted(() => {
   border-radius: 1.25rem;
   border: 1px solid #e2e8f0;
   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
-  padding: 2rem;
+  padding: 1.5rem;
+  min-height: 520px;
+  position: relative;
   transition: all 0.3s ease;
 }
 
@@ -288,16 +315,51 @@ onMounted(() => {
   align-items: center;
 }
 
-.section-subheading {
-  width: 100%;
-  margin-bottom: 1.25rem;
-}
-
 .iframe-container {
   width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
+}
+
+/* Skeleton Loading State */
+.iframe-skeleton {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  min-height: 480px;
+  max-width: 900px;
+  margin: 0 auto;
+  border-radius: 0.75rem;
+  background: linear-gradient(110deg, #f8fafc 8%, #f1f5f9 18%, #f8fafc 33%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s linear infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e2e8f0;
+  z-index: 10;
+}
+
+.video-skeleton {
+  max-width: 1100px;
+}
+
+.spinner-wrapper {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+@keyframes shimmer {
+  to {
+    background-position-x: -200%;
+  }
 }
 
 .manual-iframe {
@@ -306,7 +368,15 @@ onMounted(() => {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
   border: 1px solid #e2e8f0;
   background: #ffffff;
-  transition: box-shadow 0.2s ease;
+  transition: opacity 0.3s ease, box-shadow 0.2s ease;
+}
+
+/* Tips Card */
+.tips-card {
+  background: rgba(147, 51, 234, 0.04);
+  border: 1px solid rgba(147, 51, 234, 0.15);
+  border-radius: 0.75rem;
+  padding: 0.875rem 1.25rem;
 }
 
 /* Support Card */
@@ -314,7 +384,7 @@ onMounted(() => {
   background: #ffffff;
   border-radius: 1rem;
   border: 1px solid #e2e8f0;
-  padding: 1.5rem;
+  padding: 1.25rem 1.5rem;
   display: flex;
   gap: 1.25rem;
   align-items: flex-start;
@@ -412,22 +482,16 @@ onMounted(() => {
   box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.3);
 }
 
-:global(.dark) .open-external-btn,
-.dark .open-external-btn {
-  background: #2d2640;
-  color: #cbd5e1;
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-:global(.dark) .open-external-btn:hover,
-.dark .open-external-btn:hover {
-  background: #38304f;
-  color: #ffffff;
-}
-
 :global(.dark) .manual-content-wrapper,
 .dark .manual-content-wrapper {
   background: #1e1b2e;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global(.dark) .iframe-skeleton,
+.dark .iframe-skeleton {
+  background: linear-gradient(110deg, #181524 8%, #252037 18%, #181524 33%);
+  background-size: 200% 100%;
   border-color: rgba(255, 255, 255, 0.08);
 }
 
@@ -436,6 +500,12 @@ onMounted(() => {
   border-color: rgba(255, 255, 255, 0.08);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
   background: #12101b;
+}
+
+:global(.dark) .tips-card,
+.dark .tips-card {
+  background: rgba(192, 132, 252, 0.05);
+  border-color: rgba(192, 132, 252, 0.15);
 }
 
 :global(.dark) .support-card,
