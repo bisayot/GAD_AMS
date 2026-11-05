@@ -91,7 +91,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
               <h4 style="color: var(--color-on-background); font-weight: 600; font-size: 1.25rem; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
                 <span class="title-indicator" style="position: relative; height: 1.25rem; margin-right: 0;"></span>
-                Gender-Disaggregated Data
+                Sex-Disaggregated Data (SDD)
               </h4>
               <select v-model="analyticsYear" @change="fetchAnalyticsData" style="background: var(--color-surface); color: var(--color-on-background); border: 1px solid rgba(147, 51, 234, 0.3); border-radius: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.9rem; outline: none; cursor: pointer;">
                 <option v-for="year in availableYears" :key="year" :value="year" style="background: var(--color-surface-variant); color: var(--color-on-background);">{{ year }}</option>

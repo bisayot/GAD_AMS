@@ -162,7 +162,7 @@
         <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; flex-wrap: wrap; gap: 16px;">
           <div>
             <p class="section-tag" style="color: var(--color-primary-text);">University Impact</p>
-            <h2 class="section-title" style="margin-bottom: 0;">Gender-Disaggregated Data</h2>
+            <h2 class="section-title" style="margin-bottom: 0;">Sex-Disaggregated Data (SDD)</h2>
           </div>
           <select aria-label="Analytics Year" v-model="analyticsYear" class="impact-year-select">
             <option v-for="year in availableYears" :key="year" :value="year">{{ year }}</option>

@@ -92,7 +92,7 @@
               <li><strong>Pending Reviews:</strong> Shows number of activity designs and accomplishment reports awaiting review.</li>
               <li><strong>Total Activity Designs:</strong> Count of submitted activity designs.</li>
               <li><strong>Total Accomplishment Reports:</strong> Count of submitted accomplishment reports.</li>
-              <li><strong>Gender-Disaggregated Data (GDD):</strong> Displays total participants, total male, and total female counts based on the submitted accomplishment reports.</li>
+              <li><strong>Sex-Disaggregated Data (SDD):</strong> Displays total participants, total male, and total female counts based on the submitted accomplishment reports.</li>
               <li><strong>Calendar Widget:</strong> Shows upcoming deadlines and scheduled activities.</li>
             </ul>
           </div>

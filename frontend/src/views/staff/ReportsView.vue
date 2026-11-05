@@ -216,7 +216,7 @@ onMounted(() => {
 // Row data transcribed from the original FY2025 GAD Accomplishment Report.
 // budget/cost items: [ label, budgetAmount, actualCostAmount, fundSource ]
 // indicators / actualResult: { text, m, f }  — m/f left as '' when the
-// original report gave no gender-disaggregated figure for that field.
+// original report gave no sex-disaggregated figure for that field.
 // ---------------------------------------------------------------------
 const rows = [
   { section:"CLIENT-FOCUSED ACTIVITIES", issue:"Part VII of CHED Memorandum Order Number 1, series 2015 on Gender-Responsive Research and Extension Program", cause:"Presence of gender inequality, poverty and GAD-related concerns in the community", result:"To sustain GAD-related extension activities delivering technology transfer, Livelihood Program, Technical Assistance, and Advocacy to community partners to help promote gender equality, poverty reduction and sustainable development", org:"MFO: Technical Advisory Extension Program", activity:"Conduct of Extension project/activities to partner organizational/communities as component of Gender Responsive Extension Program (GREP) to partner organization/communities", responsible:"Research and Extension, GAD Office, various offices/colleges in the University/external campuses", remarks:"Done.",

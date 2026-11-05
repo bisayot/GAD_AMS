@@ -80,6 +80,7 @@
               <li><strong>Total GAD Budget</strong> - Displays current total budget.</li>
               <li><strong>Remaining Balance</strong> - Displays the remaining budget after an accomplishment report is verified.</li>
               <li><strong>GAD Allocation</strong> - Displays the allocation based on the GAD plan and budget.</li>
+              <li><strong>Sex-Disaggregated Data (SDD)</strong> - Displays total participants, total male, and total female counts based on the verified accomplishment reports.</li>
               <li><strong>Calendar Widget</strong> - Shows upcoming deadlines and scheduled activities.</li>
               <li><strong>Recent Activity Logs</strong> - Tracks recent system activities.</li>
             </ul>
@@ -167,7 +168,7 @@
             <ul class="styled-list">
               <li><strong>Automatic Integration:</strong> Every GAD plan and budget item added in the GAD plan and budget distribution page will automatically appear in this section.</li>
               <li><strong>Expense Calculation:</strong> Actual expenses are calculated and populated automatically based on the entries in the GAD plan and budget distribution section.</li>
-              <li><strong>Participant Demographics:</strong> The gender of participants is automatically inputted based on the approved accomplishment reports.</li>
+              <li><strong>Participant Demographics:</strong> The sex of participants (sex-disaggregated data) is automatically inputted based on the approved accomplishment reports.</li>
               <li><strong>Publishing Reports:</strong> Once the report is verified, it is added to Approved Documents.</li>
             </ul>
           </div>
