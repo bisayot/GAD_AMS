@@ -419,11 +419,21 @@
           </div>
 
           <div class="form-group" style="margin-bottom: 16px;">
-            <label>Quick Select Issues (Optional)</label>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; max-height: 200px; overflow-y: auto; padding-right: 8px;">
-              <label v-for="(issue, idx) in revisionIssueOptions" :key="idx" style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #cbd5e1; cursor: pointer;">
-                <input type="checkbox" :value="issue" v-model="selectedRevisionIssues" style="accent-color: #9333ea; width: 16px; height: 16px;">
-                {{ issue }}
+            <label class="quick-select-header-label">Quick Select Issues (Optional)</label>
+            <div class="quick-select-grid">
+              <label 
+                v-for="(issue, idx) in revisionIssueOptions" 
+                :key="idx" 
+                class="quick-select-item"
+                :class="{ 'is-selected': selectedRevisionIssues.includes(issue) }"
+              >
+                <input 
+                  type="checkbox" 
+                  :value="issue" 
+                  v-model="selectedRevisionIssues" 
+                  class="quick-select-checkbox"
+                />
+                <span class="quick-select-text">{{ issue }}</span>
               </label>
             </div>
           </div>
