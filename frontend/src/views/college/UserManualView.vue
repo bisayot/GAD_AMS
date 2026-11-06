@@ -6,7 +6,7 @@
         <div class="header-left">
           <div class="header-badge">
             <span class="material-symbols-outlined text-sm">menu_book</span>
-            <span>Documentation &amp; User Guides</span>
+            <span>User Guide</span>
           </div>
           <h1 class="page-title">TWG / Other Proponents User Manual</h1>
           <p class="page-subtitle">
@@ -44,10 +44,10 @@
             target="_blank"
             rel="noopener noreferrer"
             class="open-external-btn"
-            title="Open directly in Scribe for fastest performance & full-screen view"
+            title="Open directly in Scribe for full-screen view"
           >
             <span class="material-symbols-outlined text-[18px]">open_in_new</span>
-            <span>Open in Scribe (Fastest Fullscreen)</span>
+            <span>Open in Scribe</span>
           </a>
         </div>
       </div>
@@ -111,28 +111,8 @@
       <div class="tips-card">
         <div class="flex items-start gap-3">
           <span class="material-symbols-outlined text-purple-600 dark:text-purple-400 text-xl flex-shrink-0 mt-0.5">tips_and_updates</span>
-          <div class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-            <strong>Tip:</strong> If the embedded guide is slow due to network conditions, click <strong>“Open in Scribe (Fastest Fullscreen)”</strong> above to launch Scribe directly in a dedicated tab with native caching.
-          </div>
-        </div>
-      </div>
-
-      <!-- Support Footer Box -->
-      <div class="support-card">
-        <div class="support-icon">
-          <span class="material-symbols-outlined text-purple-600 dark:text-purple-400 text-2xl">support_agent</span>
-        </div>
-        <div class="support-info">
-          <h3 class="support-heading">Need Technical Support or Have Questions?</h3>
-          <p class="support-desc">
-            For assistance with activity designs, accomplishment reports, or user account permissions, please contact the Benguet State University Gender and Development Office.
-          </p>
-          <div class="support-meta">
-            <span><strong>Email:</strong> <a href="mailto:gad.office@bsu.edu.ph" class="text-purple-600 dark:text-purple-400 hover:underline">gad.office@bsu.edu.ph</a></span>
-            <span class="hidden sm:inline">•</span>
-            <span><strong>Telephone:</strong> (074) 422-2401 loc 123</span>
-            <span class="hidden sm:inline">•</span>
-            <span>BSU GAD-AMS Portal</span>
+          <div class="tips-text">
+            <strong>Tip:</strong> If the embedded guide is slow due to network conditions, click <strong>“Open in Scribe”</strong> above to launch Scribe directly in a dedicated tab with native caching.
           </div>
         </div>
       </div>
@@ -373,10 +353,22 @@ onMounted(() => {
 
 /* Tips Card */
 .tips-card {
-  background: rgba(147, 51, 234, 0.04);
-  border: 1px solid rgba(147, 51, 234, 0.15);
+  background: rgba(147, 51, 234, 0.08);
+  border: 1px solid rgba(147, 51, 234, 0.25);
   border-radius: 0.75rem;
   padding: 0.875rem 1.25rem;
+}
+
+.tips-text {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.tips-text strong {
+  color: #7e22ce;
+  font-weight: 700;
 }
 
 /* Support Card */
@@ -504,8 +496,18 @@ onMounted(() => {
 
 :global(.dark) .tips-card,
 .dark .tips-card {
-  background: rgba(192, 132, 252, 0.05);
-  border-color: rgba(192, 132, 252, 0.15);
+  background: rgba(192, 132, 252, 0.12);
+  border-color: rgba(192, 132, 252, 0.3);
+}
+
+:global(.dark) .tips-text,
+.dark .tips-text {
+  color: #f1f5f9;
+}
+
+:global(.dark) .tips-text strong,
+.dark .tips-text strong {
+  color: #d8b4fe;
 }
 
 :global(.dark) .support-card,
