@@ -353,10 +353,11 @@ onMounted(() => {
 
 /* Tips Card */
 .tips-card {
-  background: rgba(147, 51, 234, 0.08);
+  background: #fbf7ff;
   border: 1px solid rgba(147, 51, 234, 0.25);
   border-radius: 0.75rem;
   padding: 0.875rem 1.25rem;
+  box-shadow: 0 2px 8px -1px rgba(147, 51, 234, 0.06);
 }
 
 .tips-text {
@@ -369,59 +370,6 @@ onMounted(() => {
 .tips-text strong {
   color: #7e22ce;
   font-weight: 700;
-}
-
-/* Support Card */
-.support-card {
-  background: #ffffff;
-  border-radius: 1rem;
-  border: 1px solid #e2e8f0;
-  padding: 1.25rem 1.5rem;
-  display: flex;
-  gap: 1.25rem;
-  align-items: flex-start;
-  box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.03);
-}
-
-.support-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 0.75rem;
-  background: rgba(147, 51, 234, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.support-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.support-heading {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0;
-}
-
-.support-desc {
-  font-size: 0.875rem;
-  color: #64748b;
-  margin: 0;
-  line-height: 1.5;
-}
-
-.support-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8125rem;
-  color: #64748b;
-  margin-top: 0.25rem;
 }
 
 /* Dark Mode Overrides */
@@ -496,8 +444,9 @@ onMounted(() => {
 
 :global(.dark) .tips-card,
 .dark .tips-card {
-  background: rgba(192, 132, 252, 0.12);
-  border-color: rgba(192, 132, 252, 0.3);
+  background: #1e1b2e;
+  border-color: rgba(192, 132, 252, 0.35);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
 }
 
 :global(.dark) .tips-text,
@@ -508,26 +457,5 @@ onMounted(() => {
 :global(.dark) .tips-text strong,
 .dark .tips-text strong {
   color: #d8b4fe;
-}
-
-:global(.dark) .support-card,
-.dark .support-card {
-  background: #1e1b2e;
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-:global(.dark) .support-heading,
-.dark .support-heading {
-  color: #f8fafc;
-}
-
-:global(.dark) .support-desc,
-.dark .support-desc {
-  color: #94a3b8;
-}
-
-:global(.dark) .support-meta,
-.dark .support-meta {
-  color: #94a3b8;
 }
 </style>
